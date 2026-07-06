@@ -59,3 +59,5 @@ Die heutige `index.html` bleibt fast unverändert – nur die `fetch`-URL zeigt 
 - BYOK als Zusatzoption behalten: Power-User mit eigenem Key kosten dich weiterhin 0 €
 
 **Empfehlung in einem Satz:** Bleib jetzt bei BYOK + Demo (kostet dich nichts, validiert die Idee), und wenn die ersten Leute zahlen wollen, bau die Stufe-2-Brücke mit Supabase + Stripe – die Zahlen zeigen, dass 8–15 €/Monat die KI-Kosten um ein Vielfaches decken.
+
+> **Update:** Der erste Teil von Stufe 2 – die **zentrale Nutzerverwaltung über Supabase** (Konten, serverseitige Testphase, einmalige Premium-Codes, Admin-Dashboard) – ist bereits fertig eingebaut. Einrichtung in ~10 Minuten: siehe [BACKEND.md](BACKEND.md). Es fehlt danach nur noch der KI-Proxy + Stripe für echtes Bezahlen.

@@ -459,6 +459,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
       <input type="password" id="auPass" placeholder="Passwort (mind. 6 Zeichen)" maxlength="80" autocomplete="current-password">
       <div class="auth-err" id="authErr"></div>
       <button class="btn btn-primary gate-cta" id="authGo">Kostenlos starten</button>
+      <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
     </div>
     <p class="gate-note">🔒 Dein Konto wird nur auf diesem Gerät gespeichert – keine Cloud, keine Werbung.<br>Nach der Testphase schaltet ein Premium-Code alle Funktionen dauerhaft frei.</p>
@@ -740,6 +741,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
   </defs>
 </svg>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 (() => {
 'use strict';
@@ -874,6 +876,13 @@ $('#obNext').addEventListener('click', () => { obIdx < 2 ? obShow(obIdx + 1) : o
 $('#obSkip').addEventListener('click', obFinish);
 $('#obName').addEventListener('keydown', e => { if (e.key === 'Enter') obFinish(); });
 
+/* ============================== CLOUD-BACKEND (Supabase) ============================== */
+/* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus wie bisher.   */
+const SUPABASE_URL = '';        /* z. B. 'https://abcdefgh.supabase.co'            */
+const SUPABASE_ANON_KEY = '';   /* der "anon public" Key (darf öffentlich sein)    */
+const CLOUD = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
 /* ============================== AUTH & PLAN ============================== */
 const ACC_KEY = 'nexa_account';
 const TRIAL0_KEY = 'nexa_trial0';
@@ -924,7 +933,25 @@ function gate() {
   if (!loggedIn) setupAuthForm();
 }
 
+let cloudAuthMode = 'reg';   /* Cloud-Modus: 'reg' | 'login' */
+
 function setupAuthForm() {
+  $('#authErr').textContent = '';
+  if (CLOUD) {
+    const isReg = cloudAuthMode === 'reg';
+    $('#auName').style.display = isReg ? '' : 'none';
+    $('#auEmail').style.display = '';
+    $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Anmelden';
+    $('#authSub').textContent = isReg
+      ? '3 Tage kostenlos testen – alle Funktionen inklusive.'
+      : 'Schön, dass du wieder da bist!';
+    $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
+    $('#authToggle').style.display = '';
+    $('#authToggle').textContent = isReg ? 'Schon ein Konto? Hier anmelden' : 'Neu hier? Konto kostenlos erstellen';
+    $('#authReset').style.display = isReg ? 'none' : '';
+    $('#authReset').textContent = 'Passwort vergessen?';
+    return;
+  }
   const isReg = !account;
   $('#auName').style.display = isReg ? '' : 'none';
   $('#auEmail').style.display = isReg ? '' : 'none';
@@ -933,8 +960,78 @@ function setupAuthForm() {
     ? '3 Tage kostenlos testen – alle Funktionen inklusive.'
     : 'Angemeldet bleiben als ' + account.email;
   $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
+  $('#authToggle').style.display = 'none';
   $('#authReset').style.display = isReg ? 'none' : '';
-  $('#authErr').textContent = '';
+  $('#authReset').textContent = 'Passwort vergessen? Konto zurücksetzen';
+}
+
+/* Übersetzt Supabase-Fehlermeldungen in verständliches Deutsch */
+function mapAuthError(m) {
+  m = String(m || '');
+  if (/already registered|already exists/i.test(m)) return 'Diese E-Mail ist bereits registriert – melde dich einfach an.';
+  if (/invalid login credentials/i.test(m)) return 'E-Mail oder Passwort ist falsch.';
+  if (/email not confirmed/i.test(m)) return 'Bitte bestätige zuerst deine E-Mail-Adresse (Postfach prüfen).';
+  if (/rate limit|too many/i.test(m)) return 'Zu viele Versuche – bitte kurz warten.';
+  if (/valid email/i.test(m)) return 'Bitte eine gültige E-Mail-Adresse eingeben.';
+  return 'Das hat nicht geklappt: ' + m;
+}
+
+/* Baut das account-Objekt aus einer Supabase-Session + Profil (Plan, Testphase vom Server) */
+async function cloudSession(session, fallbackName) {
+  const user = session.user;
+  let p = null;
+  try {
+    const r = await sb.from('profiles').select('name,plan,trial_start').eq('id', user.id).single();
+    p = r.data;
+  } catch (e) {}
+  account = {
+    cloud: true,
+    name: (p && p.name) || fallbackName || (user.user_metadata && user.user_metadata.name) || '',
+    email: user.email,
+    plan: (p && p.plan) || 'free',
+    trialStart: (p && p.trial_start) ? new Date(p.trial_start).getTime() : Date.now(),
+    loggedIn: true
+  };
+  if (account.name && !store.name) { store.name = account.name; save(); }
+}
+
+async function cloudAuth(pass, err) {
+  const email = $('#auEmail').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; return; }
+  $('#authGo').disabled = true;
+  try {
+    if (cloudAuthMode === 'reg') {
+      const name = $('#auName').value.trim();
+      const r = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
+      if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
+      if (!r.data.session) {
+        /* E-Mail-Bestätigung ist aktiviert: erst bestätigen, dann anmelden */
+        cloudAuthMode = 'login';
+        setupAuthForm();
+        $('#authSub').textContent = '📬 Fast geschafft! Bestätige deine E-Mail-Adresse und melde dich dann hier an.';
+        return;
+      }
+      await cloudSession(r.data.session, name);
+      toast('Konto erstellt – 3 Tage alles inklusive ✨');
+    } else {
+      const r = await sb.auth.signInWithPassword({ email, password: pass });
+      if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
+      await cloudSession(r.data.session);
+      toast('Willkommen zurück' + (account.name ? ', ' + account.name : '') + ' 👋');
+    }
+    $('#auPass').value = '';
+    gate();
+    if (!isTrialExpired() && !store.onboarded) {
+      $('#onboarding').classList.add('on');
+      obShow(0);
+      $('#obName').value = store.name || account.name || '';
+    }
+    refresh();
+  } catch (e) {
+    err.textContent = 'Keine Verbindung zum Server. Bist du online?';
+  } finally {
+    $('#authGo').disabled = false;
+  }
 }
 
 async function submitAuth() {
@@ -942,6 +1039,7 @@ async function submitAuth() {
   err.textContent = '';
   const pass = $('#auPass').value;
   if (pass.length < 6) { err.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; return; }
+  if (CLOUD) { await cloudAuth(pass, err); return; }
   if (!account) {
     const name = $('#auName').value.trim();
     const email = $('#auEmail').value.trim().toLowerCase();
@@ -975,7 +1073,13 @@ async function submitAuth() {
   }
 }
 
-function logout() {
+async function logout() {
+  if (CLOUD) {
+    try { await sb.auth.signOut(); } catch (e) {}
+    account = null;
+    gate();
+    return;
+  }
   if (!account) return;
   account.loggedIn = false;
   saveAccount();
@@ -986,6 +1090,27 @@ async function activatePremium(code, errEl) {
   errEl.textContent = '';
   code = (code || '').trim().toUpperCase();
   if (!code) { errEl.textContent = 'Bitte einen Freischalt-Code eingeben.'; return false; }
+  if (CLOUD) {
+    /* Serverseitige Einlösung – Codes sind einmalig verwendbar */
+    try {
+      const r = await sb.rpc('redeem_code', { p_code: code });
+      if (r.error) { errEl.textContent = 'Das hat nicht geklappt – bitte später erneut versuchen.'; return false; }
+      if (r.data === 'ok') {
+        account.plan = 'premium';
+        gate();
+        toast('Premium freigeschaltet – alles inklusive 💎');
+        refresh();
+        return true;
+      }
+      errEl.textContent = r.data === 'already_used'
+        ? 'Dieser Code wurde bereits eingelöst.'
+        : 'Dieser Code ist leider ungültig.';
+      return false;
+    } catch (e) {
+      errEl.textContent = 'Keine Verbindung zum Server. Bist du online?';
+      return false;
+    }
+  }
   if (!(window.crypto && crypto.subtle)) { errEl.textContent = 'Die Aktivierung benötigt eine sichere Verbindung (https).'; return false; }
   const h = await sha256Hex(code);
   if (PREMIUM_HASHES.indexOf(h) === -1) { errEl.textContent = 'Dieser Code ist leider ungültig.'; return false; }
@@ -1000,12 +1125,39 @@ async function activatePremium(code, errEl) {
 
 $('#authGo').addEventListener('click', submitAuth);
 $('#auPass').addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
-$('#authReset').addEventListener('click', () => {
+$('#authReset').addEventListener('click', async () => {
+  if (CLOUD) {
+    const email = $('#auEmail').value.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      $('#authErr').textContent = 'Gib oben deine E-Mail-Adresse ein – dann schicken wir dir einen Link.';
+      return;
+    }
+    try { await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); } catch (e) {}
+    $('#authErr').textContent = '';
+    $('#authSub').textContent = '📬 Falls ein Konto mit dieser E-Mail existiert, ist ein Link zum Zurücksetzen unterwegs.';
+    return;
+  }
   if (!confirm('Konto zurücksetzen? Du kannst dich danach neu registrieren. Aufgaben, Termine und Dokumente bleiben erhalten, die Testphase läuft weiter.')) return;
   try { localStorage.removeItem(ACC_KEY); } catch (e) {}
   account = null;
   setupAuthForm();
 });
+$('#authToggle').addEventListener('click', () => {
+  cloudAuthMode = cloudAuthMode === 'reg' ? 'login' : 'reg';
+  setupAuthForm();
+});
+if (CLOUD) {
+  /* Kommt der Nutzer über den "Passwort vergessen"-Link zurück, neues Passwort setzen */
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY' && session) {
+      const np = prompt('Neues Passwort festlegen (mind. 6 Zeichen):');
+      if (np && np.length >= 6) {
+        const r = await sb.auth.updateUser({ password: np });
+        toast(r.error ? '⚠️ Passwort konnte nicht geändert werden' : 'Passwort geändert ✓');
+      }
+    }
+  });
+}
 $('#pwGo').addEventListener('click', () => activatePremium($('#pwCode').value, $('#pwErr')));
 $('#pwCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pwGo').click(); });
 $('#pwLogout').addEventListener('click', logout);
@@ -1736,6 +1888,12 @@ function renderAccountCard() {
 $('#setNameSave').addEventListener('click', () => {
   store.name = $('#setName').value.trim();
   save();
+  if (CLOUD && account && account.loggedIn) {
+    account.name = store.name;
+    sb.auth.getUser().then(r => {
+      if (r.data.user) sb.from('profiles').update({ name: store.name }).eq('id', r.data.user.id).then(() => {});
+    });
+  }
   toast(store.name ? 'Gespeichert, ' + store.name + ' ✓' : 'Name entfernt');
 });
 $('#setKeySave').addEventListener('click', () => {
@@ -1774,23 +1932,43 @@ $('#btnDemoData').addEventListener('click', () => {
   refresh();
   toast('Demo-Daten geladen ✨');
 });
-$('#btnWipe').addEventListener('click', () => {
-  if (!confirm('Wirklich ALLE Daten löschen? Aufgaben, Termine, Dokumente, Chat und dein Konto werden entfernt.')) return;
+$('#btnWipe').addEventListener('click', async () => {
+  const msg = CLOUD
+    ? 'Wirklich ALLE lokalen Daten löschen? Aufgaben, Termine, Dokumente und Chat werden entfernt. Dein Konto bleibt bestehen, du wirst nur abgemeldet.'
+    : 'Wirklich ALLE Daten löschen? Aufgaben, Termine, Dokumente, Chat und dein Konto werden entfernt.';
+  if (!confirm(msg)) return;
   try {
     localStorage.removeItem(DATA_KEY);
     localStorage.removeItem(KEY_KEY);
-    localStorage.removeItem(ACC_KEY);
+    if (!CLOUD) localStorage.removeItem(ACC_KEY);
   } catch (e) {}
+  if (CLOUD) { try { await sb.auth.signOut(); } catch (e) {} }
   location.reload();
 });
 
 /* ============================== INIT ============================== */
 refreshAIStatus();
-gate();
-if (account && account.loggedIn && !isTrialExpired() && !store.onboarded) {
-  $('#onboarding').classList.add('on');
-  obShow(0);
-  $('#obName').value = store.name || account.name || '';
+if (CLOUD) {
+  account = null;   /* lokales Konto ignorieren – Cloud entscheidet */
+  gate();
+  sb.auth.getSession().then(async (r) => {
+    if (!r.data.session) return;
+    await cloudSession(r.data.session);
+    gate();
+    if (!isTrialExpired() && !store.onboarded) {
+      $('#onboarding').classList.add('on');
+      obShow(0);
+      $('#obName').value = store.name || account.name || '';
+    }
+    refresh();
+  });
+} else {
+  gate();
+  if (account && account.loggedIn && !isTrialExpired() && !store.onboarded) {
+    $('#onboarding').classList.add('on');
+    obShow(0);
+    $('#obName').value = store.name || account.name || '';
+  }
 }
 showView('dashboard');
 
