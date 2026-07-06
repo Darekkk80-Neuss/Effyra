@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
 <style>
 /* ============================== TOKENS ============================== */
 :root{
@@ -419,6 +419,60 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .l-btn.del:hover{color:var(--danger)}
 .l-pause{text-align:center;font-size:12px;color:var(--faint);padding:2px 0 8px;font-weight:600}
 
+/* ============================== DOKUMENTENASSISTENT ============================== */
+.dg-search{margin-bottom:10px}
+.dg-free{width:100%;margin-bottom:16px;border-color:rgba(167,139,250,.4);color:#ddd6fe;background:rgba(124,58,237,.12)}
+.dg-list{display:flex;flex-direction:column;gap:8px;margin-bottom:4px}
+.dg-tpl{display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:13px;border:1px solid var(--border);background:var(--card);color:var(--text);text-align:left;transition:.18s;width:100%}
+.dg-tpl:hover{border-color:var(--border2);transform:translateX(2px)}
+.dg-tpl-t{flex:1;font-size:14.5px;font-weight:600}
+.dg-star{font-size:18px;color:var(--faint);line-height:1;padding:3px 5px;border-radius:8px;flex:none}
+.dg-star.on{color:#fbbf24}
+.dg-grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.dg-grid2 .span2{grid-column:1 / -1}
+.dg-mydata{margin-bottom:14px}
+.dg-mydata summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none}
+.dg-mydata summary::-webkit-details-marker{display:none}
+.dg-mydata[open] summary{margin-bottom:14px}
+.dg-fields{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.dg-check{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--muted);margin-bottom:14px;cursor:pointer}
+.dg-check input{width:auto}
+.dg-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(248,113,113,.18)}
+.letter{background:#fff;color:#1c1c1c;max-width:720px;margin:0 auto;border-radius:12px;padding:44px 50px;
+  font-size:14px;line-height:1.7;box-shadow:0 20px 60px rgba(0,0,0,.5);text-shadow:none;overflow-wrap:break-word}
+.letter .l-sender{font-size:11.5px;color:#555;margin-bottom:34px;line-height:1.5}
+.letter .l-recipient{margin-bottom:28px;line-height:1.55}
+.letter .l-place{text-align:right;margin-bottom:24px;color:#333}
+.letter .l-subject{font-weight:700;margin-bottom:20px}
+.letter .l-body p{margin-bottom:13px}
+.letter > p{margin-bottom:13px}
+.letter .l-check{list-style:none;margin:8px 0}
+.letter .l-check li{padding:5px 0;font-size:14px}
+.letter .l-sign{margin-top:6px;line-height:1.25}
+.letter .l-sign .sig{font-family:'Caveat',cursive;font-size:30px;color:#111;display:block}
+@media print{
+  body{background:#fff !important}
+  body > *:not(#printRoot){display:none !important}
+  #printRoot{display:block !important}
+  #printRoot .letter{box-shadow:none;border-radius:0;max-width:none;width:100%;margin:0;padding:0 8mm}
+}
+/* Mehr-Sheet (mobil) */
+.more-sheet{position:fixed;inset:0;z-index:60;display:none}
+.more-sheet.on{display:block}
+.more-sheet::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.5)}
+.more-panel{position:absolute;left:0;right:0;bottom:0;background:rgba(14,17,26,.98);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--border2);
+  border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));animation:sheetUp .25s ease both}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+.more-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.more-grid button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 8px;border-radius:16px;
+  border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13.5px;font-weight:600;transition:.18s}
+.more-grid button:hover{border-color:var(--border2)}
+.more-grid .mi{font-size:24px}
+@media(min-width:900px){.more-sheet{display:none !important}}
+#printRoot{display:none}
+
 /* ============================== AUTH & PAYWALL (GATES) ============================== */
 .gate{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;align-items:center;
   justify-content:center;padding:28px 24px;overflow-y:auto;background:
@@ -544,6 +598,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
     <nav class="snav">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg>Dashboard</button>
       <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg>Dokumente</button>
+      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg>Vorlagen</button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
       <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Schule</button>
@@ -670,6 +725,11 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
       <div id="kidList"></div>
     </section>
 
+    <!-- ============================== DOKUMENTENASSISTENT ============================== -->
+    <section class="view" id="view-docgen">
+      <div id="dgRoot"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -737,14 +797,26 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 
   <nav class="tabbar">
     <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span>Start</span></button>
-    <button class="tab" data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span>Doks</span></button>
+    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span>Vorlagen</span></button>
     <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>NEXA</span></button>
-    <button class="tab" data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg><span>Schule</span></button>
     <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span>Aufgaben</span></button>
-    <button class="tab" data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span>Kalender</span></button>
+    <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span>Mehr</span></button>
   </nav>
 
 </div>
+
+<div id="moreSheet" class="more-sheet">
+  <div class="more-panel">
+    <div class="more-grid">
+      <button data-view="docs"><span class="mi">📄</span>Dokumente (Foto)</button>
+      <button data-view="school"><span class="mi">🎒</span>Schule</button>
+      <button data-view="calendar"><span class="mi">📅</span>Kalender</button>
+      <button data-view="settings"><span class="mi">⚙️</span>Einstellungen</button>
+    </div>
+  </div>
+</div>
+
+<div id="printRoot"></div>
 
 <div id="toasts"></div>
 
@@ -764,6 +836,8 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
     <symbol id="icCheck2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icCal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icSchool" viewBox="0 0 24 24"><path d="M12 4.5 2.5 9.5l9.5 5 9.5-5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 12v3.8c0 1.3 2.5 2.4 5.5 2.4s5.5-1.1 5.5-2.4V12M21.5 9.5V15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icPen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m14 7 3 3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="icMore" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></symbol>
     <symbol id="icSpark" viewBox="0 0 24 24"><path d="M12 2c.6 4.8 2.4 7.4 8 8-5.6.6-7.4 3.2-8 8-.6-4.8-2.4-7.4-8-8 5.6-.6 7.4-3.2 8-8z" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor" opacity=".7"/></symbol>
     <symbol id="icGear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8 13.5 6a6.6 6.6 0 0 1 2.4 1.4l3.4-.9 1.5 2.7-2.3 2.6a6.7 6.7 0 0 1 0 2.4l2.3 2.6-1.5 2.7-3.4-.9a6.6 6.6 0 0 1-2.4 1.4L12 21.2 10.5 18a6.6 6.6 0 0 1-2.4-1.4l-3.4.9-1.5-2.7 2.3-2.6a6.7 6.7 0 0 1 0-2.4L3.2 7.2l1.5-2.7 3.4.9A6.6 6.6 0 0 1 10.5 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     <symbol id="icCam" viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
@@ -854,6 +928,8 @@ const store = Object.assign({
   docs: [],     // {id,docType,title,sender,explanation,deadline,urgency,todos,replyDraft,thumb,demo,tasksApplied,eventApplied,createdAt}
   chat: [],     // {role:'user'|'bot', text, actions:[{label,kind,payload,done}]}
   kids: [],     // {id,name,color,lessonMin,breakMin,breakEvery,sched:{1..5:{start,subjects[]}}}
+  profile: {},  // Absenderdaten: {name,street,zip,city,email,phone}
+  docFavs: [],  // Template-IDs der Favoriten
   settings: { model: 'claude-sonnet-5', demoIdx: 0 }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
@@ -870,11 +946,14 @@ const hasKey = () => getKey().length > 8;
 let currentView = 'dashboard';
 const RENDERERS = {};
 
+const MORE_VIEWS = ['docs', 'school', 'calendar', 'settings'];
 function showView(name) {
   currentView = name;
   gate();
+  $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   $$('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  $('#moreTab').classList.toggle('active', MORE_VIEWS.includes(name));
   if (RENDERERS[name]) RENDERERS[name]();
   window.scrollTo(0, 0);
 }
@@ -882,6 +961,8 @@ function refresh() { if (RENDERERS[currentView]) RENDERERS[currentView](); }
 
 $$('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $('#btnTopSettings').addEventListener('click', () => showView('settings'));
+$('#moreTab').addEventListener('click', () => $('#moreSheet').classList.toggle('on'));
+$('#moreSheet').addEventListener('click', e => { if (e.target === $('#moreSheet')) $('#moreSheet').classList.remove('on'); });
 
 function refreshAIStatus() {
   const on = hasKey();
@@ -1593,6 +1674,278 @@ $('#kidList').addEventListener('change', e => {
   if (set === 'breakEvery') kid.breakEvery = Math.min(6, Math.max(1, +e.target.value || 2));
   save();
   RENDERERS.school();
+});
+
+/* ============================== DOKUMENTENASSISTENT ============================== */
+const DOC_CATS = [
+  { id: 'wohnen', icon: '🏠', label: 'Wohnen' },
+  { id: 'vertraege', icon: '📱', label: 'Verträge & Abos' },
+  { id: 'behoerden', icon: '🏢', label: 'Behörden & Meldungen' },
+  { id: 'arbeit', icon: '💼', label: 'Arbeit' },
+  { id: 'finanzen', icon: '💰', label: 'Finanzen' },
+  { id: 'energie', icon: '⚡', label: 'Energie & Versorgung' },
+  { id: 'fahrzeug', icon: '🚗', label: 'Fahrzeug' },
+  { id: 'mitteilungen', icon: '📬', label: 'Mitteilungen' }
+];
+const DFIELDS = {
+  empfName: { l: 'Empfänger (Firma/Person)', ph: 'z. B. Musterfirma GmbH' },
+  empfAddr: { l: 'Anschrift des Empfängers', ph: 'Straße Nr., PLZ Ort', ta: 1 },
+  empfEmail: { l: 'E-Mail des Empfängers (für Versand)', ph: 'name@firma.de' },
+  vertragsnr: { l: 'Vertrags-/Kundennummer', ph: 'sofern vorhanden' },
+  datum: { l: 'Datum', t: 'date' },
+  objekt: { l: 'Betroffene Wohnung / Anschrift', ph: 'Straße Nr., PLZ Ort' },
+  neueAdresse: { l: 'Neue Anschrift', ph: 'Straße Nr., PLZ Ort', ta: 1 },
+  iban: { l: 'IBAN', ph: 'DE00 0000 0000 0000 0000 00' },
+  betrag: { l: 'Betrag', ph: 'z. B. 89,90 €' },
+  von: { l: 'Von', t: 'date' },
+  bis: { l: 'Bis', t: 'date' },
+  mangel: { l: 'Beschreibung', ph: 'Was ist der Mangel?', ta: 1 },
+  text: { l: 'Dein Anliegen', ph: 'Beschreibe kurz, worum es geht', ta: 1 },
+  altName: { l: 'Bisheriger Name', ph: '' },
+  neuName: { l: 'Neuer Name', ph: '' },
+  kennzeichen: { l: 'Kfz-Kennzeichen', ph: 'z. B. NE-AB 123' },
+  bevoll: { l: 'Bevollmächtigte Person', ph: 'Vor- und Nachname' },
+  zweck: { l: 'Zweck der Vollmacht', ph: 'Wofür gilt die Vollmacht?', ta: 1 },
+  verstorben: { l: 'Name der/des Verstorbenen', ph: '' },
+  sterbedatum: { l: 'Verstorben am', t: 'date' },
+  betreffFrei: { l: 'Betreff', ph: 'Worum geht es?' }
+};
+
+const fd = (x) => x ? parseISO(x).toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+const zum = (x) => x ? 'zum ' + fd(x) : 'zum nächstmöglichen Zeitpunkt';
+const vnr = (v) => v.vertragsnr ? ' mit der Vertrags-/Kundennummer ' + v.vertragsnr : '';
+const kb = (art) => (v) => 'hiermit kündige ich ' + art + vnr(v) + ' fristgerecht ' + zum(v.datum) + ', hilfsweise zum nächstmöglichen Zeitpunkt.\n\nBitte bestätigen Sie mir die Kündigung sowie das genaue Vertragsende schriftlich. Falls eine fristgerechte Kündigung zum genannten Datum nicht möglich ist, bitte ich um Mitteilung des nächstmöglichen Termins.';
+const umBody = (art) => (v) => 'hiermit teile ich Ihnen mit, dass ich ' + zum(v.datum) + ' umziehe. Bitte melden Sie ' + art + (v.vertragsnr ? ' (Kundennummer ' + v.vertragsnr + ')' : '') + ' auf meine neue Anschrift um:\n\n' + (v.neueAdresse || '') + '\n\nBitte teilen Sie mir mit, welche Zählerstände oder Unterlagen Sie benötigen, und bestätigen Sie die Ummeldung.';
+
+const DOC_TPL = [
+  // 🏠 Wohnen
+  { id: 'miet-kuend', cat: 'wohnen', title: 'Mietvertrag kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'objekt', 'datum?'], labels: { objekt: 'Anschrift der Wohnung', datum: 'Kündigung zum' }, betreff: () => 'Kündigung des Mietvertrags', body: (v) => 'hiermit kündige ich das Mietverhältnis für die Wohnung ' + (v.objekt || '') + ' fristgerecht ' + zum(v.datum) + ', hilfsweise zum nächstmöglichen Zeitpunkt.\n\nBitte bestätigen Sie mir den Eingang der Kündigung sowie das Mietende schriftlich. Zudem bitte ich um einen Termin zur gemeinsamen Wohnungsübergabe und um Mitteilung, wie die Rückzahlung der Mietkaution erfolgt.' },
+  { id: 'umzug', cat: 'wohnen', title: 'Umzug mitteilen', fields: ['empfName', 'empfAddr', 'neueAdresse', 'datum?'], labels: { datum: 'Umzug zum' }, betreff: () => 'Mitteilung meiner neuen Anschrift', body: (v) => 'hiermit teile ich Ihnen mit, dass ich ' + zum(v.datum) + ' umziehe. Bitte ändern Sie meine Anschrift in Ihren Unterlagen entsprechend.\n\nMeine neue Anschrift lautet:\n' + (v.neueAdresse || '') + '\n\nBitte senden Sie zukünftige Post an die neue Adresse und bestätigen Sie mir die Änderung.' },
+  { id: 'nachsende', cat: 'wohnen', title: 'Nachsendeauftrag (Information)', fields: ['empfName', 'empfAddr', 'neueAdresse', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Information zu meiner neuen Zustelladresse', body: (v) => 'hiermit informiere ich Sie, dass meine Post ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' an folgende Adresse zugestellt werden soll:\n\n' + (v.neueAdresse || '') + '\n\nBitte berücksichtigen Sie diese Änderung und bestätigen Sie mir den Eingang.' },
+  { id: 'uebergabe', cat: 'wohnen', title: 'Wohnungsübergabe-Checkliste', type: 'checklist', fields: [], items: ['Zählerstände notieren (Strom, Gas, Wasser)', 'Alle Schlüssel übergeben und Anzahl festhalten', 'Wohnung besenrein übergeben', 'Wände, Decken und Böden auf Schäden prüfen', 'Bohrlöcher fachgerecht verschließen', 'Fenster und Türen auf Funktion prüfen', 'Gemeinsames Übergabeprotokoll unterschreiben', 'Bankverbindung für die Kautionsrückzahlung angeben', 'Fotos vom Zustand der Wohnung machen', 'Nachsendeauftrag bei der Post einrichten'] },
+  { id: 'maengel', cat: 'wohnen', title: 'Mängelanzeige an Vermieter', fields: ['empfName', 'empfAddr', 'objekt', 'mangel', 'datum?'], labels: { objekt: 'Betroffene Wohnung', mangel: 'Beschreibung des Mangels', datum: 'Frist zur Behebung bis' }, betreff: () => 'Mängelanzeige', body: (v) => 'hiermit zeige ich Ihnen folgenden Mangel in meiner Wohnung ' + (v.objekt || '') + ' an:\n\n' + (v.mangel || '') + '\n\nIch bitte Sie, den Mangel bis ' + (v.datum ? fd(v.datum) : 'zum nächstmöglichen Zeitpunkt') + ' zu beheben. Sollte die Frist ergebnislos verstreichen, behalte ich mir eine Mietminderung sowie weitere Schritte vor. Bitte bestätigen Sie mir den Eingang dieser Anzeige.' },
+  { id: 'kaution', cat: 'wohnen', title: 'Kautionsrückforderung', fields: ['empfName', 'empfAddr', 'objekt', 'iban', 'datum?'], labels: { objekt: 'Ehemalige Wohnung', iban: 'IBAN für die Rücküberweisung', datum: 'Mietende war' }, betreff: () => 'Rückzahlung der Mietkaution', body: (v, p) => 'das Mietverhältnis für die Wohnung ' + (v.objekt || '') + ' endete ' + (v.datum ? 'am ' + fd(v.datum) : 'vor Kurzem') + '. Die Wohnung wurde ordnungsgemäß übergeben.\n\nIch bitte Sie, die hinterlegte Mietkaution inklusive der aufgelaufenen Zinsen innerhalb von 14 Tagen auf folgendes Konto zu überweisen:\n\nKontoinhaber: ' + (p.name || '') + '\nIBAN: ' + (v.iban || '____') + '\n\nBitte bestätigen Sie mir den Eingang dieses Schreibens.' },
+  // 📱 Verträge & Abos
+  { id: 'handy-kuend', cat: 'vertraege', title: 'Handyvertrag kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meines Mobilfunkvertrags', body: kb('meinen Mobilfunkvertrag') },
+  { id: 'internet-kuend', cat: 'vertraege', title: 'Internetvertrag kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meines Internetvertrags', body: kb('meinen Internet- bzw. DSL-Vertrag') },
+  { id: 'streaming-kuend', cat: 'vertraege', title: 'Streaming-Abo kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meines Streaming-Abonnements', body: kb('mein Streaming-Abonnement') },
+  { id: 'fitness-kuend', cat: 'vertraege', title: 'Fitnessstudio kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meiner Fitnessstudio-Mitgliedschaft', body: kb('meine Mitgliedschaft im Fitnessstudio') },
+  { id: 'versicherung-kuend', cat: 'vertraege', title: 'Versicherung kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meiner Versicherung', body: kb('die im Betreff genannte Versicherung') },
+  { id: 'mitgliedschaft-kuend', cat: 'vertraege', title: 'Mitgliedschaft beenden', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meiner Mitgliedschaft', body: kb('meine Mitgliedschaft') },
+  // 🏢 Behörden & Meldungen
+  { id: 'adress-behoerde', cat: 'behoerden', title: 'Adressänderung', fields: ['empfName', 'empfAddr', 'neueAdresse', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Mitteilung meiner neuen Anschrift', body: (v) => 'hiermit teile ich Ihnen meine neue Anschrift mit. Bitte aktualisieren Sie meine Daten ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ':\n\n' + (v.neueAdresse || '') + '\n\nBitte bestätigen Sie mir die Änderung schriftlich.' },
+  { id: 'namensaenderung', cat: 'behoerden', title: 'Namensänderung', fields: ['empfName', 'empfAddr', 'altName', 'neuName', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Mitteilung meiner Namensänderung', body: (v) => 'hiermit teile ich Ihnen mit, dass sich mein Name geändert hat.\n\nBisheriger Name: ' + (v.altName || '') + '\nNeuer Name: ' + (v.neuName || '') + '\n\nDie Änderung gilt ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + '. Bitte aktualisieren Sie Ihre Unterlagen und bestätigen Sie mir die Änderung.' },
+  { id: 'aenderungsmitteilung', cat: 'behoerden', title: 'Änderungsmitteilung an Behörde', fields: ['empfName', 'empfAddr', 'text'], labels: { text: 'Was hat sich geändert?' }, betreff: () => 'Änderungsmitteilung', body: (v) => 'hiermit teile ich Ihnen folgende Änderung meiner persönlichen Verhältnisse mit:\n\n' + (v.text || '') + '\n\nBitte berücksichtigen Sie diese Änderung in Ihren Unterlagen und bestätigen Sie mir den Eingang.' },
+  { id: 'kindergeld', cat: 'behoerden', title: 'Kindergeld-/Elterngeld-Mitteilung', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'text'], labels: { vertragsnr: 'Kindergeld-Nummer', text: 'Ihre Mitteilung' }, betreff: (v) => 'Mitteilung zu meinem Kindergeld' + (v.vertragsnr ? ' (Nr. ' + v.vertragsnr + ')' : ''), body: (v) => 'hiermit teile ich Ihnen im Zusammenhang mit meinem Kindergeld- bzw. Elterngeldanspruch Folgendes mit:\n\n' + (v.text || '') + '\n\nBitte berücksichtigen Sie diese Angaben und bestätigen Sie mir den Eingang.' },
+  { id: 'steuer-adress', cat: 'behoerden', title: 'Steuerliche Adressänderung', fields: ['empfName', 'empfAddr', 'neueAdresse', 'vertragsnr?', 'datum?'], labels: { vertragsnr: 'Steuernummer', datum: 'Gültig ab' }, betreff: (v) => 'Adressänderung' + (v.vertragsnr ? ' – Steuernummer ' + v.vertragsnr : ''), body: (v) => 'hiermit teile ich Ihnen meine neue Anschrift für steuerliche Zwecke mit. Bitte aktualisieren Sie meine Daten ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ':\n\n' + (v.neueAdresse || '') + '\n\nBitte bestätigen Sie mir die Änderung.' },
+  // 💼 Arbeit
+  { id: 'eigenkuendigung', cat: 'arbeit', title: 'Eigenkündigung', deadline: true, fields: ['empfName', 'empfAddr', 'datum?'], labels: { datum: 'Kündigung zum' }, betreff: () => 'Kündigung meines Arbeitsverhältnisses', body: (v) => 'hiermit kündige ich mein bestehendes Arbeitsverhältnis fristgerecht ' + zum(v.datum) + ', hilfsweise zum nächstmöglichen Zeitpunkt.\n\nBitte bestätigen Sie mir den Erhalt und das Datum der Kündigung schriftlich. Ich bitte zudem um ein qualifiziertes Arbeitszeugnis sowie um Mitteilung, wie viele Urlaubstage mir noch zustehen.' },
+  { id: 'arbeit-bank', cat: 'arbeit', title: 'Bankverbindung ändern (Gehalt)', fields: ['empfName', 'empfAddr', 'iban', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Änderung meiner Bankverbindung', body: (v, p) => 'hiermit teile ich Ihnen mit, dass sich meine Bankverbindung für die Gehaltszahlung geändert hat. Bitte überweisen Sie mein Gehalt ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' auf folgendes Konto:\n\nKontoinhaber: ' + (p.name || '') + '\nIBAN: ' + (v.iban || '____') + '\n\nBitte bestätigen Sie mir die Änderung.' },
+  { id: 'elternzeit', cat: 'arbeit', title: 'Elternzeit beantragen', fields: ['empfName', 'empfAddr', 'von?', 'bis?'], labels: { von: 'Elternzeit von', bis: 'Elternzeit bis' }, betreff: () => 'Antrag auf Elternzeit', body: (v) => 'hiermit beantrage ich Elternzeit für den Zeitraum von ' + (v.von ? fd(v.von) : '____') + ' bis ' + (v.bis ? fd(v.bis) : '____') + '.\n\nBitte bestätigen Sie mir die Elternzeit schriftlich. Für ein Gespräch über die Einzelheiten stehe ich gerne zur Verfügung.' },
+  { id: 'urlaub', cat: 'arbeit', title: 'Urlaubsantrag', fields: ['empfName', 'von?', 'bis?'], labels: { von: 'Urlaub von', bis: 'Urlaub bis' }, betreff: () => 'Urlaubsantrag', body: (v) => 'hiermit beantrage ich Urlaub für den Zeitraum von ' + (v.von ? fd(v.von) : '____') + ' bis ' + (v.bis ? fd(v.bis) : '____') + '.\n\nBitte bestätigen Sie mir den Urlaub. Vielen Dank.' },
+  { id: 'arbeitszeugnis', cat: 'arbeit', title: 'Arbeitszeugnis anfordern', fields: ['empfName', 'empfAddr', 'datum?'], labels: { datum: 'Mein Austrittsdatum' }, betreff: () => 'Bitte um ein qualifiziertes Arbeitszeugnis', body: (v) => 'mein Arbeitsverhältnis ' + (v.datum ? 'endete zum ' + fd(v.datum) : 'ist beendet') + '. Ich bitte Sie, mir ein qualifiziertes Arbeitszeugnis auszustellen, das sich auf Leistung und Verhalten erstreckt.\n\nBitte senden Sie mir das Zeugnis an meine im Briefkopf genannte Anschrift. Vielen Dank.' },
+  // 💰 Finanzen
+  { id: 'fin-bank', cat: 'finanzen', title: 'Bankverbindung ändern', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'iban', 'datum?'], labels: { vertragsnr: 'Kundennummer', datum: 'Gültig ab' }, betreff: () => 'Änderung meiner Bankverbindung', body: (v, p) => 'hiermit teile ich Ihnen meine neue Bankverbindung mit. Bitte buchen Sie fällige Beträge ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' von folgendem Konto ab:\n\nKontoinhaber: ' + (p.name || '') + '\nIBAN: ' + (v.iban || '____') + (v.vertragsnr ? '\nKundennummer: ' + v.vertragsnr : '') + '\n\nBitte bestätigen Sie mir die Änderung.' },
+  { id: 'lastschrift', cat: 'finanzen', title: 'Lastschrift widerrufen', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'betrag?', 'datum?'], labels: { betrag: 'Betrag', datum: 'Abbuchungsdatum' }, betreff: () => 'Widerruf einer Lastschrift', body: (v) => 'hiermit widerrufe ich die Einzugsermächtigung bzw. das SEPA-Lastschriftmandat für die Abbuchung' + (v.betrag ? ' über ' + v.betrag : '') + (v.datum ? ' vom ' + fd(v.datum) : '') + (v.vertragsnr ? ' (Kundennummer ' + v.vertragsnr + ')' : '') + '.\n\nBitte nehmen Sie ab sofort keine weiteren Abbuchungen von meinem Konto vor und bestätigen Sie mir den Widerruf schriftlich.' },
+  { id: 'reklamation', cat: 'finanzen', title: 'Abbuchung reklamieren', fields: ['empfName', 'empfAddr', 'betrag?', 'datum?', 'text'], labels: { betrag: 'Reklamierter Betrag', datum: 'Abbuchungsdatum', text: 'Grund der Reklamation' }, betreff: () => 'Reklamation einer Abbuchung', body: (v) => 'auf meinem Konto wurde ' + (v.datum ? 'am ' + fd(v.datum) : 'kürzlich') + ' ein Betrag' + (v.betrag ? ' in Höhe von ' + v.betrag : '') + ' abgebucht, mit dem ich nicht einverstanden bin.\n\n' + (v.text || '') + '\n\nIch bitte Sie, den Vorgang zu prüfen und mir den Betrag zu erstatten. Bitte bestätigen Sie mir den Eingang dieser Reklamation.' },
+  { id: 'ratenzahlung', cat: 'finanzen', title: 'Ratenzahlung beantragen', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'betrag?', 'text?'], labels: { vertragsnr: 'Rechnungs-/Kundennummer', betrag: 'Offener Betrag', text: 'Vorschlag zur Ratenzahlung' }, betreff: () => 'Antrag auf Ratenzahlung', body: (v) => 'bezüglich der offenen Forderung' + (v.betrag ? ' in Höhe von ' + v.betrag : '') + (v.vertragsnr ? ' (Nr. ' + v.vertragsnr + ')' : '') + ' bitte ich um die Möglichkeit einer Ratenzahlung.\n\n' + (v.text ? v.text + '\n\n' : 'Aufgrund meiner derzeitigen finanziellen Situation ist mir eine Zahlung in einer Summe momentan nicht möglich.\n\n') + 'Ich bitte Sie, meinem Vorschlag zuzustimmen und mir dies schriftlich zu bestätigen.' },
+  // ⚡ Energie & Versorgung
+  { id: 'strom', cat: 'energie', title: 'Strom ummelden', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'neueAdresse', 'datum?'], labels: { vertragsnr: 'Zähler-/Kundennummer', datum: 'Umzug zum' }, betreff: () => 'Ummeldung meines Stromvertrags', body: umBody('meinen Stromvertrag') },
+  { id: 'gas', cat: 'energie', title: 'Gas ummelden', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'neueAdresse', 'datum?'], labels: { vertragsnr: 'Zähler-/Kundennummer', datum: 'Umzug zum' }, betreff: () => 'Ummeldung meines Gasvertrags', body: umBody('meinen Gasvertrag') },
+  { id: 'wasser', cat: 'energie', title: 'Wasser ummelden', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'neueAdresse', 'datum?'], labels: { vertragsnr: 'Zähler-/Kundennummer', datum: 'Umzug zum' }, betreff: () => 'Ummeldung meines Wasseranschlusses', body: umBody('meinen Wasseranschluss') },
+  { id: 'muell', cat: 'energie', title: 'Müllgebühren ummelden', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'neueAdresse', 'datum?'], labels: { vertragsnr: 'Aktenzeichen', datum: 'Umzug zum' }, betreff: () => 'Ummeldung der Müllgebühren', body: umBody('meine Müllgebühren') },
+  { id: 'rundfunk', cat: 'energie', title: 'Rundfunkbeitrag bei Umzug', fields: ['empfName', 'empfAddr', 'vertragsnr?', 'neueAdresse', 'datum?'], labels: { vertragsnr: 'Beitragsnummer', datum: 'Umzug zum' }, betreff: (v) => 'Änderung meiner Anschrift' + (v.vertragsnr ? ' – Beitragsnummer ' + v.vertragsnr : ''), body: (v) => 'hiermit teile ich Ihnen mit, dass ich ' + zum(v.datum) + ' umziehe. Bitte aktualisieren Sie meine Anschrift für den Rundfunkbeitrag' + (v.vertragsnr ? ' (Beitragsnummer ' + v.vertragsnr + ')' : '') + ':\n\n' + (v.neueAdresse || '') + '\n\nBitte bestätigen Sie mir die Änderung.' },
+  // 🚗 Fahrzeug
+  { id: 'kfz-vers-kuend', cat: 'fahrzeug', title: 'Kfz-Versicherung kündigen', deadline: true, fields: ['empfName', 'empfAddr', 'vertragsnr?', 'kennzeichen?', 'datum?'], labels: { vertragsnr: 'Versicherungsnummer', datum: 'Kündigung zum' }, betreff: (v) => 'Kündigung meiner Kfz-Versicherung' + (v.kennzeichen ? ' – ' + v.kennzeichen : ''), body: (v) => 'hiermit kündige ich die Kfz-Versicherung für das Fahrzeug' + (v.kennzeichen ? ' mit dem amtlichen Kennzeichen ' + v.kennzeichen : '') + (v.vertragsnr ? ' (Versicherungsnummer ' + v.vertragsnr + ')' : '') + ' fristgerecht ' + zum(v.datum) + ', hilfsweise zum nächstmöglichen Zeitpunkt.\n\nBitte bestätigen Sie mir die Kündigung sowie das Vertragsende schriftlich.' },
+  { id: 'fahrzeug-anab', cat: 'fahrzeug', title: 'Fahrzeug an-/abmelden', fields: ['empfName', 'empfAddr', 'kennzeichen?', 'text', 'datum?'], labels: { text: 'Anliegen (An- oder Abmeldung)', datum: 'Zum Datum' }, betreff: (v) => 'Fahrzeug an-/abmelden' + (v.kennzeichen ? ' – ' + v.kennzeichen : ''), body: (v) => 'hiermit wende ich mich bezüglich meines Fahrzeugs' + (v.kennzeichen ? ' mit dem Kennzeichen ' + v.kennzeichen : '') + ' an Sie.\n\n' + (v.text || 'Ich bitte um Bearbeitung der An- bzw. Abmeldung.') + (v.datum ? '\n\nGewünschtes Datum: ' + fd(v.datum) : '') + '\n\nBitte teilen Sie mir mit, welche Unterlagen Sie benötigen.' },
+  { id: 'halterwechsel', cat: 'fahrzeug', title: 'Halterwechsel', fields: ['empfName', 'empfAddr', 'kennzeichen?', 'text', 'datum?'], labels: { text: 'Angaben zum neuen Halter', datum: 'Zum Datum' }, betreff: (v) => 'Halterwechsel' + (v.kennzeichen ? ' – ' + v.kennzeichen : ''), body: (v) => 'hiermit teile ich Ihnen einen Halterwechsel für mein Fahrzeug' + (v.kennzeichen ? ' mit dem Kennzeichen ' + v.kennzeichen : '') + ' mit.\n\n' + (v.text || '') + (v.datum ? '\n\nGewünschtes Datum: ' + fd(v.datum) : '') + '\n\nBitte teilen Sie mir mit, welche Unterlagen für den Halterwechsel erforderlich sind.' },
+  // 📬 Mitteilungen
+  { id: 'adress-freunde', cat: 'mitteilungen', title: 'Adressänderung an Freunde/Familie', noRecipient: true, salutation: 'Liebe Familie, liebe Freunde,', closing: 'Herzliche Grüße', fields: ['neueAdresse', 'datum?'], labels: { datum: 'Ab wann' }, betreff: () => 'Wir sind umgezogen!', body: (v) => 'wir möchten euch mitteilen, dass wir ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' unter folgender Adresse zu erreichen sind:\n\n' + (v.neueAdresse || '') + '\n\nWir freuen uns auf euren Besuch!' },
+  { id: 'namens-mitteilen', cat: 'mitteilungen', title: 'Namensänderung mitteilen', noRecipient: true, salutation: 'Liebe Familie, liebe Freunde,', closing: 'Herzliche Grüße', fields: ['altName', 'neuName', 'datum?'], labels: { datum: 'Ab wann' }, betreff: () => 'Ich habe einen neuen Namen', body: (v) => 'ich möchte euch mitteilen, dass sich mein Name ' + (v.datum ? 'ab ' + fd(v.datum) : '') + ' geändert hat.\n\nBisher: ' + (v.altName || '') + '\nNeu: ' + (v.neuName || '') + '\n\nBitte merkt euch meinen neuen Namen. Danke!' },
+  { id: 'todesfall', cat: 'mitteilungen', title: 'Todesfall-Mitteilung', noRecipient: true, salutation: 'Liebe Verwandte, liebe Freunde,', closing: 'In stiller Trauer', fields: ['verstorben', 'sterbedatum?', 'text?'], labels: { text: 'Zusätzliche Worte (optional)' }, betreff: () => 'Traurige Nachricht', body: (v) => 'in tiefer Trauer müssen wir Ihnen mitteilen, dass ' + (v.verstorben || 'unser lieber Angehöriger') + (v.sterbedatum ? ' am ' + fd(v.sterbedatum) : '') + ' verstorben ist.\n\n' + (v.text ? v.text + '\n\n' : '') + 'Wir bitten um ein stilles Gedenken.' },
+  { id: 'vollmacht', cat: 'mitteilungen', title: 'Vollmacht erstellen', noRecipient: true, noSalutation: true, closing: '', fields: ['bevoll', 'zweck', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Vollmacht', body: (v, p) => 'Hiermit bevollmächtige ich, ' + (p.name || '____') + ', die folgende Person:\n\n' + (v.bevoll || '____') + '\n\nmich in folgender Angelegenheit zu vertreten:\n\n' + (v.zweck || '____') + '\n\nDiese Vollmacht gilt ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' bis auf Widerruf. Die bevollmächtigte Person ist berechtigt, alle in diesem Zusammenhang erforderlichen Handlungen vorzunehmen und Erklärungen abzugeben.' },
+  // ✨ Freies Anliegen (nicht in Kategorien gelistet)
+  { id: 'frei', cat: null, title: 'Freies Anliegen (mit KI)', fields: ['betreffFrei?', 'empfName?', 'empfAddr?', 'text'], labels: { text: 'Beschreibe dein Anliegen – NEXA formuliert daraus einen Brief' }, betreff: (v) => v.betreffFrei || 'Mein Anliegen', body: (v) => v.text || '' }
+];
+
+let dgState = 'browse', dgActiveId = null, dgValues = {}, dgQuery = '', dgSign = true, dgOverrideBody = null, dgProfileOpen = false;
+const curTpl = () => DOC_TPL.find(x => x.id === dgActiveId);
+const profileComplete = () => !!(store.profile.name && store.profile.street && store.profile.city);
+function ensureProfileName() { if (!store.profile.name && store.name) store.profile.name = store.name; }
+
+RENDERERS.docgen = function () {
+  ensureProfileName();
+  $('#dgRoot').innerHTML = dgState === 'form' ? dgFormHTML() : dgState === 'result' ? dgResultHTML() : dgBrowseHTML();
+};
+
+function tplList(items) {
+  return '<div class="dg-list">' + items.map(t => {
+    const fav = store.docFavs.includes(t.id);
+    return '<button class="dg-tpl" data-dg="open" data-id="' + t.id + '"><span class="dg-tpl-t">' + esc(t.title) + '</span>' +
+      '<span class="dg-star' + (fav ? ' on' : '') + '" data-dg="fav" data-id="' + t.id + '">' + (fav ? '★' : '☆') + '</span></button>';
+  }).join('') + '</div>';
+}
+function dgBrowseHTML() {
+  const q = dgQuery.trim().toLowerCase();
+  const match = (t) => !q || t.title.toLowerCase().includes(q);
+  let h = '<div class="view-head"><h1>Vorlagen</h1><p>Fertige Briefe für Kündigungen, Behörden, Umzug & mehr – in Minuten erledigt.</p></div>';
+  h += '<input type="text" id="dgSearch" class="dg-search" placeholder="🔎 Vorlage suchen …" value="' + esc(dgQuery) + '">';
+  h += '<button class="btn btn-sm dg-free" data-dg="free">✨ Eigenes Anliegen mit KI formulieren</button>';
+  const favs = DOC_TPL.filter(t => store.docFavs.includes(t.id) && t.cat && match(t));
+  if (!q && favs.length) h += '<div class="sec-title"><h2>⭐ Favoriten</h2></div>' + tplList(favs);
+  DOC_CATS.forEach(c => {
+    const items = DOC_TPL.filter(t => t.cat === c.id && match(t));
+    if (items.length) h += '<div class="sec-title"><h2>' + c.icon + ' ' + esc(c.label) + '</h2></div>' + tplList(items);
+  });
+  return h;
+}
+function pField(key, label) {
+  const span = (key === 'zip' || key === 'city') ? '' : ' span2';
+  return '<div class="fld-wrap' + span + '"><label class="fld">' + label + '</label>' +
+    '<input type="text" data-p="' + key + '" value="' + esc(store.profile[key] || '') + '"></div>';
+}
+function fField(t, f) {
+  const opt = f.endsWith('?'), key = opt ? f.slice(0, -1) : f, c = DFIELDS[key] || { l: key };
+  const label = ((t.labels && t.labels[key]) || c.l) + (opt ? ' (optional)' : '');
+  const val = esc(dgValues[key] || ''), req = opt ? '' : ' data-req="1"';
+  if (c.ta) return '<div><label class="fld">' + esc(label) + '</label><textarea data-key="' + key + '"' + req + ' rows="3" placeholder="' + esc(c.ph || '') + '">' + val + '</textarea></div>';
+  return '<div><label class="fld">' + esc(label) + '</label><input type="' + (c.t || 'text') + '" data-key="' + key + '"' + req + ' value="' + val + '" placeholder="' + esc(c.ph || '') + '"></div>';
+}
+function dgFormHTML() {
+  const t = curTpl();
+  let h = '<button class="btn btn-ghost btn-sm" data-dg="back">‹ Zurück zur Auswahl</button>';
+  h += '<div class="view-head" style="margin-top:12px"><h1>' + esc(t.title) + '</h1><p>Deine Daten sind schon eingetragen – ergänze nur noch die Angaben unten.</p></div>';
+  if (t.type !== 'checklist') {
+    h += '<details class="card dg-mydata"' + (dgProfileOpen ? ' open' : '') + '><summary>👤 Meine Daten (Absender)</summary><div class="dg-grid2">' +
+      pField('name', 'Vor- und Nachname') + pField('street', 'Straße & Hausnummer') + pField('zip', 'PLZ') + pField('city', 'Ort') +
+      pField('email', 'E-Mail (optional)') + pField('phone', 'Telefon (optional)') + '</div></details>';
+  }
+  h += '<div class="card"><div class="dg-fields">';
+  (t.fields || []).forEach(f => h += fField(t, f));
+  if (!t.noRecipient && t.type !== 'checklist') h += fField(t, 'empfEmail?');
+  h += '</div>';
+  if (t.type !== 'checklist') h += '<label class="dg-check"><input type="checkbox" id="dgSignChk"' + (dgSign ? ' checked' : '') + '> Mit Unterschrift (Name in Schreibschrift)</label>';
+  h += '<button class="btn btn-primary" data-dg="gen" style="width:100%">' + (t.type === 'checklist' ? '✓ Checkliste erstellen' : '📝 Brief erstellen') + '</button></div>';
+  return h;
+}
+function dgResultHTML() {
+  const t = curTpl();
+  let h = '<button class="btn btn-ghost btn-sm" data-dg="toform">‹ Angaben ändern</button>';
+  h += '<div class="dg-actions" style="margin-top:12px">';
+  h += '<button class="btn btn-primary btn-sm" data-dg="print">🖨️ PDF / Drucken</button>';
+  h += '<button class="btn btn-sm" data-dg="copy">📋 Kopieren</button>';
+  h += '<button class="btn btn-sm" data-dg="mail">✉️ Als E-Mail</button>';
+  if (t.deadline && dgValues.datum) h += '<button class="btn btn-sm" data-dg="frist">⏰ Frist merken</button>';
+  if (t.type !== 'checklist') h += '<button class="btn btn-sm" data-dg="ai">✨ Mit KI verbessern</button>';
+  h += '</div><div id="dgLetter">' + letterHTML(t, dgValues, store.profile) + '</div>';
+  return h;
+}
+function letterHTML(t, v, p) {
+  const today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (t.type === 'checklist') {
+    return '<div class="letter"><div class="l-subject" style="font-size:19px">' + esc(t.title) + '</div>' +
+      '<p>Diese Punkte solltest du bei der Wohnungsübergabe abhaken:</p><ul class="l-check">' +
+      t.items.map(i => '<li>☐ ' + esc(i) + '</li>').join('') + '</ul>' +
+      '<p style="margin-top:22px;color:#777">Erstellt mit NEXA</p></div>';
+  }
+  const sl = [p.name, p.street, ((p.zip || '') + ' ' + (p.city || '')).trim()].filter(x => x && x.trim());
+  if (p.email) sl.push(p.email);
+  if (p.phone) sl.push(p.phone);
+  let h = '<div class="letter"><div class="l-sender">' + sl.map(esc).join('<br>') + '</div>';
+  if (!t.noRecipient) {
+    const rec = [v.empfName, v.empfAddr].filter(x => x && x.trim()).join('\n');
+    if (rec) h += '<div class="l-recipient">' + esc(rec).replace(/\n/g, '<br>') + '</div>';
+  }
+  h += '<div class="l-place">' + esc((p.city ? p.city + ', den ' : '') + today) + '</div>';
+  h += '<div class="l-subject">' + esc(t.betreff(v)) + '</div>';
+  if (!t.noSalutation) h += '<p>' + esc(t.salutation || 'Sehr geehrte Damen und Herren,') + '</p>';
+  const body = dgOverrideBody != null ? dgOverrideBody : t.body(v, p);
+  h += '<div class="l-body">' + body.split(/\n\n+/).map(par => '<p>' + esc(par).replace(/\n/g, '<br>') + '</p>').join('') + '</div>';
+  if (t.closing !== '') h += '<p style="margin-top:18px">' + esc(t.closing || 'Mit freundlichen Grüßen') + '</p>';
+  h += '<div class="l-sign">' + (dgSign ? '<span class="sig">' + esc(p.name || '') + '</span>' : '') + '<span>' + esc(p.name || '') + '</span></div>';
+  return h + '</div>';
+}
+function plainLetter(t, v, p) {
+  const today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  if (t.type === 'checklist') return t.title + '\n\n' + t.items.map(i => '[ ] ' + i).join('\n');
+  const sl = [p.name, p.street, ((p.zip || '') + ' ' + (p.city || '')).trim()].filter(x => x && x.trim());
+  if (p.email) sl.push(p.email);
+  if (p.phone) sl.push(p.phone);
+  let o = sl.join('\n') + '\n\n';
+  if (!t.noRecipient) { const r = [v.empfName, v.empfAddr].filter(x => x && x.trim()).join('\n'); if (r) o += r + '\n\n'; }
+  o += (p.city ? p.city + ', den ' : '') + today + '\n\n' + t.betreff(v) + '\n\n';
+  if (!t.noSalutation) o += (t.salutation || 'Sehr geehrte Damen und Herren,') + '\n\n';
+  o += (dgOverrideBody != null ? dgOverrideBody : t.body(v, p)) + '\n\n';
+  if (t.closing !== '') o += (t.closing || 'Mit freundlichen Grüßen') + '\n\n';
+  return o + (p.name || '');
+}
+function dgGenerate() {
+  const t = curTpl();
+  $$('#dgRoot [data-key]').forEach(inp => { dgValues[inp.dataset.key] = inp.value.trim(); });
+  const sc = $('#dgSignChk'); if (sc) dgSign = sc.checked;
+  if (t.type !== 'checklist' && !store.profile.name) { dgProfileOpen = true; toast('Bitte trage oben deinen Namen ein'); RENDERERS.docgen(); return; }
+  let miss = null;
+  $$('#dgRoot [data-key]').forEach(inp => {
+    if (inp.dataset.req === '1' && !inp.value.trim()) { inp.classList.add('invalid'); if (!miss) miss = inp; }
+    else inp.classList.remove('invalid');
+  });
+  if (miss) { toast('Bitte die markierten Felder ausfüllen'); miss.focus(); return; }
+  dgOverrideBody = null; dgState = 'result'; RENDERERS.docgen();
+}
+function dgPrint() {
+  $('#printRoot').innerHTML = letterHTML(curTpl(), dgValues, store.profile);
+  window.print();
+}
+function dgMail() {
+  const t = curTpl(), v = dgValues;
+  const to = v.empfEmail ? encodeURIComponent(v.empfEmail) : '';
+  window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(t.betreff(v)) + '&body=' + encodeURIComponent(plainLetter(t, v, store.profile));
+}
+function dgFrist() {
+  const t = curTpl(), v = dgValues;
+  if (!v.datum) { toast('Kein Datum angegeben'); return; }
+  addTask(t.title + ' – Bestätigung prüfen', v.datum, 'high', 'doc');
+  addEvent('⏰ ' + t.title, v.datum, null, v.empfName ? 'an ' + v.empfName : '', 'doc');
+  save(); toast('Frist in Aufgaben & Kalender ✓');
+}
+async function dgAI() {
+  if (!hasKey()) { toast('✨ KI-Verbesserung braucht einen API-Schlüssel (Einstellungen)'); return; }
+  const t = curTpl(), cur = dgOverrideBody != null ? dgOverrideBody : t.body(dgValues, store.profile);
+  toast('NEXA verbessert den Text …');
+  try {
+    const out = await callClaude({
+      model: store.settings.model, max_tokens: 1200,
+      messages: [{ role: 'user', content: 'Du bist ein Assistent für deutsche Alltagsbriefe. Formuliere den folgenden Brieftext höflich, klar und professionell aus. Behalte alle Fakten, Namen, Nummern und Daten exakt bei. Gib ausschließlich den reinen Brieftext zurück – ohne Briefkopf, ohne Anrede ("Sehr geehrte…"), ohne Grußformel, ohne Unterschrift, ohne Erklärungen.\n\nText:\n' + cur }]
+    });
+    dgOverrideBody = (out || '').trim() || cur;
+    RENDERERS.docgen();
+    toast('Text verbessert ✨');
+  } catch (e) { toast('⚠️ ' + e.message); }
+}
+$('#dgRoot').addEventListener('click', e => {
+  const el = e.target.closest('[data-dg]'); if (!el) return;
+  const act = el.dataset.dg;
+  if (act === 'fav') { e.stopPropagation(); const id = el.dataset.id, i = store.docFavs.indexOf(id); i < 0 ? store.docFavs.push(id) : store.docFavs.splice(i, 1); save(); RENDERERS.docgen(); return; }
+  if (act === 'open' || act === 'free') { dgActiveId = act === 'free' ? 'frei' : el.dataset.id; dgValues = {}; dgOverrideBody = null; dgSign = true; dgProfileOpen = !profileComplete(); dgState = 'form'; RENDERERS.docgen(); return; }
+  if (act === 'back') { dgState = 'browse'; RENDERERS.docgen(); return; }
+  if (act === 'toform') { dgState = 'form'; RENDERERS.docgen(); return; }
+  if (act === 'gen') { dgGenerate(); return; }
+  if (act === 'print') { dgPrint(); return; }
+  if (act === 'copy') { copyText(plainLetter(curTpl(), dgValues, store.profile)).then(ok => toast(ok ? 'Brief kopiert ✓' : 'Kopieren nicht möglich')); return; }
+  if (act === 'mail') { dgMail(); return; }
+  if (act === 'frist') { dgFrist(); return; }
+  if (act === 'ai') { dgAI(); return; }
+});
+$('#dgRoot').addEventListener('input', e => {
+  if (e.target.id === 'dgSearch') {
+    dgQuery = e.target.value;
+    RENDERERS.docgen();
+    const s = $('#dgSearch'); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+  }
+});
+$('#dgRoot').addEventListener('change', e => {
+  if (e.target.dataset.p) { store.profile[e.target.dataset.p] = e.target.value.trim(); save(); }
+  if (e.target.id === 'dgSignChk') { dgSign = e.target.checked; if (dgState === 'result') RENDERERS.docgen(); }
 });
 
 /* ============================== KI-ADAPTER ============================== */
