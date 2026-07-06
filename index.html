@@ -598,7 +598,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <nav class="snav">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg>Dashboard</button>
       <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg>Dokumente</button>
-      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg>Vorlagen</button>
+      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg>Dokumentenassistent</button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
       <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Schule</button>
@@ -797,7 +797,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 
   <nav class="tabbar">
     <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span>Start</span></button>
-    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span>Vorlagen</span></button>
+    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span>Assistent</span></button>
     <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>NEXA</span></button>
     <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span>Aufgaben</span></button>
     <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span>Mehr</span></button>
@@ -1788,7 +1788,7 @@ function tplList(items) {
 function dgBrowseHTML() {
   const q = dgQuery.trim().toLowerCase();
   const match = (t) => !q || t.title.toLowerCase().includes(q);
-  let h = '<div class="view-head"><h1>Vorlagen</h1><p>Fertige Briefe für Kündigungen, Behörden, Umzug & mehr – in Minuten erledigt.</p></div>';
+  let h = '<div class="view-head"><h1>Dokumentenassistent</h1><p>Fertige Briefe für Kündigungen, Behörden, Umzug & mehr – in Minuten erledigt.</p></div>';
   h += '<input type="text" id="dgSearch" class="dg-search" placeholder="🔎 Vorlage suchen …" value="' + esc(dgQuery) + '">';
   h += '<button class="btn btn-sm dg-free" data-dg="free">✨ Eigenes Anliegen mit KI formulieren</button>';
   const favs = DOC_TPL.filter(t => store.docFavs.includes(t.id) && t.cat && match(t));
