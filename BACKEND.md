@@ -30,7 +30,7 @@ Linke Seitenleiste → **SQL Editor** → **New query** → den **kompletten Inh
 ### 6. Die zwei Schlüsselwerte kopieren
 **Project Settings (Zahnrad) → API**:
 - **Project URL** (sieht aus wie `https://abcdefgh.supabase.co`)
-- **anon public** Key (langer Text, beginnt mit `eyJ…`)
+- Der öffentliche Key: je nach Projekt-Alter heißt er **„anon public"** (beginnt mit `eyJ…`) oder — bei neuen Projekten — **„Publishable key"** (beginnt mit `sb_publishable_…`). Beide funktionieren gleich.
 
 ### 7. In die App eintragen
 In `index.html` ganz oben im Script-Block die markierte Stelle ausfüllen:

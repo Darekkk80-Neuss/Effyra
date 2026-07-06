@@ -880,9 +880,9 @@ $('#obSkip').addEventListener('click', obFinish);
 $('#obName').addEventListener('keydown', e => { if (e.key === 'Enter') obFinish(); });
 
 /* ============================== CLOUD-BACKEND (Supabase) ============================== */
-/* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus wie bisher.   */
-const SUPABASE_URL = '';        /* z. B. 'https://abcdefgh.supabase.co'            */
-const SUPABASE_ANON_KEY = '';   /* der "anon public" Key (darf öffentlich sein)    */
+/* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus.              */
+const SUPABASE_URL = 'https://wocjmdbfxpalnlqmdvqp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_vjw9omgEZNAREBUUf_Z2-A_ywR8ZIa6';   /* öffentlicher Key – darf im Repo stehen */
 const CLOUD = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
 const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
@@ -975,7 +975,7 @@ function mapAuthError(m) {
   if (/invalid login credentials/i.test(m)) return 'E-Mail oder Passwort ist falsch.';
   if (/email not confirmed/i.test(m)) return 'Bitte bestätige zuerst deine E-Mail-Adresse (Postfach prüfen).';
   if (/rate limit|too many/i.test(m)) return 'Zu viele Versuche – bitte kurz warten.';
-  if (/valid email/i.test(m)) return 'Bitte eine gültige E-Mail-Adresse eingeben.';
+  if (/valid email|is invalid/i.test(m)) return 'Diese E-Mail-Adresse wird nicht akzeptiert – bitte eine echte Adresse verwenden.';
   return 'Das hat nicht geklappt: ' + m;
 }
 

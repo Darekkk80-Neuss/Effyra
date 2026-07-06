@@ -61,7 +61,7 @@ create trigger on_auth_user_created
 -- ------------------------------------------------------------
 create table public.premium_codes (
   code_hash text primary key,
-  used_by   uuid references auth.users(id),
+  used_by   uuid references auth.users(id) on delete set null,
   used_at   timestamptz
 );
 
