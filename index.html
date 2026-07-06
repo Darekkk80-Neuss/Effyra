@@ -21,9 +21,9 @@
   --card2:rgba(255,255,255,.08);
   --border:rgba(255,255,255,.09);
   --border2:rgba(255,255,255,.16);
-  --text:#eef1f7;
-  --muted:#9aa3b5;
-  --faint:#697184;
+  --text:#ffffff;
+  --muted:#eaeef4;
+  --faint:#c9d0dc;
   --acc1:#7c3aed;
   --acc2:#06b6d4;
   --grad:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);
@@ -43,11 +43,14 @@ body{
   color:var(--text);
   font-family:var(--font-body);
   font-size:15px;
+  font-weight:500;
   line-height:1.55;
   min-height:100dvh;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);
 }
+input,select,textarea,button{text-shadow:none}
 h1,h2,h3,.font-head{font-family:var(--font-head)}
 button{font-family:inherit;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:15px}
