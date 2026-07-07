@@ -418,6 +418,23 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .l-btn:hover{color:var(--text)}
 .l-btn.del:hover{color:var(--danger)}
 .l-pause{text-align:center;font-size:12px;color:var(--faint);padding:2px 0 8px;font-weight:600}
+.kid-tabs{margin-bottom:12px}
+.kid-tabs button{font-size:12px;padding:7px 3px;white-space:nowrap}
+.kid-row{display:flex;gap:8px}
+.kid-row>*{flex:1;min-width:0}
+.lesson .ls-main{flex:1;min-width:0}
+.pack-list{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;background:rgba(0,0,0,.2)}
+.pack-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pack-head b{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pack-count{font-size:12px;color:var(--muted);font-weight:600}
+.pack-item{display:flex;align-items:center;gap:10px;padding:5px 0}
+.pack-item.done .pi-t{text-decoration:line-through;opacity:.55}
+.pack-item.done .ls-check{background:var(--grad);border-color:transparent}
+.pack-item.done .ls-check svg{opacity:1}
+.pi-t{flex:1;font-size:14px;min-width:0}
+.pack-new{margin-top:6px}
+.pack-tpls{display:flex;gap:6px;flex-wrap:wrap}
+.pack-tpls .ls-tpl{cursor:pointer}
 
 /* ============================== DOKUMENTENASSISTENT ============================== */
 .dg-search{margin-bottom:10px}
@@ -626,7 +643,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg>Lebenslagen</button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
-      <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Schule</button>
+      <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Kinder</button>
       <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>NEXA Chat</button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg>Einstellungen</button>
     </nav>
@@ -740,8 +757,8 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <!-- ============================== SCHULE ============================== -->
     <section class="view" id="view-school">
       <div class="view-head">
-        <h1>Schule</h1>
-        <p>Wochenpläne deiner Kinder – die Uhrzeiten berechnet NEXA automatisch.</p>
+        <h1>Kinderorganisation</h1>
+        <p>Pro Kind: Stundenplan, Termine, Hobbys &amp; Packlisten – alles an einem Ort.</p>
       </div>
       <div class="task-add">
         <input type="text" id="kidName" placeholder="Name des Kindes …" maxlength="30">
@@ -839,7 +856,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   <div class="more-panel">
     <div class="more-grid">
       <button data-view="docs"><span class="mi">📄</span>Dokumente (Foto)</button>
-      <button data-view="school"><span class="mi">🎒</span>Schule</button>
+      <button data-view="school"><span class="mi">🧒</span>Kinder</button>
       <button data-view="calendar"><span class="mi">📅</span>Kalender</button>
       <button data-view="life"><span class="mi">🧭</span>Lebenslagen</button>
       <button data-view="settings"><span class="mi">⚙️</span>Einstellungen</button>
@@ -1333,8 +1350,8 @@ function openTasksSorted() {
 }
 
 /* ============================== EVENTS (Daten) ============================== */
-function addEvent(title, date, time, note, source) {
-  const ev = { id: uid(), title: title.trim(), date, time: time || null, note: note || '', source: source || 'manual' };
+function addEvent(title, date, time, note, source, extra) {
+  const ev = Object.assign({ id: uid(), title: title.trim(), date, time: time || null, note: note || '', source: source || 'manual' }, extra || {});
   if (!ev.title || !ev.date) return null;
   store.events.push(ev);
   save();
@@ -1385,7 +1402,7 @@ RENDERERS.dashboard = function () {
   html += '</div>';
 
   if (store.kids.length) {
-    html += '<div class="sec-title"><h2>🎒 Schule</h2><button data-go="school">Alle</button></div><div class="mini-list">';
+    html += '<div class="sec-title"><h2>🎒 Kinder – Schule</h2><button data-go="school">Alle</button></div><div class="mini-list">';
     const todayDow = new Date().getDay();
     store.kids.forEach((kid, i) => {
       let showDay = 0, label = '';
@@ -1619,55 +1636,126 @@ function lessonSlots(kid, day) {
   });
 }
 
+const kidSection = {};   /* pro Kind gewählter Bereich: plan|termine|hobbys|pack */
+const APPT_KIND = { arzt: { i: '🩺', l: 'Arzt' }, impf: { i: '💉', l: 'Impfung' }, schule: { i: '🏫', l: 'Kita/Schule' }, sonst: { i: '📌', l: 'Sonstiges' } };
+const DOW7 = { 1: 'Mo', 2: 'Di', 3: 'Mi', 4: 'Do', 5: 'Fr', 6: 'Sa', 0: 'So' };
+const DOW7FULL = { 1: 'Montag', 2: 'Dienstag', 3: 'Mittwoch', 4: 'Donnerstag', 5: 'Freitag', 6: 'Samstag', 0: 'Sonntag' };
+const PACK_TEMPLATES = {
+  'Schwimmbad': ['Badesachen', 'Handtuch', 'Sonnencreme', 'Schwimmhilfe', 'Getränk', 'Snack'],
+  'Übernachtung': ['Schlafanzug', 'Zahnbürste', 'Kuscheltier', 'Wechselkleidung', 'Buch'],
+  'Wanderung': ['Feste Schuhe', 'Regenjacke', 'Trinkflasche', 'Snacks', 'Pflaster', 'Kappe'],
+  'Sporttraining': ['Sportkleidung', 'Hallenschuhe', 'Handtuch', 'Trinkflasche']
+};
+function ensureKid(kid) { if (!kid.hobbies) kid.hobbies = []; if (!kid.packlists) kid.packlists = []; }
+
 RENDERERS.school = function () {
   const box = $('#kidList');
   if (!store.kids.length) {
-    box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🎒</span>Noch keine Kinder angelegt.<br>Gib oben einfach den Namen ein!</div>';
+    box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">👨‍👩‍👧</span>Noch keine Kinder angelegt.<br>Gib oben einfach den Namen ein!</div>';
     return;
   }
-  box.innerHTML = store.kids.map(kid => {
-    const day = kidDay[kid.id] || defaultDay();
-    const dd = kid.sched[day] || { start: '08:00', subjects: [] };
-    const slots = lessonSlots(kid, day);
-    let rows = '';
-    slots.forEach((sl, i) => {
-      rows += '<div class="lesson"><span class="l-time">' + sl.start + '–' + sl.end + '</span>' +
-        '<span class="l-fach">' + esc(sl.subject) + '</span>' +
-        (i > 0 ? '<button class="l-btn" data-act="upFach" data-idx="' + i + '" title="Nach oben">▲</button>' : '') +
-        '<button class="l-btn del" data-act="delFach" data-idx="' + i + '" title="Entfernen"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
-      if (sl.pauseAfter) rows += '<div class="l-pause">☕ Pause · ' + kid.breakMin + ' Min</div>';
-    });
-    if (!slots.length) rows = '<div class="empty" style="padding:12px">Noch keine Fächer am ' + DAY_NAMES[day] + '.</div>';
-    return '<div class="card kid-card" data-kid="' + kid.id + '">' +
-      '<div class="kid-head"><span class="kid-dot" style="background:' + kid.color + '"></span>' +
-      '<h3>' + esc(kid.name) + '</h3>' +
-      '<button class="t-del" data-act="delKid" title="Kind entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
-      '<div class="kid-set">' +
-      '<div><label class="fld">Stunde (Min)</label><input type="number" min="5" max="120" value="' + kid.lessonMin + '" data-set="lessonMin"></div>' +
-      '<div><label class="fld">Pause (Min)</label><input type="number" min="0" max="90" value="' + kid.breakMin + '" data-set="breakMin"></div>' +
-      '<div><label class="fld">Pause alle … Std.</label><input type="number" min="1" max="6" value="' + kid.breakEvery + '" data-set="breakEvery"></div>' +
-      '</div>' +
-      '<div class="seg kid-days" style="margin-bottom:12px">' + [1, 2, 3, 4, 5].map(d =>
-        '<button data-day="' + d + '" class="' + (d === day ? 'active' : '') + '">' + DAY_SHORT[d] + '</button>').join('') + '</div>' +
-      '<div class="kid-daystart"><label class="fld">Unterrichtsbeginn am ' + DAY_NAMES[day] + '</label>' +
-      '<input type="time" value="' + esc(dd.start || '08:00') + '" data-set="start"></div>' +
-      rows +
-      '<div class="task-add" style="margin-top:10px;margin-bottom:0">' +
-      '<input type="text" data-fach placeholder="Fach hinzufügen (z. B. Mathe) …" maxlength="40">' +
-      '<button class="btn btn-primary" data-act="addFach"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button></div>' +
-      '</div>';
-  }).join('');
+  box.innerHTML = store.kids.map(kidCard).join('');
 };
+function kidCard(kid) {
+  ensureKid(kid);
+  const sec = kidSection[kid.id] || 'plan';
+  const tabs = [['plan', '📅 Plan'], ['termine', '🩺 Termine'], ['hobbys', '⚽ Hobbys'], ['pack', '🎒 Packen']];
+  let h = '<div class="card kid-card" data-kid="' + kid.id + '">' +
+    '<div class="kid-head"><span class="kid-dot" style="background:' + kid.color + '"></span><h3>' + esc(kid.name) + '</h3>' +
+    '<button class="t-del" data-act="delKid" title="Kind entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
+    '<div class="seg kid-tabs">' + tabs.map(x => '<button data-sec="' + x[0] + '" class="' + (sec === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
+  h += sec === 'termine' ? kidTermine(kid) : sec === 'hobbys' ? kidHobbys(kid) : sec === 'pack' ? kidPack(kid) : kidPlan(kid);
+  return h + '</div>';
+}
+function kidPlan(kid) {
+  const day = kidDay[kid.id] || defaultDay();
+  const dd = kid.sched[day] || { start: '08:00', subjects: [] };
+  const slots = lessonSlots(kid, day);
+  let rows = '';
+  slots.forEach((sl, i) => {
+    rows += '<div class="lesson"><span class="l-time">' + sl.start + '–' + sl.end + '</span>' +
+      '<span class="l-fach">' + esc(sl.subject) + '</span>' +
+      (i > 0 ? '<button class="l-btn" data-act="upFach" data-idx="' + i + '" title="Nach oben">▲</button>' : '') +
+      '<button class="l-btn del" data-act="delFach" data-idx="' + i + '" title="Entfernen"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
+    if (sl.pauseAfter) rows += '<div class="l-pause">☕ Pause · ' + kid.breakMin + ' Min</div>';
+  });
+  if (!slots.length) rows = '<div class="empty" style="padding:12px">Noch keine Fächer am ' + DAY_NAMES[day] + '.</div>';
+  return '<div class="kid-set">' +
+    '<div><label class="fld">Stunde (Min)</label><input type="number" min="5" max="120" value="' + kid.lessonMin + '" data-set="lessonMin"></div>' +
+    '<div><label class="fld">Pause (Min)</label><input type="number" min="0" max="90" value="' + kid.breakMin + '" data-set="breakMin"></div>' +
+    '<div><label class="fld">Pause alle … Std.</label><input type="number" min="1" max="6" value="' + kid.breakEvery + '" data-set="breakEvery"></div></div>' +
+    '<div class="seg kid-days" style="margin-bottom:12px">' + [1, 2, 3, 4, 5].map(d =>
+      '<button data-day="' + d + '" class="' + (d === day ? 'active' : '') + '">' + DAY_SHORT[d] + '</button>').join('') + '</div>' +
+    '<div class="kid-daystart"><label class="fld">Unterrichtsbeginn am ' + DAY_NAMES[day] + '</label>' +
+    '<input type="time" value="' + esc(dd.start || '08:00') + '" data-set="start"></div>' + rows +
+    '<div class="task-add" style="margin-top:10px;margin-bottom:0"><input type="text" data-fach placeholder="Fach hinzufügen (z. B. Mathe) …" maxlength="40">' +
+    '<button class="btn btn-primary" data-act="addFach"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button></div>';
+}
+function kidTermine(kid) {
+  const appts = store.events.filter(e => e.kidId === kid.id).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1);
+  let h = '<select data-in="apptKind" style="margin-bottom:8px">' + Object.keys(APPT_KIND).map(k => '<option value="' + k + '">' + APPT_KIND[k].i + ' ' + APPT_KIND[k].l + '</option>').join('') + '</select>' +
+    '<input type="text" data-in="apptTitle" placeholder="Titel (z. B. U9, Zahnarzt, Elternabend)" maxlength="60" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="date" data-in="apptDate"><input type="time" data-in="apptTime"></div>' +
+    '<button class="btn btn-primary btn-sm" data-act="addAppt" style="width:100%;margin-bottom:12px">+ Termin hinzufügen</button>';
+  if (!appts.length) h += '<div class="empty" style="padding:10px">Noch keine Termine.</div>';
+  appts.forEach(e => {
+    const k = APPT_KIND[e.apptKind] || APPT_KIND.sonst;
+    h += '<div class="lesson"><span style="font-size:18px">' + k.i + '</span>' +
+      '<div class="ls-main"><div class="ls-t">' + esc(e.title.replace(/^\S+\s/, '')) + '</div>' +
+      '<div class="ls-note">' + esc(fmtDate(e.date)) + (e.time ? ' · ' + esc(e.time) + ' Uhr' : '') + '</div></div>' +
+      '<button class="l-btn del" data-act="delAppt" data-id="' + e.id + '"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function kidHobbys(kid) {
+  ensureKid(kid);
+  let h = '<input type="text" data-in="hobName" placeholder="Hobby oder Verein (z. B. Fußball)" maxlength="40" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><select data-in="hobDay"><option value="">Wochentag</option>' +
+    [1, 2, 3, 4, 5, 6, 0].map(d => '<option value="' + d + '">' + DOW7FULL[d] + '</option>').join('') + '</select><input type="time" data-in="hobTime"></div>' +
+    '<input type="text" data-in="hobPlace" placeholder="Ort (optional)" maxlength="40" style="margin-bottom:8px">' +
+    '<button class="btn btn-primary btn-sm" data-act="addHobby" style="width:100%;margin-bottom:12px">+ Hinzufügen</button>';
+  if (!kid.hobbies.length) h += '<div class="empty" style="padding:10px">Noch keine Hobbys oder Vereine.</div>';
+  kid.hobbies.forEach(hb => {
+    const meta = [hb.day !== '' && hb.day != null ? DOW7FULL[hb.day] : '', hb.time ? hb.time + ' Uhr' : '', hb.place].filter(Boolean).join(' · ');
+    h += '<div class="lesson"><span style="font-size:18px">⚽</span><div class="ls-main"><div class="ls-t">' + esc(hb.name) + '</div>' +
+      (meta ? '<div class="ls-note">' + esc(meta) + '</div>' : '') + '</div>' +
+      '<button class="l-btn del" data-act="delHobby" data-id="' + hb.id + '"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function kidPack(kid) {
+  ensureKid(kid);
+  let h = '';
+  if (!kid.packlists.length) h += '<div class="empty" style="padding:10px">Noch keine Packlisten – wähle unten eine Vorlage oder erstelle eine eigene.</div>';
+  kid.packlists.forEach(pl => {
+    const done = pl.items.filter(i => i.done).length;
+    h += '<div class="pack-list"><div class="pack-head"><b>🎒 ' + esc(pl.title) + '</b><span class="pack-count">' + done + '/' + pl.items.length + '</span>' +
+      '<button class="l-btn del" data-act="delList" data-id="' + pl.id + '"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
+    pl.items.forEach((it, idx) => {
+      h += '<div class="pack-item' + (it.done ? ' done' : '') + '" data-list="' + pl.id + '" data-idx="' + idx + '">' +
+        '<button class="ls-check" data-act="toggleItem"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+        '<span class="pi-t">' + esc(it.t) + '</span>' +
+        '<button class="l-btn del" data-act="delItem"><svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg></button></div>';
+    });
+    h += '<div class="task-add" style="margin-top:8px;margin-bottom:0"><input type="text" data-in="packItem" data-list="' + pl.id + '" placeholder="Sache hinzufügen …" maxlength="40">' +
+      '<button class="btn btn-primary btn-sm" data-act="addItem" data-list="' + pl.id + '"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button></div></div>';
+  });
+  h += '<div class="pack-new"><label class="fld">Neue Packliste</label><div class="pack-tpls">' +
+    Object.keys(PACK_TEMPLATES).map(t => '<button class="ls-tpl" data-act="addList" data-tpl="' + esc(t) + '">' + esc(t) + '</button>').join('') + '</div>' +
+    '<div class="task-add" style="margin-top:8px;margin-bottom:0"><input type="text" data-in="listName" placeholder="Eigene Liste (z. B. Ausflug)" maxlength="30">' +
+    '<button class="btn btn-primary btn-sm" data-act="addList"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button></div></div>';
+  return h;
+}
 
 $('#kidAddBtn').addEventListener('click', () => {
   const name = $('#kidName').value.trim();
   if (!name) { $('#kidName').focus(); return; }
   const sched = {};
   [1, 2, 3, 4, 5].forEach(d => sched[d] = { start: '08:00', subjects: [] });
-  store.kids.push({ id: uid(), name, color: KID_COLORS[store.kids.length % KID_COLORS.length], lessonMin: 45, breakMin: 30, breakEvery: 2, sched });
+  store.kids.push({ id: uid(), name, color: KID_COLORS[store.kids.length % KID_COLORS.length], lessonMin: 45, breakMin: 30, breakEvery: 2, sched, hobbies: [], packlists: [] });
   $('#kidName').value = '';
   save();
-  refresh();
+  RENDERERS.school();
   toast(name + ' angelegt ✓');
 });
 $('#kidName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#kidAddBtn').click(); });
@@ -1677,34 +1765,64 @@ $('#kidList').addEventListener('click', e => {
   if (!card) return;
   const kid = store.kids.find(k => k.id === card.dataset.kid);
   if (!kid) return;
+  ensureKid(kid);
+  const q = (sel) => card.querySelector(sel);
+  const secBtn = e.target.closest('[data-sec]');
+  if (secBtn) { kidSection[kid.id] = secBtn.dataset.sec; RENDERERS.school(); return; }
   const daySel = e.target.closest('[data-day]');
   if (daySel) { kidDay[kid.id] = +daySel.dataset.day; RENDERERS.school(); return; }
   const act = e.target.closest('[data-act]');
   if (!act) return;
-  const day = kidDay[kid.id] || defaultDay();
-  const subjects = kid.sched[day].subjects;
-  if (act.dataset.act === 'delKid') {
-    if (!confirm(kid.name + ' und den kompletten Wochenplan wirklich löschen?')) return;
+  const a = act.dataset.act;
+  if (a === 'delKid') {
+    if (!confirm(kid.name + ' und alle Daten dieses Kindes wirklich löschen?')) return;
+    store.events = store.events.filter(ev => ev.kidId !== kid.id);
     store.kids = store.kids.filter(k => k.id !== kid.id);
-    toast('Gelöscht');
+    save(); RENDERERS.school(); toast('Gelöscht'); return;
   }
-  if (act.dataset.act === 'addFach') {
-    const inp = $('[data-fach]', card);
-    if (!inp.value.trim()) { inp.focus(); return; }
-    subjects.push(inp.value.trim());
+  if (a === 'addFach' || a === 'delFach' || a === 'upFach') {
+    const day = kidDay[kid.id] || defaultDay(); const subjects = kid.sched[day].subjects;
+    if (a === 'addFach') { const inp = q('[data-fach]'); if (!inp.value.trim()) { inp.focus(); return; } subjects.push(inp.value.trim()); }
+    if (a === 'delFach') subjects.splice(+act.dataset.idx, 1);
+    if (a === 'upFach') { const i = +act.dataset.idx; if (i > 0) { const t = subjects[i - 1]; subjects[i - 1] = subjects[i]; subjects[i] = t; } }
+    save(); RENDERERS.school(); return;
   }
-  if (act.dataset.act === 'delFach') subjects.splice(+act.dataset.idx, 1);
-  if (act.dataset.act === 'upFach') {
-    const i = +act.dataset.idx;
-    if (i > 0) { const t = subjects[i - 1]; subjects[i - 1] = subjects[i]; subjects[i] = t; }
+  if (a === 'addAppt') {
+    const title = q('[data-in="apptTitle"]').value.trim(), date = q('[data-in="apptDate"]').value;
+    if (!title || !date) { toast('Bitte Titel und Datum angeben'); return; }
+    const kind = q('[data-in="apptKind"]').value, time = q('[data-in="apptTime"]').value;
+    addEvent(APPT_KIND[kind].i + ' ' + title, date, time || null, kid.name, 'kind', { kidId: kid.id, apptKind: kind });
+    RENDERERS.school(); toast('Termin gespeichert – auch im Kalender ✓'); return;
   }
-  save();
-  RENDERERS.school();
+  if (a === 'delAppt') { store.events = store.events.filter(ev => ev.id !== act.dataset.id); save(); RENDERERS.school(); return; }
+  if (a === 'addHobby') {
+    const name = q('[data-in="hobName"]').value.trim(); if (!name) { toast('Bitte einen Namen angeben'); return; }
+    kid.hobbies.push({ id: uid(), name, day: q('[data-in="hobDay"]').value, time: q('[data-in="hobTime"]').value, place: q('[data-in="hobPlace"]').value.trim() });
+    save(); RENDERERS.school(); toast('Hinzugefügt ✓'); return;
+  }
+  if (a === 'delHobby') { kid.hobbies = kid.hobbies.filter(x => x.id !== act.dataset.id); save(); RENDERERS.school(); return; }
+  if (a === 'addList') {
+    const tpl = act.dataset.tpl; let title, items;
+    if (tpl) { title = tpl; items = (PACK_TEMPLATES[tpl] || []).map(t => ({ t, done: false })); }
+    else { const inp = q('[data-in="listName"]'); title = inp.value.trim(); if (!title) { inp.focus(); return; } items = []; }
+    kid.packlists.push({ id: uid(), title, items }); save(); RENDERERS.school(); return;
+  }
+  if (a === 'delList') { kid.packlists = kid.packlists.filter(p => p.id !== act.dataset.id); save(); RENDERERS.school(); return; }
+  if (a === 'addItem') {
+    const pl = kid.packlists.find(p => p.id === act.dataset.list); const inp = q('[data-in="packItem"][data-list="' + act.dataset.list + '"]');
+    if (!pl || !inp.value.trim()) { if (inp) inp.focus(); return; } pl.items.push({ t: inp.value.trim(), done: false }); save(); RENDERERS.school(); return;
+  }
+  if (a === 'toggleItem') { const row = e.target.closest('.pack-item'); const pl = kid.packlists.find(p => p.id === row.dataset.list); if (pl) { const it = pl.items[+row.dataset.idx]; it.done = !it.done; save(); RENDERERS.school(); } return; }
+  if (a === 'delItem') { const row = e.target.closest('.pack-item'); const pl = kid.packlists.find(p => p.id === row.dataset.list); if (pl) { pl.items.splice(+row.dataset.idx, 1); save(); RENDERERS.school(); } return; }
 });
 $('#kidList').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.matches('[data-fach]')) {
-    e.target.closest('.kid-card').querySelector('[data-act="addFach"]').click();
-  }
+  if (e.key !== 'Enter') return;
+  const t = e.target, card = t.closest('.kid-card'); if (!card) return;
+  if (t.matches('[data-fach]')) card.querySelector('[data-act="addFach"]').click();
+  else if (t.matches('[data-in="apptTitle"]')) card.querySelector('[data-act="addAppt"]').click();
+  else if (t.matches('[data-in="hobName"]')) card.querySelector('[data-act="addHobby"]').click();
+  else if (t.matches('[data-in="listName"]')) card.querySelector('[data-act="addList"]:not([data-tpl])').click();
+  else if (t.matches('[data-in="packItem"]')) card.querySelector('[data-act="addItem"][data-list="' + t.dataset.list + '"]').click();
 });
 $('#kidList').addEventListener('change', e => {
   const card = e.target.closest('.kid-card');
