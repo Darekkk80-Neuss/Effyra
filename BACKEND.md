@@ -19,6 +19,8 @@ Die App erkennt automatisch, ob das Backend konfiguriert ist:
 ### 3. Datenbank einrichten
 Linke Seitenleiste → **SQL Editor** → **New query** → den **kompletten Inhalt** der Datei [`supabase-setup.sql`](supabase-setup.sql) einfügen → **Run**. Unten sollte „Success" erscheinen.
 
+**Optional – Familien-Sync:** Wer die **Familienzentrale mit dem Partner synchronisieren** möchte, führt zusätzlich [`supabase-family.sql`](supabase-family.sql) im SQL-Editor aus (gleicher Ablauf). Ohne dieses Script funktioniert die Familienzentrale lokal auf dem Gerät; nur die Partner-Synchronisierung braucht es. Der Notfallbereich bleibt bewusst immer nur lokal (sensible Daten).
+
 ### 4. E-Mail-Bestätigung ausschalten (empfohlen)
 **Authentication → Sign In / Providers → Email** → Schalter **„Confirm email" ausschalten** → Save.
 

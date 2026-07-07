@@ -549,6 +549,32 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .ls-tpl{font-size:11.5px;font-weight:600;color:#c4b5fd;background:rgba(124,58,237,.14);border:1px solid rgba(167,139,250,.3);border-radius:9px;padding:3px 9px}
 .ls-tpl:hover{background:rgba(124,58,237,.26)}
 
+/* ============================== FAMILIE & NOTFALL ============================== */
+.fam-tabs,.em-tabs{margin-bottom:14px}
+.fam-tabs button,.em-tabs button{font-size:12px;padding:7px 4px;white-space:nowrap}
+.mem{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:13px;border:1px solid var(--border);background:var(--card);margin-bottom:8px}
+.mem-info{flex:1;min-width:0}
+.mem-info b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mem-info span{font-size:12.5px;color:var(--muted)}
+.fam-code{font-family:var(--font-head);font-size:30px;letter-spacing:6px;text-align:center;background:var(--card2);
+  border:1px dashed var(--border2);border-radius:14px;padding:16px 8px;margin:12px 0;color:#a78bfa}
+.notruf{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
+.notruf a{display:flex;align-items:center;padding:14px;border-radius:15px;color:#fff;text-decoration:none;
+  box-shadow:0 6px 18px rgba(0,0,0,.3);text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.notruf .nr-num{font-size:20px;font-family:var(--font-head);font-weight:700;line-height:1.1}
+.notruf .nr-lbl{font-size:12px;opacity:.92;font-weight:600}
+.nr-112{background:linear-gradient(135deg,#dc2626,#f87171)}
+.nr-110{background:linear-gradient(135deg,#1d4ed8,#3b82f6)}
+.nr-117{background:linear-gradient(135deg,#059669,#34d399)}
+.nr-gift{background:linear-gradient(135deg,#7c3aed,#a78bfa)}
+.em-contact{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:13px;border:1px solid var(--border);background:var(--card);margin-bottom:8px}
+.ec-info{flex:1;min-width:0}
+.ec-info b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ec-info span{font-size:12.5px;color:var(--muted)}
+.em-call{background:var(--card2);border:1px solid var(--border2);color:#34d399;width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;flex:none}
+.em-priv{font-size:12px;color:var(--faint);text-align:center;margin-top:16px;padding:0 10px;line-height:1.5}
+
 /* ============================== AUTH & PAYWALL (GATES) ============================== */
 .gate{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;align-items:center;
   justify-content:center;padding:28px 24px;overflow-y:auto;background:
@@ -679,6 +705,8 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
       <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Kinder</button>
+      <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg>Familienzentrale</button>
+      <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg>Notfallbereich</button>
       <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>NEXA Chat</button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg>Einstellungen</button>
     </nav>
@@ -813,6 +841,16 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <div id="lifeRoot"></div>
     </section>
 
+    <!-- ============================== FAMILIENZENTRALE ============================== -->
+    <section class="view" id="view-family">
+      <div id="famRoot"></div>
+    </section>
+
+    <!-- ============================== NOTFALLBEREICH ============================== -->
+    <section class="view" id="view-emergency">
+      <div id="emRoot"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -895,6 +933,8 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="school"><span class="mi">🧒</span>Kinder</button>
       <button data-view="calendar"><span class="mi">📅</span>Kalender</button>
       <button data-view="life"><span class="mi">🧭</span>Lebenslagen</button>
+      <button data-view="family"><span class="mi">👪</span>Familie</button>
+      <button data-view="emergency"><span class="mi">🆘</span>Notfall</button>
       <button data-view="settings"><span class="mi">⚙️</span>Einstellungen</button>
     </div>
   </div>
@@ -923,6 +963,8 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <symbol id="icPen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m14 7 3 3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="icMore" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></symbol>
     <symbol id="icLife" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-9C1.4 8 3 4.5 6.4 4.5c2 0 3.4 1.2 5.6 3.5 2.2-2.3 3.6-3.5 5.6-3.5C21 4.5 22.6 8 21.2 11 19 15.6 12 20 12 20z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="icFamily" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 20c.2-2.4 1.8-4 3.5-4 1.9 0 3.3 1.4 3.5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icAlert" viewBox="0 0 24 24"><path d="M12 3c2.5 3 6 4 8 4 0 6-3 10-8 12-5-2-8-6-8-12 2 0 5.5-1 8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icSpark" viewBox="0 0 24 24"><path d="M12 2c.6 4.8 2.4 7.4 8 8-5.6.6-7.4 3.2-8 8-.6-4.8-2.4-7.4-8-8 5.6-.6 7.4-3.2 8-8z" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor" opacity=".7"/></symbol>
     <symbol id="icGear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8 13.5 6a6.6 6.6 0 0 1 2.4 1.4l3.4-.9 1.5 2.7-2.3 2.6a6.7 6.7 0 0 1 0 2.4l2.3 2.6-1.5 2.7-3.4-.9a6.6 6.6 0 0 1-2.4 1.4L12 21.2 10.5 18a6.6 6.6 0 0 1-2.4-1.4l-3.4.9-1.5-2.7 2.3-2.6a6.7 6.7 0 0 1 0-2.4L3.2 7.2l1.5-2.7 3.4.9A6.6 6.6 0 0 1 10.5 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     <symbol id="icCam" viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
@@ -1018,6 +1060,8 @@ const store = Object.assign({
   life: {},     // Lebenslagen: {typ:{startDate,done{},tasksAdded}}
   weatherLoc: null, // {name,lat,lon}
   weather: null,    // zuletzt geladene Wetterdaten (Cache)
+  family: { members: [], occasions: [], code: null }, // Familienzentrale
+  emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   settings: { model: 'claude-sonnet-5', demoIdx: 0 }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
@@ -1034,7 +1078,7 @@ const hasKey = () => getKey().length > 8;
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['docs', 'school', 'calendar', 'life', 'settings'];
+const MORE_VIEWS = ['docs', 'school', 'calendar', 'life', 'family', 'emergency', 'settings'];
 function showView(name) {
   currentView = name;
   gate();
@@ -1401,7 +1445,7 @@ const upcomingEvents = (n) => store.events.filter(e => e.date >= todayISO())
   .sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, n);
 
 /* ============================== DASHBOARD ============================== */
-const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebenslage' };
+const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebenslage', family: 'Familie' };
 
 RENDERERS.dashboard = function () {
   const h = new Date().getHours();
@@ -1474,6 +1518,19 @@ RENDERERS.dashboard = function () {
       html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic" style="font-size:18px">' + l.icon + '</div>' +
         '<div class="mini-tx"><b>' + esc(l.title) + '</b><span>' + pr.done + ' von ' + pr.total + ' erledigt</span></div>' +
         '<div class="mini-when' + (pr.pct === 100 ? '' : ' warn') + '">' + pr.pct + '%</div></div>';
+    });
+    html += '</div>';
+  }
+
+  const bdayMembers = (store.family && store.family.members ? store.family.members : []).filter(m => m.birthday)
+    .map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) }))
+    .filter(b => dayDiff(b.next) <= 30).sort((a, b) => a.next < b.next ? -1 : 1);
+  if (bdayMembers.length) {
+    html += '<div class="sec-title"><h2>🎂 Bald Geburtstag</h2><button data-go="family">Alle</button></div><div class="mini-list">';
+    bdayMembers.forEach((b, i) => {
+      html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic" style="color:' + b.color + ';font-size:18px">🎂</div>' +
+        '<div class="mini-tx"><b>' + esc(b.name) + ' wird ' + b.age + '</b><span>' + esc(fmtDate(b.next)) + '</span></div>' +
+        '<div class="mini-when' + (dayDiff(b.next) <= 7 ? ' warn' : '') + '">' + relDay(b.next) + '</div></div>';
     });
     html += '</div>';
   }
@@ -2509,6 +2566,304 @@ $('#weatherWidget').addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'wxCity') { const c = e.target.value.trim(); if (c) setWeatherByCity(c); }
 });
 
+/* ============================== FAMILIENZENTRALE ============================== */
+const FAM_ROLES = ['Ich', 'Partner/in', 'Kind', 'Mutter', 'Vater', 'Oma', 'Opa', 'Geschwister', 'Sonstige'];
+let famTab = 'personen', famLastPull = 0;
+function ensureFamily() {
+  if (!store.family) store.family = { members: [], occasions: [], code: null };
+  if (!store.family.members) store.family.members = [];
+  if (!store.family.occasions) store.family.occasions = [];
+  if (!store.family.members.length) {
+    store.family.members.push({ id: uid(), name: (account && account.name) || store.name || 'Ich', role: 'Ich', color: KID_COLORS[0], birthday: '' });
+    save();
+  }
+}
+const famMember = (id) => store.family.members.find(m => m.id === id);
+function nextOccur(iso) {
+  const d = parseISO(iso), t = new Date();
+  const todayMid = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  let cand = new Date(t.getFullYear(), d.getMonth(), d.getDate());
+  if (cand < todayMid) cand = new Date(t.getFullYear() + 1, d.getMonth(), d.getDate());
+  return toISO(cand);
+}
+const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).getFullYear();
+
+/* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
+function famPayload() { return { members: store.family.members, occasions: store.family.occasions, events: store.events.filter(e => e.source === 'family') }; }
+async function famPush() { if (!store.family.code || !CLOUD) return; try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
+async function famPull() {
+  if (!store.family.code || !CLOUD) return false;
+  try {
+    const r = await sb.rpc('get_family');
+    if (r.error || !r.data) return false;
+    const d = r.data.data || {};
+    const before = JSON.stringify(famPayload());
+    store.family.members = d.members || [];
+    store.family.occasions = d.occasions || [];
+    store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
+    save();
+    return JSON.stringify(famPayload()) !== before;
+  } catch (e) { return false; }
+}
+function famChanged() { save(); famPush(); RENDERERS.family(); }
+async function famCreate() {
+  if (!CLOUD) { toast('Sync braucht das Cloud-Backend'); return; }
+  try {
+    const r = await sb.rpc('create_family');
+    if (r.error || !r.data) { toast('Bitte zuerst supabase-family.sql ausführen'); return; }
+    store.family.code = r.data.code; save();
+    await famPush();
+    RENDERERS.family();
+    toast('Familie erstellt – teile den Code 👪');
+  } catch (e) { toast('Fehler beim Erstellen'); }
+}
+async function famJoin(code) {
+  code = (code || '').trim().toUpperCase();
+  if (!code) return;
+  try {
+    const r = await sb.rpc('join_family', { p_code: code });
+    if (r.error) { toast('Fehler – SQL ausgeführt?'); return; }
+    if (!r.data) { toast('Code nicht gefunden'); return; }
+    store.family.code = r.data.code; save();
+    await famPull();
+    RENDERERS.family();
+    toast('Mit Familie verbunden ✓');
+  } catch (e) { toast('Keine Verbindung'); }
+}
+async function famLeave() {
+  if (!confirm('Verbindung zur Familie wirklich trennen?')) return;
+  try { await sb.rpc('leave_family'); } catch (e) {}
+  store.family.code = null; save();
+  RENDERERS.family();
+  toast('Verbindung getrennt');
+}
+
+RENDERERS.family = function () {
+  ensureFamily();
+  let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.</p></div>';
+  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
+    '<button data-ftab="' + x[0] + '" class="' + (famTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
+  h += famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
+  $('#famRoot').innerHTML = h;
+  if (store.family.code && CLOUD && Date.now() - famLastPull > 8000) {
+    famLastPull = Date.now();
+    famPull().then(changed => { if (changed && currentView === 'family') RENDERERS.family(); });
+  }
+};
+function famPersonen() {
+  let h = '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><select id="famRole">' + FAM_ROLES.map(r => '<option>' + r + '</option>').join('') + '</select>' +
+    '<input type="date" id="famBday" title="Geburtstag"></div>' +
+    '<button class="btn btn-primary btn-sm" data-fam="addMem" style="width:100%;margin-bottom:14px">+ Person hinzufügen</button>';
+  store.family.members.forEach(m => {
+    const bd = m.birthday ? '🎂 ' + fmtDateShort(m.birthday) : '';
+    h += '<div class="mem"><span class="kid-dot" style="background:' + m.color + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b>' +
+      '<span>' + esc(m.role) + (bd ? ' · ' + bd : '') + '</span></div>' +
+      '<button class="t-del" data-fam="delMem" data-id="' + m.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function famKalender() {
+  const evs = store.events.filter(e => e.source === 'family' && e.date >= todayISO()).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1);
+  let h = '<input type="text" id="fevTitle" placeholder="Termin (z. B. Familienessen, Elternabend)" maxlength="60" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="date" id="fevDate"><input type="time" id="fevTime"></div>' +
+    '<select id="fevMem" style="margin-bottom:8px"><option value="">Ganze Familie</option>' + store.family.members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
+    '<button class="btn btn-primary btn-sm" data-fam="addEv" style="width:100%;margin-bottom:14px">+ Termin eintragen</button>';
+  if (!evs.length) h += '<div class="empty" style="padding:10px">Noch keine Familientermine.</div>';
+  evs.forEach(e => {
+    const m = famMember(e.famId);
+    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>' + esc(e.title) + '</b>' +
+      '<span>' + esc(fmtDate(e.date)) + (e.time ? ' · ' + esc(e.time) + ' Uhr' : '') + (m ? ' · ' + esc(m.name) : '') + '</span></div>' +
+      '<button class="t-del" data-fam="delEv" data-id="' + e.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  h += '<div class="em-priv">Familientermine erscheinen auch im normalen Kalender.</div>';
+  return h;
+}
+function famAnlaesse() {
+  const bdays = store.family.members.filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).sort((a, b) => a.next < b.next ? -1 : 1);
+  const occ = store.family.occasions.map(o => Object.assign({}, o, { next: nextOccur(o.date) })).sort((a, b) => a.next < b.next ? -1 : 1);
+  let h = '<div class="sec-title"><h2>🎂 Geburtstage</h2></div>';
+  if (!bdays.length) h += '<div class="empty" style="padding:10px">Trage bei den Personen Geburtstage ein.</div>';
+  bdays.forEach(b => {
+    h += '<div class="mem"><span class="kid-dot" style="background:' + b.color + '"></span><div class="mem-info"><b>' + esc(b.name) + '</b>' +
+      '<span>' + esc(fmtDate(b.next)) + ' · wird ' + b.age + '</span></div><div class="mini-when' + (dayDiff(b.next) <= 14 ? ' warn' : '') + '">' + relDay(b.next) + '</div></div>';
+  });
+  h += '<div class="sec-title" style="margin-top:16px"><h2>💍 Wichtige Ereignisse</h2></div>' +
+    '<input type="text" id="occTitle" placeholder="Ereignis (z. B. Hochzeitstag)" maxlength="40" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="occDate"><button class="btn btn-primary btn-sm" data-fam="addOcc">+ Anlegen</button></div>';
+  if (!occ.length) h += '<div class="empty" style="padding:10px">Noch keine Ereignisse.</div>';
+  occ.forEach(o => {
+    h += '<div class="mem"><span style="font-size:18px">💍</span><div class="mem-info"><b>' + esc(o.title) + '</b><span>' + esc(fmtDate(o.next)) + '</span></div>' +
+      '<div class="mini-when' + (dayDiff(o.next) <= 14 ? ' warn' : '') + '">' + relDay(o.next) + '</div>' +
+      '<button class="t-del" data-fam="delOcc" data-id="' + o.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function famSync() {
+  if (!CLOUD) return '<div class="card"><h3 style="margin-bottom:6px">🔗 Partner-Synchronisierung</h3><p class="sub" style="color:var(--muted);font-size:13px">Die Synchronisierung benötigt das Cloud-Backend (Supabase). Ohne Cloud funktioniert die Familienzentrale lokal auf diesem Gerät.</p></div>';
+  if (!store.family.code) {
+    return '<div class="card"><h3 style="margin-bottom:6px">Mit dem Partner synchronisieren</h3><p class="sub" style="color:var(--muted);font-size:13px;margin-bottom:14px">Erstelle eine Familie und teile den Code – oder tritt mit einem Code bei. Personen, Kalender und Anlässe werden dann automatisch geteilt.</p>' +
+      '<button class="btn btn-primary" data-fam="create" style="width:100%;margin-bottom:12px">👪 Familie erstellen</button>' +
+      '<div class="set-row"><input type="text" id="joinCode" placeholder="Code eingeben" maxlength="6" style="text-transform:uppercase"><button class="btn" data-fam="join">Beitreten</button></div></div>';
+  }
+  return '<div class="card" style="text-align:center"><h3>Familie verbunden ✓</h3><p class="sub" style="color:var(--muted);font-size:13px">Teile diesen Code mit deinem Partner:</p>' +
+    '<div class="fam-code">' + esc(store.family.code) + '</div>' +
+    '<button class="btn btn-sm" data-fam="copyCode" style="margin-bottom:10px">📋 Code kopieren</button><br>' +
+    '<button class="btn btn-sm btn-danger" data-fam="leave">Verbindung trennen</button>' +
+    '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>';
+}
+$('#famRoot').addEventListener('click', e => {
+  const tab = e.target.closest('[data-ftab]');
+  if (tab) { famTab = tab.dataset.ftab; RENDERERS.family(); return; }
+  const b = e.target.closest('[data-fam]'); if (!b) return;
+  const a = b.dataset.fam, q = s => $('#famRoot ' + s);
+  if (a === 'addMem') {
+    const name = q('#famName').value.trim(); if (!name) { q('#famName').focus(); return; }
+    store.family.members.push({ id: uid(), name, role: q('#famRole').value, color: KID_COLORS[store.family.members.length % KID_COLORS.length], birthday: q('#famBday').value || '' });
+    famChanged(); toast('Person hinzugefügt ✓'); return;
+  }
+  if (a === 'delMem') { store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'addEv') {
+    const title = q('#fevTitle').value.trim(), date = q('#fevDate').value;
+    if (!title || !date) { toast('Bitte Titel und Datum angeben'); return; }
+    addEvent(title, date, q('#fevTime').value || null, '', 'family', { famId: q('#fevMem').value || '' });
+    famPush(); RENDERERS.family(); toast('Termin eingetragen ✓'); return;
+  }
+  if (a === 'delEv') { store.events = store.events.filter(ev => ev.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'addOcc') {
+    const title = q('#occTitle').value.trim(), date = q('#occDate').value;
+    if (!title || !date) { toast('Bitte Titel und Datum angeben'); return; }
+    store.family.occasions.push({ id: uid(), title, date, yearly: true }); famChanged(); return;
+  }
+  if (a === 'delOcc') { store.family.occasions = store.family.occasions.filter(o => o.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'create') { famCreate(); return; }
+  if (a === 'join') { famJoin(q('#joinCode').value); return; }
+  if (a === 'copyCode') { copyText(store.family.code).then(ok => toast(ok ? 'Code kopiert ✓' : 'Kopieren nicht möglich')); return; }
+  if (a === 'leave') { famLeave(); return; }
+});
+$('#famRoot').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'famName') $('#famRoot [data-fam="addMem"]').click();
+  else if (e.target.id === 'fevTitle') $('#famRoot [data-fam="addEv"]').click();
+  else if (e.target.id === 'occTitle') $('#famRoot [data-fam="addOcc"]').click();
+  else if (e.target.id === 'joinCode') $('#famRoot [data-fam="join"]').click();
+});
+
+/* ============================== NOTFALLBEREICH (nur lokal) ============================== */
+let emTab = 'kontakte';
+const EM_CHECKLISTS = [
+  { id: 'feuer', icon: '🔥', title: 'Feuer / Brand', steps: ['Alle Personen aus der Wohnung bringen', 'Türen schließen (nicht abschließen)', '112 anrufen (Feuerwehr)', 'Bei Fettbrand niemals mit Wasser löschen', 'Am Treffpunkt sammeln, Vollzähligkeit prüfen'] },
+  { id: 'unfall', icon: '🚑', title: 'Unfall / Verletzung', steps: ['Ruhe bewahren, Unfallstelle sichern', '112 anrufen (Rettungsdienst)', 'Erste Hilfe leisten', 'Bei Bewusstlosigkeit: stabile Seitenlage', 'Bis zum Eintreffen beim Verletzten bleiben'] },
+  { id: 'strom', icon: '🔌', title: 'Stromausfall', steps: ['Sicherungskasten prüfen', 'Netzbetreiber / Nachbarn informieren', 'Kühl- und Gefrierschrank geschlossen halten', 'Taschenlampen statt Kerzen nutzen', 'Powerbank / Notfall-Radio bereithalten'] },
+  { id: 'kind', icon: '🧒', title: 'Kind vermisst', steps: ['Ruhe bewahren, letzten Ort prüfen', 'Umgebung und bekannte Orte absuchen', 'Freunde und Familie informieren', 'Bei Gefahr sofort 110 anrufen', 'Aktuelles Foto und Beschreibung bereithalten'] }
+];
+function ensureEmergency() {
+  const e = store.emergency = store.emergency || {};
+  e.contacts = e.contacts || []; e.phones = e.phones || []; e.medical = e.medical || {}; e.insurances = e.insurances || []; e.checkDone = e.checkDone || {};
+}
+const telHref = (n) => 'tel:' + String(n || '').replace(/[^\d+]/g, '');
+function emCall(num, lbl, cls) { return '<a href="' + telHref(num) + '" class="' + cls + '"><div><div class="nr-num">' + num + '</div><div class="nr-lbl">' + lbl + '</div></div></a>'; }
+RENDERERS.emergency = function () {
+  ensureEmergency();
+  let h = '<div class="view-head"><h1>Notfallbereich</h1><p>Alle wichtigen Infos griffbereit – wenn jede Sekunde zählt.</p></div>';
+  h += '<div class="notruf">' + emCall('112', 'Feuerwehr / Notarzt', 'nr-112') + emCall('110', 'Polizei', 'nr-110') +
+    emCall('116117', 'Ärztl. Bereitschaft', 'nr-117') + emCall('030 19240', 'Giftnotruf Berlin', 'nr-gift') + '</div>';
+  h += '<div class="seg em-tabs">' + [['kontakte', '📇 Kontakte'], ['medizin', '🩺 Medizin'], ['versich', '🛡️ Versich.'], ['check', '✅ Checkliste']].map(x =>
+    '<button data-etab="' + x[0] + '" class="' + (emTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
+  h += emTab === 'medizin' ? emMedizin() : emTab === 'versich' ? emVersich() : emTab === 'check' ? emCheck() : emKontakte();
+  h += '<div class="em-priv">🔒 Diese Daten bleiben ausschließlich lokal auf deinem Gerät – nichts wird in die Cloud übertragen.</div>';
+  $('#emRoot').innerHTML = h;
+};
+function emKontakte() {
+  const em = store.emergency;
+  let h = '<div class="sec-title"><h2>🆘 ICE-Kontakte (im Notfall)</h2></div>' +
+    '<input type="text" id="ecName" placeholder="Name" maxlength="40" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="text" id="ecRel" placeholder="Beziehung (z. B. Ehefrau)" maxlength="30"><input type="tel" id="ecPhone" placeholder="Telefon"></div>' +
+    '<button class="btn btn-primary btn-sm" data-em="addContact" style="width:100%;margin-bottom:14px">+ Kontakt hinzufügen</button>';
+  if (!em.contacts.length) h += '<div class="empty" style="padding:10px">Noch keine Notfallkontakte.</div>';
+  em.contacts.forEach(c => {
+    h += '<div class="em-contact"><div class="ec-info"><b>' + esc(c.name) + '</b><span>' + esc(c.relation || '') + (c.phone ? ' · ' + esc(c.phone) : '') + '</span></div>' +
+      (c.phone ? '<a class="em-call" href="' + telHref(c.phone) + '">📞</a>' : '') +
+      '<button class="t-del" data-em="delContact" data-id="' + c.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  h += '<div class="sec-title" style="margin-top:16px"><h2>📞 Wichtige Nummern</h2></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="text" id="phLabel" placeholder="Bezeichnung (z. B. Hausarzt)" maxlength="30"><input type="tel" id="phNum" placeholder="Nummer"></div>' +
+    '<button class="btn btn-primary btn-sm" data-em="addPhone" style="width:100%;margin-bottom:14px">+ Nummer hinzufügen</button>';
+  if (!em.phones.length) h += '<div class="empty" style="padding:10px">Noch keine eigenen Nummern hinterlegt.</div>';
+  em.phones.forEach(p => {
+    h += '<div class="em-contact"><div class="ec-info"><b>' + esc(p.label) + '</b><span>' + esc(p.number || '') + '</span></div>' +
+      (p.number ? '<a class="em-call" href="' + telHref(p.number) + '">📞</a>' : '') +
+      '<button class="t-del" data-em="delPhone" data-id="' + p.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function emMedizin() {
+  const m = store.emergency.medical;
+  const f = (k, l, ph, ta) => '<label class="fld">' + l + '</label>' + (ta
+    ? '<textarea data-med="' + k + '" rows="2" placeholder="' + ph + '" style="margin-bottom:10px">' + esc(m[k] || '') + '</textarea>'
+    : '<input type="text" data-med="' + k + '" value="' + esc(m[k] || '') + '" placeholder="' + ph + '" style="margin-bottom:10px">');
+  return '<div class="card">' + f('blood', 'Blutgruppe', 'z. B. A+') + f('allergies', 'Allergien', 'z. B. Penicillin, Nüsse', 1) +
+    f('meds', 'Medikamente', 'regelmäßige Einnahme', 1) + f('conditions', 'Vorerkrankungen', 'z. B. Asthma, Diabetes', 1) +
+    f('notes', 'Sonstige Hinweise', 'Organspende, Kontaktlinsen, Patientenverfügung …', 1) + '</div>';
+}
+function emVersich() {
+  const em = store.emergency;
+  let h = '<input type="text" id="insType" placeholder="Art (z. B. Krankenkasse, Haftpflicht)" maxlength="40" style="margin-bottom:8px">' +
+    '<input type="text" id="insCompany" placeholder="Anbieter" maxlength="40" style="margin-bottom:8px">' +
+    '<input type="text" id="insNumber" placeholder="Versicherungsnummer" maxlength="40" style="margin-bottom:8px">' +
+    '<button class="btn btn-primary btn-sm" data-em="addIns" style="width:100%;margin-bottom:14px">+ Versicherung hinzufügen</button>';
+  if (!em.insurances.length) h += '<div class="empty" style="padding:10px">Noch keine Versicherungen hinterlegt.</div>';
+  em.insurances.forEach(i => {
+    h += '<div class="em-contact"><div class="ec-info"><b>' + esc(i.type) + (i.company ? ' · ' + esc(i.company) : '') + '</b><span>Nr.: ' + esc(i.number || '—') + '</span></div>' +
+      '<button class="t-del" data-em="delIns" data-id="' + i.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function emCheck() {
+  return EM_CHECKLISTS.map(cl => {
+    let h = '<div class="pack-list"><div class="pack-head"><b>' + cl.icon + ' ' + esc(cl.title) + '</b></div>';
+    cl.steps.forEach((s, i) => {
+      const key = cl.id + ':' + i, done = !!store.emergency.checkDone[key];
+      h += '<div class="pack-item' + (done ? ' done' : '') + '" data-key="' + key + '"><button class="ls-check" data-em="chk"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button><span class="pi-t">' + esc(s) + '</span></div>';
+    });
+    return h + '</div>';
+  }).join('');
+}
+$('#emRoot').addEventListener('click', e => {
+  const tab = e.target.closest('[data-etab]');
+  if (tab) { emTab = tab.dataset.etab; RENDERERS.emergency(); return; }
+  const b = e.target.closest('[data-em]'); if (!b) return;
+  const a = b.dataset.em, q = s => $('#emRoot ' + s), em = store.emergency;
+  if (a === 'addContact') {
+    const name = q('#ecName').value.trim(); if (!name) { q('#ecName').focus(); return; }
+    em.contacts.push({ id: uid(), name, relation: q('#ecRel').value.trim(), phone: q('#ecPhone').value.trim() });
+    save(); RENDERERS.emergency(); return;
+  }
+  if (a === 'delContact') { em.contacts = em.contacts.filter(c => c.id !== b.dataset.id); save(); RENDERERS.emergency(); return; }
+  if (a === 'addPhone') {
+    const label = q('#phLabel').value.trim(); if (!label) { q('#phLabel').focus(); return; }
+    em.phones.push({ id: uid(), label, number: q('#phNum').value.trim() });
+    save(); RENDERERS.emergency(); return;
+  }
+  if (a === 'delPhone') { em.phones = em.phones.filter(p => p.id !== b.dataset.id); save(); RENDERERS.emergency(); return; }
+  if (a === 'addIns') {
+    const type = q('#insType').value.trim(); if (!type) { q('#insType').focus(); return; }
+    em.insurances.push({ id: uid(), type, company: q('#insCompany').value.trim(), number: q('#insNumber').value.trim() });
+    save(); RENDERERS.emergency(); return;
+  }
+  if (a === 'delIns') { em.insurances = em.insurances.filter(i => i.id !== b.dataset.id); save(); RENDERERS.emergency(); return; }
+  if (a === 'chk') { const row = e.target.closest('.pack-item'); const k = row.dataset.key; em.checkDone[k] = !em.checkDone[k]; save(); RENDERERS.emergency(); return; }
+});
+$('#emRoot').addEventListener('change', e => {
+  if (e.target.dataset.med) { store.emergency.medical[e.target.dataset.med] = e.target.value; save(); }
+});
+$('#emRoot').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (e.target.id === 'ecName' || e.target.id === 'ecRel' || e.target.id === 'ecPhone') $('#emRoot [data-em="addContact"]').click();
+  else if (e.target.id === 'phLabel' || e.target.id === 'phNum') $('#emRoot [data-em="addPhone"]').click();
+  else if (e.target.id === 'insType' || e.target.id === 'insCompany' || e.target.id === 'insNumber') $('#emRoot [data-em="addIns"]').click();
+});
+
 /* ============================== KI-ADAPTER ============================== */
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
@@ -3067,6 +3422,7 @@ $('#btnWipe').addEventListener('click', async () => {
 
 /* ============================== INIT ============================== */
 refreshAIStatus();
+if (CLOUD && store.family && store.family.code) famPull().then(c => { if (c && currentView === 'dashboard') RENDERERS.dashboard(); });
 if (CLOUD) {
   account = null;   /* lokales Konto ignorieren – Cloud entscheidet */
   gate();
