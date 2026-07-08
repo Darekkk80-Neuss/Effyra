@@ -638,6 +638,38 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .veh-check{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);margin-bottom:10px;cursor:pointer}
 .veh-check input{width:auto}
 
+/* ============================== SPRACHE & REGION (i18n) ============================== */
+#langPicker{z-index:130}
+.lang-box{max-width:460px;width:100%;max-height:88vh;display:flex;flex-direction:column;
+  background:rgba(9,11,18,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--border);border-radius:24px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:viewIn .4s ease both}
+.lang-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.lang-head h2{font-size:19px;line-height:1.25}
+#langSearch{margin-bottom:10px}
+.lang-filter{margin-bottom:12px;flex-wrap:wrap}
+.lang-filter button{flex:1 1 auto;white-space:nowrap;font-size:12.5px;padding:8px 6px}
+#langList{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:2px}
+.lang-card{display:flex;align-items:center;gap:14px;padding:13px 15px;border-radius:15px;border:1px solid var(--border);
+  background:var(--card);color:var(--text);text-align:left;width:100%;transition:.16s}
+.lang-card:hover{border-color:var(--border2);transform:translateX(2px)}
+.lang-card.sel{border-color:transparent;background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(6,182,212,.28));box-shadow:0 4px 16px rgba(124,58,237,.3)}
+.lang-flag{font-size:30px;line-height:1;flex:none}
+.lang-tx{flex:1;min-width:0}
+.lang-tx b{display:block;font-size:15.5px}
+.lang-tx span{font-size:12.5px;color:var(--muted)}
+.lang-rtl{font-size:10px;font-weight:700;color:#67e8f9;background:rgba(6,182,212,.14);border-radius:8px;padding:2px 7px;flex:none}
+.lang-detect{background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,182,212,.16));border:1px solid rgba(167,139,250,.35);
+  border-radius:16px;padding:14px;margin-bottom:14px;text-align:center}
+.lang-detect p{font-size:13.5px;margin-bottom:10px}
+.lang-detect .row{display:flex;gap:8px}
+.lang-detect .row .btn{flex:1}
+/* Wechsel-Animation */
+body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topbar,body.lang-switching .tabbar{animation:langFade .32s ease}
+@keyframes langFade{0%{opacity:.35}100%{opacity:1}}
+/* RTL – automatische Spiegelung */
+[dir=rtl] .topbar,[dir=rtl] .view-head,[dir=rtl] .greet,[dir=rtl] .card,[dir=rtl] .lang-tx,[dir=rtl] .mem-info,[dir=rtl] .ec-info,[dir=rtl] .mini-tx{text-align:right}
+[dir=rtl] .sidebar{border-right:none;border-left:1px solid var(--border)}
+
 /* ============================== AUTH & PAYWALL (GATES) ============================== */
 .gate{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;align-items:center;
   justify-content:center;padding:28px 24px;overflow-y:auto;background:
@@ -727,6 +759,23 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   </div>
 </div>
 
+<!-- ============================== SPRACHAUSWAHL ============================== -->
+<div id="langPicker" class="gate">
+  <div class="lang-box">
+    <div id="langDetect"></div>
+    <div class="lang-head">
+      <svg class="logo-mark" viewBox="0 0 64 64" style="width:44px;height:44px"><use href="#logoSym"/></svg>
+      <h2 id="langQ">Welche Sprache möchtest du verwenden?</h2>
+    </div>
+    <input type="text" id="langSearch" placeholder="Land oder Sprache suchen …" autocomplete="off">
+    <div class="seg lang-filter" id="langFilter">
+      <button data-lf="all" class="active">Alle</button>
+      <button data-lf="common">Häufig</button>
+    </div>
+    <div id="langList"></div>
+  </div>
+</div>
+
 <!-- ============================== ONBOARDING ============================== -->
 <div id="onboarding">
   <div class="ob-slide active" data-slide="0">
@@ -767,20 +816,20 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   <aside class="sidebar">
     <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Effyra</b></a>
     <nav class="snav">
-      <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg>Dashboard</button>
-      <button data-view="work"><svg viewBox="0 0 24 24"><use href="#icWork"/></svg>Arbeitszeit</button>
-      <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg>Dokumentenscanner</button>
-      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg>Dokumentenassistent</button>
-      <button data-view="voice"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg>Voice2PDF</button>
-      <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg>Lebenslagen</button>
-      <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
-      <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
-      <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Kinder</button>
-      <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg>Familienzentrale</button>
-      <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg>Notfallbereich</button>
-      <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg>Auto &amp; Motorrad</button>
-      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Effyra Chat</button>
-      <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg>Einstellungen</button>
+      <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="nav.dashboard">Start</span></button>
+      <button data-view="work"><svg viewBox="0 0 24 24"><use href="#icWork"/></svg><span data-i18n="nav.work">Arbeitszeit</span></button>
+      <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.docs">Dokumentenscanner</span></button>
+      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Dokumentenassistent</span></button>
+      <button data-view="voice"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg><span data-i18n="nav.voice">Voice2PDF</span></button>
+      <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg><span data-i18n="nav.life">Lebenslagen</span></button>
+      <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="nav.tasks">Aufgaben</span></button>
+      <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span data-i18n="nav.calendar">Kalender</span></button>
+      <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg><span data-i18n="nav.school">Kinder</span></button>
+      <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg><span data-i18n="nav.family">Familienzentrale</span></button>
+      <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg><span data-i18n="nav.emergency">Notfallbereich</span></button>
+      <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg><span data-i18n="nav.vehicles">Auto &amp; Motorrad</span></button>
+      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg><span data-i18n="nav.chat">Effyra Chat</span></button>
+      <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
     <div class="foot">
       <div class="status-pill" id="aiStatusSide"><span class="dot"></span><span class="lbl">Demo-Modus</span></div>
@@ -805,11 +854,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <div id="weatherWidget"></div>
       <div class="qa-row">
         <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span>Foto analysieren</button>
+          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span><span data-i18n="dash.qa_photo">Foto analysieren</span></button>
         <button class="qa qa-2 rise" style="--i:1" id="qaChat">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span>Frag Effyra</button>
+          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span data-i18n="dash.qa_ask">Frag Effyra</span></button>
         <button class="qa qa-3 rise" style="--i:2" id="qaTask">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></span>Neue Aufgabe</button>
+          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></span><span data-i18n="dash.qa_task">Neue Aufgabe</span></button>
       </div>
       <div class="stat-row" id="statRow"></div>
       <div id="dashWidgets"></div>
@@ -983,6 +1032,12 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <div class="card set-card" id="accountCard"></div>
 
       <div class="card set-card">
+        <h3 data-i18n="set.lang_title">🌐 Sprache &amp; Region</h3>
+        <p class="sub" id="langCardSub"></p>
+        <button class="btn" id="btnChangeLang" data-i18n="set.change_lang">Sprache ändern</button>
+      </div>
+
+      <div class="card set-card">
         <h3>Dein Name</h3>
         <p class="sub">So spricht Effyra dich an.</p>
         <div class="set-row">
@@ -1030,11 +1085,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   </main>
 
   <nav class="tabbar">
-    <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span>Start</span></button>
-    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span>Assistent</span></button>
+    <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="tab.start">Start</span></button>
+    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="tab.assistant">Assistent</span></button>
     <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>Effyra</span></button>
-    <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span>Aufgaben</span></button>
-    <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span>Mehr</span></button>
+    <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="tab.tasks">Aufgaben</span></button>
+    <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span data-i18n="nav.more">Mehr</span></button>
   </nav>
 
 </div>
@@ -1042,16 +1097,16 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 <div id="moreSheet" class="more-sheet">
   <div class="more-panel">
     <div class="more-grid">
-      <button data-view="work"><span class="mi">🕒</span>Arbeitszeit</button>
-      <button data-view="docs"><span class="mi">📄</span>Dokumentenscanner</button>
-      <button data-view="school"><span class="mi">🧒</span>Kinder</button>
-      <button data-view="calendar"><span class="mi">📅</span>Kalender</button>
-      <button data-view="voice"><span class="mi">🎙️</span>Voice2PDF</button>
-      <button data-view="life"><span class="mi">🧭</span>Lebenslagen</button>
-      <button data-view="family"><span class="mi">👪</span>Familie</button>
-      <button data-view="emergency"><span class="mi">🆘</span>Notfall</button>
-      <button data-view="vehicles"><span class="mi">🚗</span>Fahrzeuge</button>
-      <button data-view="settings"><span class="mi">⚙️</span>Einstellungen</button>
+      <button data-view="work"><span class="mi">🕒</span><span data-i18n="nav.work">Arbeitszeit</span></button>
+      <button data-view="docs"><span class="mi">📄</span><span data-i18n="nav.docs">Dokumentenscanner</span></button>
+      <button data-view="school"><span class="mi">🧒</span><span data-i18n="nav.school">Kinder</span></button>
+      <button data-view="calendar"><span class="mi">📅</span><span data-i18n="nav.calendar">Kalender</span></button>
+      <button data-view="voice"><span class="mi">🎙️</span><span data-i18n="nav.voice">Voice2PDF</span></button>
+      <button data-view="life"><span class="mi">🧭</span><span data-i18n="nav.life">Lebenslagen</span></button>
+      <button data-view="family"><span class="mi">👪</span><span data-i18n="nav.family">Familie</span></button>
+      <button data-view="emergency"><span class="mi">🆘</span><span data-i18n="nav.emergency">Notfall</span></button>
+      <button data-view="vehicles"><span class="mi">🚗</span><span data-i18n="nav.vehicles">Fahrzeuge</span></button>
+      <button data-view="settings"><span class="mi">⚙️</span><span data-i18n="nav.settings">Einstellungen</span></button>
     </div>
   </div>
 </div>
@@ -1126,15 +1181,17 @@ const addDays = (iso, n) => {
   return toISO(d);
 };
 const dayDiff = (iso) => Math.round((parseISO(iso) - parseISO(todayISO())) / 86400000);
-const fmtDate = (iso) => parseISO(iso).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' });
-const fmtDateShort = (iso) => parseISO(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+let curLang = 'de', curLocale = 'de-DE';
+const fmtDate = (iso) => parseISO(iso).toLocaleDateString(curLocale, { weekday: 'short', day: 'numeric', month: 'long' });
+const fmtDateShort = (iso) => parseISO(iso).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' });
+const fmtDateFull = (iso) => parseISO(iso).toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const relDay = (iso) => {
   const n = dayDiff(iso);
-  if (n === 0) return 'heute';
-  if (n === 1) return 'morgen';
-  if (n === -1) return 'gestern';
-  if (n < 0) return 'vor ' + (-n) + ' Tagen';
-  if (n <= 14) return 'in ' + n + ' Tagen';
+  if (n === 0) return t('date.today');
+  if (n === 1) return t('date.tomorrow');
+  if (n === -1) return t('date.yesterday');
+  if (n < 0) return t('date.days_ago', { n: -n });
+  if (n <= 14) return t('date.in_days', { n: n });
   return fmtDateShort(iso);
 };
 
@@ -1197,6 +1254,266 @@ function save() {
 }
 const getKey = () => { try { return localStorage.getItem(KEY_KEY) || ''; } catch (e) { return ''; } };
 const hasKey = () => getKey().length > 8;
+
+/* ============================== I18N / SPRACHE & REGION ============================== */
+/* Unterstützte Sprachen (Metadaten). native = Originalname; region = Kontinent;
+   rtl = Rechts-nach-links; common = häufig verwendet. Übersetzt sind DE/EN/FR/ES/IT/PL;
+   weitere Sprachen sind wählbar und fallen sauber auf Englisch/Deutsch zurück. */
+const LANGS = [
+  { code: 'de', flag: '🇩🇪', native: 'Deutsch', locale: 'de-DE', country: 'Deutschland', region: 'Europa', common: true },
+  { code: 'en', flag: '🇬🇧', native: 'English', locale: 'en-GB', country: 'United Kingdom', region: 'Europa', common: true },
+  { code: 'fr', flag: '🇫🇷', native: 'Français', locale: 'fr-FR', country: 'France', region: 'Europa', common: true },
+  { code: 'es', flag: '🇪🇸', native: 'Español', locale: 'es-ES', country: 'España', region: 'Europa', common: true },
+  { code: 'it', flag: '🇮🇹', native: 'Italiano', locale: 'it-IT', country: 'Italia', region: 'Europa', common: true },
+  { code: 'pl', flag: '🇵🇱', native: 'Polski', locale: 'pl-PL', country: 'Polska', region: 'Europa', common: true },
+  { code: 'nl', flag: '🇳🇱', native: 'Nederlands', locale: 'nl-NL', country: 'Nederland', region: 'Europa' },
+  { code: 'pt', flag: '🇵🇹', native: 'Português', locale: 'pt-PT', country: 'Portugal', region: 'Europa' },
+  { code: 'tr', flag: '🇹🇷', native: 'Türkçe', locale: 'tr-TR', country: 'Türkiye', region: 'Europa', common: true },
+  { code: 'ru', flag: '🇷🇺', native: 'Русский', locale: 'ru-RU', country: 'Россия', region: 'Europa' },
+  { code: 'uk', flag: '🇺🇦', native: 'Українська', locale: 'uk-UA', country: 'Україна', region: 'Europa' },
+  { code: 'ar', flag: '🇸🇦', native: 'العربية', locale: 'ar', country: 'السعودية', region: 'Naher Osten', rtl: true, common: true },
+  { code: 'he', flag: '🇮🇱', native: 'עברית', locale: 'he', country: 'ישראל', region: 'Naher Osten', rtl: true },
+  { code: 'fa', flag: '🇮🇷', native: 'فارسی', locale: 'fa', country: 'ایران', region: 'Naher Osten', rtl: true },
+  { code: 'ja', flag: '🇯🇵', native: '日本語', locale: 'ja-JP', country: '日本', region: 'Asien', common: true },
+  { code: 'zh', flag: '🇨🇳', native: '中文', locale: 'zh-CN', country: '中国', region: 'Asien', common: true },
+  { code: 'ko', flag: '🇰🇷', native: '한국어', locale: 'ko-KR', country: '대한민국', region: 'Asien', common: true },
+  { code: 'hi', flag: '🇮🇳', native: 'हिन्दी', locale: 'hi-IN', country: 'भारत', region: 'Asien' },
+  { code: 'th', flag: '🇹🇭', native: 'ไทย', locale: 'th-TH', country: 'ประเทศไทย', region: 'Asien' },
+  { code: 'vi', flag: '🇻🇳', native: 'Tiếng Việt', locale: 'vi-VN', country: 'Việt Nam', region: 'Asien' },
+  { code: 'id', flag: '🇮🇩', native: 'Bahasa Indonesia', locale: 'id-ID', country: 'Indonesia', region: 'Asien' }
+];
+const I18N = {
+  de: {
+    'date.today': 'heute', 'date.tomorrow': 'morgen', 'date.yesterday': 'gestern', 'date.days_ago': 'vor {n} Tagen', 'date.in_days': 'in {n} Tagen',
+    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Dokumentenscanner', 'nav.docgen': 'Dokumentenassistent', 'nav.voice': 'Voice2PDF', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
+    'tab.start': 'Start', 'tab.assistant': 'Assistent', 'tab.tasks': 'Aufgaben',
+    'dash.morning': 'Guten Morgen', 'dash.day': 'Guten Tag', 'dash.evening': 'Guten Abend', 'dash.night': 'Gute Nacht',
+    'dash.stat_open': 'Offene Aufgaben', 'dash.stat_today': 'Termine heute', 'dash.stat_docs': 'Dokumente',
+    'dash.qa_photo': 'Foto analysieren', 'dash.qa_ask': 'Frag Effyra', 'dash.qa_task': 'Neue Aufgabe',
+    'dash.sec_appts': '📅 Nächste Termine', 'dash.sec_tasks': '✅ Wichtige Aufgaben', 'dash.all': 'Alle',
+    'dash.no_appts': 'Keine anstehenden Termine – genieß die Ruhe 🌿', 'dash.no_tasks': 'Nichts offen – stark! 🎉',
+    'set.lang_title': 'Sprache & Region', 'set.lang_sub': 'Sprache, Land und Datumsformat.', 'set.change_lang': 'Sprache ändern',
+    'region.europe': 'Europa', 'region.mideast': 'Naher Osten', 'region.asia': 'Asien',
+    'lang.q': 'Welche Sprache möchtest du verwenden?', 'lang.search': 'Land oder Sprache suchen …', 'lang.f_all': 'Alle', 'lang.f_common': 'Häufig', 'lang.rtl': 'Rechts-nach-links',
+    'lang.detected': 'Wir haben {lang} als Gerätesprache erkannt. Möchtest du sie verwenden?', 'lang.use': 'Ja, verwenden', 'lang.other': 'Andere wählen', 'lang.applied': 'Sprache geändert ✓', 'lang.done': 'Fertig', 'lang.none': 'Keine Sprache gefunden'
+  },
+  en: {
+    'date.today': 'today', 'date.tomorrow': 'tomorrow', 'date.yesterday': 'yesterday', 'date.days_ago': '{n} days ago', 'date.in_days': 'in {n} days',
+    'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.voice': 'Voice2PDF', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
+    'tab.start': 'Home', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tasks',
+    'dash.morning': 'Good morning', 'dash.day': 'Hello', 'dash.evening': 'Good evening', 'dash.night': 'Good night',
+    'dash.stat_open': 'Open tasks', 'dash.stat_today': 'Today’s events', 'dash.stat_docs': 'Documents',
+    'dash.qa_photo': 'Scan photo', 'dash.qa_ask': 'Ask Effyra', 'dash.qa_task': 'New task',
+    'dash.sec_appts': '📅 Upcoming events', 'dash.sec_tasks': '✅ Important tasks', 'dash.all': 'All',
+    'dash.no_appts': 'No upcoming events – enjoy the calm 🌿', 'dash.no_tasks': 'Nothing open – great! 🎉',
+    'set.lang_title': 'Language & Region', 'set.lang_sub': 'Language, country and date format.', 'set.change_lang': 'Change language',
+    'region.europe': 'Europe', 'region.mideast': 'Middle East', 'region.asia': 'Asia',
+    'lang.q': 'Which language would you like to use?', 'lang.search': 'Search country or language …', 'lang.f_all': 'All', 'lang.f_common': 'Common', 'lang.rtl': 'Right-to-left',
+    'lang.detected': 'We detected {lang} as your device language. Use it?', 'lang.use': 'Yes, use it', 'lang.other': 'Choose another', 'lang.applied': 'Language changed ✓', 'lang.done': 'Done', 'lang.none': 'No language found'
+  },
+  fr: {
+    'date.today': "aujourd'hui", 'date.tomorrow': 'demain', 'date.yesterday': 'hier', 'date.days_ago': 'il y a {n} jours', 'date.in_days': 'dans {n} jours',
+    'nav.dashboard': 'Accueil', 'nav.work': 'Temps de travail', 'nav.docs': 'Scanner de documents', 'nav.docgen': 'Assistant de documents', 'nav.voice': 'Voice2PDF', 'nav.life': 'Situations de vie', 'nav.tasks': 'Tâches', 'nav.calendar': 'Calendrier', 'nav.school': 'Enfants', 'nav.family': 'Espace famille', 'nav.emergency': 'Urgences', 'nav.vehicles': 'Auto & Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Paramètres', 'nav.more': 'Plus',
+    'tab.start': 'Accueil', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tâches',
+    'dash.morning': 'Bonjour', 'dash.day': 'Bonjour', 'dash.evening': 'Bonsoir', 'dash.night': 'Bonne nuit',
+    'dash.stat_open': 'Tâches ouvertes', 'dash.stat_today': "Événements du jour", 'dash.stat_docs': 'Documents',
+    'dash.qa_photo': 'Scanner une photo', 'dash.qa_ask': 'Demander à Effyra', 'dash.qa_task': 'Nouvelle tâche',
+    'dash.sec_appts': '📅 Prochains événements', 'dash.sec_tasks': '✅ Tâches importantes', 'dash.all': 'Tout',
+    'dash.no_appts': 'Aucun événement à venir – profitez du calme 🌿', 'dash.no_tasks': 'Rien en attente – bravo ! 🎉',
+    'set.lang_title': 'Langue & Région', 'set.lang_sub': 'Langue, pays et format de date.', 'set.change_lang': 'Changer de langue',
+    'region.europe': 'Europe', 'region.mideast': 'Moyen-Orient', 'region.asia': 'Asie',
+    'lang.q': 'Quelle langue souhaitez-vous utiliser ?', 'lang.search': 'Rechercher un pays ou une langue …', 'lang.f_all': 'Toutes', 'lang.f_common': 'Courantes', 'lang.rtl': 'De droite à gauche',
+    'lang.detected': 'Nous avons détecté {lang} comme langue de l’appareil. L’utiliser ?', 'lang.use': 'Oui, utiliser', 'lang.other': 'Choisir une autre', 'lang.applied': 'Langue modifiée ✓', 'lang.done': 'Terminé', 'lang.none': 'Aucune langue trouvée'
+  },
+  es: {
+    'date.today': 'hoy', 'date.tomorrow': 'mañana', 'date.yesterday': 'ayer', 'date.days_ago': 'hace {n} días', 'date.in_days': 'en {n} días',
+    'nav.dashboard': 'Inicio', 'nav.work': 'Horario laboral', 'nav.docs': 'Escáner de documentos', 'nav.docgen': 'Asistente de documentos', 'nav.voice': 'Voice2PDF', 'nav.life': 'Situaciones de vida', 'nav.tasks': 'Tareas', 'nav.calendar': 'Calendario', 'nav.school': 'Niños', 'nav.family': 'Centro familiar', 'nav.emergency': 'Emergencia', 'nav.vehicles': 'Coche y Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ajustes', 'nav.more': 'Más',
+    'tab.start': 'Inicio', 'tab.assistant': 'Asistente', 'tab.tasks': 'Tareas',
+    'dash.morning': 'Buenos días', 'dash.day': 'Hola', 'dash.evening': 'Buenas tardes', 'dash.night': 'Buenas noches',
+    'dash.stat_open': 'Tareas abiertas', 'dash.stat_today': 'Eventos de hoy', 'dash.stat_docs': 'Documentos',
+    'dash.qa_photo': 'Escanear foto', 'dash.qa_ask': 'Preguntar a Effyra', 'dash.qa_task': 'Nueva tarea',
+    'dash.sec_appts': '📅 Próximos eventos', 'dash.sec_tasks': '✅ Tareas importantes', 'dash.all': 'Todo',
+    'dash.no_appts': 'Sin eventos próximos – disfruta la calma 🌿', 'dash.no_tasks': 'Nada pendiente – ¡genial! 🎉',
+    'set.lang_title': 'Idioma y Región', 'set.lang_sub': 'Idioma, país y formato de fecha.', 'set.change_lang': 'Cambiar idioma',
+    'region.europe': 'Europa', 'region.mideast': 'Oriente Medio', 'region.asia': 'Asia',
+    'lang.q': '¿Qué idioma quieres usar?', 'lang.search': 'Buscar país o idioma …', 'lang.f_all': 'Todos', 'lang.f_common': 'Comunes', 'lang.rtl': 'De derecha a izquierda',
+    'lang.detected': 'Detectamos {lang} como idioma del dispositivo. ¿Usarlo?', 'lang.use': 'Sí, usar', 'lang.other': 'Elegir otro', 'lang.applied': 'Idioma cambiado ✓', 'lang.done': 'Listo', 'lang.none': 'No se encontró ningún idioma'
+  },
+  it: {
+    'date.today': 'oggi', 'date.tomorrow': 'domani', 'date.yesterday': 'ieri', 'date.days_ago': '{n} giorni fa', 'date.in_days': 'tra {n} giorni',
+    'nav.dashboard': 'Home', 'nav.work': 'Orario di lavoro', 'nav.docs': 'Scanner documenti', 'nav.docgen': 'Assistente documenti', 'nav.voice': 'Voice2PDF', 'nav.life': 'Situazioni di vita', 'nav.tasks': 'Attività', 'nav.calendar': 'Calendario', 'nav.school': 'Bambini', 'nav.family': 'Area famiglia', 'nav.emergency': 'Emergenza', 'nav.vehicles': 'Auto & Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Impostazioni', 'nav.more': 'Altro',
+    'tab.start': 'Home', 'tab.assistant': 'Assistente', 'tab.tasks': 'Attività',
+    'dash.morning': 'Buongiorno', 'dash.day': 'Ciao', 'dash.evening': 'Buonasera', 'dash.night': 'Buonanotte',
+    'dash.stat_open': 'Attività aperte', 'dash.stat_today': 'Eventi di oggi', 'dash.stat_docs': 'Documenti',
+    'dash.qa_photo': 'Scansiona foto', 'dash.qa_ask': 'Chiedi a Effyra', 'dash.qa_task': 'Nuova attività',
+    'dash.sec_appts': '📅 Prossimi eventi', 'dash.sec_tasks': '✅ Attività importanti', 'dash.all': 'Tutto',
+    'dash.no_appts': 'Nessun evento in arrivo – goditi la calma 🌿', 'dash.no_tasks': 'Niente in sospeso – ottimo! 🎉',
+    'set.lang_title': 'Lingua e Regione', 'set.lang_sub': 'Lingua, paese e formato data.', 'set.change_lang': 'Cambia lingua',
+    'region.europe': 'Europa', 'region.mideast': 'Medio Oriente', 'region.asia': 'Asia',
+    'lang.q': 'Quale lingua vuoi usare?', 'lang.search': 'Cerca paese o lingua …', 'lang.f_all': 'Tutte', 'lang.f_common': 'Comuni', 'lang.rtl': 'Da destra a sinistra',
+    'lang.detected': 'Abbiamo rilevato {lang} come lingua del dispositivo. Usarla?', 'lang.use': 'Sì, usala', 'lang.other': 'Scegli un’altra', 'lang.applied': 'Lingua cambiata ✓', 'lang.done': 'Fatto', 'lang.none': 'Nessuna lingua trovata'
+  },
+  pl: {
+    'date.today': 'dziś', 'date.tomorrow': 'jutro', 'date.yesterday': 'wczoraj', 'date.days_ago': '{n} dni temu', 'date.in_days': 'za {n} dni',
+    'nav.dashboard': 'Start', 'nav.work': 'Czas pracy', 'nav.docs': 'Skaner dokumentów', 'nav.docgen': 'Asystent dokumentów', 'nav.voice': 'Voice2PDF', 'nav.life': 'Sytuacje życiowe', 'nav.tasks': 'Zadania', 'nav.calendar': 'Kalendarz', 'nav.school': 'Dzieci', 'nav.family': 'Centrum rodziny', 'nav.emergency': 'Nagły wypadek', 'nav.vehicles': 'Auto i Motocykl', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ustawienia', 'nav.more': 'Więcej',
+    'tab.start': 'Start', 'tab.assistant': 'Asystent', 'tab.tasks': 'Zadania',
+    'dash.morning': 'Dzień dobry', 'dash.day': 'Cześć', 'dash.evening': 'Dobry wieczór', 'dash.night': 'Dobranoc',
+    'dash.stat_open': 'Otwarte zadania', 'dash.stat_today': 'Dzisiejsze wydarzenia', 'dash.stat_docs': 'Dokumenty',
+    'dash.qa_photo': 'Skanuj zdjęcie', 'dash.qa_ask': 'Zapytaj Effyra', 'dash.qa_task': 'Nowe zadanie',
+    'dash.sec_appts': '📅 Nadchodzące wydarzenia', 'dash.sec_tasks': '✅ Ważne zadania', 'dash.all': 'Wszystko',
+    'dash.no_appts': 'Brak nadchodzących wydarzeń – ciesz się spokojem 🌿', 'dash.no_tasks': 'Nic otwartego – super! 🎉',
+    'set.lang_title': 'Język i Region', 'set.lang_sub': 'Język, kraj i format daty.', 'set.change_lang': 'Zmień język',
+    'region.europe': 'Europa', 'region.mideast': 'Bliski Wschód', 'region.asia': 'Azja',
+    'lang.q': 'Jakiego języka chcesz używać?', 'lang.search': 'Szukaj kraju lub języka …', 'lang.f_all': 'Wszystkie', 'lang.f_common': 'Popularne', 'lang.rtl': 'Od prawej do lewej',
+    'lang.detected': 'Wykryliśmy {lang} jako język urządzenia. Użyć go?', 'lang.use': 'Tak, użyj', 'lang.other': 'Wybierz inny', 'lang.applied': 'Zmieniono język ✓', 'lang.done': 'Gotowe', 'lang.none': 'Nie znaleziono języka'
+  }
+};
+function t(key, vars) {
+  const dict = I18N[curLang] || {};
+  let s = dict[key] != null ? dict[key] : (I18N.en[key] != null ? I18N.en[key] : (I18N.de[key] != null ? I18N.de[key] : key));
+  if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
+  return s;
+}
+const langMeta = (code) => LANGS.find(l => l.code === code) || LANGS[0];
+/* Sprachname in der aktuell verwendeten Sprache (via Intl.DisplayNames, Fallback native) */
+function langNameIn(code, inLocale) {
+  try { const n = new Intl.DisplayNames([inLocale || curLocale], { type: 'language' }).of(code); if (n && n.toLowerCase() !== code) return n.charAt(0).toUpperCase() + n.slice(1); } catch (e) {}
+  return langMeta(code).native;
+}
+function detectDeviceLang() {
+  const nav = (navigator.language || 'de').toLowerCase().slice(0, 2);
+  return LANGS.find(l => l.code === nav) ? nav : null;
+}
+/* Übersetzungen aus /translation/<code>.json nachladen und über die eingebauten
+   Defaults legen (die Datei ist die pflegbare Quelle, das Inline-Wörterbuch der
+   Offline-Fallback). Schlägt der Abruf fehl – z. B. über file:// – bleibt der Fallback. */
+const langLoaded = {};
+function loadLangFile(code) {
+  if (langLoaded[code]) return Promise.resolve(false);
+  langLoaded[code] = true;
+  return fetch('translation/' + code + '.json', { cache: 'no-cache' })
+    .then(r => (r.ok ? r.json() : null))
+    .then(data => { if (data) { I18N[code] = Object.assign(I18N[code] || {}, data); return true; } return false; })
+    .catch(() => false);
+}
+function applyStaticI18n() {
+  $$('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $$('[data-i18n-ph]').forEach(el => { el.setAttribute('placeholder', t(el.dataset.i18nPh)); });
+}
+function applyLang(code, opts) {
+  const l = langMeta(code);
+  curLang = l.code; curLocale = l.locale;
+  document.documentElement.lang = l.code;
+  document.documentElement.dir = l.rtl ? 'rtl' : 'ltr';
+  if ((!opts || opts.persist !== false) && store.profile) {
+    store.profile.lang = l.code; store.profile.country = l.country; store.profile.region = l.region;
+    store.profile.locale = l.locale; store.profile.rtl = !!l.rtl;
+    try { store.profile.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+    try { store.profile.dateFormat = new Intl.DateTimeFormat(l.locale).format(new Date(2026, 6, 8)); } catch (e) {}
+    save();
+  }
+  applyStaticI18n();
+  if (!opts || !opts.silent) {
+    document.body.classList.add('lang-switching');
+    setTimeout(() => document.body.classList.remove('lang-switching'), 320);
+  }
+  refresh();
+  /* Übersetzungsdateien nachladen; bei Erfolg neu rendern */
+  Promise.all([loadLangFile(l.code), l.code !== 'en' ? loadLangFile('en') : Promise.resolve(false)])
+    .then(res => { if (res[0] || res[1]) { applyStaticI18n(); refresh(); } });
+}
+
+/* ---- Sprachauswahl-Fenster (Picker) ---- */
+let langFilter = 'all', langQuery = '', langFirstRun = false;
+
+function langListHTML() {
+  const q = langQuery.trim().toLowerCase();
+  let list = LANGS.slice();
+  if (langFilter === 'common') list = list.filter(l => l.common);
+  else if (langFilter !== 'all') list = list.filter(l => l.region === langFilter);
+  if (q) list = list.filter(l =>
+    l.native.toLowerCase().indexOf(q) >= 0 ||
+    l.code.indexOf(q) >= 0 ||
+    (l.country || '').toLowerCase().indexOf(q) >= 0 ||
+    langNameIn(l.code).toLowerCase().indexOf(q) >= 0 ||
+    langNameIn(l.code, 'en').toLowerCase().indexOf(q) >= 0
+  );
+  if (!list.length) return '<div class="empty" style="padding:20px;text-align:center">' + esc(t('lang.none')) + '</div>';
+  return list.map(function (l) {
+    const inCur = langNameIn(l.code);
+    const second = inCur.toLowerCase() !== l.native.toLowerCase() ? inCur : (l.country || '');
+    return '<button class="lang-card' + (l.code === curLang ? ' sel' : '') + '" data-lang="' + l.code + '">' +
+      '<span class="lang-flag">' + l.flag + '</span>' +
+      '<span class="lang-tx"><b>' + esc(l.native) + '</b><span>' + esc(second) + '</span></span>' +
+      (l.rtl ? '<span class="lang-rtl">RTL</span>' : '') +
+      (l.code === curLang ? '<span class="lang-rtl" style="color:#a7f3d0;background:rgba(16,185,129,.16)">✓</span>' : '') +
+      '</button>';
+  }).join('');
+}
+
+function renderLangPicker() {
+  $('#langQ').textContent = t('lang.q');
+  $('#langSearch').setAttribute('placeholder', t('lang.search'));
+  const regions = [];
+  LANGS.forEach(l => { if (regions.indexOf(l.region) < 0) regions.push(l.region); });
+  let fb = '<button data-lf="all"' + (langFilter === 'all' ? ' class="active"' : '') + '>' + esc(t('lang.f_all')) + '</button>' +
+    '<button data-lf="common"' + (langFilter === 'common' ? ' class="active"' : '') + '>' + esc(t('lang.f_common')) + '</button>';
+  const REG_KEY = { 'Europa': 'region.europe', 'Naher Osten': 'region.mideast', 'Asien': 'region.asia' };
+  regions.forEach(r => { fb += '<button data-lf="' + esc(r) + '"' + (langFilter === r ? ' class="active"' : '') + '>' + esc(REG_KEY[r] ? t(REG_KEY[r]) : r) + '</button>'; });
+  $('#langFilter').innerHTML = fb;
+  $('#langList').innerHTML = langListHTML();
+}
+
+function openLangPicker(firstRun) {
+  langQuery = ''; langFilter = 'all';
+  const s = $('#langSearch'); if (s) s.value = '';
+  $$('#langFilter button').forEach(b => b.classList.toggle('active', b.dataset.lf === 'all'));
+  const det = $('#langDetect');
+  const dev = firstRun ? detectDeviceLang() : null;
+  if (dev && dev !== curLang) {
+    const m = langMeta(dev);
+    det.innerHTML = '<div class="lang-detect"><p>' + esc(t('lang.detected', { lang: m.flag + ' ' + m.native })) + '</p>' +
+      '<div class="row"><button class="btn btn-primary btn-sm" data-lang-use="' + dev + '">' + esc(t('lang.use')) + '</button>' +
+      '<button class="btn btn-sm" data-lang-dismiss>' + esc(t('lang.other')) + '</button></div></div>';
+  } else det.innerHTML = '';
+  renderLangPicker();
+  $('#langPicker').classList.add('on');
+}
+
+function closeLangPicker() { $('#langPicker').classList.remove('on'); }
+
+function selectLang(code) {
+  const first = langFirstRun; langFirstRun = false;
+  applyLang(code);
+  closeLangPicker();
+  if (typeof toast === 'function') toast(t('lang.applied'));
+  /* Bei Ersteinrichtung danach ins Onboarding, falls noch nötig */
+  if (first && !isTrialExpired() && !store.onboarded) {
+    $('#onboarding').classList.add('on');
+    obShow(0);
+    $('#obName').value = store.name || (account && account.name) || '';
+  }
+}
+
+(function initLangPicker() {
+  const pk = $('#langPicker');
+  if (!pk) return;
+  pk.addEventListener('click', function (e) {
+    const use = e.target.closest('[data-lang-use]');
+    if (use) { selectLang(use.dataset.langUse); return; }
+    if (e.target.closest('[data-lang-dismiss]')) { $('#langDetect').innerHTML = ''; return; }
+    const card = e.target.closest('[data-lang]');
+    if (card) { selectLang(card.dataset.lang); return; }
+    const fbtn = e.target.closest('#langFilter button');
+    if (fbtn) {
+      langFilter = fbtn.dataset.lf;
+      $$('#langFilter button').forEach(b => b.classList.toggle('active', b === fbtn));
+      $('#langList').innerHTML = langListHTML();
+    }
+  });
+  const s = $('#langSearch');
+  if (s) s.addEventListener('input', function () { langQuery = s.value; $('#langList').innerHTML = langListHTML(); });
+})();
 
 /* ============================== NAVIGATION ============================== */
 let currentView = 'dashboard';
@@ -1312,6 +1629,10 @@ function gate() {
   $('#auth').classList.toggle('on', !loggedIn);
   $('#paywall').classList.toggle('on', loggedIn && isTrialExpired());
   if (!loggedIn) setupAuthForm();
+  /* Ersteinrichtung: nach dem Login zuerst die Sprache wählen lassen */
+  else if (!isTrialExpired() && (!store.profile || !store.profile.lang) && !$('#langPicker').classList.contains('on')) {
+    langFirstRun = true; openLangPicker(true);
+  }
 }
 
 let cloudAuthMode = 'reg';   /* Cloud-Modus: 'reg' | 'login' */
@@ -1579,9 +1900,9 @@ const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebensl
 
 RENDERERS.dashboard = function () {
   const h = new Date().getHours();
-  const g = h < 5 ? 'Gute Nacht' : h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+  const g = h < 5 ? t('dash.night') : h < 11 ? t('dash.morning') : h < 18 ? t('dash.day') : t('dash.evening');
   $('#greetLine').innerHTML = esc(g) + (store.name ? ', <span class="grad-text">' + esc(store.name) + '</span>' : '') + ' 👋';
-  $('#greetDate').textContent = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  $('#greetDate').textContent = new Date().toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const slot = $('#trialSlot');
   if (account && isPremium()) {
@@ -1597,15 +1918,15 @@ RENDERERS.dashboard = function () {
   const open = store.tasks.filter(t => !t.done).length;
   const evToday = eventsOn(todayISO()).length;
   $('#statRow').innerHTML =
-    '<div class="stat rise" style="--i:0"><b>' + open + '</b><span>Offene Aufgaben</span></div>' +
-    '<div class="stat rise" style="--i:1"><b>' + evToday + '</b><span>Termine heute</span></div>' +
-    '<div class="stat rise" style="--i:2"><b>' + store.docs.length + '</b><span>Dokumente</span></div>';
+    '<div class="stat rise" style="--i:0"><b>' + open + '</b><span>' + esc(t('dash.stat_open')) + '</span></div>' +
+    '<div class="stat rise" style="--i:1"><b>' + evToday + '</b><span>' + esc(t('dash.stat_today')) + '</span></div>' +
+    '<div class="stat rise" style="--i:2"><b>' + store.docs.length + '</b><span>' + esc(t('dash.stat_docs')) + '</span></div>';
 
   let html = '';
 
   const evs = upcomingEvents(3);
-  html += '<div class="sec-title"><h2>📅 Nächste Termine</h2><button data-go="calendar">Alle</button></div><div class="mini-list">';
-  if (!evs.length) html += '<div class="empty">Keine anstehenden Termine – genieß die Ruhe 🌿</div>';
+  html += '<div class="sec-title"><h2>' + esc(t('dash.sec_appts')) + '</h2><button data-go="calendar">' + esc(t('dash.all')) + '</button></div><div class="mini-list">';
+  if (!evs.length) html += '<div class="empty">' + esc(t('dash.no_appts')) + '</div>';
   evs.forEach((e, i) => {
     html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg></div>' +
       '<div class="mini-tx"><b>' + esc(e.title) + '</b><span>' + esc(fmtDate(e.date)) + (e.time ? ' · ' + esc(e.time) + ' Uhr' : '') + '</span></div>' +
@@ -1688,8 +2009,8 @@ RENDERERS.dashboard = function () {
   }
 
   const tks = openTasksSorted().slice(0, 4);
-  html += '<div class="sec-title"><h2>✅ Wichtige Aufgaben</h2><button data-go="tasks">Alle</button></div><div class="mini-list">';
-  if (!tks.length) html += '<div class="empty">Nichts offen – stark! 🎉</div>';
+  html += '<div class="sec-title"><h2>' + esc(t('dash.sec_tasks')) + '</h2><button data-go="tasks">' + esc(t('dash.all')) + '</button></div><div class="mini-list">';
+  if (!tks.length) html += '<div class="empty">' + esc(t('dash.no_tasks')) + '</div>';
   tks.forEach((t, i) => {
     const late = t.due && dayDiff(t.due) < 0;
     html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg></div>' +
@@ -4122,9 +4443,14 @@ RENDERERS.settings = function () {
   $('#setName').value = store.name;
   $('#setModel').value = store.settings.model;
   $('#setKey').value = getKey() ? '••••••••••••••••' : '';
+  const lm = langMeta(curLang);
+  const inCur = langNameIn(lm.code);
+  $('#langCardSub').textContent = lm.flag + ' ' + lm.native + (inCur.toLowerCase() !== lm.native.toLowerCase() ? ' (' + inCur + ')' : '') + ' · ' + (lm.country || '');
   refreshAIStatus();
   renderAccountCard();
 };
+
+$('#btnChangeLang').addEventListener('click', () => openLangPicker(false));
 
 function renderAccountCard() {
   const card = $('#accountCard');
@@ -4227,6 +4553,9 @@ $('#btnWipe').addEventListener('click', async () => {
 });
 
 /* ============================== INIT ============================== */
+/* Gespeicherte Sprache anwenden (ohne Animation); ohne Auswahl bleibt Deutsch,
+   die Geräteerkennung schlägt beim Ersteinrichtungs-Fenster eine Sprache vor. */
+applyLang((store.profile && store.profile.lang) || 'de', { silent: true, persist: !!(store.profile && store.profile.lang) });
 refreshAIStatus();
 if (CLOUD && store.family && store.family.code) famPull().then(c => { if (c && currentView === 'dashboard') RENDERERS.dashboard(); });
 if (CLOUD) {
