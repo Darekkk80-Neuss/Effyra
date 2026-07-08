@@ -575,6 +575,21 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;flex:none}
 .em-priv{font-size:12px;color:var(--faint);text-align:center;margin-top:16px;padding:0 10px;line-height:1.5}
 
+/* ============================== AUTO & MOTORRAD ============================== */
+.veh-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--border);margin-bottom:12px}
+.veh-tabs button{flex:1 1 30%;padding:7px 4px;border:none;border-radius:10px;background:none;color:var(--muted);font-size:11.5px;font-weight:600;white-space:nowrap;transition:.2s}
+.veh-tabs button.active{background:var(--card2);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.3)}
+.veh-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.veh-stat{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:11px 8px;text-align:center}
+.veh-stat b{display:block;font-size:19px;font-family:var(--font-head);background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.veh-stat span{font-size:11px;color:var(--muted)}
+.veh-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700}
+.b-ok{background:rgba(52,211,153,.14);color:#6ee7b7}
+.b-soon{background:rgba(251,191,36,.14);color:#fcd34d}
+.b-late{background:rgba(248,113,113,.15);color:#fca5a5}
+.veh-check{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);margin-bottom:10px;cursor:pointer}
+.veh-check input{width:auto}
+
 /* ============================== AUTH & PAYWALL (GATES) ============================== */
 .gate{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;align-items:center;
   justify-content:center;padding:28px 24px;overflow-y:auto;background:
@@ -707,6 +722,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="school"><svg viewBox="0 0 24 24"><use href="#icSchool"/></svg>Kinder</button>
       <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg>Familienzentrale</button>
       <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg>Notfallbereich</button>
+      <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg>Auto &amp; Motorrad</button>
       <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>NEXA Chat</button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg>Einstellungen</button>
     </nav>
@@ -851,6 +867,20 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <div id="emRoot"></div>
     </section>
 
+    <!-- ============================== AUTO & MOTORRAD ============================== -->
+    <section class="view" id="view-vehicles">
+      <div class="view-head">
+        <h1>Auto &amp; Motorrad</h1>
+        <p>Tankbuch, Service, TÜV, Touren &amp; mehr – pro Fahrzeug.</p>
+      </div>
+      <div class="task-add">
+        <input type="text" id="vehName" placeholder="Fahrzeug (z. B. VW Golf)" maxlength="40">
+        <select id="vehType" style="flex:none;width:auto"><option value="auto">🚗 Auto</option><option value="motorrad">🏍️ Motorrad</option></select>
+        <button class="btn btn-primary" id="vehAddBtn"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button>
+      </div>
+      <div id="vehList"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -935,6 +965,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="life"><span class="mi">🧭</span>Lebenslagen</button>
       <button data-view="family"><span class="mi">👪</span>Familie</button>
       <button data-view="emergency"><span class="mi">🆘</span>Notfall</button>
+      <button data-view="vehicles"><span class="mi">🚗</span>Fahrzeuge</button>
       <button data-view="settings"><span class="mi">⚙️</span>Einstellungen</button>
     </div>
   </div>
@@ -965,6 +996,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <symbol id="icLife" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-9C1.4 8 3 4.5 6.4 4.5c2 0 3.4 1.2 5.6 3.5 2.2-2.3 3.6-3.5 5.6-3.5C21 4.5 22.6 8 21.2 11 19 15.6 12 20 12 20z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icFamily" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 20c.2-2.4 1.8-4 3.5-4 1.9 0 3.3 1.4 3.5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icAlert" viewBox="0 0 24 24"><path d="M12 3c2.5 3 6 4 8 4 0 6-3 10-8 12-5-2-8-6-8-12 2 0 5.5-1 8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icCar" viewBox="0 0 24 24"><path d="M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1H6.5v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 13h18" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="7.5" cy="16" r="1" fill="currentColor"/><circle cx="16.5" cy="16" r="1" fill="currentColor"/></symbol>
     <symbol id="icSpark" viewBox="0 0 24 24"><path d="M12 2c.6 4.8 2.4 7.4 8 8-5.6.6-7.4 3.2-8 8-.6-4.8-2.4-7.4-8-8 5.6-.6 7.4-3.2 8-8z" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor" opacity=".7"/></symbol>
     <symbol id="icGear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8 13.5 6a6.6 6.6 0 0 1 2.4 1.4l3.4-.9 1.5 2.7-2.3 2.6a6.7 6.7 0 0 1 0 2.4l2.3 2.6-1.5 2.7-3.4-.9a6.6 6.6 0 0 1-2.4 1.4L12 21.2 10.5 18a6.6 6.6 0 0 1-2.4-1.4l-3.4.9-1.5-2.7 2.3-2.6a6.7 6.7 0 0 1 0-2.4L3.2 7.2l1.5-2.7 3.4.9A6.6 6.6 0 0 1 10.5 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     <symbol id="icCam" viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
@@ -1062,6 +1094,7 @@ const store = Object.assign({
   weather: null,    // zuletzt geladene Wetterdaten (Cache)
   family: { members: [], occasions: [], code: null }, // Familienzentrale
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
+  vehicles: [], // Auto & Motorrad
   settings: { model: 'claude-sonnet-5', demoIdx: 0 }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
@@ -1078,7 +1111,7 @@ const hasKey = () => getKey().length > 8;
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['docs', 'school', 'calendar', 'life', 'family', 'emergency', 'settings'];
+const MORE_VIEWS = ['docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
 function showView(name) {
   currentView = name;
   gate();
@@ -1445,7 +1478,7 @@ const upcomingEvents = (n) => store.events.filter(e => e.date >= todayISO())
   .sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, n);
 
 /* ============================== DASHBOARD ============================== */
-const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebenslage', family: 'Familie' };
+const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebenslage', family: 'Familie', veh: 'Fahrzeug' };
 
 RENDERERS.dashboard = function () {
   const h = new Date().getHours();
@@ -1531,6 +1564,18 @@ RENDERERS.dashboard = function () {
       html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic" style="color:' + b.color + ';font-size:18px">🎂</div>' +
         '<div class="mini-tx"><b>' + esc(b.name) + ' wird ' + b.age + '</b><span>' + esc(fmtDate(b.next)) + '</span></div>' +
         '<div class="mini-when' + (dayDiff(b.next) <= 7 ? ' warn' : '') + '">' + relDay(b.next) + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  const tuevDue = (store.vehicles || []).filter(v => v.tuev && dayDiff(v.tuev) <= 45).sort((a, b) => a.tuev < b.tuev ? -1 : 1);
+  if (tuevDue.length) {
+    html += '<div class="sec-title"><h2>🔧 TÜV steht an</h2><button data-go="vehicles">Alle</button></div><div class="mini-list">';
+    tuevDue.forEach((v, i) => {
+      const d = dayDiff(v.tuev);
+      html += '<div class="mini rise" style="--i:' + i + '"><div class="mini-ic" style="font-size:18px">' + (v.type === 'motorrad' ? '🏍️' : '🚗') + '</div>' +
+        '<div class="mini-tx"><b>' + esc(v.name) + '</b><span>HU ' + esc(fmtDate(v.tuev)) + '</span></div>' +
+        '<div class="mini-when' + (d < 0 ? ' late' : ' warn') + '">' + (d < 0 ? 'überfällig' : relDay(v.tuev)) + '</div></div>';
     });
     html += '</div>';
   }
@@ -2862,6 +2907,257 @@ $('#emRoot').addEventListener('keydown', e => {
   if (e.target.id === 'ecName' || e.target.id === 'ecRel' || e.target.id === 'ecPhone') $('#emRoot [data-em="addContact"]').click();
   else if (e.target.id === 'phLabel' || e.target.id === 'phNum') $('#emRoot [data-em="addPhone"]').click();
   else if (e.target.id === 'insType' || e.target.id === 'insCompany' || e.target.id === 'insNumber') $('#emRoot [data-em="addIns"]').click();
+});
+
+/* ============================== AUTO & MOTORRAD ============================== */
+const vehTab = {};
+const vehSec = (id) => vehTab[id] || 'tanken';
+const deNum = (n, d) => (n == null || isNaN(n)) ? '–' : (+n).toFixed(d).replace('.', ',');
+const kmFmt = (n) => (+n || 0).toLocaleString('de-DE');
+function addMonths(iso, m) { const d = parseISO(iso); d.setMonth(d.getMonth() + (+m || 0)); return toISO(d); }
+function ensureVeh(v) {
+  v.insurance = v.insurance || {}; v.serviceEvery = v.serviceEvery || { km: 0, months: 0 };
+  ['fuel', 'trips', 'services', 'tires', 'tours'].forEach(k => { if (!v[k]) v[k] = []; });
+  if (v.parking === undefined) v.parking = null;
+}
+function fuelStats(v) {
+  const fuel = (v.fuel || []).slice().sort((a, b) => a.km - b.km);
+  let totalCost = 0, totalL = 0; fuel.forEach(f => { totalCost += (+f.cost || 0); totalL += (+f.liters || 0); });
+  const consById = {}, perFull = []; let prevFullKm = null, acc = 0;
+  fuel.forEach(f => {
+    if (prevFullKm != null) acc += (+f.liters || 0);
+    if (f.full) {
+      if (prevFullKm != null && f.km > prevFullKm) { const c = acc / (f.km - prevFullKm) * 100; consById[f.id] = c; perFull.push(c); }
+      prevFullKm = f.km; acc = 0;
+    }
+  });
+  const avg = perFull.length ? perFull.reduce((a, b) => a + b, 0) / perFull.length : null;
+  return { avg, pricePerL: totalL > 0 ? totalCost / totalL : null, totalCost, totalL, curKm: fuel.length ? fuel[fuel.length - 1].km : 0, consById };
+}
+
+RENDERERS.vehicles = function () {
+  const box = $('#vehList');
+  if (!store.vehicles.length) { box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🚗</span>Noch kein Fahrzeug angelegt.<br>Gib oben Namen und Typ ein!</div>'; return; }
+  box.innerHTML = store.vehicles.map(vehCard).join('');
+};
+function vehCard(v) {
+  ensureVeh(v);
+  const sec = vehSec(v.id);
+  const tabs = [['tanken', '⛽ Tank'], ['fahrten', '📖 Fahrten'], ['service', '🔧 Service'], ['daten', '🛡️ Daten'], ['touren', '🗺️ Touren'], ['parken', '📍 Park']];
+  let h = '<div class="card kid-card" data-veh="' + v.id + '">' +
+    '<div class="kid-head"><span style="font-size:22px">' + (v.type === 'motorrad' ? '🏍️' : '🚗') + '</span>' +
+    '<h3>' + esc(v.name) + (v.plate ? ' · ' + esc(v.plate) : '') + '</h3>' +
+    '<button class="t-del" data-va="delVeh" title="Fahrzeug entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
+    '<div class="veh-tabs">' + tabs.map(t => '<button data-vt="' + t[0] + '" class="' + (sec === t[0] ? 'active' : '') + '">' + t[1] + '</button>').join('') + '</div>';
+  h += sec === 'fahrten' ? vehFahrten(v) : sec === 'service' ? vehService(v) : sec === 'daten' ? vehDaten(v) : sec === 'touren' ? vehTouren(v) : sec === 'parken' ? vehParken(v) : vehTanken(v);
+  return h + '</div>';
+}
+const delSm = '<svg viewBox="0 0 24 24" width="14" height="14"><use href="#icTrash"/></svg>';
+function vehTanken(v) {
+  const st = fuelStats(v);
+  let h = '<div class="veh-stats">' +
+    '<div class="veh-stat"><b>' + deNum(st.avg, 1) + '</b><span>Ø Liter/100 km</span></div>' +
+    '<div class="veh-stat"><b>' + deNum(st.pricePerL, 2) + '</b><span>Ø €/Liter</span></div>' +
+    '<div class="veh-stat"><b>' + deNum(st.totalCost, 0) + '</b><span>Gesamt €</span></div>' +
+    '<div class="veh-stat"><b>' + (st.curKm ? kmFmt(st.curKm) : '–') + '</b><span>km-Stand</span></div></div>';
+  h += '<div class="kid-row" style="margin-bottom:8px"><input type="date" data-in="fDate" value="' + todayISO() + '"><input type="number" data-in="fKm" placeholder="km-Stand" inputmode="numeric"></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="number" data-in="fL" placeholder="Liter" inputmode="decimal" step="0.01"><input type="number" data-in="fCost" placeholder="€ gesamt" inputmode="decimal" step="0.01"></div>' +
+    '<label class="veh-check"><input type="checkbox" data-in="fFull" checked> Vollgetankt (für Verbrauchsberechnung)</label>' +
+    '<button class="btn btn-primary btn-sm" data-va="addFuel" style="width:100%;margin-bottom:14px">+ Tankvorgang eintragen</button>';
+  const fuel = (v.fuel || []).slice().sort((a, b) => b.km - a.km);
+  if (!fuel.length) h += '<div class="empty" style="padding:10px">Noch keine Tankvorgänge.</div>';
+  fuel.forEach(f => {
+    h += '<div class="lesson"><span style="font-size:16px">⛽</span><div class="ls-main"><div class="ls-t">' + kmFmt(f.km) + ' km' + (f.full ? '' : ' · Teiltank') + '</div>' +
+      '<div class="ls-note">' + fmtDateShort(f.date) + ' · ' + deNum(f.liters, 2) + ' L · ' + deNum(f.cost, 2) + ' €' + (st.consById[f.id] ? ' · ' + deNum(st.consById[f.id], 1) + ' l/100' : '') + '</div></div>' +
+      '<button class="l-btn del" data-va="delFuel" data-id="' + f.id + '">' + delSm + '</button></div>';
+  });
+  return h;
+}
+function vehFahrten(v) {
+  const trips = (v.trips || []).slice().sort((a, b) => b.date < a.date ? -1 : 1);
+  const total = trips.reduce((s, t) => s + (+t.km || 0), 0), biz = trips.filter(t => t.purpose === 'geschaeftlich').reduce((s, t) => s + (+t.km || 0), 0);
+  let h = '<div class="veh-stats"><div class="veh-stat"><b>' + kmFmt(total) + '</b><span>km gesamt</span></div><div class="veh-stat"><b>' + kmFmt(biz) + '</b><span>km geschäftlich</span></div></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="text" data-in="tFrom" placeholder="Von" maxlength="40"><input type="text" data-in="tTo" placeholder="Nach" maxlength="40"></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="date" data-in="tDate" value="' + todayISO() + '"><input type="number" data-in="tKm" placeholder="km" inputmode="numeric"><select data-in="tPurpose"><option value="privat">Privat</option><option value="geschaeftlich">Geschäftlich</option></select></div>' +
+    '<button class="btn btn-primary btn-sm" data-va="addTrip" style="width:100%;margin-bottom:12px">+ Fahrt eintragen</button>';
+  if (!trips.length) h += '<div class="empty" style="padding:10px">Noch keine Fahrten.</div>';
+  trips.forEach(t => {
+    h += '<div class="lesson"><span style="font-size:16px">' + (t.purpose === 'geschaeftlich' ? '💼' : '🏠') + '</span><div class="ls-main"><div class="ls-t">' + esc(t.from || '') + (t.to ? ' → ' + esc(t.to) : '') + '</div>' +
+      '<div class="ls-note">' + fmtDateShort(t.date) + ' · ' + kmFmt(t.km) + ' km</div></div><button class="l-btn del" data-va="delTrip" data-id="' + t.id + '">' + delSm + '</button></div>';
+  });
+  return h;
+}
+function vehService(v) {
+  const cur = fuelStats(v).curKm;
+  let h = '<div class="sec-title"><h2>🛠️ TÜV / HU</h2></div>' +
+    '<label class="fld">Nächste Hauptuntersuchung</label><input type="date" data-set="tuevDate" value="' + esc(v.tuev || '') + '" style="margin-bottom:8px">';
+  if (v.tuev) {
+    const d = dayDiff(v.tuev), cls = d < 0 ? 'b-late' : d <= 30 ? 'b-soon' : 'b-ok';
+    h += '<div style="margin-bottom:8px"><span class="veh-badge ' + cls + '">🔧 ' + (d < 0 ? 'überfällig seit ' + fmtDateShort(v.tuev) : 'fällig ' + relDay(v.tuev)) + '</span></div>' +
+      '<button class="btn btn-sm" data-va="tuevRemind" style="margin-bottom:14px">🔔 An TÜV erinnern (Aufgabe + Kalender)</button>';
+  }
+  h += '<div class="sec-title"><h2>🔧 Serviceintervall</h2></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><div style="flex:1"><label class="fld">alle … km</label><input type="number" data-set="svcKm" value="' + (v.serviceEvery.km || '') + '" placeholder="z. B. 15000" inputmode="numeric"></div>' +
+    '<div style="flex:1"><label class="fld">oder … Monate</label><input type="number" data-set="svcMonths" value="' + (v.serviceEvery.months || '') + '" placeholder="z. B. 12" inputmode="numeric"></div></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><div style="flex:1"><label class="fld">Letzter Service</label><input type="date" data-set="lastSvcDate" value="' + esc(v.lastService || '') + '"></div>' +
+    '<div style="flex:1"><label class="fld">bei km</label><input type="number" data-set="lastSvcKm" value="' + (v.lastServiceKm || '') + '" inputmode="numeric"></div></div>';
+  const hints = [];
+  if (v.serviceEvery.km > 0 && v.lastServiceKm > 0) { const nk = (+v.lastServiceKm) + (+v.serviceEvery.km), rem = nk - cur; hints.push(rem > 0 ? 'nächster Service bei ' + kmFmt(nk) + ' km (noch ' + kmFmt(rem) + ' km)' : 'Service überfällig (' + kmFmt(Math.abs(rem)) + ' km drüber)'); }
+  if (v.serviceEvery.months > 0 && v.lastService) { const nd = addMonths(v.lastService, v.serviceEvery.months); hints.push('spätestens ' + fmtDate(nd) + ' (' + relDay(nd) + ')'); }
+  if (hints.length) h += '<div class="ls-note" style="margin-bottom:14px">🛈 ' + esc(hints.join(' · ')) + '</div>';
+  h += '<div class="sec-title"><h2>📋 Werkstatt-Historie</h2></div>' +
+    '<input type="text" data-in="svcTitle" placeholder="Arbeit (z. B. Ölwechsel, Inspektion)" maxlength="50" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="date" data-in="svcDate" value="' + todayISO() + '"><input type="number" data-in="svcKmv" placeholder="km" inputmode="numeric"><input type="number" data-in="svcCost" placeholder="€" inputmode="decimal"></div>' +
+    '<button class="btn btn-primary btn-sm" data-va="addSvc" style="width:100%;margin-bottom:12px">+ Eintragen</button>';
+  (v.services || []).slice().sort((a, b) => b.date < a.date ? -1 : 1).forEach(s => {
+    h += '<div class="lesson"><span style="font-size:16px">🔧</span><div class="ls-main"><div class="ls-t">' + esc(s.title) + '</div><div class="ls-note">' + fmtDateShort(s.date) + (s.km ? ' · ' + kmFmt(s.km) + ' km' : '') + (s.cost ? ' · ' + deNum(s.cost, 2) + ' €' : '') + '</div></div><button class="l-btn del" data-va="delSvc" data-id="' + s.id + '">' + delSm + '</button></div>';
+  });
+  h += '<div class="sec-title"><h2>🛞 Reifenwechsel</h2></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><select data-in="tireKind"><option value="sommer">☀️ Sommer</option><option value="winter">❄️ Winter</option><option value="ganzjahr">🔄 Ganzjahr</option><option value="neu">🆕 Neu</option></select><input type="date" data-in="tireDate" value="' + todayISO() + '"><input type="number" data-in="tireKm" placeholder="km" inputmode="numeric"></div>' +
+    '<button class="btn btn-primary btn-sm" data-va="addTire" style="width:100%;margin-bottom:12px">+ Wechsel eintragen</button>';
+  const TL = { sommer: '☀️ Sommerreifen', winter: '❄️ Winterreifen', ganzjahr: '🔄 Ganzjahresreifen', neu: '🆕 Neue Reifen' };
+  (v.tires || []).slice().sort((a, b) => b.date < a.date ? -1 : 1).forEach(t => {
+    h += '<div class="lesson"><span style="font-size:16px">🛞</span><div class="ls-main"><div class="ls-t">' + (TL[t.kind] || t.kind) + '</div><div class="ls-note">' + fmtDateShort(t.date) + (t.km ? ' · ' + kmFmt(t.km) + ' km' : '') + '</div></div><button class="l-btn del" data-va="delTire" data-id="' + t.id + '">' + delSm + '</button></div>';
+  });
+  return h;
+}
+function vehDaten(v) {
+  return '<div class="card"><label class="fld">Bezeichnung</label><input type="text" data-set="name" value="' + esc(v.name) + '" style="margin-bottom:10px">' +
+    '<label class="fld">Typ</label><select data-set="type" style="margin-bottom:10px"><option value="auto"' + (v.type === 'auto' ? ' selected' : '') + '>🚗 Auto</option><option value="motorrad"' + (v.type === 'motorrad' ? ' selected' : '') + '>🏍️ Motorrad</option></select>' +
+    '<label class="fld">Kennzeichen</label><input type="text" data-set="plate" value="' + esc(v.plate || '') + '" placeholder="z. B. NE-AB 123"></div>' +
+    '<div class="card"><h3 style="margin-bottom:10px">🛡️ Versicherung</h3>' +
+    '<label class="fld">Gesellschaft</label><input type="text" data-ins="company" value="' + esc(v.insurance.company || '') + '" style="margin-bottom:10px">' +
+    '<label class="fld">Versicherungsnummer</label><input type="text" data-ins="number" value="' + esc(v.insurance.number || '') + '" style="margin-bottom:10px">' +
+    '<label class="fld">Art (z. B. Haftpflicht, Vollkasko)</label><input type="text" data-ins="type" value="' + esc(v.insurance.type || '') + '" style="margin-bottom:10px">' +
+    '<label class="fld">Telefon / Schadenmeldung</label><input type="tel" data-ins="phone" value="' + esc(v.insurance.phone || '') + '"></div>';
+}
+function vehTouren(v) {
+  const tours = (v.tours || []).slice().sort((a, b) => (a.date || '') < (b.date || '') ? 1 : -1);
+  let h = '<input type="text" data-in="toTitle" placeholder="Tour-Name (z. B. Eifel-Runde)" maxlength="50" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="text" data-in="toFrom" placeholder="Start" maxlength="50"><input type="text" data-in="toTo" placeholder="Ziel" maxlength="50"></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="date" data-in="toDate"><input type="number" data-in="toDist" placeholder="km" inputmode="numeric"></div>' +
+    '<input type="text" data-in="toNote" placeholder="Notiz (optional)" maxlength="80" style="margin-bottom:8px">' +
+    '<button class="btn btn-primary btn-sm" data-va="addTour" style="width:100%;margin-bottom:12px">+ Tour planen</button>';
+  if (!tours.length) h += '<div class="empty" style="padding:10px">Noch keine Touren geplant.</div>';
+  tours.forEach(t => {
+    const dir = (t.from && t.to) ? 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(t.from) + '&destination=' + encodeURIComponent(t.to) : null;
+    const meta = [(t.date ? fmtDateShort(t.date) : ''), (t.from ? esc(t.from) + ' → ' + esc(t.to || '') : ''), (t.distance ? t.distance + ' km' : ''), (t.note ? esc(t.note) : '')].filter(Boolean).join(' · ');
+    h += '<div class="mem"><span style="font-size:18px">🗺️</span><div class="mem-info"><b>' + esc(t.title) + '</b><span>' + meta + '</span></div>' +
+      (dir ? '<a class="em-call" href="' + dir + '" target="_blank" rel="noopener" title="Route öffnen">🧭</a>' : '') +
+      '<button class="t-del" data-va="delTour" data-id="' + t.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function vehParken(v) {
+  const p = v.parking;
+  let h = '';
+  if (p && (p.lat || p.note)) {
+    const when = p.savedAt ? new Date(p.savedAt).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    h += '<div class="card" style="background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.25)"><div style="font-size:15px;font-weight:700;margin-bottom:4px">📍 Parkplatz gemerkt</div>' +
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">' + esc(when) + (p.note ? ' · ' + esc(p.note) : '') + (p.lat ? '' : ' · nur Notiz') + '</div>' +
+      (p.lat ? '<a class="btn btn-primary btn-sm" href="https://www.google.com/maps?q=' + p.lat + ',' + p.lon + '" target="_blank" rel="noopener" style="margin-right:8px">🗺️ In Karte öffnen</a>' : '') +
+      '<button class="btn btn-sm btn-danger" data-va="parkClear">Löschen</button></div>';
+  } else h += '<div class="empty" style="padding:10px">Noch kein Parkplatz gemerkt.</div>';
+  h += '<button class="btn btn-primary" data-va="parkGps" style="width:100%;margin-top:10px">📍 Aktuellen Standort merken</button>' +
+    '<div class="task-add" style="margin-top:8px;margin-bottom:0"><input type="text" data-in="parkNote" placeholder="Notiz (z. B. Ebene 3, Platz 42)" maxlength="60" value="' + esc(p && p.note || '') + '"><button class="btn btn-sm" data-va="parkNote">Notiz</button></div>';
+  return h;
+}
+
+$('#vehAddBtn').addEventListener('click', () => {
+  const name = $('#vehName').value.trim(); if (!name) { $('#vehName').focus(); return; }
+  store.vehicles.push({ id: uid(), name, type: $('#vehType').value, plate: '', color: KID_COLORS[store.vehicles.length % KID_COLORS.length], tuev: '', insurance: {}, serviceEvery: { km: 0, months: 0 }, lastService: '', lastServiceKm: 0, fuel: [], trips: [], services: [], tires: [], tours: [], parking: null });
+  $('#vehName').value = ''; save(); RENDERERS.vehicles(); toast(name + ' angelegt ✓');
+});
+$('#vehName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#vehAddBtn').click(); });
+
+$('#vehList').addEventListener('click', e => {
+  const card = e.target.closest('[data-veh]'); if (!card) return;
+  const v = store.vehicles.find(x => x.id === card.dataset.veh); if (!v) return;
+  ensureVeh(v);
+  const q = s => card.querySelector(s), num = s => { const el = q(s); return el ? el.value : ''; };
+  const tab = e.target.closest('[data-vt]');
+  if (tab) { vehTab[v.id] = tab.dataset.vt; RENDERERS.vehicles(); return; }
+  const b = e.target.closest('[data-va]'); if (!b) return;
+  const a = b.dataset.va;
+  if (a === 'delVeh') { if (!confirm(v.name + ' mit allen Daten wirklich löschen?')) return; store.vehicles = store.vehicles.filter(x => x.id !== v.id); save(); RENDERERS.vehicles(); toast('Gelöscht'); return; }
+  if (a === 'addFuel') {
+    const km = +num('[data-in="fKm"]'), l = +num('[data-in="fL"]');
+    if (!km || !l) { toast('Bitte km-Stand und Liter angeben'); return; }
+    v.fuel.push({ id: uid(), date: num('[data-in="fDate"]') || todayISO(), km, liters: l, cost: +num('[data-in="fCost"]') || 0, full: q('[data-in="fFull"]').checked });
+    save(); RENDERERS.vehicles(); toast('Getankt eingetragen ✓'); return;
+  }
+  if (a === 'delFuel') { v.fuel = v.fuel.filter(f => f.id !== b.dataset.id); save(); RENDERERS.vehicles(); return; }
+  if (a === 'addTrip') {
+    const km = +num('[data-in="tKm"]'); const from = num('[data-in="tFrom"]').trim();
+    if (!km && !from) { toast('Bitte Strecke oder km angeben'); return; }
+    v.trips.push({ id: uid(), date: num('[data-in="tDate"]') || todayISO(), from, to: num('[data-in="tTo"]').trim(), km, purpose: num('[data-in="tPurpose"]') });
+    save(); RENDERERS.vehicles(); toast('Fahrt eingetragen ✓'); return;
+  }
+  if (a === 'delTrip') { v.trips = v.trips.filter(t => t.id !== b.dataset.id); save(); RENDERERS.vehicles(); return; }
+  if (a === 'tuevRemind') {
+    if (!v.tuev) return;
+    const nm = v.name + (v.plate ? ' (' + v.plate + ')' : '');
+    addTask('TÜV/HU: ' + nm, addDays(v.tuev, -14), 'high', 'veh');
+    addEvent('🔧 TÜV fällig: ' + nm, v.tuev, null, v.plate || '', 'veh');
+    save(); toast('Erinnerung in Aufgaben & Kalender ✓'); return;
+  }
+  if (a === 'addSvc') {
+    const title = num('[data-in="svcTitle"]').trim(); if (!title) { q('[data-in="svcTitle"]').focus(); return; }
+    v.services.push({ id: uid(), date: num('[data-in="svcDate"]') || todayISO(), km: +num('[data-in="svcKmv"]') || 0, title, cost: +num('[data-in="svcCost"]') || 0 });
+    save(); RENDERERS.vehicles(); toast('Eingetragen ✓'); return;
+  }
+  if (a === 'delSvc') { v.services = v.services.filter(s => s.id !== b.dataset.id); save(); RENDERERS.vehicles(); return; }
+  if (a === 'addTire') {
+    v.tires.push({ id: uid(), date: num('[data-in="tireDate"]') || todayISO(), km: +num('[data-in="tireKm"]') || 0, kind: num('[data-in="tireKind"]') });
+    save(); RENDERERS.vehicles(); toast('Reifenwechsel eingetragen ✓'); return;
+  }
+  if (a === 'delTire') { v.tires = v.tires.filter(t => t.id !== b.dataset.id); save(); RENDERERS.vehicles(); return; }
+  if (a === 'addTour') {
+    const title = num('[data-in="toTitle"]').trim(); if (!title) { q('[data-in="toTitle"]').focus(); return; }
+    v.tours.push({ id: uid(), title, date: num('[data-in="toDate"]'), from: num('[data-in="toFrom"]').trim(), to: num('[data-in="toTo"]').trim(), distance: +num('[data-in="toDist"]') || 0, note: num('[data-in="toNote"]').trim() });
+    save(); RENDERERS.vehicles(); toast('Tour geplant ✓'); return;
+  }
+  if (a === 'delTour') { v.tours = v.tours.filter(t => t.id !== b.dataset.id); save(); RENDERERS.vehicles(); return; }
+  if (a === 'parkGps') {
+    if (!navigator.geolocation) { toast('Standort nicht verfügbar'); return; }
+    toast('Standort wird gemerkt …');
+    navigator.geolocation.getCurrentPosition(pos => {
+      v.parking = { lat: pos.coords.latitude, lon: pos.coords.longitude, note: (v.parking && v.parking.note) || '', savedAt: Date.now() };
+      save(); RENDERERS.vehicles(); toast('Parkplatz gemerkt 📍');
+    }, () => toast('Standort-Zugriff abgelehnt'), { timeout: 8000 });
+    return;
+  }
+  if (a === 'parkNote') {
+    const note = num('[data-in="parkNote"]').trim();
+    v.parking = Object.assign({ savedAt: Date.now() }, v.parking || {}, { note });
+    save(); RENDERERS.vehicles(); return;
+  }
+  if (a === 'parkClear') { v.parking = null; save(); RENDERERS.vehicles(); return; }
+});
+$('#vehList').addEventListener('change', e => {
+  const card = e.target.closest('[data-veh]'); if (!card) return;
+  const v = store.vehicles.find(x => x.id === card.dataset.veh); if (!v) return;
+  const val = e.target.value;
+  if (e.target.dataset.set) {
+    const k = e.target.dataset.set;
+    if (k === 'name') v.name = val.trim() || v.name;
+    else if (k === 'type') v.type = val;
+    else if (k === 'plate') v.plate = val.trim();
+    else if (k === 'tuevDate') v.tuev = val;
+    else if (k === 'svcKm') v.serviceEvery.km = +val || 0;
+    else if (k === 'svcMonths') v.serviceEvery.months = +val || 0;
+    else if (k === 'lastSvcDate') v.lastService = val;
+    else if (k === 'lastSvcKm') v.lastServiceKm = +val || 0;
+    save(); RENDERERS.vehicles(); return;
+  }
+  if (e.target.dataset.ins) { v.insurance[e.target.dataset.ins] = val.trim(); save(); }
+});
+$('#vehList').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const card = e.target.closest('.kid-card'); if (!card) return;
+  const map = { fKm: 'addFuel', fL: 'addFuel', tKm: 'addTrip', tTo: 'addTrip', svcTitle: 'addSvc', tireKm: 'addTire', toTitle: 'addTour', toDist: 'addTour', parkNote: 'parkNote' };
+  const key = (e.target.dataset.in || '');
+  if (map[key]) { const btn = card.querySelector('[data-va="' + map[key] + '"]'); if (btn) btn.click(); }
 });
 
 /* ============================== KI-ADAPTER ============================== */
