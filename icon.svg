@@ -6,7 +6,10 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="118" fill="#0d1019"/>
-  <rect x="14" y="14" width="484" height="484" rx="106" fill="none" stroke="url(#g)" stroke-width="14"/>
-  <path d="M160 368 V144 l192 160 V144" fill="none" stroke="url(#g)" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="384" cy="360" r="26" fill="#22d3ee"/>
+  <circle cx="256" cy="256" r="176" fill="none" stroke="url(#g)" stroke-width="26"/>
+  <g stroke="url(#g)" stroke-width="18" stroke-linecap="round">
+    <path d="M256 116v26M396 256h-26M256 396v-26M116 256h26"/>
+  </g>
+  <path d="M256 256V150M256 256l74 44" fill="none" stroke="url(#g)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="22" fill="#22d3ee"/>
 </svg>

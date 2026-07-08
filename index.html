@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07090f">
-<meta name="description" content="NEXA – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.">
-<title>NEXA – Dein KI-Alltagsmanager</title>
+<meta name="description" content="Effyra – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.">
+<title>Effyra – gewinnt dir Zeit zurück</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -84,7 +84,8 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
   border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
 .brand .logo-mark{width:32px;height:32px;flex:none}
-.brand b{font-family:var(--font-head);font-size:19px;letter-spacing:2.5px}
+.brand b{font-family:var(--font-head);font-size:20px;letter-spacing:1px;font-weight:700;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
   border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:.2s}
 .icon-btn:hover{color:var(--text);border-color:var(--border2)}
@@ -418,7 +419,9 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .ob-slide{display:none;text-align:center;max-width:400px;width:100%;animation:viewIn .45s ease both}
 .ob-slide.active{display:block}
 .ob-slide .logo-mark{width:92px;height:92px;margin:0 auto 26px;filter:drop-shadow(0 10px 40px rgba(124,58,237,.6))}
-.ob-slide h1{font-size:32px;letter-spacing:6px;margin-bottom:6px}
+.ob-slide h1{font-size:48px;font-weight:700;letter-spacing:1px;margin-bottom:4px;line-height:1;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ob-slide .brand-slogan{justify-content:center}
 .ob-slide h2{font-size:22px;margin-bottom:10px;letter-spacing:-.2px}
 .ob-slide .tagline{background:var(--grad);-webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;font-weight:700;font-size:15.5px;margin-bottom:14px}
@@ -575,7 +578,32 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;flex:none}
 .em-priv{font-size:12px;color:var(--faint);text-align:center;margin-top:16px;padding:0 10px;line-height:1.5}
 
+/* ============================== VOICE2PDF ============================== */
+.v2p-rec{display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0 14px}
+.v2p-mic{width:88px;height:88px;border-radius:50%;border:none;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(124,58,237,.5);transition:.2s;cursor:pointer}
+.v2p-mic svg{width:38px;height:38px}
+.v2p-mic:hover{transform:translateY(-2px)}
+.v2p-mic.rec{background:linear-gradient(135deg,#dc2626,#f87171);animation:micPulse 1.3s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.5)}50%{box-shadow:0 0 0 16px rgba(248,113,113,0)}}
+.v2p-status{font-size:13.5px;color:var(--muted);font-weight:600;text-align:center}
+.v2p-interim{min-height:20px;font-size:14px;color:var(--faint);font-style:italic;margin-bottom:10px;text-align:center}
+#v2pTitle{margin-bottom:8px}
+#v2pText{margin-bottom:12px}
+.v2p-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.v2p-note{padding:12px 14px;border-radius:13px;border:1px solid var(--border);background:var(--card);margin-bottom:8px}
+.v2p-note-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.v2p-note-head b{flex:1;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2p-note-head time{font-size:12px;color:var(--faint);flex:none}
+.v2p-note p{font-size:13px;color:var(--muted);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.v2p-note-actions{display:flex;gap:6px;flex-wrap:wrap}
+
 /* ============================== AUTO & MOTORRAD ============================== */
+.veh-picker{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.veh-picker::-webkit-scrollbar{height:0}
+.veh-chip{flex:none;display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:20px;border:1px solid var(--border);
+  background:var(--card);color:var(--muted);font-size:13.5px;font-weight:600;white-space:nowrap;transition:.2s}
+.veh-chip span{font-size:16px}
+.veh-chip.active{border-color:transparent;background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.4)}
 .veh-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--border);margin-bottom:12px}
 .veh-tabs button{flex:1 1 30%;padding:7px 4px;border:none;border-radius:10px;background:none;color:var(--muted);font-size:11.5px;font-weight:600;white-space:nowrap;transition:.2s}
 .veh-tabs button.active{background:var(--card2);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.3)}
@@ -601,8 +629,13 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   background:rgba(9,11,18,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border:1px solid var(--border);border-radius:26px;padding:30px 26px;
   box-shadow:0 20px 60px rgba(0,0,0,.45)}
-.gate-box .logo-mark{width:72px;height:72px;margin:0 auto 14px;filter:drop-shadow(0 8px 30px rgba(124,58,237,.55))}
-.gate-brand{font-size:26px;letter-spacing:5px;margin-bottom:18px}
+.gate-box .logo-mark{width:88px;height:88px;margin:0 auto 12px;filter:drop-shadow(0 10px 34px rgba(124,58,237,.6))}
+.gate-brand{font-size:46px;font-weight:700;letter-spacing:1px;margin-bottom:2px;line-height:1;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brand-slogan{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#c4b5fd;margin:0 0 22px}
+.brand-slogan svg{width:17px;height:17px;color:#a78bfa;flex:none}
+.brand-slogan-lg{font-size:17px;margin-bottom:16px}
+.brand-slogan-lg svg{width:19px;height:19px}
 .gate-box h2{font-size:21px;margin-bottom:8px}
 .gate-sub{color:var(--muted);font-size:14px;margin-bottom:20px;overflow-wrap:break-word}
 .gate-fields{display:flex;flex-direction:column;gap:10px;text-align:left}
@@ -642,7 +675,8 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 <div id="auth" class="gate">
   <div class="gate-box">
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
-    <h1 class="gate-brand font-head">NEXA</h1>
+    <h1 class="gate-brand font-head">Effyra</h1>
+    <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
     <h2 id="authTitle">Konto erstellen</h2>
     <p class="gate-sub" id="authSub">3 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
@@ -663,9 +697,9 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   <div class="gate-box">
     <div class="pw-icon">💎</div>
     <h2>Deine Testphase ist abgelaufen</h2>
-    <p class="gate-sub">Schön, dass du NEXA ausprobiert hast! Mit <b>Premium</b> nutzt du alles unbegrenzt weiter – Dokument-Analysen, Aufgaben, Kalender und den KI-Chat. Deine Daten bleiben natürlich erhalten.</p>
+    <p class="gate-sub">Schön, dass du Effyra ausprobiert hast! Mit <b>Premium</b> nutzt du alles unbegrenzt weiter – Dokument-Analysen, Aufgaben, Kalender und den KI-Chat. Deine Daten bleiben natürlich erhalten.</p>
     <div class="gate-fields">
-      <input type="text" id="pwCode" placeholder="Freischalt-Code (NEXA-XXXX-XXXX)" maxlength="20" autocomplete="off">
+      <input type="text" id="pwCode" placeholder="Freischalt-Code eingeben" maxlength="20" autocomplete="off">
       <div class="auth-err" id="pwErr"></div>
       <button class="btn btn-primary gate-cta" id="pwGo">💎 Premium freischalten</button>
     </div>
@@ -677,24 +711,24 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 <div id="onboarding">
   <div class="ob-slide active" data-slide="0">
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
-    <h1>NEXA</h1>
-    <div class="tagline">Dein persönlicher KI-Alltagsmanager</div>
-    <p>Nicht nur Informationen liefern – <br><b>Arbeit abnehmen.</b><br><br>NEXA versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.</p>
+    <h1>Effyra</h1>
+    <div class="brand-slogan brand-slogan-lg"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
+    <p>Nicht nur Informationen liefern – <br><b>Arbeit abnehmen.</b><br><br>Effyra versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.</p>
   </div>
   <div class="ob-slide" data-slide="1">
-    <h2>Was NEXA für dich tut</h2>
+    <h2>Was Effyra für dich tut</h2>
     <div class="ob-feats">
       <div class="f"><div class="f-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></div>
-        <div><b>Dokumente verstehen</b><span>Brief fotografieren – NEXA erklärt ihn in einfachen Worten und erkennt Fristen.</span></div></div>
+        <div><b>Dokumente verstehen</b><span>Brief fotografieren – Effyra erklärt ihn in einfachen Worten und erkennt Fristen.</span></div></div>
       <div class="f"><div class="f-ic"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg></div>
         <div><b>Aufgaben &amp; Termine</b><span>To-dos und Kalendereinträge entstehen automatisch – nichts geht mehr verloren.</span></div></div>
       <div class="f"><div class="f-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></div>
-        <div><b>KI-Chat</b><span>„Ich möchte nächste Woche in den Urlaub" – NEXA plant, erinnert und organisiert.</span></div></div>
+        <div><b>KI-Chat</b><span>„Ich möchte nächste Woche in den Urlaub" – Effyra plant, erinnert und organisiert.</span></div></div>
     </div>
   </div>
   <div class="ob-slide" data-slide="2">
     <h2>Fast geschafft ✨</h2>
-    <p>Wie darf NEXA dich nennen?</p>
+    <p>Wie darf Effyra dich nennen?</p>
     <div class="ob-name">
       <input type="text" id="obName" placeholder="Dein Vorname (optional)" maxlength="30" autocomplete="given-name">
     </div>
@@ -711,11 +745,12 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 <div id="app">
 
   <aside class="sidebar">
-    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>NEXA</b></a>
+    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Effyra</b></a>
     <nav class="snav">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg>Dashboard</button>
       <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg>Dokumentenscanner</button>
       <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg>Dokumentenassistent</button>
+      <button data-view="voice"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg>Voice2PDF</button>
       <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg>Lebenslagen</button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg>Aufgaben</button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg>Kalender</button>
@@ -723,17 +758,17 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg>Familienzentrale</button>
       <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg>Notfallbereich</button>
       <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg>Auto &amp; Motorrad</button>
-      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>NEXA Chat</button>
+      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Effyra Chat</button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg>Einstellungen</button>
     </nav>
     <div class="foot">
       <div class="status-pill" id="aiStatusSide"><span class="dot"></span><span class="lbl">Demo-Modus</span></div>
-      <div>NEXA v1.0 · lokal &amp; privat</div>
+      <div>Effyra v1.0 · lokal &amp; privat</div>
     </div>
   </aside>
 
   <header class="topbar">
-    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>NEXA</b></a>
+    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Effyra</b></a>
     <button class="icon-btn" id="btnTopSettings" title="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button>
   </header>
 
@@ -751,7 +786,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
         <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
           <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span>Foto analysieren</button>
         <button class="qa qa-2 rise" style="--i:1" id="qaChat">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span>Frag NEXA</button>
+          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span>Frag Effyra</button>
         <button class="qa qa-3 rise" style="--i:2" id="qaTask">
           <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></span>Neue Aufgabe</button>
       </div>
@@ -763,18 +798,18 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <section class="view" id="view-docs">
       <div class="view-head">
         <h1>Dokumentenscanner mit Texterkennung</h1>
-        <p>Brief fotografieren – NEXA liest den Text, erklärt ihn und erkennt Fristen.</p>
+        <p>Brief fotografieren – Effyra liest den Text, erklärt ihn und erkennt Fristen.</p>
       </div>
       <div class="dropzone" id="dropzone">
         <div class="dz-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></div>
         <h3>Dokument fotografieren oder hochladen</h3>
-        <p>Brief, Rechnung, Vertrag – NEXA übersetzt Amtsdeutsch in einfache Worte.</p>
+        <p>Brief, Rechnung, Vertrag – Effyra übersetzt Amtsdeutsch in einfache Worte.</p>
       </div>
       <input type="file" id="docInput" accept="image/*" capture="environment">
       <div class="analyzing" id="analyzing">
         <div class="scanbox"><img id="scanImg" alt=""><div class="scanline"></div></div>
         <div class="a-status" id="aStatus">Lese Dokument …</div>
-        <div class="a-sub">NEXA analysiert dein Dokument</div>
+        <div class="a-sub">Effyra analysiert dein Dokument</div>
       </div>
       <div id="demoHintDocs"></div>
       <div id="docList"></div>
@@ -867,6 +902,28 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <div id="emRoot"></div>
     </section>
 
+    <!-- ============================== VOICE2PDF ============================== -->
+    <section class="view" id="view-voice">
+      <div class="view-head">
+        <h1>Voice2PDF</h1>
+        <p>Sprich einfach – Effyra macht daraus Text und ein PDF.</p>
+      </div>
+      <div class="v2p-rec">
+        <button class="v2p-mic" id="v2pMic"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
+        <div class="v2p-status" id="v2pStatus">Tippe aufs Mikrofon und leg los</div>
+      </div>
+      <div class="v2p-interim" id="v2pInterim"></div>
+      <input type="text" id="v2pTitle" placeholder="Titel (z. B. Besprechung Montag)" maxlength="60">
+      <textarea id="v2pText" rows="7" placeholder="Dein gesprochener Text erscheint hier – du kannst ihn frei bearbeiten."></textarea>
+      <div class="v2p-actions">
+        <button class="btn btn-primary btn-sm" id="v2pPdf">🖨️ Als PDF speichern</button>
+        <button class="btn btn-sm" id="v2pSave">💾 Merken</button>
+        <button class="btn btn-sm" id="v2pCopy">📋 Kopieren</button>
+        <button class="btn btn-sm" id="v2pClear">🗑️ Leeren</button>
+      </div>
+      <div id="v2pList"></div>
+    </section>
+
     <!-- ============================== AUTO & MOTORRAD ============================== -->
     <section class="view" id="view-vehicles">
       <div class="view-head">
@@ -885,7 +942,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
       <div class="chat-inputbar">
-        <input type="text" id="chatInput" placeholder="Frag NEXA …" maxlength="1000" autocomplete="off">
+        <input type="text" id="chatInput" placeholder="Frag Effyra …" maxlength="1000" autocomplete="off">
         <button class="send" id="chatSend"><svg viewBox="0 0 24 24"><use href="#icSend"/></svg></button>
       </div>
     </section>
@@ -901,7 +958,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 
       <div class="card set-card">
         <h3>Dein Name</h3>
-        <p class="sub">So spricht NEXA dich an.</p>
+        <p class="sub">So spricht Effyra dich an.</p>
         <div class="set-row">
           <input type="text" id="setName" placeholder="Vorname" maxlength="30">
           <button class="btn" id="setNameSave">Speichern</button>
@@ -910,7 +967,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 
       <div class="card set-card">
         <h3>Echte KI aktivieren <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
-        <p class="sub">Mit einem eigenen Anthropic-API-Schlüssel analysiert Claude deine Fotos wirklich und der Chat wird echt. Ohne Schlüssel läuft NEXA im Demo-Modus mit simulierten Antworten.</p>
+        <p class="sub">Mit einem eigenen Anthropic-API-Schlüssel analysiert Claude deine Fotos wirklich und der Chat wird echt. Ohne Schlüssel läuft Effyra im Demo-Modus mit simulierten Antworten.</p>
         <div class="set-row">
           <input type="password" id="setKey" placeholder="sk-ant-…" autocomplete="off">
           <button class="btn btn-primary" id="setKeySave">Aktivieren</button>
@@ -937,7 +994,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       </div>
 
       <div class="card set-card">
-        <h3>Über NEXA</h3>
+        <h3>Über Effyra</h3>
         <p class="sub">Version 1.0 – Dein persönlicher KI-Alltagsmanager.<br>
         Dokumente verstehen · Fristen erkennen · Aufgaben &amp; Termine organisieren · KI-Chat.<br>
         Ohne Konto, ohne Tracking, ohne Werbung. Alle Daten bleiben auf diesem Gerät.</p>
@@ -949,7 +1006,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
   <nav class="tabbar">
     <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span>Start</span></button>
     <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span>Assistent</span></button>
-    <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>NEXA</span></button>
+    <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>Effyra</span></button>
     <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span>Aufgaben</span></button>
     <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span>Mehr</span></button>
   </nav>
@@ -962,6 +1019,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <button data-view="docs"><span class="mi">📄</span>Dokumentenscanner</button>
       <button data-view="school"><span class="mi">🧒</span>Kinder</button>
       <button data-view="calendar"><span class="mi">📅</span>Kalender</button>
+      <button data-view="voice"><span class="mi">🎙️</span>Voice2PDF</button>
       <button data-view="life"><span class="mi">🧭</span>Lebenslagen</button>
       <button data-view="family"><span class="mi">👪</span>Familie</button>
       <button data-view="emergency"><span class="mi">🆘</span>Notfall</button>
@@ -982,9 +1040,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
       <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/>
     </linearGradient>
     <symbol id="logoSym" viewBox="0 0 64 64">
-      <rect x="2" y="2" width="60" height="60" rx="16" fill="#0d1019" stroke="url(#lgrad)" stroke-width="2.5"/>
-      <path d="M20 46 V18 l24 20 V18" fill="none" stroke="url(#lgrad)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="48" cy="45" r="3.5" fill="#22d3ee"/>
+      <circle cx="32" cy="32" r="27" fill="#0d1019" stroke="url(#lgrad)" stroke-width="3.5"/>
+      <circle cx="32" cy="32" r="27" fill="none" stroke="url(#lgrad)" stroke-width="1" opacity=".35"/>
+      <path d="M32 15v3M49 32h-3M32 49v-3M15 32h3" stroke="url(#lgrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M32 32V19M32 32l10 6" fill="none" stroke="url(#lgrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="32" cy="32" r="2.8" fill="#22d3ee"/>
     </symbol>
     <symbol id="icHome" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icDoc" viewBox="0 0 24 24"><path d="M6 2h8l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 2v6h6M9 13h6M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -997,6 +1057,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
     <symbol id="icFamily" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 20c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14.5 20c.2-2.4 1.8-4 3.5-4 1.9 0 3.3 1.4 3.5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icAlert" viewBox="0 0 24 24"><path d="M12 3c2.5 3 6 4 8 4 0 6-3 10-8 12-5-2-8-6-8-12 2 0 5.5-1 8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v6M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icCar" viewBox="0 0 24 24"><path d="M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v5a1 1 0 0 1-1 1h-1.5a1 1 0 0 1-1-1v-1H6.5v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M3 13h18" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="7.5" cy="16" r="1" fill="currentColor"/><circle cx="16.5" cy="16" r="1" fill="currentColor"/></symbol>
+    <symbol id="icMic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icSpark" viewBox="0 0 24 24"><path d="M12 2c.6 4.8 2.4 7.4 8 8-5.6.6-7.4 3.2-8 8-.6-4.8-2.4-7.4-8-8 5.6-.6 7.4-3.2 8-8z" fill="currentColor"/><circle cx="19" cy="18" r="2.2" fill="currentColor" opacity=".7"/></symbol>
     <symbol id="icGear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8 13.5 6a6.6 6.6 0 0 1 2.4 1.4l3.4-.9 1.5 2.7-2.3 2.6a6.7 6.7 0 0 1 0 2.4l2.3 2.6-1.5 2.7-3.4-.9a6.6 6.6 0 0 1-2.4 1.4L12 21.2 10.5 18a6.6 6.6 0 0 1-2.4-1.4l-3.4.9-1.5-2.7 2.3-2.6a6.7 6.7 0 0 1 0-2.4L3.2 7.2l1.5-2.7 3.4.9A6.6 6.6 0 0 1 10.5 6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
     <symbol id="icCam" viewBox="0 0 24 24"><path d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
@@ -1095,6 +1156,7 @@ const store = Object.assign({
   family: { members: [], occasions: [], code: null }, // Familienzentrale
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
+  voiceNotes: [], // Voice2PDF gespeicherte Transkriptionen
   settings: { model: 'claude-sonnet-5', demoIdx: 0 }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
@@ -1111,10 +1173,11 @@ const hasKey = () => getKey().length > 8;
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
+const MORE_VIEWS = ['docs', 'voice', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
 function showView(name) {
   currentView = name;
   gate();
+  if (name !== 'voice') stopVoiceIfRec();
   $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   $$('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
@@ -1154,7 +1217,7 @@ function obFinish() {
   save();
   $('#onboarding').classList.remove('on');
   showView('dashboard');
-  toast('Willkommen bei NEXA' + (store.name ? ', ' + store.name : '') + ' ✨');
+  toast('Willkommen bei Effyra' + (store.name ? ', ' + store.name : '') + ' ✨');
 }
 $('#obNext').addEventListener('click', () => { obIdx < 2 ? obShow(obIdx + 1) : obFinish(); });
 $('#obSkip').addEventListener('click', obFinish);
@@ -2069,7 +2132,7 @@ const DOC_TPL = [
   { id: 'todesfall', cat: 'mitteilungen', title: 'Todesfall-Mitteilung', noRecipient: true, salutation: 'Liebe Verwandte, liebe Freunde,', closing: 'In stiller Trauer', fields: ['verstorben', 'sterbedatum?', 'text?'], labels: { text: 'Zusätzliche Worte (optional)' }, betreff: () => 'Traurige Nachricht', body: (v) => 'in tiefer Trauer müssen wir Ihnen mitteilen, dass ' + (v.verstorben || 'unser lieber Angehöriger') + (v.sterbedatum ? ' am ' + fd(v.sterbedatum) : '') + ' verstorben ist.\n\n' + (v.text ? v.text + '\n\n' : '') + 'Wir bitten um ein stilles Gedenken.' },
   { id: 'vollmacht', cat: 'mitteilungen', title: 'Vollmacht erstellen', noRecipient: true, noSalutation: true, closing: '', fields: ['bevoll', 'zweck', 'datum?'], labels: { datum: 'Gültig ab' }, betreff: () => 'Vollmacht', body: (v, p) => 'Hiermit bevollmächtige ich, ' + (p.name || '____') + ', die folgende Person:\n\n' + (v.bevoll || '____') + '\n\nmich in folgender Angelegenheit zu vertreten:\n\n' + (v.zweck || '____') + '\n\nDiese Vollmacht gilt ' + (v.datum ? 'ab ' + fd(v.datum) : 'ab sofort') + ' bis auf Widerruf. Die bevollmächtigte Person ist berechtigt, alle in diesem Zusammenhang erforderlichen Handlungen vorzunehmen und Erklärungen abzugeben.' },
   // ✨ Freies Anliegen (nicht in Kategorien gelistet)
-  { id: 'frei', cat: null, title: 'Freies Anliegen (mit KI)', fields: ['betreffFrei?', 'empfName?', 'empfAddr?', 'text'], labels: { text: 'Beschreibe dein Anliegen – NEXA formuliert daraus einen Brief' }, betreff: (v) => v.betreffFrei || 'Mein Anliegen', body: (v) => v.text || '' }
+  { id: 'frei', cat: null, title: 'Freies Anliegen (mit KI)', fields: ['betreffFrei?', 'empfName?', 'empfAddr?', 'text'], labels: { text: 'Beschreibe dein Anliegen – Effyra formuliert daraus einen Brief' }, betreff: (v) => v.betreffFrei || 'Mein Anliegen', body: (v) => v.text || '' }
 ];
 
 let dgState = 'browse', dgActiveId = null, dgValues = {}, dgQuery = '', dgSign = true, dgOverrideBody = null, dgProfileOpen = false;
@@ -2150,7 +2213,7 @@ function letterHTML(t, v, p) {
     return '<div class="letter"><div class="l-subject" style="font-size:19px">' + esc(t.title) + '</div>' +
       '<p>Diese Punkte solltest du bei der Wohnungsübergabe abhaken:</p><ul class="l-check">' +
       t.items.map(i => '<li>☐ ' + esc(i) + '</li>').join('') + '</ul>' +
-      '<p style="margin-top:22px;color:#777">Erstellt mit NEXA</p></div>';
+      '<p style="margin-top:22px;color:#777">Erstellt mit Effyra</p></div>';
   }
   const sl = [p.name, p.street, ((p.zip || '') + ' ' + (p.city || '')).trim()].filter(x => x && x.trim());
   if (p.email) sl.push(p.email);
@@ -2215,7 +2278,7 @@ function dgFrist() {
 async function dgAI() {
   if (!hasKey()) { toast('✨ KI-Verbesserung braucht einen API-Schlüssel (Einstellungen)'); return; }
   const t = curTpl(), cur = dgOverrideBody != null ? dgOverrideBody : t.body(dgValues, store.profile);
-  toast('NEXA verbessert den Text …');
+  toast('Effyra verbessert den Text …');
   try {
     const out = await callClaude({
       model: store.settings.model, max_tokens: 1200,
@@ -2297,7 +2360,7 @@ const LIFE = [
       { t: 'Einschulungsfeier planen', due: -14 },
       { t: 'Alle Sachen mit Namen beschriften', due: -7 },
       { t: 'Morgen- und Weckroutine einüben', due: -7 },
-      { t: 'Stundenplan in NEXA anlegen', note: 'Im Bereich „Schule" behältst du Fächer und Zeiten im Blick.', due: 0, link: 'school' }
+      { t: 'Stundenplan in Effyra anlegen', note: 'Im Bereich „Schule" behältst du Fächer und Zeiten im Blick.', due: 0, link: 'school' }
     ]
   },
   {
@@ -2318,7 +2381,7 @@ const LIFE = [
   {
     id: 'umzug', icon: '📦', title: 'Umzug', dateLabel: 'Umzugsdatum',
     short: 'Von der Kündigung bis zur Ummeldung',
-    intro: 'Ein Umzug hat viele Fristen. NEXA sortiert sie dir – inklusive fertiger Briefe.',
+    intro: 'Ein Umzug hat viele Fristen. Effyra sortiert sie dir – inklusive fertiger Briefe.',
     steps: [
       { t: 'Alte Wohnung kündigen', note: 'Meist 3 Monate Kündigungsfrist – früh dran sein.', due: -90, tpl: 'miet-kuend' },
       { t: 'Kita / Schule ummelden (falls nötig)', due: -45 },
@@ -2382,7 +2445,7 @@ RENDERERS.life = function () {
   $('#lifeRoot').innerHTML = lifeActive ? lifeDetailHTML() : lifeBrowseHTML();
 };
 function lifeBrowseHTML() {
-  let h = '<div class="view-head"><h1>Lebenslagen-Assistent</h1><p>Große Lebensereignisse Schritt für Schritt – NEXA sagt dir, was wann zu tun ist.</p></div>';
+  let h = '<div class="view-head"><h1>Lebenslagen-Assistent</h1><p>Große Lebensereignisse Schritt für Schritt – Effyra sagt dir, was wann zu tun ist.</p></div>';
   LIFE.forEach(l => {
     const pr = lifeProgress(l);
     h += '<button class="life-card" data-life="open" data-id="' + l.id + '"><span class="life-ic">' + l.icon + '</span>' +
@@ -2409,7 +2472,7 @@ function lifeDetailHTML() {
       '</div></div></div>';
   });
   h += '<button class="btn btn-primary" data-life="tasks" style="width:100%;margin-top:12px">✓ Offene Schritte als Aufgaben übernehmen</button>';
-  h += '<button class="btn btn-sm" data-life="ask" style="width:100%;margin-top:8px">✨ NEXA zu dieser Lebenslage fragen</button>';
+  h += '<button class="btn btn-sm" data-life="ask" style="width:100%;margin-top:8px">✨ Effyra zu dieser Lebenslage fragen</button>';
   return h;
 }
 function lifeAddTasks(l) {
@@ -2909,8 +2972,81 @@ $('#emRoot').addEventListener('keydown', e => {
   else if (e.target.id === 'insType' || e.target.id === 'insCompany' || e.target.id === 'insNumber') $('#emRoot [data-em="addIns"]').click();
 });
 
+/* ============================== VOICE2PDF ============================== */
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let vRecog = null, vRecording = false;
+function updateMicUI() {
+  const mic = $('#v2pMic'), st = $('#v2pStatus');
+  if (!mic) return;
+  mic.classList.toggle('rec', vRecording);
+  st.textContent = vRecording ? '● Aufnahme läuft – tippe zum Stoppen' : 'Tippe aufs Mikrofon und leg los';
+  if (!vRecording && $('#v2pInterim')) $('#v2pInterim').textContent = '';
+}
+function vStart() {
+  if (!SpeechRec) { toast('Live-Transkription braucht Chrome, Edge oder Safari'); return; }
+  vRecog = new SpeechRec();
+  vRecog.lang = 'de-DE'; vRecog.continuous = true; vRecog.interimResults = true;
+  vRecog.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) { const ta = $('#v2pText'); ta.value = (ta.value ? ta.value.trim() + ' ' : '') + t.trim(); }
+      else interim += t;
+    }
+    if ($('#v2pInterim')) $('#v2pInterim').textContent = interim;
+  };
+  vRecog.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Mikrofon-Zugriff abgelehnt'); };
+  vRecog.onend = () => { if (vRecording) { try { vRecog.start(); } catch (e) {} } };
+  vRecording = true;
+  try { vRecog.start(); } catch (e) {}
+  updateMicUI();
+}
+function vStop() { vRecording = false; if (vRecog) { try { vRecog.stop(); } catch (e) {} } updateMicUI(); }
+function stopVoiceIfRec() { if (vRecording) vStop(); }
+
+function voicePDF(title, text) {
+  if (!text.trim()) { toast('Kein Text vorhanden'); return; }
+  const today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  $('#printRoot').innerHTML = '<div class="letter"><div class="l-subject" style="font-size:20px">' + esc(title || 'Sprachnotiz') + '</div>' +
+    '<div class="l-place">' + esc(today) + '</div>' +
+    '<div class="l-body"><p>' + esc(text.trim()).replace(/\n/g, '<br>') + '</p></div>' +
+    '<p style="margin-top:22px;color:#777">Erstellt mit Effyra · Voice2PDF</p></div>';
+  window.print();
+}
+RENDERERS.voice = function () {
+  const box = $('#v2pList');
+  const notes = store.voiceNotes.slice().reverse();
+  if (!notes.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="sec-title"><h2>💾 Gemerkte Aufnahmen</h2></div>' + notes.map(n =>
+    '<div class="v2p-note" data-vn="' + n.id + '"><div class="v2p-note-head"><b>' + esc(n.title) + '</b><time>' + new Date(n.ts).toLocaleDateString('de-DE') + '</time></div>' +
+    '<p>' + esc(n.text) + '</p><div class="v2p-note-actions">' +
+    '<button class="btn btn-sm" data-vn-act="open">✏️ Öffnen</button>' +
+    '<button class="btn btn-sm" data-vn-act="pdf">🖨️ PDF</button>' +
+    '<button class="btn btn-sm" data-vn-act="copy">📋</button>' +
+    '<button class="btn btn-sm btn-danger" data-vn-act="del">Löschen</button></div></div>').join('');
+};
+$('#v2pMic').addEventListener('click', () => { vRecording ? vStop() : vStart(); });
+$('#v2pPdf').addEventListener('click', () => voicePDF($('#v2pTitle').value.trim(), $('#v2pText').value));
+$('#v2pCopy').addEventListener('click', () => { const t = $('#v2pText').value.trim(); if (!t) { toast('Kein Text'); return; } copyText(t).then(ok => toast(ok ? 'Kopiert ✓' : 'Kopieren nicht möglich')); });
+$('#v2pClear').addEventListener('click', () => { if (!$('#v2pText').value.trim() || confirm('Text wirklich leeren?')) { $('#v2pText').value = ''; $('#v2pTitle').value = ''; $('#v2pInterim').textContent = ''; } });
+$('#v2pSave').addEventListener('click', () => {
+  const text = $('#v2pText').value.trim(); if (!text) { toast('Kein Text zum Merken'); return; }
+  store.voiceNotes.push({ id: uid(), title: $('#v2pTitle').value.trim() || 'Sprachnotiz', text, ts: Date.now() });
+  save(); RENDERERS.voice(); toast('Aufnahme gemerkt ✓');
+});
+$('#v2pList').addEventListener('click', e => {
+  const act = e.target.closest('[data-vn-act]'); if (!act) return;
+  const id = act.closest('[data-vn]').dataset.vn, n = store.voiceNotes.find(x => x.id === id); if (!n) return;
+  const a = act.dataset.vnAct;
+  if (a === 'open') { $('#v2pTitle').value = n.title; $('#v2pText').value = n.text; window.scrollTo(0, 0); toast('Zum Bearbeiten geladen'); }
+  else if (a === 'pdf') voicePDF(n.title, n.text);
+  else if (a === 'copy') copyText(n.text).then(ok => toast(ok ? 'Kopiert ✓' : 'Kopieren nicht möglich'));
+  else if (a === 'del') { store.voiceNotes = store.voiceNotes.filter(x => x.id !== id); save(); RENDERERS.voice(); toast('Gelöscht'); }
+});
+
 /* ============================== AUTO & MOTORRAD ============================== */
 const vehTab = {};
+let vehActive = null;
 const vehSec = (id) => vehTab[id] || 'tanken';
 const deNum = (n, d) => (n == null || isNaN(n)) ? '–' : (+n).toFixed(d).replace('.', ',');
 const kmFmt = (n) => (+n || 0).toLocaleString('de-DE');
@@ -2937,8 +3073,15 @@ function fuelStats(v) {
 
 RENDERERS.vehicles = function () {
   const box = $('#vehList');
-  if (!store.vehicles.length) { box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🚗</span>Noch kein Fahrzeug angelegt.<br>Gib oben Namen und Typ ein!</div>'; return; }
-  box.innerHTML = store.vehicles.map(vehCard).join('');
+  if (!store.vehicles.length) { box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🚗</span>Noch kein Fahrzeug angelegt.<br>Gib oben Namen und Typ ein!</div>'; vehActive = null; return; }
+  if (!vehActive || !store.vehicles.find(v => v.id === vehActive)) vehActive = store.vehicles[0].id;
+  const v = store.vehicles.find(x => x.id === vehActive);
+  let chips = '';
+  if (store.vehicles.length > 1) {
+    chips = '<div class="veh-picker">' + store.vehicles.map(x =>
+      '<button class="veh-chip' + (x.id === vehActive ? ' active' : '') + '" data-vpick="' + x.id + '"><span>' + (x.type === 'motorrad' ? '🏍️' : '🚗') + '</span>' + esc(x.name) + '</button>').join('') + '</div>';
+  }
+  box.innerHTML = chips + vehCard(v);
 };
 function vehCard(v) {
   ensureVeh(v);
@@ -3065,12 +3208,16 @@ function vehParken(v) {
 
 $('#vehAddBtn').addEventListener('click', () => {
   const name = $('#vehName').value.trim(); if (!name) { $('#vehName').focus(); return; }
-  store.vehicles.push({ id: uid(), name, type: $('#vehType').value, plate: '', color: KID_COLORS[store.vehicles.length % KID_COLORS.length], tuev: '', insurance: {}, serviceEvery: { km: 0, months: 0 }, lastService: '', lastServiceKm: 0, fuel: [], trips: [], services: [], tires: [], tours: [], parking: null });
+  const id = uid();
+  store.vehicles.push({ id, name, type: $('#vehType').value, plate: '', color: KID_COLORS[store.vehicles.length % KID_COLORS.length], tuev: '', insurance: {}, serviceEvery: { km: 0, months: 0 }, lastService: '', lastServiceKm: 0, fuel: [], trips: [], services: [], tires: [], tours: [], parking: null });
+  vehActive = id;
   $('#vehName').value = ''; save(); RENDERERS.vehicles(); toast(name + ' angelegt ✓');
 });
 $('#vehName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#vehAddBtn').click(); });
 
 $('#vehList').addEventListener('click', e => {
+  const pick = e.target.closest('[data-vpick]');
+  if (pick) { vehActive = pick.dataset.vpick; RENDERERS.vehicles(); window.scrollTo(0, 0); return; }
   const card = e.target.closest('[data-veh]'); if (!card) return;
   const v = store.vehicles.find(x => x.id === card.dataset.veh); if (!v) return;
   ensureVeh(v);
@@ -3200,7 +3347,7 @@ function extractJSON(text) {
 async function aiAnalyze(dataUrl) {
   const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/s);
   if (!m) throw new Error('Bild konnte nicht gelesen werden.');
-  const prompt = 'Du bist NEXA, ein KI-Alltagsassistent. Analysiere das fotografierte Dokument (Brief, Rechnung, Vertrag o. Ä.). Heute ist der ' + todayISO() + '. ' +
+  const prompt = 'Du bist Effyra, ein KI-Alltagsassistent. Analysiere das fotografierte Dokument (Brief, Rechnung, Vertrag o. Ä.). Heute ist der ' + todayISO() + '. ' +
     'Antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown und ohne Erklärtext, exakt in diesem Format: ' +
     '{"docType":"Rechnung|Mahnung|Vertrag|Behörde|Sonstiges","title":"kurzer Titel, max. 6 Wörter","sender":"Absender","explanation":"Erkläre das Dokument in 2-4 kurzen, einfachen Sätzen ohne Amtsdeutsch, duze den Leser","deadline":"YYYY-MM-DD oder null","urgency":"hoch|mittel|niedrig","todos":[{"title":"konkrete Aufgabe","due":"YYYY-MM-DD oder null"}],"replyDraft":"vollständiger, höflicher Antwortbrief falls sinnvoll, sonst null"}';
   const text = await callClaude({
@@ -3427,7 +3574,7 @@ RENDERERS.chat = function () {
   if (!store.chat.length) {
     html += '<div class="chat-hello"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>' +
       '<h2>Hallo' + (store.name ? ', ' + esc(store.name) : '') + '! 👋</h2>' +
-      '<p>Ich bin NEXA. Erzähl mir, was ansteht –<br>ich organisiere den Rest.</p></div>' +
+      '<p>Ich bin Effyra. Erzähl mir, was ansteht –<br>ich organisiere den Rest.</p></div>' +
       '<div class="suggest">' + CHAT_SUGGESTIONS.map(s => '<button data-sg="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>';
   } else {
     html += store.chat.map((m, mi) => {
@@ -3528,13 +3675,13 @@ function demoReply(text) {
 function buildSystemPrompt() {
   const openT = openTasksSorted().slice(0, 8).map(t => t.title + (t.due ? ' (fällig ' + t.due + ')' : '')).join('; ') || 'keine';
   const nextE = upcomingEvents(5).map(e => e.title + ' am ' + e.date + (e.time ? ' ' + e.time : '')).join('; ') || 'keine';
-  return 'Du bist NEXA, ein persönlicher KI-Alltagsassistent in einer App. Heute ist ' +
+  return 'Du bist Effyra, ein persönlicher KI-Alltagsassistent in einer App. Heute ist ' +
     new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + ' (' + todayISO() + ').' +
     (store.name ? ' Der Nutzer heißt ' + store.name + '.' : '') +
     ' Antworte kurz, warm und konkret auf Deutsch in Du-Form. Du hilfst bei Alltag, Dokumenten, Fristen, Aufgaben, Terminen, Reisen und Einkäufen. Nimm Arbeit ab, statt nur zu erklären.' +
     ' Kontext – offene Aufgaben: ' + openT + '. Nächste Termine: ' + nextE + '.' +
     ' Wenn du konkrete Aufgaben oder Termine vorschlägst, hänge ganz am Ende deiner Antwort GENAU EINEN Block in diesem Format an: ' +
-    '<<NEXA_ACTIONS>>{"tasks":[{"title":"...","due":"YYYY-MM-DD oder null"}],"events":[{"title":"...","date":"YYYY-MM-DD","time":"HH:MM oder null"}]}<<END>> ' +
+    '<<Effyra_ACTIONS>>{"tasks":[{"title":"...","due":"YYYY-MM-DD oder null"}],"events":[{"title":"...","date":"YYYY-MM-DD","time":"HH:MM oder null"}]}<<END>> ' +
     'Der Block wird dem Nutzer als Buttons angezeigt – erwähne ihn nicht im Text.';
 }
 
@@ -3548,7 +3695,7 @@ async function realReply(text) {
   });
   let clean = raw;
   const actions = [];
-  const m = raw.match(/<<NEXA_ACTIONS>>([\s\S]*?)<<END>>/);
+  const m = raw.match(/<<Effyra_ACTIONS>>([\s\S]*?)<<END>>/);
   if (m) {
     clean = raw.replace(m[0], '').trim();
     const j = extractJSON(m[1]);
@@ -3631,7 +3778,7 @@ function renderAccountCard() {
     '<div style="margin-bottom:14px">' + planHtml + '</div>' +
     (!isPremium()
       ? '<label class="fld" for="setCode">Premium freischalten</label>' +
-        '<div class="set-row"><input type="text" id="setCode" placeholder="NEXA-XXXX-XXXX" maxlength="20" autocomplete="off">' +
+        '<div class="set-row"><input type="text" id="setCode" placeholder="Freischalt-Code" maxlength="20" autocomplete="off">' +
         '<button class="btn btn-primary" id="setCodeGo">Einlösen</button></div>' +
         '<div class="auth-err" id="setCodeErr"></div>'
       : '') +
