@@ -708,6 +708,30 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-note a{color:#a78bfa;cursor:pointer;text-decoration:underline}
 .gate-reset{background:none;border:none;color:var(--faint);font-size:13px;text-decoration:underline}
 .pw-icon{font-size:52px;margin-bottom:12px}
+.up-box{max-width:480px}
+.tier-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;text-align:left}
+.tier-card{position:relative;border:1px solid var(--border);border-radius:16px;padding:16px;background:var(--card)}
+.tier-card.best{border-color:transparent;background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(6,182,212,.12));box-shadow:0 6px 24px rgba(124,58,237,.22)}
+.tier-badge{position:absolute;top:-9px;right:14px;font-size:11px;font-weight:700;color:#fff;background:var(--grad);padding:3px 10px;border-radius:20px}
+.tier-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.tier-name{font-size:17px;font-weight:700}
+.tier-price{font-size:20px;font-weight:800}
+.tier-price small{font-size:11px;font-weight:600;color:var(--muted);margin-left:4px}
+.tier-feats{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:5px}
+.tier-feats li{font-size:13px;color:var(--muted)}
+.tier-cta{width:100%;padding:11px}
+.up-code{font-size:13px;margin-bottom:6px}
+.up-code summary{cursor:pointer;color:var(--muted);list-style:none}
+.up-code summary::-webkit-details-marker{display:none}
+/* KI-Kontingent-Balken (Einstellungen) */
+.quota-bar{height:12px;border-radius:8px;background:var(--border);overflow:hidden;margin:8px 0}
+.quota-fill{height:100%;border-radius:8px;background:var(--grad);transition:width .4s}
+.quota-fill.warn{background:linear-gradient(135deg,#f59e0b,#f97316)}
+.quota-fill.full{background:linear-gradient(135deg,#dc2626,#f87171)}
+.tier-pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+.tier-pill.free{background:rgba(148,163,184,.18);color:#cbd5e1}
+.tier-pill.medium{background:rgba(56,189,248,.16);color:#7dd3fc}
+.tier-pill.premium{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));color:#ddd6fe}
 .b-trial{background:rgba(251,191,36,.14);color:#fcd34d}
 .b-expired{background:rgba(248,113,113,.15);color:#fca5a5}
 .b-premium{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));color:#ddd6fe;border:1px solid rgba(167,139,250,.4)}
@@ -755,18 +779,43 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   </div>
 </div>
 
-<!-- ============================== PAYWALL (Testphase abgelaufen) ============================== -->
+<!-- ============================== UPGRADE / PAYWALL (Stufen) ============================== -->
 <div id="paywall" class="gate">
-  <div class="gate-box">
+  <div class="gate-box up-box">
     <div class="pw-icon">💎</div>
-    <h2>Deine Testphase ist abgelaufen</h2>
-    <p class="gate-sub">Schön, dass du Effyra ausprobiert hast! Mit <b>Premium</b> nutzt du alles unbegrenzt weiter – Dokument-Analysen, Aufgaben, Kalender und den KI-Chat. Deine Daten bleiben natürlich erhalten.</p>
-    <div class="gate-fields">
-      <input type="text" id="pwCode" placeholder="Freischalt-Code eingeben" maxlength="20" autocomplete="off">
-      <div class="auth-err" id="pwErr"></div>
-      <button class="btn btn-primary gate-cta" id="pwGo">💎 Premium freischalten</button>
+    <h2 id="pwHead">Wähle deinen Plan</h2>
+    <p class="gate-sub" id="pwSub">Deine Daten bleiben immer erhalten. Jederzeit wechselbar.</p>
+    <div class="tier-cards">
+      <div class="tier-card" data-tier="medium">
+        <div class="tier-top"><span class="tier-name">Medium</span><span class="tier-price">4,99 €<small>einmalig</small></span></div>
+        <ul class="tier-feats">
+          <li>✅ Alle Module dauerhaft freigeschaltet</li>
+          <li>✅ Arbeitszeit, Kinder, Familie, Auto, Notfall …</li>
+          <li>✅ Dokumentvorlagen &amp; PDF-Export</li>
+          <li>➖ Ohne KI (nur Demo-Modus)</li>
+        </ul>
+        <button class="btn btn-primary tier-cta" data-buy="medium">Medium kaufen – 4,99 €</button>
+      </div>
+      <div class="tier-card best" data-tier="premium">
+        <div class="tier-badge">Beste Wahl</div>
+        <div class="tier-top"><span class="tier-name">Premium</span><span class="tier-price">4,99 €<small>/ Monat</small></span></div>
+        <ul class="tier-feats">
+          <li>✅ Alles aus Medium</li>
+          <li>✅ Echte KI: 500 Abfragen / Monat</li>
+          <li>✅ Foto-Analyse, KI-Chat, Textverbesserung</li>
+          <li>✅ Nachbestellen oder eigener Schlüssel möglich</li>
+        </ul>
+        <button class="btn btn-primary tier-cta" data-buy="premium">Premium starten – 4,99 €/Mon.</button>
+      </div>
     </div>
-    <p class="gate-note">Einen Freischalt-Code bekommst du vom Betreiber der App.<br><a id="pwLogout">Abmelden</a></p>
+    <details class="up-code"><summary>Ich habe einen Freischalt-Code</summary>
+      <div class="gate-fields" style="margin-top:10px">
+        <input type="text" id="pwCode" placeholder="Freischalt-Code eingeben" maxlength="20" autocomplete="off">
+        <div class="auth-err" id="pwErr"></div>
+        <button class="btn btn-primary gate-cta" id="pwGo">Code einlösen</button>
+      </div>
+    </details>
+    <p class="gate-note"><a id="pwBack" style="display:none">← Zurück</a> <a id="pwLogout">Abmelden</a></p>
   </div>
 </div>
 
@@ -1745,6 +1794,8 @@ const RENDERERS = {};
 
 const MORE_VIEWS = ['work', 'docs', 'voice', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
 function showView(name) {
+  /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
+  if (account && account.loggedIn && !isTrialExpired() && !moduleAllowed(name)) { showUpgrade(name); return; }
   currentView = name;
   gate();
   if (name !== 'voice') stopVoiceIfRec();
@@ -1756,6 +1807,28 @@ function showView(name) {
   window.scrollTo(0, 0);
 }
 function refresh() { if (RENDERERS[currentView]) RENDERERS[currentView](); }
+
+const viewLabel = (v) => { try { return t('nav.' + v); } catch (e) { return v; } };
+/* Upgrade-Ansicht: für gesperrte Module (mit Zurück) oder als Plan-Auswahl */
+function showUpgrade(lockedView) {
+  const pw = $('#paywall'); if (!pw) return;
+  if (lockedView) {
+    $('#pwHead').textContent = '„' + viewLabel(lockedView) + '" ist ab Medium verfügbar';
+    $('#pwSub').textContent = 'Schalte alle Module frei – oder gleich Premium mit echter KI.';
+    $('#pwBack').style.display = '';
+  } else {
+    $('#pwHead').textContent = 'Wähle deinen Plan';
+    $('#pwSub').textContent = 'Deine Daten bleiben immer erhalten. Jederzeit wechselbar.';
+    $('#pwBack').style.display = '';
+  }
+  pw.classList.add('on');
+}
+/* Stripe-Checkout (Phase 2). Vorerst Hinweis + Code-Einlösung als Fallback. */
+function startCheckout(product) {
+  toast('💳 Kartenzahlung wird mit dem Backend (Stripe) aktiviert. Nutze vorerst einen Freischalt-Code.');
+  const d = $('#paywall .up-code'); if (d) d.open = true;
+  const c = $('#pwCode'); if (c) c.focus();
+}
 
 $$('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $('#btnTopSettings').addEventListener('click', () => showView('settings'));
@@ -1839,19 +1912,82 @@ async function sha256Hex(s) {
   return 'f_' + h1.toString(16) + '_' + h2.toString(16);
 }
 
-const isPremium = () => !!(account && account.plan === 'premium');
-const isTrialExpired = () => !!(account && account.plan !== 'premium' &&
-  Date.now() > account.trialStart + TRIAL_DAYS * 864e5);
+/* ---- Stufen (Free / Medium / Premium) & Berechtigungen ---- */
+const TIER_RANK = { free: 0, medium: 1, premium: 2 };
+const TIER_LABEL = { free: 'Free', medium: 'Medium', premium: 'Premium' };
+const AI_MONTHLY_LIMIT = 500;
+/* Module, die mindestens Medium brauchen (im 3-Tage-Free-Test gesperrt).
+   Frei in jeder Stufe: dashboard, tasks, calendar, voice, docgen, chat, settings. */
+const MODULE_MIN_TIER = { work: 'medium', school: 'medium', family: 'medium', vehicles: 'medium', emergency: 'medium', life: 'medium', docs: 'medium' };
+
+function currentTier() {
+  if (!account) return 'free';
+  if (account.tier && TIER_RANK[account.tier] != null) return account.tier;
+  if (account.plan === 'premium') return 'premium';   // Rückwärtskompatibilität
+  return 'free';
+}
+const tierRank = () => TIER_RANK[currentTier()] || 0;
+const isPremium = () => currentTier() === 'premium';
+const isPaid = () => tierRank() >= 1;
+/* Nur die Free-Stufe hat ein Zeitlimit (3 Tage). */
+const isTrialExpired = () => currentTier() === 'free' && !!account &&
+  Date.now() > (account.trialStart || Date.now()) + TRIAL_DAYS * 864e5;
 function trialDaysLeft() {
   if (!account) return TRIAL_DAYS;
-  return Math.max(0, Math.ceil((account.trialStart + TRIAL_DAYS * 864e5 - Date.now()) / 864e5));
+  return Math.max(0, Math.ceil(((account.trialStart || Date.now()) + TRIAL_DAYS * 864e5 - Date.now()) / 864e5));
+}
+function moduleAllowed(view) {
+  const need = MODULE_MIN_TIER[view];
+  return !need || tierRank() >= TIER_RANK[need];
+}
+
+/* ---- KI-Kontingent (500/Monat, Reset am 1.) ---- */
+function aiMonthKey() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+function ensureAIQuota() {
+  if (!account) return;
+  if (!account.ai) account.ai = { month: aiMonthKey(), used: 0, extra: 0 };
+  if (account.ai.month !== aiMonthKey()) { account.ai.month = aiMonthKey(); account.ai.used = 0; account.ai.extra = 0; saveAccount(); }   // Monatswechsel → Reset
+}
+function aiLimit() { ensureAIQuota(); return AI_MONTHLY_LIMIT + (account.ai.extra || 0); }
+function aiUsed() { ensureAIQuota(); return account.ai.used || 0; }
+const aiRemaining = () => Math.max(0, aiLimit() - aiUsed());
+function aiPct() { const l = aiLimit(); return l ? Math.min(100, Math.round(aiUsed() / l * 100)) : 0; }
+const usingOwnKey = () => hasKey();                 // eigener Schlüssel = unbegrenzt, zählt nicht aufs Kontingent
+function canRealAI() {
+  if (usingOwnKey()) return true;
+  if (!isPremium()) return false;                    // Hosted-KI nur für Premium
+  return aiRemaining() > 0;
+}
+let _aiWarned90 = false;
+function noteAIUsage() {
+  if (usingOwnKey()) return;                          // eigener Schlüssel: kein Verbrauch aufs Kontingent
+  ensureAIQuota(); account.ai.used = (account.ai.used || 0) + 1; saveAccount();
+  const pct = aiPct();
+  if (aiRemaining() === 0) toast('⚠️ KI-Kontingent für ' + aiMonthKey() + ' aufgebraucht. In den Einstellungen nachbestellen oder eigenen Schlüssel hinterlegen.');
+  else if (pct >= 90 && !_aiWarned90) { _aiWarned90 = true; toast('ℹ️ 90 % deines KI-Kontingents verbraucht (' + aiUsed() + '/' + aiLimit() + '). Denk ans Nachbestellen.'); }
+  if (pct < 90) _aiWarned90 = false;
+}
+/* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
+function requireAI() {
+  if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an Anthropic
+  if (!isPremium()) { toast('✨ Echte KI ist eine Premium-Funktion.'); showUpgrade(); return false; }
+  if (aiRemaining() <= 0) { toast('Dein KI-Kontingent ist aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
+  /* Premium mit Kontingent, aber ohne Hosted-Backend (Phase 2): vorerst eigenen Schlüssel nutzen */
+  toast('Die gehostete KI wird mit dem Backend aktiviert. Bitte hinterlege vorerst deinen eigenen Schlüssel in den Einstellungen.');
+  showView('settings'); return false;
 }
 
 /* Zeigt je nach Zustand Login/Registrierung oder Paywall; sonst die App */
 function gate() {
   const loggedIn = !!(account && account.loggedIn);
   $('#auth').classList.toggle('on', !loggedIn);
-  $('#paywall').classList.toggle('on', loggedIn && isTrialExpired());
+  const expired = loggedIn && isTrialExpired();
+  $('#paywall').classList.toggle('on', expired);
+  if (expired) {   /* harte Sperre: Testphase vorbei, kein Zurück */
+    $('#pwHead').textContent = 'Deine Testphase ist abgelaufen';
+    $('#pwSub').textContent = 'Schön, dass du Effyra getestet hast! Wähle einen Plan, um alles weiter zu nutzen – deine Daten bleiben erhalten.';
+    $('#pwBack').style.display = 'none';
+  }
   if (!loggedIn) setupAuthForm();
   /* Ersteinrichtung: nach dem Login zuerst die Sprache wählen lassen */
   else if (!isTrialExpired() && (!store.profile || !store.profile.lang) && !$('#langPicker').classList.contains('on')) {
@@ -2022,10 +2158,10 @@ async function activatePremium(code, errEl) {
       const r = await sb.rpc('redeem_code', { p_code: code });
       if (r.error) { errEl.textContent = 'Das hat nicht geklappt – bitte später erneut versuchen.'; return false; }
       if (r.data === 'ok') {
-        account.plan = 'premium';
-        gate();
+        account.plan = 'premium'; account.tier = 'premium';
+        $('#paywall').classList.remove('on'); gate();
         toast('Premium freigeschaltet – alles inklusive 💎');
-        refresh();
+        showView('dashboard');
         return true;
       }
       errEl.textContent = r.data === 'already_used'
@@ -2040,12 +2176,12 @@ async function activatePremium(code, errEl) {
   if (!(window.crypto && crypto.subtle)) { errEl.textContent = 'Die Aktivierung benötigt eine sichere Verbindung (https).'; return false; }
   const h = await sha256Hex(code);
   if (PREMIUM_HASHES.indexOf(h) === -1) { errEl.textContent = 'Dieser Code ist leider ungültig.'; return false; }
-  account.plan = 'premium';
+  account.plan = 'premium'; account.tier = 'premium';
   account.premiumSince = Date.now();
   saveAccount();
-  gate();
+  $('#paywall').classList.remove('on'); gate();
   toast('Premium freigeschaltet – alles inklusive 💎');
-  refresh();
+  showView('dashboard');
   return true;
 }
 
@@ -2087,6 +2223,8 @@ if (CLOUD) {
 $('#pwGo').addEventListener('click', () => activatePremium($('#pwCode').value, $('#pwErr')));
 $('#pwCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pwGo').click(); });
 $('#pwLogout').addEventListener('click', logout);
+$('#paywall').addEventListener('click', e => { const buy = e.target.closest('[data-buy]'); if (buy) startCheckout(buy.dataset.buy); });
+$('#pwBack').addEventListener('click', () => { $('#paywall').classList.remove('on'); showView('dashboard'); });
 
 /* ============================== TASKS (Daten) ============================== */
 function addTask(title, due, prio, source) {
@@ -2865,7 +3003,7 @@ function dgFrist() {
   save(); toast('Frist in Aufgaben & Kalender ✓');
 }
 async function dgAI() {
-  if (!hasKey()) { toast('✨ KI-Verbesserung braucht einen API-Schlüssel (Einstellungen)'); return; }
+  if (!requireAI()) return;
   const t = curTpl(), cur = dgOverrideBody != null ? dgOverrideBody : t.body(dgValues, store.profile);
   toast('Effyra verbessert den Text …');
   try {
@@ -2873,6 +3011,7 @@ async function dgAI() {
       model: store.settings.model, max_tokens: 1200,
       messages: [{ role: 'user', content: 'Du bist ein Assistent für deutsche Alltagsbriefe. Formuliere den folgenden Brieftext höflich, klar und professionell aus. Behalte alle Fakten, Namen, Nummern und Daten exakt bei. Gib ausschließlich den reinen Brieftext zurück – ohne Briefkopf, ohne Anrede ("Sehr geehrte…"), ohne Grußformel, ohne Unterschrift, ohne Erklärungen.\n\nText:\n' + cur }]
     });
+    noteAIUsage();
     dgOverrideBody = (out || '').trim() || cur;
     RENDERERS.docgen();
     toast('Text verbessert ✨');
@@ -4211,7 +4350,7 @@ function workCSVexport() {
   toast('CSV exportiert ✓');
 }
 async function workAIAnalyse() {
-  if (!hasKey()) { toast('KI-Analyse braucht einen API-Schlüssel (Einstellungen)'); return; }
+  if (!requireAI()) return;
   const { y, m } = workMonthSel, [mf, mt] = monthRange(y, m), st = rangeStats(mf, mt);
   const mname = new Date(y, m, 1).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
   toast('Effyra analysiert deinen Monat …');
@@ -4220,6 +4359,7 @@ async function workAIAnalyse() {
       model: store.settings.model, max_tokens: 900,
       messages: [{ role: 'user', content: 'Du bist ein freundlicher Arbeitszeit-Assistent. Analysiere kurz, klar und motivierend auf Deutsch (Du-Form) diesen Monat (' + mname + '): Ist-Stunden ' + hmDur(st.workedMin) + ', Soll ' + hmDur(st.sollMin) + ', Saldo ' + (st.overMin >= 0 ? '+' : '-') + hmDur(Math.abs(st.overMin)) + ', Arbeitstage ' + st.workDays + ', Urlaubstage ' + st.urlaub + ', Kranktage ' + st.krank + ', vergangene Arbeitstage ohne Zeiteintrag: ' + st.offen + '. Gib eine kurze Zusammenfassung, weise auf Überstunden/Minusstunden und fehlende Einträge hin und gib 2-3 konkrete Tipps zur Arbeitsplanung. Höchstens 8 Sätze, Fließtext.' }]
     });
+    noteAIUsage();
     workAI = (out || '').trim(); RENDERERS.work();
   } catch (e) { toast('⚠️ ' + e.message); }
 }
@@ -4463,6 +4603,7 @@ async function handleDocFile(file) {
     if (hasKey()) {
       const full = await readAndResize(file, 1568, 0.85);
       result = await aiAnalyze(full);
+      noteAIUsage();
       demo = false;
     } else {
       await new Promise(r => setTimeout(r, 3200));
@@ -4735,6 +4876,7 @@ async function sendChat(text) {
   try {
     if (hasKey()) {
       await realReply(text);
+      noteAIUsage();
     } else {
       await new Promise(r => setTimeout(r, 900 + Math.random() * 700));
       demoReply(text);
@@ -4788,26 +4930,36 @@ function renderAccountCard() {
   const card = $('#accountCard');
   if (!account) { card.style.display = 'none'; return; }
   card.style.display = '';
-  const days = trialDaysLeft();
-  const planHtml = isPremium()
-    ? '<span class="badge b-premium">💎 Premium aktiv</span>'
-    : isTrialExpired()
-      ? '<span class="badge b-expired">Testphase abgelaufen</span>'
-      : '<span class="badge b-trial">⏳ Testphase: noch ' + days + ' Tag' + (days === 1 ? '' : 'e') + '</span>';
-  card.innerHTML = '<h3>Dein Konto</h3>' +
+  const tier = currentTier(), days = trialDaysLeft();
+  let planHtml = '<span class="tier-pill ' + tier + '">' + (tier === 'premium' ? '💎 ' : tier === 'medium' ? '⭐ ' : '') + TIER_LABEL[tier] + '</span>';
+  if (tier === 'free') planHtml += ' <span class="badge b-trial" style="margin-left:6px">⏳ noch ' + days + ' Tag' + (days === 1 ? '' : 'e') + '</span>';
+
+  let html = '<h3>Dein Konto</h3>' +
     '<p class="sub">' + (account.name ? esc(account.name) + ' · ' : '') + esc(account.email) + '</p>' +
-    '<div style="margin-bottom:14px">' + planHtml + '</div>' +
-    (!isPremium()
-      ? '<label class="fld" for="setCode">Premium freischalten</label>' +
-        '<div class="set-row"><input type="text" id="setCode" placeholder="Freischalt-Code" maxlength="20" autocomplete="off">' +
-        '<button class="btn btn-primary" id="setCodeGo">Einlösen</button></div>' +
-        '<div class="auth-err" id="setCodeErr"></div>'
-      : '') +
-    '<div style="margin-top:6px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>';
-  const go = $('#setCodeGo');
-  if (go) go.addEventListener('click', async () => {
-    if (await activatePremium($('#setCode').value, $('#setCodeErr'))) renderAccountCard();
-  });
+    '<div style="margin-bottom:14px">' + planHtml + '</div>';
+
+  if (tier === 'premium' && !usingOwnKey()) {
+    const used = aiUsed(), lim = aiLimit(), pct = aiPct(), cls = pct >= 100 ? 'full' : pct >= 90 ? 'warn' : '';
+    html += '<div class="note-box" style="margin-bottom:12px"><b>KI-Kontingent (' + aiMonthKey() + ')</b>' +
+      '<div class="quota-bar"><div class="quota-fill ' + cls + '" style="width:' + Math.min(100, pct) + '%"></div></div>' +
+      '<span class="sub">' + used + ' / ' + lim + ' Abfragen · noch ' + aiRemaining() + ' übrig</span>' +
+      (pct >= 90 ? '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" data-buy="topup">+500 nachbestellen · 4,99 €</button></div>' : '') +
+      '<div class="sub" style="margin-top:6px">Reset am 1. des Folgemonats. Alternativ eigenen Schlüssel (unten) für unbegrenzte Nutzung.</div></div>';
+  } else if (tier === 'premium' && usingOwnKey()) {
+    html += '<div class="note-box" style="margin-bottom:12px">🔑 Eigener API-Schlüssel aktiv – <b>unbegrenzte</b> KI, kein Kontingentverbrauch.</div>';
+  }
+
+  if (tier !== 'premium') html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">⭐ Plan ansehen / upgraden</button>';
+
+  html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
+    '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
+    '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>' +
+    '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>';
+
+  card.innerHTML = html;
+  const up = $('#btnUpgrade'); if (up) up.addEventListener('click', () => showUpgrade());
+  const go = $('#setCodeGo'); if (go) go.addEventListener('click', async () => { if (await activatePremium($('#setCode').value, $('#setCodeErr'))) renderAccountCard(); });
+  const tu = card.querySelector('[data-buy="topup"]'); if (tu) tu.addEventListener('click', () => startCheckout('topup'));
   $('#btnLogout').addEventListener('click', logout);
 }
 
