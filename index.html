@@ -2209,6 +2209,10 @@ const STORE_SAFE = true;
    Schlüssel + Freischalt-Codes), damit nichts bricht. */
 const BACKEND_V2 = true;
 const FN_URL = (name) => SUPABASE_URL + '/functions/v1/' + name;
+/* Echte OpenAI-Sprachein-/-ausgabe (STT gpt-4o-mini-transcribe / TTS gpt-4o-mini-tts) statt Browser-WebSpeech.
+   Fällt automatisch auf die Browser-Sprachfunktion zurück, wenn nicht eingeloggt/offline. */
+const AI_VOICE = true;
+const TTS_VOICE = 'nova';   // warme weibliche OpenAI-Stimme (alloy|echo|fable|onyx|nova|shimmer|coral|sage|ash|ballad|verse)
 
 /* Berechtigungskonzept (Free/Medium/Premium, Modul-Sperren, 3-Tage-Ablauf,
    KI-Sperren). Zum Testen AUS = false → alles freigeschaltet. Zum Scharfschalten
@@ -2386,6 +2390,24 @@ async function callClaudeHosted(payload) {
   }
   applyServerUsage(data.ai_used, data.ai_limit);
   return (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
+}
+/* Audio-Proxy (Sprache→Text & Text→Sprache) über dieselbe Edge Function. Gibt das rohe JSON zurück. */
+async function callAudioHosted(payload) {
+  let session;
+  try { session = (await sb.auth.getSession()).data.session; } catch (e) {}
+  if (!session) throw new Error('Bitte melde dich an.');
+  let res;
+  try {
+    res = await fetch(FN_URL('claude-proxy'), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) { throw new Error('Keine Verbindung zur Sprach-KI. Bist du online?'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || data.error || 'Sprach-Anfrage fehlgeschlagen.');
+  applyServerUsage(data.ai_used, data.ai_limit);
+  return data;
 }
 
 /* Zeigt je nach Zustand Login/Registrierung oder Paywall; sonst die App */
@@ -5673,16 +5695,35 @@ let vaRec = null, vaListening = false, vaLastSpoken = false, vaGreeted = false;
 let vaPending = null;   // { run:fn->msg, summary:str } – wartet auf Ja/Nein
 let vaContext = null;   // letzter Intent für Nachfassen („noch 20 Euro …")
 
-/* --- Sprachausgabe (TTS) --- */
-function vaSpeak(text) {
+/* --- Sprachausgabe (TTS): echte OpenAI-Stimme, Fallback Browser-WebSpeech --- */
+let vaAudioEl = null;
+function cleanForTTS(text) {
+  return String(text || '').replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/[„“”"]/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+function vaSpeakBrowser(clean) {
   try {
-    if (!('speechSynthesis' in window) || !text) return;
-    const clean = String(text).replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/[„“”"]/g, '').replace(/\s{2,}/g, ' ').trim();
-    if (!clean) return;
+    if (!('speechSynthesis' in window) || !clean) return;
     const u = new SpeechSynthesisUtterance(clean);
-    u.lang = 'de-DE'; u.rate = 1.03; u.pitch = 1;
+    u.lang = 'de-DE'; u.rate = 1.0; u.pitch = 1.05;
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   } catch (e) {}
+}
+async function vaSpeak(text) {
+  const clean = cleanForTTS(text);
+  if (!clean) return;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  if (vaAudioEl) { try { vaAudioEl.pause(); } catch (e) {} vaAudioEl = null; }
+  if (AI_VOICE && canRealAI()) {
+    try {
+      const r = await callAudioHosted({ op: 'tts', text: clean, voice: TTS_VOICE });
+      if (r && r.audio) {
+        vaAudioEl = new Audio('data:' + (r.mime || 'audio/mpeg') + ';base64,' + r.audio);
+        vaAudioEl.play().catch(() => vaSpeakBrowser(clean));
+        return;
+      }
+    } catch (e) { /* Fallback auf Browser-Stimme */ }
+  }
+  vaSpeakBrowser(clean);
 }
 
 /* --- Status-Anzeige mit Animation --- */
@@ -5696,15 +5737,61 @@ function vaSetStatus(state, extra) {
 }
 
 /* --- Mikrofon starten/stoppen --- */
+let vaMediaRec = null, vaChunks = [], vaStream = null, vaAutoStop = 0;
+function vaBlobToB64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => { const s = String(r.result || ''); const i = s.indexOf(','); resolve(i >= 0 ? s.slice(i + 1) : s); };
+    r.onerror = reject; r.readAsDataURL(blob);
+  });
+}
+function vaPickMime() {
+  const cand = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+  for (let i = 0; i < cand.length; i++) { try { if (window.MediaRecorder && MediaRecorder.isTypeSupported(cand[i])) return cand[i]; } catch (e) {} }
+  return '';
+}
+/* Echte OpenAI-Transkription: tippen = Aufnahme starten, erneut tippen = senden → Proxy → Text → Chat */
+async function vaRecordOpenAI() {
+  let stream;
+  vaSetStatus('listening', 'Mikrofon erlauben …');
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { toast('🎤 Kein Mikrofon-Zugriff. Bitte für diese Seite erlauben.'); vaSetStatus('idle'); return; }
+  vaStream = stream;
+  const mime = vaPickMime();
+  try { vaMediaRec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+  catch (e) { vaMediaRec = new MediaRecorder(stream); }
+  vaChunks = [];
+  vaMediaRec.ondataavailable = e => { if (e.data && e.data.size) vaChunks.push(e.data); };
+  vaMediaRec.onstop = async () => {
+    clearTimeout(vaAutoStop);
+    if (vaStream) { vaStream.getTracks().forEach(t => t.stop()); vaStream = null; }
+    const mic = $('#vaMic'); if (mic) mic.classList.remove('rec');
+    const blob = new Blob(vaChunks, { type: (vaMediaRec && vaMediaRec.mimeType) || 'audio/webm' });
+    if (!blob.size) { vaSetStatus('idle'); return; }
+    vaSetStatus('processing');
+    try {
+      const audio = await vaBlobToB64(blob);
+      const r = await callAudioHosted({ op: 'transcribe', audio, mime: blob.type });
+      const t = (r.text || '').trim();
+      if (t) sendChat(t, true); else { vaSetStatus('idle'); toast('Nichts verstanden – bitte nochmal.'); }
+    } catch (e) { vaSetStatus('idle'); toast('⚠️ ' + e.message); }
+  };
+  try { vaMediaRec.start(); } catch (e) { vaSetStatus('idle'); toast('⚠️ Aufnahme nicht möglich.'); return; }
+  vaListening = true; vaSetStatus('listening', 'Sprich jetzt – tippe erneut zum Senden');
+  vaAutoStop = setTimeout(() => { if (vaListening) vaStopMic(); }, 20000);   // Sicherheits-Stopp nach 20 s
+}
 async function vaToggleMic() {
-  if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
   if (vaListening) { vaStopMic(); return; }
+  /* Bevorzugt echte OpenAI-Sprache (bessere Erkennung), sonst Browser-Spracherkennung als Fallback. */
+  if (AI_VOICE && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    return vaRecordOpenAI();
+  }
+  if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     vaSetStatus('listening', 'Mikrofon erlauben …');
     try { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach(tr => tr.stop()); }
     catch (e) { toast('🎤 Kein Mikrofon-Zugriff. Bitte für diese Seite erlauben.'); vaSetStatus('idle'); return; }
   }
-  if (!vaGreeted) { vaGreeted = true; vaSpeak('Hallo' + (store.name ? ' ' + store.name : '') + ', ich bin Effyra AI. Wie kann ich dir helfen?'); }
   let finalTx = '';
   vaRec = new VASpeechRec();
   vaRec.lang = 'de-DE'; vaRec.continuous = false; vaRec.interimResults = true; vaRec.maxAlternatives = 1;
@@ -5722,7 +5809,11 @@ async function vaToggleMic() {
   vaListening = true; vaSetStatus('listening');
   try { vaRec.start(); } catch (e) {}
 }
-function vaStopMic() { vaListening = false; if (vaRec) { try { vaRec.stop(); } catch (e) {} } }
+function vaStopMic() {
+  vaListening = false;
+  if (vaMediaRec && vaMediaRec.state !== 'inactive') { try { vaMediaRec.stop(); } catch (e) {} }
+  else if (vaRec) { try { vaRec.stop(); } catch (e) {} }
+}
 
 /* --- Deutsche Datums-/Zeit-/Betrags-Parser --- */
 const VA_WEEKDAYS = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6, sonnabend: 6 };

@@ -27,7 +27,7 @@ const OP_MODEL: Record<string, string> = {
   invoice: 'gpt-5-mini',    // Rechnung/Bild analysieren (multimodal)
 };
 // Credit-Kosten je Operation (serverseitig = fälschungssicher, Client kann sie nicht drücken)
-const OP_COST: Record<string, number> = { question: 1, text: 2, voice: 2, scan: 5, invoice: 10, weekplan: 5 };
+const OP_COST: Record<string, number> = { question: 1, text: 2, voice: 2, scan: 5, invoice: 10, weekplan: 5, transcribe: 2, tts: 1 };
 // Vorstart: „alles freigeschaltet" → angemeldete Nutzer dürfen die KI ohne Premium nutzen.
 // MUSS zum Client-Flag ENFORCE_TIERS passen. Auf true stellen, sobald Play-Billing live ist (dann greifen Premium + Credits).
 const ENFORCE_TIERS = false;
@@ -59,14 +59,8 @@ Deno.serve(async (req) => {
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
   const op = String(body?.op || '');
-  const model = OP_MODEL[op] || (ALLOWED_MODELS.includes(body?.model) ? body.model : DEFAULT_MODEL);
-  const max_tokens = Math.min(Math.max(1, Number(body?.max_tokens) || 1024), 4000);
-  const inMsgs = Array.isArray(body?.messages) ? body.messages : null;
-  if (!inMsgs) return json({ error: 'bad_request' }, 400);
-  // System-Prompt wird bei OpenAI als erste Nachricht im messages-Array gesendet
-  const messages = body.system ? [{ role: 'system', content: body.system }, ...inMsgs] : inMsgs;
 
-  // 3) Kontingent serverseitig verbrauchen (atomar, prüft Premium + Restmenge) – nur wenn ENFORCE_TIERS aktiv ist.
+  // 3) Kontingent serverseitig verbrauchen (atomar) – nur wenn ENFORCE_TIERS aktiv ist. Gilt für Chat UND Audio.
   //    Im Vorstart (ENFORCE_TIERS=false) ist die KI für jede angemeldete Person freigeschaltet.
   let usage: { ai_used: number; ai_limit: number } = { ai_used: 0, ai_limit: 1000000 };
   if (ENFORCE_TIERS) {
@@ -81,8 +75,46 @@ Deno.serve(async (req) => {
     usage = { ai_used: consumed.ai_used, ai_limit: consumed.ai_limit };
   }
 
-  // 4) OpenAI aufrufen (echter Schlüssel, nur hier)
-  // GPT-5-/o-Modelle: max_completion_tokens + minimales Reasoning (sonst frisst das interne Denken das Budget)
+  // 4a) Sprache → Text (Transkription, gpt-4o-mini-transcribe). Client schickt { op:'transcribe', audio:<base64>, mime }
+  if (op === 'transcribe') {
+    const b64 = String(body?.audio || '');
+    if (!b64) return json({ error: 'bad_request' }, 400);
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const mime = String(body?.mime || 'audio/webm');
+    const ext = mime.includes('mp4') || mime.includes('m4a') ? 'mp4' : mime.includes('mpeg') || mime.includes('mp3') ? 'mp3' : mime.includes('wav') ? 'wav' : mime.includes('ogg') ? 'ogg' : 'webm';
+    const form = new FormData();
+    form.append('file', new Blob([bytes], { type: mime }), `audio.${ext}`);
+    form.append('model', 'gpt-4o-mini-transcribe');
+    form.append('language', 'de');
+    form.append('response_format', 'json');
+    const tr = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${OPENAI_API_KEY}` }, body: form });
+    const td = await tr.json().catch(() => ({}));
+    if (!tr.ok) return json({ error: 'ai_failed', detail: (td as any)?.error?.message || '' }, tr.status);
+    return json({ text: (td as any)?.text || '', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
+  }
+
+  // 4b) Text → Sprache (TTS, gpt-4o-mini-tts). Client schickt { op:'tts', text, voice? } → { audio:<base64 mp3>, mime }
+  if (op === 'tts') {
+    const input = String(body?.text || '').slice(0, 1500);
+    if (!input) return json({ error: 'bad_request' }, 400);
+    const voice = /^(alloy|echo|fable|onyx|nova|shimmer|coral|sage|ash|ballad|verse)$/.test(String(body?.voice || '')) ? String(body.voice) : 'nova';
+    const sr = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: 'gpt-4o-mini-tts', input, voice, response_format: 'mp3', instructions: 'Sprich auf Deutsch, warm, freundlich und natürlich – wie eine hilfsbereite Freundin, nicht wie eine Werbestimme.' }),
+    });
+    if (!sr.ok) { const se = await sr.json().catch(() => ({})); return json({ error: 'ai_failed', detail: (se as any)?.error?.message || '' }, sr.status); }
+    const buf = new Uint8Array(await sr.arrayBuffer());
+    let bin = ''; for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+    return json({ audio: btoa(bin), mime: 'audio/mpeg', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
+  }
+
+  // 4c) Chat (Standard). GPT-5-/o-Modelle: max_completion_tokens + minimales Reasoning.
+  const model = OP_MODEL[op] || (ALLOWED_MODELS.includes(body?.model) ? body.model : DEFAULT_MODEL);
+  const max_tokens = Math.min(Math.max(1, Number(body?.max_tokens) || 1024), 4000);
+  const inMsgs = Array.isArray(body?.messages) ? body.messages : null;
+  if (!inMsgs) return json({ error: 'bad_request' }, 400);
+  const messages = body.system ? [{ role: 'system', content: body.system }, ...inMsgs] : inMsgs;
   const isReasoning = /^(gpt-5|o[0-9])/.test(model);
   const tokenParam = isReasoning ? { max_completion_tokens: Math.max(max_tokens, 800), reasoning_effort: 'minimal' } : { max_tokens };
   const ar = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -92,8 +124,6 @@ Deno.serve(async (req) => {
   });
   const data = await ar.json();
   if (!ar.ok) return json({ error: 'ai_failed', detail: data?.error?.message || '' }, ar.status);
-
   const text = data?.choices?.[0]?.message?.content || '';
-  // Antwort im gewohnten content-Format zurückgeben – der Client bleibt unverändert
   return json({ content: [{ type: 'text', text }], ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
 });
