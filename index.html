@@ -5441,16 +5441,21 @@ function vaRunLocal(text) {
     }
   }
 
-  /* Termin verschieben / verlegen */
+  /* Termin verschieben / verlegen (wichtige Termine mit Rückfrage) */
   if (/(verschieb|verleg|umbuch|verrück|verrueck)\w*/.test(t) || (/(ändere|aendere|ändern|aendern)/.test(t) && /\btermin\b/.test(t))) {
     const ev = vaMatchByTitle(store.events.filter(e => e.date >= todayISO()), t) || vaMatchByTitle(store.events, t);
     if (!ev) { vaReply('Ich habe keinen passenden Termin gefunden. Welchen soll ich verschieben?'); return true; }
     const nd = vaParseDate(t), nt = vaParseTime(t);
     if (!nd && !nt) { vaReply('Auf wann soll ich „' + ev.title + '" verschieben? Nenn Datum oder Uhrzeit.'); return true; }
-    if (nd) ev.date = nd; if (nt) ev.time = nt;
-    save(); if (currentView === 'chat') RENDERERS.chat();
-    vaContext = { type: 'event' };
-    vaReply('🔀 „' + ev.title + '" verschoben auf ' + fmtDate(ev.date) + (ev.time ? ' um ' + ev.time + ' Uhr' : '') + '.');
+    const doMove = function () { if (nd) ev.date = nd; if (nt) ev.time = nt; save(); if (currentView === 'chat') RENDERERS.chat(); vaContext = { type: 'event' }; return '🔀 „' + ev.title + '" verschoben auf ' + fmtDate(ev.date) + (ev.time ? ' um ' + ev.time + ' Uhr' : '') + '.'; };
+    const important = ev.date <= addDays(todayISO(), 2) || ['kind', 'veh', 'family', 'doc'].indexOf(ev.source) >= 0;
+    if (important) {
+      const zd = nd || ev.date, zt = nt || ev.time;
+      vaPending = { summary: 'Soll „' + ev.title + '" verschoben werden?', run: doMove };
+      vaReply('„' + ev.title + '" ist ein wichtiger Termin. Wirklich auf ' + fmtDate(zd) + (zt ? ' um ' + zt + ' Uhr' : '') + ' verschieben? Sag „ja" oder „nein".');
+      return true;
+    }
+    vaReply(doMove());
     return true;
   }
 
@@ -5498,8 +5503,8 @@ function vaRunLocal(text) {
   }
 
   /* Abwesenheit: Urlaub / krank / kinderkrank */
-  const isSick = /\b(krankgeschrieben|krankschreibung|bin krank|melde mich krank|fühle mich krank)\b/.test(t);
   const isKidSick = /\b(kinderkrank|kind ist krank|kind krank)\b/.test(t);
+  const isSick = !isKidSick && /\bkrank\b/.test(t) && !/versicher|kasse|krankenhaus/.test(t) && /\b(bin|war|melde|schreib|krankgeschrieben|krankmeldung|trage|eintrag|fühle|fuehle|heute|morgen|von|ab)\b/.test(t);
   const isVac = /\burlaub\b/.test(t) && /\b(eintrag|trage|nehme|nehmen|beantrag|habe|hab|bin)\b/.test(t) && !/\b(in den urlaub|verreis|reise|fahren|fliegen|möchte|will)\b/.test(t);
   const isFree = /\b(frei|abwesend)\b/.test(t) && /\b(eintrag|trage|nehme|beantrag)\b/.test(t);
   if (isSick || isKidSick || isVac || isFree) {
@@ -5513,6 +5518,30 @@ function vaRunLocal(text) {
     save();
     const label = type === 'urlaub' ? 'Urlaub' : type === 'kinderkrank' ? 'Kind-krank' : 'Krank';
     vaReply('🗓️ ' + label + ' eingetragen: ' + fmtDate(from) + (to && to !== from ? ' – ' + fmtDate(to) : '') + '.');
+    return true;
+  }
+
+  /* Fahrzeug: Tankvorgang */
+  if (/\b(getankt|tanke|tanken|tankvorgang|vollgetankt|betankt|sprit)\b/.test(t)) {
+    const cost = vaParseAmount(t);
+    const lm = t.match(/(\d+(?:[.,]\d+)?)\s*(?:liter|litern|l\b)/);
+    const liters = lm ? +lm[1].replace(',', '.') : 0;
+    const km2 = t.match(/(\d{3,7})\s*(?:km|kilometer|kilometern)/);
+    const km = km2 ? +km2[1] : 0;
+    if (!liters && cost == null) { vaReply('Wie viel hast du getankt? Sag z. B. „45 Liter für 80 Euro".'); return true; }
+    const vm = raw.match(/(?:für|fürs|beim|bei|am)\s+(?:mein(?:en|em)?\s+|meine\s+)?(auto|wagen|pkw|motorrad|roller|[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\-]{2,})/i);
+    const vname = vm ? vm[1].toLowerCase() : '';
+    let v;
+    if (/^(auto|wagen|pkw)$/.test(vname)) v = (store.vehicles || []).find(x => x.type === 'auto') || pickOrCreateVehicle('Auto');
+    else if (/^(motorrad|roller)$/.test(vname)) v = (store.vehicles || []).find(x => x.type === 'motorrad') || pickOrCreateVehicle('Motorrad');
+    else if (vname && !/^(euro|liter|litern)$/.test(vname)) v = pickOrCreateVehicle(vm[1]);
+    else { store.vehicles = store.vehicles || []; v = (vehActive ? store.vehicles.find(x => x.id === vehActive) : null) || store.vehicles[0] || pickOrCreateVehicle('Mein Fahrzeug'); }
+    const full = !/\b(nicht voll|teilget|teilbet|halb voll)\b/.test(t);
+    v.fuel = v.fuel || [];
+    v.fuel.push({ id: uid(), date: vaParseDate(t) || todayISO(), km, liters, cost: cost || 0, full });
+    save();
+    vaContext = { type: 'vehicle' };
+    vaReply('⛽ Tankvorgang für „' + v.name + '" gespeichert: ' + (liters ? liters.toLocaleString('de-DE') + ' L' : '') + (cost != null ? (liters ? ' für ' : '') + eur(cost) : '') + (km ? ' bei ' + km.toLocaleString('de-DE') + ' km' : '') + (full ? ' (vollgetankt)' : '') + '.');
     return true;
   }
 
