@@ -16,17 +16,19 @@
 <style>
 /* ============================== TOKENS ============================== */
 :root{
-  --bg:#07090f;
-  --bg2:#0b0e17;
-  --card:rgba(255,255,255,.045);
-  --card2:rgba(255,255,255,.08);
-  --border:rgba(255,255,255,.09);
-  --border2:rgba(255,255,255,.16);
-  --text:#ffffff;
-  --muted:#eaeef4;
-  --faint:#c9d0dc;
+  --bg:#0a0c13;
+  --bg2:#0e111a;
+  --card:#161b27;              /* opake Surface (Karten) – deterministischer Kontrast statt Transluzenz */
+  --card2:#1f2636;             /* höhere Elevation: Buttons, aktive States */
+  --surface-3:#28304a;         /* Menüs/Sheets */
+  --border:rgba(255,255,255,.10);
+  --border2:rgba(255,255,255,.17);
+  --text:#f5f7fb;
+  --muted:#c6cddb;
+  --faint:#9aa6ba;             /* ≥4.5:1 auf Surface & bg (WCAG 1.4.3) */
   --acc1:#7c3aed;
   --acc2:#06b6d4;
+  --focus:#22d3ee;
   --grad:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);
   --ok:#34d399;
   --warn:#fbbf24;
@@ -44,12 +46,12 @@ body{
   color:var(--text);
   font-family:var(--font-body);
   font-size:15px;
-  font-weight:500;
+  font-weight:400;
   line-height:1.55;
   min-height:100dvh;
   overflow-x:hidden;
   -webkit-font-smoothing:antialiased;
-  text-shadow:0 1px 3px rgba(0,0,0,.6);
+  -moz-osx-font-smoothing:grayscale;
 }
 input,select,textarea,button{text-shadow:none}
 h1,h2,h3,.font-head{font-family:var(--font-head)}
@@ -62,11 +64,9 @@ input,select,textarea{font-family:inherit;font-size:15px}
 
 /* ============================== BACKGROUND ORBS ============================== */
 .orbs{position:fixed;inset:0;z-index:-1;overflow:hidden;background:
-  radial-gradient(ellipse 80% 55% at 50% -10%,rgba(124,58,237,.12),transparent),
-  linear-gradient(180deg,rgba(7,9,15,.55) 0%,rgba(7,9,15,.68) 55%,rgba(7,9,15,.82) 100%),
-  url('bg.jpg') center/cover no-repeat,
+  radial-gradient(ellipse 90% 55% at 50% -12%,rgba(124,58,237,.10),transparent 60%),
   var(--bg);}
-.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.32;will-change:transform}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.16;will-change:transform}
 .orb-1{width:520px;height:520px;background:#5b21b6;top:-180px;left:-140px;animation:drift1 26s ease-in-out infinite alternate}
 .orb-2{width:460px;height:460px;background:#0e7490;bottom:-200px;right:-120px;animation:drift2 32s ease-in-out infinite alternate}
 .orb-3{width:300px;height:300px;background:#7c3aed;top:40%;left:60%;opacity:.18;animation:drift1 38s ease-in-out infinite alternate-reverse}
@@ -87,8 +87,8 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .brand .logo-mark{width:32px;height:32px;flex:none}
 .brand b{font-family:var(--font-head);font-size:20px;letter-spacing:1px;font-weight:700;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;
-  border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:.2s}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;
+  border-radius:13px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:.2s}
 .icon-btn:hover{color:var(--text);border-color:var(--border2)}
 .icon-btn svg{width:19px;height:19px}
 
@@ -99,7 +99,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
   background:rgba(9,11,18,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-top:1px solid var(--border)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  background:none;border:none;color:var(--faint);font-size:10.5px;font-weight:600;letter-spacing:.3px;transition:.2s}
+  background:none;border:none;color:var(--faint);font-size:12px;font-weight:600;letter-spacing:.2px;transition:.2s}
 .tab svg{width:22px;height:22px}
 .tab.active{color:var(--text)}
 .tab.active svg{color:#a78bfa}
@@ -151,7 +151,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .card+.card{margin-top:14px}
 .rise{animation:fadeUp .5s ease both;animation-delay:calc(var(--i,0)*70ms)}
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;
   padding:10px 18px;border-radius:13px;border:1px solid var(--border2);
   background:var(--card2);color:var(--text);font-size:14px;font-weight:600;transition:.2s}
 .btn:hover{border-color:rgba(255,255,255,.3)}
@@ -160,7 +160,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .btn-primary{background:var(--grad);border:none;color:#fff;box-shadow:0 4px 18px rgba(124,58,237,.4)}
 .btn-primary:hover{box-shadow:0 6px 26px rgba(124,58,237,.55);transform:translateY(-1px)}
 .btn-primary:disabled{transform:none;box-shadow:none}
-.btn-sm{padding:7px 13px;font-size:13px;border-radius:11px}
+.btn-sm{min-height:40px;padding:8px 14px;font-size:13px;border-radius:11px}
 .btn-danger{color:var(--danger);border-color:rgba(248,113,113,.35)}
 .btn-ghost{background:none;border-color:transparent;color:var(--muted)}
 .btn-ghost:hover{color:var(--text)}
@@ -169,11 +169,21 @@ input[type=text],input[type=password],input[type=date],input[type=time],select,t
   background:rgba(0,0,0,.3);color:var(--text);outline:none;transition:.2s}
 input:focus,select:focus,textarea:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.22)}
 input::placeholder,textarea::placeholder{color:var(--faint)}
-select option{background:#12151f;color:var(--text)}
+select option{background:#1f2636;color:var(--text)}
 input[type=date],input[type=time]{color-scheme:dark}
+/* Sichtbarer Tastatur-Fokus auf allen interaktiven Elementen (WCAG 2.4.7) */
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+button:focus-visible,a:focus-visible,[role=button]:focus-visible,[data-view]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
+/* Bewegung respektieren (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  .orb{animation:none!important}
+}
 label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
-.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
-  font-size:11.5px;font-weight:700;letter-spacing:.3px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;
+  font-size:12px;font-weight:700;letter-spacing:.2px}
 .empty{padding:28px 14px;text-align:center;color:var(--faint);font-size:14px}
 .empty .big{font-size:30px;display:block;margin-bottom:8px}
 
@@ -332,9 +342,9 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .prio{width:8px;height:8px;border-radius:50%;flex:none}
 .prio-high{background:var(--danger)}.prio-med{background:var(--warn)}.prio-low{background:var(--ok)}
 .src-badge{font-size:10.5px;padding:2px 8px;border-radius:10px;background:var(--card2);color:var(--muted);font-weight:700}
-.t-del{background:none;border:none;color:var(--faint);padding:6px;border-radius:9px;transition:.2s}
+.t-del{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;flex:none;background:none;border:none;color:var(--faint);padding:6px;border-radius:10px;transition:.2s}
 .t-del:hover{color:var(--danger)}
-.t-del svg{width:16px;height:16px}
+.t-del svg{width:17px;height:17px}
 
 /* ============================== KALENDER ============================== */
 .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
@@ -944,7 +954,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
   <header class="topbar">
     <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Effyra</b></a>
-    <button class="icon-btn" id="btnTopSettings" title="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button>
+    <button class="icon-btn" id="btnTopSettings" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button>
   </header>
 
   <main>
@@ -1090,7 +1100,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <p>Sprich einfach – Effyra macht daraus Text und ein PDF.</p>
       </div>
       <div class="v2p-rec">
-        <button class="v2p-mic" id="v2pMic"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
+        <button class="v2p-mic" id="v2pMic" aria-label="Aufnahme starten oder stoppen"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
         <div class="v2p-status" id="v2pStatus">Tippe aufs Mikrofon und leg los</div>
       </div>
       <details class="v2p-hint"><summary>💡 Satzzeichen &amp; Absätze diktieren</summary>
