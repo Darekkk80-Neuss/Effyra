@@ -711,6 +711,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .mem-info{flex:1;min-width:0}
 .mem-info b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mem-info span{font-size:12.5px;color:var(--faint)}
+.med-times{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.med-chk{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;border:1px solid var(--border2);background:var(--card2);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer}
+.med-chk.on{background:rgba(52,211,153,.16);border-color:var(--ok);color:var(--ok)}
+.med-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;border:1px solid var(--border);background:var(--card2);color:var(--muted);font-size:12.5px;font-weight:600}
+.med-x{background:none;border:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 2px;opacity:.7}
 .t-meta .fam-assignee{font-weight:700;color:var(--muted)}
 .fam-code{font-family:var(--font-head);font-size:30px;letter-spacing:6px;text-align:center;background:var(--card2);
   border:1px dashed var(--border2);border-radius:14px;padding:16px 8px;margin:12px 0;color:#a78bfa}
@@ -2730,8 +2735,21 @@ RENDERERS.dashboard = function () {
 
   /* NÄCHSTE TERMINE – ab morgen, die nächsten 3 */
   const upcoming = store.events.filter(e => e.date > today).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, 3);
-  const medsToday = ((store.family && store.family.meds) || []).filter(md => md.date === today || md.date === '').sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
-  if (medsToday.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medsToday.slice(0, 5).map(md => { const mm = famMember(md.memberId); return drow({ emoji: '💊', iconColor: mm ? mm.color : '#64748b', title: (mm ? mm.name + ': ' : '') + md.name, sub: (md.dose ? md.dose + ' · ' : '') + (md.date ? 'einmalig heute' : 'täglich'), meta: md.time ? md.time + ' Uhr' : null, go: 'family', attrs: ' data-tab="meds"' }); }).join(''), ' data-tab="meds"');
+  const medRows = [];
+  ((store.family && store.family.meds) || []).forEach(md => {
+    if (md.date && md.date !== today) return;   // nur heute oder täglich
+    const mm = famMember(md.memberId), ts = medTimes(md);
+    if (!ts.length) medRows.push({ md, mm, t: '', taken: false, sortT: '99:99' });
+    else ts.forEach(t => medRows.push({ md, mm, t, taken: medIsTaken(md.id, t), sortT: t }));
+  });
+  medRows.sort((a, b) => a.sortT < b.sortT ? -1 : a.sortT > b.sortT ? 1 : 0);
+  if (medRows.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
+    emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b',
+    title: (r.mm ? r.mm.name + ': ' : '') + r.md.name,
+    sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? r.t + ' Uhr' : (r.md.date ? 'einmalig heute' : 'täglich')),
+    chip: r.t ? (r.taken ? { cls: 'chip-ok', text: '✓ genommen' } : { cls: 'chip-warn', text: 'offen' }) : null,
+    go: 'family', attrs: ' data-tab="meds"'
+  })).join(''), ' data-tab="meds"');
 
   if (upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + e.time + ' Uhr' : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
 
@@ -3828,7 +3846,8 @@ function ensureFamily() {
   if (!store.family.tasks) store.family.tasks = [];   // Familienaufgaben (an Mitglieder vergeben)
   if (!store.family.ai) store.family.ai = { limit: FAMILY_AI_LIMIT, resetDate: nextMonthFirstISO() };
   if (!store.family.addons) store.family.addons = { adult: 0, child: 0 };   // hinzugebuchte Zusatzplätze (Play Billing)
-  if (!store.family.meds) store.family.meds = [];   // Medikamentenplan {id,memberId,name,date(''=täglich|ISO),time,note,createdAt}
+  if (!store.family.meds) store.family.meds = [];   // Medikamentenplan {id,memberId,name,dose,date(''=täglich|ISO),times[],note,createdAt}
+  if (!store.family.medTaken) store.family.medTaken = {};   // eingenommen: {'medId|HH:MM|YYYY-MM-DD': ts} (synchronisiert)
   if (!store.family.share) store.family.share = { calendar: true, appointments: true, tasks: true, reminders: true, documents: false, expenses: false, household: false };
   SHARE_AREAS.forEach(a => { if (typeof store.family.share[a.key] !== 'boolean') store.family.share[a.key] = a.def; });
   if (!store.family.members.length) {
@@ -3860,7 +3879,7 @@ function nextOccur(iso) {
 const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).getFullYear();
 
 /* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
-function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], meds: store.family.meds || [], events: store.events.filter(e => e.source === 'family') }; }
+function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], meds: store.family.meds || [], medTaken: store.family.medTaken || {}, events: store.events.filter(e => e.source === 'family') }; }
 async function famPush() { if (!store.family.code || !CLOUD) return; try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
 async function famPull() {
   if (!store.family.code || !CLOUD) return false;
@@ -3873,6 +3892,7 @@ async function famPull() {
     store.family.occasions = d.occasions || [];
     store.family.tasks = d.tasks || [];
     store.family.meds = d.meds || [];
+    store.family.medTaken = d.medTaken || {};
     store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
     save();
     return JSON.stringify(famPayload()) !== before;
@@ -3981,28 +4001,40 @@ function famPersonen() {
   });
   return h;
 }
+let medTimesDraft = [];   // im Formular gesammelte Uhrzeiten (mehrere pro Tag)
+function medTimes(md) { return Array.isArray(md.times) ? md.times.slice().sort() : (md.time ? [md.time] : []); }
+function medFirstTime(md) { const t = medTimes(md); return t.length ? t[0] : '99:99'; }
+function medTakenKey(id, t, date) { return id + '|' + t + '|' + (date || todayISO()); }
+function medIsTaken(id, t, date) { return !!(store.family && store.family.medTaken && store.family.medTaken[medTakenKey(id, t, date)]); }
+function medDraftChips() { return medTimesDraft.map(t => '<span class="med-badge">' + t + ' <button type="button" class="med-x" data-fam="delTime" data-t="' + t + '" aria-label="Uhrzeit entfernen">×</button></span>').join(''); }
+function renderMedDraft() { const el = document.querySelector('#medDraft'); if (el) el.innerHTML = medDraftChips(); }
 function famMeds() {
   ensureFamily();
-  const members = store.family.members;
-  const meds = (store.family.meds || []).slice().sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
-  let h = '<p class="sub" style="margin:-2px 0 12px">Medikamentenpläne für Familienmitglieder. Datum leer lassen = <b>täglich</b>. Wird mit der Familie synchronisiert.</p>';
+  const members = store.family.members, today = todayISO();
+  const meds = (store.family.meds || []).slice().sort((a, b) => medFirstTime(a) < medFirstTime(b) ? -1 : 1);
+  let h = '<p class="sub" style="margin:-2px 0 12px">Medikamentenpläne für Familienmitglieder – mehrere Uhrzeiten pro Tag möglich, zum Abhaken antippen. Datum leer = <b>täglich</b>. Wird mit der Familie synchronisiert.</p>';
   if (typeof Notification !== 'undefined') {
-    if (Notification.permission === 'granted') h += '<div class="sub" style="margin-bottom:10px;color:var(--ok)">🔔 Erinnerungen aktiv – du wirst zur Uhrzeit benachrichtigt (solange Effyra geöffnet ist).</div>';
+    if (Notification.permission === 'granted') h += '<div class="sub" style="margin-bottom:10px;color:var(--ok)">🔔 Erinnerungen aktiv – du wirst zu jeder Uhrzeit benachrichtigt (solange Effyra geöffnet ist).</div>';
     else if (Notification.permission !== 'denied') h += '<button class="btn btn-sm" data-fam="medRemindOn" style="margin-bottom:10px">🔔 Erinnerungen aktivieren</button>';
     else h += '<div class="sub" style="margin-bottom:10px;color:var(--faint)">🔕 Benachrichtigungen sind im Browser blockiert – Erinnerung erscheint dann nur als Hinweis in der App.</div>';
   }
   h += '<input type="text" id="medName" placeholder="Medikament (z. B. Vitamin D)" maxlength="60" style="margin-bottom:8px">' +
     '<input type="text" id="medDose" placeholder="Dosis (z. B. 1 Tablette, 500 mg)" maxlength="40" style="margin-bottom:8px">' +
-    '<div class="kid-row" style="margin-bottom:8px"><select id="medWho">' + members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
-    '<input type="time" id="medTime"></div>' +
+    '<select id="medWho" style="margin-bottom:8px">' + members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="time" id="medTime"><button class="btn btn-sm" data-fam="addTime">+ Zeit</button></div>' +
+    '<div id="medDraft" class="med-times" style="margin-bottom:10px">' + medDraftChips() + '</div>' +
     '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="medDate" title="Datum (leer = täglich)"><button class="btn btn-primary" data-fam="addMed">+ Zuweisen</button></div>';
   if (!meds.length) h += '<div class="empty" style="padding:14px">Noch keine Medikamente eingetragen. Leg den ersten Plan an 💊</div>';
   meds.forEach(md => {
-    const m = famMember(md.memberId);
-    const when = (md.date ? cap(fmtDateShort(md.date)) : 'täglich') + (md.time ? ' · ' + md.time + ' Uhr' : '');
+    const m = famMember(md.memberId), times = medTimes(md);
+    const when = md.date ? cap(fmtDateShort(md.date)) : 'täglich';
     const line = (m ? esc(m.name) + ' · ' : '') + (md.dose ? esc(md.dose) + ' · ' : '') + esc(when);
-    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>💊 ' + esc(md.name) + '</b>' +
-      '<span>' + line + '</span></div>' +
+    const isToday = !md.date || md.date === today;
+    let tHtml = '';
+    if (times.length) tHtml = '<div class="med-times">' + times.map(t => isToday
+      ? '<button class="med-chk' + (medIsTaken(md.id, t) ? ' on' : '') + '" data-fam="tglMed" data-id="' + md.id + '" data-t="' + t + '">' + (medIsTaken(md.id, t) ? '✓' : '○') + ' ' + t + '</button>'
+      : '<span class="med-badge">' + t + '</span>').join('') + '</div>';
+    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>💊 ' + esc(md.name) + '</b><span>' + line + '</span>' + tHtml + '</div>' +
       '<button class="t-del" data-fam="delMed" data-id="' + md.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
@@ -4014,18 +4046,28 @@ function checkMedReminders() {
   const today = todayISO(), now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes(), rem = medRemState();
   let changed = false;
   store.family.meds.forEach(md => {
-    if (!md.time) return;
     if (md.date && md.date !== today) return;   // spezifisches Datum, aber nicht heute
-    const p = md.time.split(':'), medMin = (+p[0]) * 60 + (+p[1] || 0);
-    if (nowMin >= medMin && nowMin <= medMin + 30 && rem[md.id] !== today) {   // Fenster Uhrzeit .. +30 Min, einmal pro Tag
-      rem[md.id] = today; changed = true;
+    medTimes(md).forEach(t => {
+      const key = md.id + '|' + t;
+      if (rem[key] === today) return;                        // heute schon erinnert
+      const p = t.split(':'), medMin = (+p[0]) * 60 + (+p[1] || 0);
+      if (nowMin < medMin || nowMin > medMin + 30) return;   // außerhalb Fenster (Uhrzeit .. +30 Min)
+      rem[key] = today; changed = true;
+      if (medIsTaken(md.id, t)) return;                      // bereits abgehakt → nicht nerven
       const m = famMember(md.memberId);
-      const msg = md.name + (md.dose ? ' (' + md.dose + ')' : '') + (m ? ' – ' + m.name : '') + ' · ' + md.time + ' Uhr';
+      const msg = md.name + (md.dose ? ' (' + md.dose + ')' : '') + (m ? ' – ' + m.name : '') + ' · ' + t + ' Uhr';
       toast('🔔 💊 ' + msg);
       try { if (typeof Notification !== 'undefined' && Notification.permission === 'granted') new Notification('Effyra – Medikament', { body: '💊 ' + msg, icon: 'icon-192.png' }); } catch (e) {}
-    }
+    });
   });
   if (changed) { try { localStorage.setItem('effyra_medrem', JSON.stringify(rem)); } catch (e) {} }
+}
+function pruneMedTaken() {
+  if (!store.family || !store.family.medTaken) return;   // alte „genommen"-Marken (>14 Tage) aufräumen
+  const cutoff = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10), mt = store.family.medTaken;
+  let changed = false;
+  Object.keys(mt).forEach(k => { const d = k.split('|')[2]; if (d && d < cutoff) { delete mt[k]; changed = true; } });
+  if (changed) save();
 }
 function famTasks() {
   ensureFamily();
@@ -4144,13 +4186,29 @@ $('#famRoot').addEventListener('click', e => {
     Notification.requestPermission().then(p => { RENDERERS.family(); if (p === 'granted') { toast('🔔 Erinnerungen aktiviert'); checkMedReminders(); } });
     return;
   }
+  if (a === 'addTime') {
+    const inp = q('#medTime'), t = inp.value; if (!t) { inp.focus(); return; }
+    if (medTimesDraft.indexOf(t) < 0) { medTimesDraft.push(t); medTimesDraft.sort(); }
+    inp.value = ''; renderMedDraft(); inp.focus(); return;
+  }
+  if (a === 'delTime') { medTimesDraft = medTimesDraft.filter(x => x !== b.dataset.t); renderMedDraft(); return; }
   if (a === 'addMed') {
     const name = q('#medName').value.trim(); if (!name) { q('#medName').focus(); return; }
+    let times = medTimesDraft.slice();
+    const pending = q('#medTime').value; if (pending && times.indexOf(pending) < 0) times.push(pending);   // noch nicht per „+ Zeit" übernommen
+    times.sort();
     store.family.meds = store.family.meds || [];
-    store.family.meds.push({ id: uid(), memberId: q('#medWho').value, name, dose: (q('#medDose').value || '').trim(), date: q('#medDate').value || '', time: q('#medTime').value || '', createdAt: Date.now() });
+    store.family.meds.push({ id: uid(), memberId: q('#medWho').value, name, dose: (q('#medDose').value || '').trim(), date: q('#medDate').value || '', times, createdAt: Date.now() });
+    medTimesDraft = [];
     famChanged(); toast('Medikament zugewiesen ✓'); checkMedReminders(); return;
   }
   if (a === 'delMed') { store.family.meds = (store.family.meds || []).filter(x => x.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'tglMed') {
+    ensureFamily(); store.family.medTaken = store.family.medTaken || {};
+    const k = medTakenKey(b.dataset.id, b.dataset.t);
+    if (store.family.medTaken[k]) delete store.family.medTaken[k]; else store.family.medTaken[k] = Date.now();
+    famChanged(); return;
+  }
   if (a === 'delMem') { store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return; }
   if (a === 'toggleShare') {
     const area = b.dataset.area; ensureFamily();
@@ -4201,6 +4259,7 @@ $('#famRoot').addEventListener('keydown', e => {
   else if (e.target.id === 'budLabel' || e.target.id === 'budAmount') $('#famRoot [data-fam="addBud"]').click();
   else if (e.target.id === 'ftTitle') $('#famRoot [data-fam="addFTask"]').click();
   else if (e.target.id === 'medName') $('#famRoot [data-fam="addMed"]').click();
+  else if (e.target.id === 'medTime') $('#famRoot [data-fam="addTime"]').click();
   else if (e.target.id === 'joinCode') $('#famRoot [data-fam="join"]').click();
 });
 
@@ -6228,6 +6287,7 @@ if (CLOUD) {
 if (STORE_SAFE) document.body.classList.add('store-safe');   // Play-sicher: Kauf-Buttons ausblenden
 showView('dashboard');
 
+pruneMedTaken();                              // alte „genommen"-Marken aufräumen
 checkMedReminders();                          // Medikamenten-Erinnerungen: beim Start prüfen …
 setInterval(checkMedReminders, 60000);        // … und dann jede Minute (solange die App geöffnet ist)
 
