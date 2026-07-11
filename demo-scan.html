@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Effyra AI – Dokument-Scan Demo</title>
+<style>
+  :root{
+    --a1:#8b5cf6; --a2:#06b6d4; --cyan:#22d3ee; --ink:#0d1019; --ink-soft:#5a6273;
+    --grad:linear-gradient(135deg,#8b5cf6,#06b6d4);
+    --ok:#12b76a;
+    --font:"SF Pro Display","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{font-family:var(--font);color:#e8ebf2;min-height:100dvh;display:grid;grid-template-rows:1fr auto;
+    place-items:center;gap:14px;padding:16px;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%,#0d1017 0%,#050609 60%)}
+
+  .stage{position:relative;aspect-ratio:9/16;height:min(86dvh,calc(94vw*16/9));
+    border-radius:26px;overflow:hidden;container-type:size;
+    background:radial-gradient(95% 75% at 50% 22%,#ffffff 0%,#eef3fb 58%,#dfeaf7 100%);
+    box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);isolation:isolate}
+  .orb{position:absolute;border-radius:50%;filter:blur(9cqw);opacity:.45;z-index:0}
+  .orb.o1{width:54cqw;height:54cqw;background:#b9a5ff;left:-16cqw;top:2cqw}
+  .orb.o2{width:50cqw;height:50cqw;background:#8ee3f2;right:-14cqw;bottom:4cqw}
+
+  /* header chip */
+  .aihead{position:absolute;top:5cqw;left:6cqw;z-index:30;display:flex;align-items:center;gap:2.4cqw;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.7);
+    border-radius:99px;padding:2cqw 4cqw 2cqw 2.4cqw;box-shadow:0 3cqw 12cqw rgba(30,50,90,.14)}
+  .aihead .lm{width:7cqw;height:7cqw}
+  .aihead b{font-size:3.6cqw;color:var(--ink);font-weight:800;letter-spacing:-.2px}
+  .aihead .st{margin-left:1cqw;font-family:var(--mono);font-size:2.7cqw;font-weight:700;color:var(--a2);
+    display:flex;align-items:center;gap:1.4cqw}
+  .aihead .st i{width:2cqw;height:2cqw;border-radius:50%;background:var(--a2);box-shadow:0 0 0 0 rgba(6,182,212,.5);
+    animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(6,182,212,.5)}50%{box-shadow:0 0 0 1.6cqw rgba(6,182,212,0)}}
+
+  /* ===== INVOICE ===== */
+  .invoice{position:absolute;left:50%;top:15cqw;width:66cqw;height:84cqw;margin-left:-33cqw;z-index:10;
+    background:#fff;border-radius:3cqw;padding:5cqw 5.2cqw;transform:translateY(6cqw) rotate(-4deg) scale(.96);
+    opacity:0;box-shadow:0 10cqw 30cqw rgba(30,50,90,.22),inset 0 0 0 1px rgba(120,140,180,.14);
+    transition:opacity .6s ease,transform .8s cubic-bezier(.2,.8,.2,1);
+    transform-origin:14cqw 10cqw}
+  .film.p1 .invoice{opacity:1;transform:rotate(-3deg) scale(1)}
+  .film.p5 .invoice,.film.p6 .invoice,.film.p7 .invoice{
+    transform:translateY(-5cqw) rotate(-3deg) scale(.8);opacity:0}
+  .inv-top{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:.4cqw solid #eef1f6;padding-bottom:3cqw;margin-bottom:3.4cqw}
+  .inv-brand{font-size:4.2cqw;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+  .inv-brand small{display:block;font-size:2.7cqw;font-weight:600;color:#98a1b3;margin-top:.4cqw}
+  .inv-h{font-family:var(--mono);font-size:3.6cqw;font-weight:700;color:#c0c7d4;letter-spacing:.14em}
+  .inv-row{display:flex;justify-content:space-between;font-size:3cqw;color:#5a6273;margin:2cqw 0;font-weight:500}
+  .inv-row .lbl{color:#98a1b3}
+  .inv-sep{height:.4cqw;background:#eef1f6;margin:3cqw 0;border-radius:2cqw}
+  .inv-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:1cqw}
+  .inv-total .lbl{font-size:3.2cqw;font-weight:700;color:var(--ink)}
+  .inv-total .amt{font-family:var(--mono);font-size:6cqw;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+  .inv-due{margin-top:3.4cqw;font-size:3.2cqw;font-weight:700;color:#b42318;
+    background:#fef3f2;border:1px solid #fcdcd7;border-radius:2.4cqw;padding:2.2cqw 3cqw;display:inline-block}
+  .inv-iban{margin-top:3cqw;font-family:var(--mono);font-size:2.7cqw;color:#98a1b3}
+
+  /* scan overlay */
+  .scanwrap{position:absolute;left:50%;top:15cqw;width:66cqw;height:84cqw;margin-left:-33cqw;z-index:16;
+    opacity:0;transition:opacity .4s;pointer-events:none}
+  .film.p2 .scanwrap,.film.p3 .scanwrap{opacity:1}
+  .film.p4 .scanwrap{opacity:0}
+  .corner{position:absolute;width:8cqw;height:8cqw;border:.7cqw solid var(--cyan);filter:drop-shadow(0 0 1.4cqw rgba(34,211,238,.7))}
+  .corner.tl{left:-1cqw;top:-1cqw;border-right:0;border-bottom:0;border-radius:2cqw 0 0 0}
+  .corner.tr{right:-1cqw;top:-1cqw;border-left:0;border-bottom:0;border-radius:0 2cqw 0 0}
+  .corner.bl{left:-1cqw;bottom:-1cqw;border-right:0;border-top:0;border-radius:0 0 0 2cqw}
+  .corner.br{right:-1cqw;bottom:-1cqw;border-left:0;border-top:0;border-radius:0 0 2cqw 0}
+  .scanline{position:absolute;left:-1cqw;right:-1cqw;height:2.6cqw;border-radius:2cqw;
+    background:linear-gradient(rgba(34,211,238,0),rgba(34,211,238,.95),rgba(34,211,238,0));
+    box-shadow:0 0 4cqw rgba(34,211,238,.9);top:0}
+  .film.p2 .scanline{animation:scan 1.4s ease-in-out 2}
+  @keyframes scan{0%{top:-2cqw}100%{top:84cqw}}
+
+  /* field highlight boxes (inside stage, aligned to invoice values) */
+  .fbox{position:absolute;z-index:15;border:.6cqw solid var(--a1);border-radius:2cqw;
+    box-shadow:0 0 0 100cqw rgba(124,58,237,0);opacity:0;transform:scale(1.08);
+    transition:opacity .35s,transform .35s}
+  .fbox .flabel{position:absolute;top:-4.6cqw;left:0;font-family:var(--mono);font-size:2.5cqw;font-weight:700;
+    color:#fff;background:var(--a1);padding:.8cqw 2cqw;border-radius:1.4cqw;white-space:nowrap;box-shadow:0 2cqw 6cqw rgba(124,58,237,.35)}
+  .film.p3 .fbox,.film.p4 .fbox{opacity:1;transform:scale(1)}
+  .film.p5 .fbox{opacity:0}
+  /* positions over the invoice (invoice: left 17cqw..83cqw, top 15cqw) */
+  .fbox.f-abs{left:47cqw;top:38cqw;width:34cqw;height:9cqw;transition-delay:0s}
+  .fbox.f-amt{left:52cqw;top:73cqw;width:31cqw;height:11cqw;border-color:var(--a2)}
+  .fbox.f-amt .flabel{background:var(--a2);box-shadow:0 2cqw 6cqw rgba(6,182,212,.35)}
+  .fbox.f-due{left:24cqw;top:85cqw;width:40cqw;height:13cqw;border-color:#f0663a}
+  .fbox.f-due .flabel{background:#f0663a}
+  .film.p3 .fbox.f-amt{transition-delay:.25s}
+  .film.p3 .fbox.f-due{transition-delay:.5s}
+
+  /* flying extracted chips */
+  .chip{position:absolute;z-index:20;font-family:var(--mono);font-size:3cqw;font-weight:800;color:#fff;
+    padding:1.8cqw 3.2cqw;border-radius:99px;box-shadow:0 4cqw 12cqw rgba(30,50,90,.28);opacity:0}
+  .chip.c-amt{background:var(--a2);left:54cqw;top:75cqw}
+  .chip.c-due{background:#f0663a;left:25cqw;top:86cqw}
+  .chip.c-abs{background:var(--a1);left:48cqw;top:39cqw}
+  .film.p4 .chip.c-amt{animation:fly 1.1s cubic-bezier(.5,0,.3,1) forwards}
+  .film.p4 .chip.c-due{animation:fly 1.1s cubic-bezier(.5,0,.3,1) .12s forwards}
+  .film.p4 .chip.c-abs{animation:fly 1.1s cubic-bezier(.5,0,.3,1) .24s forwards}
+  @keyframes fly{0%{opacity:0;transform:translate(0,0) scale(.9)}18%{opacity:1}
+    100%{opacity:0;transform:translate(2cqw,42cqw) scale(.7)}}
+
+  /* ===== RESULT CARDS ===== */
+  .results{position:absolute;left:6cqw;right:6cqw;bottom:6cqw;z-index:22;display:flex;flex-direction:column;gap:3cqw}
+  .card{position:relative;background:rgba(255,255,255,.82);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.75);border-radius:5cqw;padding:4cqw 4.4cqw;
+    box-shadow:0 8cqw 26cqw rgba(30,50,90,.16);opacity:0;transform:translateY(8cqw) scale(.97);
+    transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+  .film.p5 .card.r1{opacity:1;transform:none}
+  .film.p6 .card.r1,.film.p7 .card.r1{opacity:1;transform:none}
+  .film.p6 .card.r2,.film.p7 .card.r2{opacity:1;transform:none}
+  .card .ct{display:flex;align-items:center;gap:3cqw;margin-bottom:2.6cqw}
+  .card .ic{width:10cqw;height:10cqw;border-radius:3cqw;flex:none;display:grid;place-items:center;font-size:5cqw;
+    background:linear-gradient(140deg,#efe9ff,#e2f5fb)}
+  .card .ct b{font-size:4cqw;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+  .card .ct .new{margin-left:auto;font-family:var(--mono);font-size:2.5cqw;font-weight:800;color:var(--ok);
+    background:rgba(18,183,106,.12);padding:1cqw 2.4cqw;border-radius:99px;opacity:0}
+  .film.p6 .card .new,.film.p7 .card .new{opacity:1;transition:opacity .4s .3s}
+  .card .fields{display:flex;flex-wrap:wrap;gap:2cqw 5cqw}
+  .kf{display:flex;flex-direction:column;gap:.4cqw}
+  .kf .k{font-family:var(--mono);font-size:2.5cqw;color:#98a1b3;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+  .kf .v{font-size:3.6cqw;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+  .kf .v.big{font-family:var(--mono);font-size:4.6cqw;color:var(--a2)}
+  .kf .v.due{color:#f0663a}
+  .card .rem{margin-top:2.6cqw;display:flex;align-items:center;gap:2cqw;font-size:3cqw;font-weight:700;color:var(--ink-soft);
+    background:rgba(124,58,237,.08);border-radius:2.6cqw;padding:2cqw 3cqw}
+  .card .val{opacity:0;transform:translateY(1.4cqw)}
+  .film.p6 .card .val,.film.p7 .card .val{opacity:1;transform:none;transition:opacity .45s,transform .45s}
+  .film.p6 .card.r1 .val:nth-child(2){transition-delay:.1s}
+  .film.p6 .card.r1 .rem{transition-delay:.2s}
+
+  /* caption + final banner */
+  .cap{position:absolute;left:8cqw;right:8cqw;top:15.5cqw;z-index:28;text-align:center;
+    font-size:4cqw;font-weight:700;color:var(--ink);opacity:0;transition:opacity .4s,transform .4s;transform:translateY(-1.5cqw)}
+  .cap.show{opacity:1;transform:none}
+  .cap b{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .banner{position:absolute;left:50%;top:9cqw;transform:translate(-50%,-2cqw);z-index:29;
+    display:flex;align-items:center;gap:2.4cqw;background:var(--ok);color:#fff;font-weight:800;font-size:3.6cqw;
+    padding:2.4cqw 5cqw;border-radius:99px;box-shadow:0 5cqw 18cqw rgba(18,183,106,.4);opacity:0;transition:opacity .4s,transform .4s}
+  .film.p7 .banner{opacity:1;transform:translate(-50%,0)}
+  .banner .bt{width:5cqw;height:5cqw;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:3cqw}
+
+  .vig{position:absolute;inset:0;pointer-events:none;z-index:35;border-radius:inherit;
+    box-shadow:inset 0 0 18cqw 3cqw rgba(120,150,200,.12)}
+
+  /* controls (outside frame) */
+  .hud{display:flex;flex-direction:column;align-items:center;gap:8px;color:#8a93a6;font-size:12.5px;text-align:center}
+  .btn{appearance:none;border:1px solid #2b3446;background:#121724;color:#e8ebf2;font:inherit;font-weight:700;font-size:12.5px;
+    padding:9px 16px;border-radius:99px;cursor:pointer;transition:.2s}
+  .btn:hover{border-color:#3a465c;background:#161c2b}.btn:focus-visible{outline:2px solid var(--a2);outline-offset:2px}
+  .hint{opacity:.7;max-width:440px}
+  @media (prefers-reduced-motion:reduce){.aihead .st i{animation:none}}
+</style>
+</head>
+<body>
+  <div class="stage film" id="stage">
+    <div class="orb o1"></div><div class="orb o2"></div>
+
+    <div class="aihead">
+      <svg class="lm" viewBox="0 0 512 512" aria-hidden="true">
+        <circle cx="256" cy="256" r="176" fill="none" stroke="url(#lg)" stroke-width="26"/>
+        <path d="M256 256V150M256 256l74 44" fill="none" stroke="url(#lg)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="256" cy="256" r="20" fill="#22d3ee"/>
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+      </svg>
+      <b>Effyra AI</b><span class="st"><i></i>scannt…</span>
+    </div>
+
+    <div class="banner"><span class="bt">✓</span> Automatisch erstellt</div>
+    <p class="cap" id="cap"></p>
+
+    <!-- INVOICE -->
+    <div class="invoice">
+      <div class="inv-top">
+        <div class="inv-brand">Stadtwerke München<small>Kundennr. 4471‑0092</small></div>
+        <div class="inv-h">RECHNUNG</div>
+      </div>
+      <div class="inv-row"><span class="lbl">Absender</span><span>Stadtwerke München</span></div>
+      <div class="inv-row"><span class="lbl">Rechnungsnr.</span><span>RE‑2026‑08841</span></div>
+      <div class="inv-row"><span class="lbl">Leistung</span><span>Strom &amp; Gas · Juli</span></div>
+      <div class="inv-sep"></div>
+      <div class="inv-row"><span class="lbl">Grundpreis</span><span>39,90 €</span></div>
+      <div class="inv-row"><span class="lbl">Verbrauch</span><span>110,00 €</span></div>
+      <div class="inv-total"><span class="lbl">Gesamtbetrag</span><span class="amt">149,90 €</span></div>
+      <div class="inv-due">Fällig am 15.08.2026</div>
+      <div class="inv-iban">IBAN DE12 7005 0000 0044 7100 92</div>
+    </div>
+
+    <!-- SCAN OVERLAY -->
+    <div class="scanwrap">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="scanline"></div>
+    </div>
+
+    <!-- FIELD HIGHLIGHTS -->
+    <div class="fbox f-abs"><span class="flabel">Absender</span></div>
+    <div class="fbox f-amt"><span class="flabel">Betrag</span></div>
+    <div class="fbox f-due"><span class="flabel">Fällig am</span></div>
+
+    <!-- FLYING CHIPS -->
+    <div class="chip c-amt">149,90 €</div>
+    <div class="chip c-due">15.08.2026</div>
+    <div class="chip c-abs">Stadtwerke</div>
+
+    <!-- RESULTS -->
+    <div class="results">
+      <div class="card r1">
+        <div class="ct"><span class="ic">📄</span><b>Rechnung erfasst</b><span class="new">＋ NEU</span></div>
+        <div class="fields">
+          <div class="kf val"><span class="k">Absender</span><span class="v">Stadtwerke München</span></div>
+          <div class="kf val"><span class="k">Betrag</span><span class="v big">149,90 €</span></div>
+        </div>
+        <div class="rem val">🔔 fällig am <b style="color:#f0663a;margin-left:1cqw">15.08.2026</b></div>
+      </div>
+      <div class="card r2">
+        <div class="ct"><span class="ic">📅</span><b>Termin erstellt</b><span class="new">＋ NEU</span></div>
+        <div class="fields">
+          <div class="kf val"><span class="k">Titel</span><span class="v">Rechnung bezahlen</span></div>
+          <div class="kf val"><span class="k">Datum</span><span class="v due">Fr, 15.08.2026</span></div>
+        </div>
+        <div class="rem val">🔔 Erinnerung: 2&nbsp;Tage vorher · für die ganze Familie sichtbar</div>
+      </div>
+    </div>
+
+    <div class="vig"></div>
+  </div>
+
+  <div class="hud">
+    <button class="btn" id="restart">↻ Demo neu starten</button>
+    <span class="hint">Vorführung: Effyra AI scannt eine Rechnung und erstellt daraus automatisch Rechnung &amp; Termin. Läuft in Schleife — zum Abfilmen Vollbild + Bildschirmaufnahme (9:16).</span>
+  </div>
+
+<script>
+  const stage = document.getElementById('stage');
+  const cap = document.getElementById('cap');
+  const st = document.querySelector('.aihead .st');
+  const restart = document.getElementById('restart');
+  // Phasen-Dauer (ms): 0 leer · 1 Rechnung · 2 Scan · 3 Felder · 4 Extraktion · 5 tuck+Karte1 · 6 Karte2+Werte · 7 Banner/Halt
+  const DUR = [500, 1000, 2300, 1900, 1300, 1800, 2300, 1900];
+  const CAP = {
+    2: ['Effyra AI scannt dein Dokument', '<i></i>scannt…'],
+    3: ['Erkennt <b>Betrag, Frist &amp; Absender</b>', '<i></i>analysiert…'],
+    5: ['Erstellt <b>Rechnung &amp; Termin</b> – automatisch', '<i></i>erstellt…'],
+    7: ['Fertig – ganz ohne Tippen.', '<i></i>fertig ✓']
+  };
+  let ph = 0, timers = [];
+  function clearAll(){ timers.forEach(clearTimeout); timers = []; }
+  function setCap(html){ cap.classList.remove('show'); void cap.offsetWidth; cap.innerHTML = html; cap.classList.add('show'); }
+  function tick(){
+    stage.classList.add('p' + ph);
+    if (CAP[ph]){ setCap(CAP[ph][0]); st.innerHTML = CAP[ph][1]; }
+    const wait = DUR[ph];
+    if (ph < DUR.length - 1) timers.push(setTimeout(() => { ph++; tick(); }, wait));
+    else timers.push(setTimeout(reset, wait));
+  }
+  function reset(){ clearAll(); stage.className = 'stage film'; cap.classList.remove('show'); ph = 0; tick(); }
+  restart.addEventListener('click', reset);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) reset(); });
+  reset();
+</script>
+</body>
+</html>
