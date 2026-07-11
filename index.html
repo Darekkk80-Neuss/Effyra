@@ -637,6 +637,32 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .bud-open{background:none;border:none;color:#a78bfa;font-weight:700;font-size:13px;cursor:pointer;padding:0}
 .bud-empty .bud-open{margin-top:4px}
 .bud-item-val{flex:none;font-size:14px;margin:0 4px}
+/* Dokumentenassistent: erkannte Einträge (Findings) */
+.fnd-box{margin:12px 0 4px;border:1px solid var(--border);border-radius:14px;padding:12px;background:rgba(124,58,237,.06)}
+.fnd-hd{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.fnd-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
+.fnd-row:first-of-type{border-top:none}
+.fnd-row.done{opacity:.6}
+.fnd-row input[type=checkbox]{width:17px;height:17px;flex:none;accent-color:#8b5cf6}
+.fnd-check{width:17px;text-align:center;color:#34d399;flex:none;font-weight:700}
+.fnd-ic{flex:none;font-size:16px}
+.fnd-title{flex:1;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:13px;color:var(--text)}
+.fnd-num{width:78px;flex:none;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px;font-size:13px;color:var(--text);text-align:right}
+.fnd-date{width:130px;flex:none;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 6px;font-size:12px;color:var(--text)}
+.fnd-unit{flex:none;font-size:12px;color:var(--muted)}
+.fnd-mod{flex:none;font-size:10.5px;font-weight:700;color:#c4b5fd;background:rgba(139,92,246,.14);padding:3px 7px;border-radius:20px;white-space:nowrap}
+.fnd-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fnd-done{margin-top:10px;font-size:12.5px;font-weight:700;color:#34d399}
+.doc-ai{margin:12px 0 4px}
+.doc-ai>summary{cursor:pointer;font-size:13px;font-weight:600;color:#a78bfa;list-style:none}
+.doc-ai>summary::-webkit-details-marker{display:none}
+.doc-ai-body{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.5}
+.doc-ai-body p{margin-bottom:8px}
+.doc-ai-body b{display:block;color:var(--text);font-size:12px;margin:8px 0 4px}
+.doc-ai-body ul{margin:0 0 4px;padding-left:18px}
+.doc-ai-body li{margin-bottom:3px}
+.doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.doc-tag{font-size:11px;color:var(--faint);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3px 9px}
 #v2pTitle{margin-bottom:8px}
 #v2pText{margin-bottom:12px}
 .v2p-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
@@ -4693,12 +4719,31 @@ function extractJSON(text) {
 async function aiAnalyze(dataUrl) {
   const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/s);
   if (!m) throw new Error('Bild konnte nicht gelesen werden.');
-  const prompt = 'Du bist Effyra, ein KI-Alltagsassistent. Analysiere das fotografierte Dokument (Brief, Rechnung, Vertrag o. Ä.). Heute ist der ' + todayISO() + '. ' +
-    'Antworte AUSSCHLIESSLICH mit einem JSON-Objekt, ohne Markdown und ohne Erklärtext, exakt in diesem Format: ' +
-    '{"docType":"Rechnung|Mahnung|Vertrag|Behörde|Sonstiges","title":"kurzer Titel, max. 6 Wörter","sender":"Absender","explanation":"Erkläre das Dokument in 2-4 kurzen, einfachen Sätzen ohne Amtsdeutsch, duze den Leser","deadline":"YYYY-MM-DD oder null","urgency":"hoch|mittel|niedrig","todos":[{"title":"konkrete Aufgabe","due":"YYYY-MM-DD oder null"}],"replyDraft":"vollständiger, höflicher Antwortbrief falls sinnvoll, sonst null"}';
+  const prompt = 'Du bist Effyra, ein intelligenter Dokumentenassistent. Lies den GESAMTEN Text des fotografierten Dokuments (OCR) und verstehe ihn KONTEXTBEZOGEN – nicht nur Stichwörter. Heute ist der ' + todayISO() + '. ' +
+    'Erkenne Dokumenttyp, Beträge, Fristen, Termine, Personen, Orte, Fahrzeuge, Kategorien und Priorität und ordne alles konkreten App-Bereichen zu. ' +
+    'Beispiel: "Bitte zahlen Sie bis zum 14.08." = Ausgabe + Frist + Aufgabe + Kalendereintrag. ' +
+    'Antworte AUSSCHLIESSLICH mit einem JSON-Objekt (kein Markdown, kein Text drumherum) in exakt diesem Format:\n' +
+    '{"docType":"Rechnung|Mahnung|Vertrag|Behörde|Sonstiges","title":"kurzer Titel, max 6 Wörter","sender":"Absender",' +
+    '"explanation":"2-4 einfache Sätze, duze den Leser, kein Amtsdeutsch","summary":"1-2 Sätze Zusammenfassung",' +
+    '"keyPoints":["wichtigste Punkte"],"risks":["Risiken/Fallstricke"],"recommendations":["konkrete Handlungsempfehlungen"],' +
+    '"keywords":["Schlagwörter"],"priority":"hoch|mittel|niedrig","deadline":"YYYY-MM-DD oder null",' +
+    '"replyDraft":"höflicher Antwortbrief falls sinnvoll, sonst null","findings":[erkannte übernehmbare Einträge]}\n' +
+    'Jedes findings-Element hat "type" und kurzen "title" plus passende Felder:\n' +
+    '- expense/income: {"type":"expense","title":"...","amount":Zahl,"category":"..."}\n' +
+    '- task: {"type":"task","title":"...","date":"YYYY-MM-DD|null","priority":"hoch|mittel|niedrig"}\n' +
+    '- event: {"type":"event","title":"...","date":"YYYY-MM-DD","time":"HH:MM|null"}\n' +
+    '- deadline: {"type":"deadline","title":"...","date":"YYYY-MM-DD"}\n' +
+    '- vehicle (TÜV/HU/AU/Service/Reifen/Versicherung): {"type":"vehicle","title":"...","date":"YYYY-MM-DD|null"}\n' +
+    '- work (Schicht/Dienst/Urlaub/Krank): {"type":"work","title":"...","category":"urlaub|krank|kinderkrank|dienst","from":"YYYY-MM-DD|null","to":"YYYY-MM-DD|null"}\n' +
+    '- child (Schule/Elternbrief/Klassenfahrt/Impfung): {"type":"child","title":"...","date":"YYYY-MM-DD|null","time":"HH:MM|null"}\n' +
+    '- family: {"type":"family","title":"...","date":"YYYY-MM-DD|null"}\n' +
+    '- life (Steuer/Versicherung/Rente/Behörde/Gesundheit/Verträge): {"type":"life","title":"...","category":"..."}\n' +
+    '- emergency (Blutgruppe/Allergien/Medikamente): {"type":"emergency","title":"...","category":"blutgruppe|allergien|medikamente|vorerkrankungen|notiz"}\n' +
+    '- note: {"type":"note","title":"..."}\n' +
+    'Ein Dokument darf mehrere findings ergeben (Werkstattrechnung → expense + deadline + event + vehicle). Erfinde nichts – nur real Vorhandenes.';
   const text = await aiCall({
     model: store.settings.model,
-    max_tokens: 1500,
+    max_tokens: 2000,
     messages: [{
       role: 'user',
       content: [
@@ -4714,36 +4759,60 @@ async function aiAnalyze(dataUrl) {
 
 /* --- Demo-Analysen --- */
 function demoAnalyses() {
+  const T = todayISO();
   return [
+    {
+      docType: 'Rechnung', title: 'Werkstattrechnung Inspektion', sender: 'Zweirad Meyer GmbH',
+      explanation: 'Rechnung deiner Motorrad-Werkstatt über 89,99 € für die Inspektion deiner Yamaha Fazer. Fällig in gut fünf Wochen. Ein Folgetermin für den Reifenwechsel ist ebenfalls notiert.',
+      deadline: addDays(T, 35), urgency: 'mittel', priority: 'mittel',
+      summary: 'Werkstattrechnung über 89,99 € für die Inspektion der Yamaha Fazer (Zweirad Meyer). Fällig in fünf Wochen, Folgetermin Reifenwechsel eingeplant. Versicherung: Allianz.',
+      keyPoints: ['Betrag: 89,99 €', 'Fahrzeug: Yamaha Fazer', 'Werkstatt: Zweirad Meyer', 'Reifenwechsel-Termin folgt', 'Versicherung: Allianz'],
+      risks: ['Auf mögliche Skonto-Frist achten'],
+      recommendations: ['Rechnung fristgerecht überweisen', 'Reifenwechsel-Termin in den Kalender übernehmen'],
+      keywords: ['Werkstatt', 'Yamaha', 'Inspektion', 'Reifen', 'Allianz', 'Rechnung'],
+      todos: [{ title: 'Werkstattrechnung 89,99 € überweisen', due: addDays(T, 35) }],
+      findings: [
+        { type: 'expense', title: 'Werkstattrechnung Inspektion (Yamaha Fazer)', amount: 89.99, category: 'Fahrzeug' },
+        { type: 'deadline', title: 'Werkstattrechnung bezahlen', date: addDays(T, 35) },
+        { type: 'event', title: 'Reifenwechsel-Termin Werkstatt', date: addDays(T, 41), time: '09:30' },
+        { type: 'vehicle', title: 'Nächste Inspektion Yamaha Fazer', date: addDays(T, 400) },
+        { type: 'task', title: 'Rechnung ablegen & Allianz-Versicherung prüfen', priority: 'niedrig' }
+      ],
+      replyDraft: null
+    },
     {
       docType: 'Mahnung', title: 'Zahlungserinnerung Stromabrechnung', sender: 'Stadtwerke Neuss GmbH',
       explanation: 'Die Stadtwerke erinnern dich daran, dass die Stromrechnung über 86,40 € noch offen ist. Es ist erst die erste Erinnerung – es fallen noch keine Extra-Gebühren an. Wenn du bis zur Frist überweist, ist alles gut.',
-      deadline: addDays(todayISO(), 10), urgency: 'hoch',
-      todos: [
-        { title: '86,40 € an Stadtwerke überweisen', due: addDays(todayISO(), 8) },
-        { title: 'Zahlungseingang prüfen', due: addDays(todayISO(), 12) }
+      deadline: addDays(T, 10), urgency: 'hoch', priority: 'hoch',
+      summary: 'Erste Zahlungserinnerung der Stadtwerke über 86,40 € für Strom. Noch keine Gebühren, aber fristgerecht zahlen.',
+      keyPoints: ['Offener Betrag: 86,40 €', 'Erste Erinnerung – keine Mahngebühren', 'Frist in 10 Tagen'],
+      risks: ['Bei Nichtzahlung folgt eine kostenpflichtige Mahnung'],
+      recommendations: ['Betrag zeitnah überweisen', 'Zahlungseingang prüfen'],
+      keywords: ['Strom', 'Stadtwerke', 'Mahnung', 'Zahlung'],
+      todos: [{ title: '86,40 € an Stadtwerke überweisen', due: addDays(T, 8) }],
+      findings: [
+        { type: 'expense', title: 'Stromabrechnung Stadtwerke', amount: 86.40, category: 'Energie' },
+        { type: 'deadline', title: 'Stromrechnung bezahlen', date: addDays(T, 10) },
+        { type: 'task', title: '86,40 € an Stadtwerke überweisen', date: addDays(T, 8), priority: 'hoch' }
       ],
-      replyDraft: 'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihre Zahlungserinnerung vom ' + parseISO(todayISO()).toLocaleDateString('de-DE') + '. Die offene Rechnung über 86,40 € habe ich soeben überwiesen. Bitte entschuldigen Sie die Verzögerung.\n\nMit freundlichen Grüßen'
+      replyDraft: 'Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihre Zahlungserinnerung. Die offene Rechnung über 86,40 € habe ich soeben überwiesen. Bitte entschuldigen Sie die Verzögerung.\n\nMit freundlichen Grüßen'
     },
     {
       docType: 'Vertrag', title: 'Preiserhöhung Mobilfunkvertrag', sender: 'Telbo Mobilfunk GmbH',
       explanation: 'Dein Mobilfunkanbieter erhöht ab übernächstem Monat den Preis um 3 € pro Monat. Wichtig für dich: Wegen der Preiserhöhung hast du ein Sonderkündigungsrecht – du kannst also ohne Frist kündigen oder widersprechen, wenn du das möchtest.',
-      deadline: addDays(todayISO(), 30), urgency: 'mittel',
-      todos: [
-        { title: 'Alternativ-Tarife vergleichen', due: addDays(todayISO(), 14) },
-        { title: 'Entscheiden: bleiben oder Sonderkündigung nutzen', due: addDays(todayISO(), 25) }
+      deadline: addDays(T, 30), urgency: 'mittel', priority: 'mittel',
+      summary: 'Telbo erhöht den Mobilfunkpreis um 3 €/Monat. Dadurch besteht ein Sonderkündigungsrecht mit Frist in 30 Tagen.',
+      keyPoints: ['Preiserhöhung +3 €/Monat', 'Sonderkündigungsrecht besteht', 'Frist in 30 Tagen'],
+      risks: ['Bei Untätigkeit gilt der teurere Tarif automatisch weiter'],
+      recommendations: ['Tarife vergleichen', 'Bei Bedarf Sonderkündigung nutzen'],
+      keywords: ['Mobilfunk', 'Vertrag', 'Preiserhöhung', 'Sonderkündigung'],
+      todos: [{ title: 'Alternativ-Tarife vergleichen', due: addDays(T, 14) }],
+      findings: [
+        { type: 'deadline', title: 'Sonderkündigung Mobilfunk entscheiden', date: addDays(T, 30) },
+        { type: 'task', title: 'Alternativ-Tarife vergleichen', date: addDays(T, 14) },
+        { type: 'life', title: 'Mobilfunkvertrag Telbo', category: 'Verträge' }
       ],
       replyDraft: 'Sehr geehrte Damen und Herren,\n\nhiermit widerspreche ich der angekündigten Preiserhöhung meines Mobilfunkvertrags und mache von meinem Sonderkündigungsrecht Gebrauch. Bitte bestätigen Sie mir die Kündigung schriftlich.\n\nMit freundlichen Grüßen'
-    },
-    {
-      docType: 'Behörde', title: 'Erinnerung Hauptuntersuchung (TÜV)', sender: 'Straßenverkehrsamt Rhein-Kreis Neuss',
-      explanation: 'Dein Auto muss zur Hauptuntersuchung (TÜV). Der Termin ist bald fällig – wenn du ihn verpasst, kann ein Bußgeld anfallen. Einfach rechtzeitig einen Termin bei einer Prüfstelle oder Werkstatt machen, dann ist alles entspannt.',
-      deadline: addDays(todayISO(), 21), urgency: 'mittel',
-      todos: [
-        { title: 'TÜV-Termin bei Prüfstelle vereinbaren', due: addDays(todayISO(), 7) },
-        { title: 'Fahrzeugschein bereitlegen', due: addDays(todayISO(), 20) }
-      ],
-      replyDraft: null
     }
   ];
 }
@@ -4808,9 +4877,17 @@ async function handleDocFile(file) {
       sender: result.sender || '',
       explanation: result.explanation || '',
       deadline: (result.deadline && /^\d{4}-\d{2}-\d{2}$/.test(result.deadline)) ? result.deadline : null,
-      urgency: result.urgency || 'mittel',
+      urgency: result.urgency || result.priority || 'mittel',
       todos: Array.isArray(result.todos) ? result.todos.filter(t => t && t.title).slice(0, 6) : [],
       replyDraft: result.replyDraft || null,
+      /* Intelligente Analyse */
+      summary: result.summary || '',
+      keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints.slice(0, 6) : [],
+      risks: Array.isArray(result.risks) ? result.risks.slice(0, 5) : [],
+      recommendations: Array.isArray(result.recommendations) ? result.recommendations.slice(0, 5) : [],
+      keywords: Array.isArray(result.keywords) ? result.keywords.slice(0, 10) : [],
+      ocrText: result.ocrText || '',
+      findings: normalizeFindings(result.findings, result.priority || result.urgency),
       thumb, demo,
       tasksApplied: false, eventApplied: false,
       createdAt: Date.now()
@@ -4825,6 +4902,60 @@ async function handleDocFile(file) {
     clearInterval(analyzeTimer);
     box.classList.remove('on');
   }
+}
+
+/* ---- Modulare Verteil-Engine: erkannte Infos → passende Module ----
+   Neuen Modul-/Dokumenttyp ergänzen = einen Eintrag hier hinzufügen. */
+const EM_MED_KEYS = { blutgruppe: 'blood', blood: 'blood', allergien: 'allergies', allergies: 'allergies', medikamente: 'meds', meds: 'meds', vorerkrankungen: 'conditions', conditions: 'conditions' };
+const FINDING_TYPES = {
+  expense:   { icon: '🧾', group: 'Ausgaben', val: 'money', apply: f => { ensureBudget(); store.budget.entries.push({ id: uid(), kind: 'expense', label: f.title, amount: +f.amount || 0, recurring: !!f.recurring, date: f.date || todayISO() }); } },
+  income:    { icon: '💶', group: 'Einnahmen', val: 'money', apply: f => { ensureBudget(); store.budget.entries.push({ id: uid(), kind: 'income', label: f.title, amount: +f.amount || 0, recurring: !!f.recurring, date: f.date || todayISO() }); } },
+  task:      { icon: '✅', group: 'Aufgaben', val: 'date', apply: f => addTask(f.title, f.date || null, f.priority === 'hoch' ? 'high' : f.priority === 'niedrig' ? 'low' : 'med', 'doc') },
+  event:     { icon: '📅', group: 'Kalender', val: 'date', apply: f => addEvent(f.title, f.date || todayISO(), f.time || null, f.note || '', 'doc') },
+  deadline:  { icon: '⏰', group: 'Fristen', val: 'date', apply: f => addEvent('⏰ Frist: ' + f.title, f.date || todayISO(), null, f.note || '', 'doc') },
+  vehicle:   { icon: '🔧', group: 'Auto & Motorrad', val: 'date', apply: f => { if (f.date) { addEvent('🔧 ' + f.title, f.date, null, f.note || '', 'veh'); addTask(f.title, f.date, 'med', 'doc'); } } },
+  work:      { icon: '🕒', group: 'Arbeitszeit', val: 'date', apply: f => { ensureWork(); if (f.from && f.to && /urlaub|krank|kinder/.test(f.category || '')) store.work.absences.push({ id: uid(), type: f.category, from: f.from, to: f.to, note: f.title }); else addTask(f.title, f.date || null, 'med', 'doc'); } },
+  child:     { icon: '🎒', group: 'Kinder', val: 'date', apply: f => addEvent('🎒 ' + f.title, f.date || todayISO(), f.time || null, 'Kinder', 'family') },
+  family:    { icon: '👪', group: 'Familie', val: 'date', apply: f => addEvent(f.title, f.date || todayISO(), f.time || null, '', 'family') },
+  life:      { icon: '📂', group: 'Lebenslagen', val: 'text', apply: f => addTask('Einsortieren: ' + f.title + (f.category ? ' (' + f.category + ')' : ''), null, 'low', 'doc') },
+  emergency: { icon: '🚨', group: 'Notfall', val: 'text', consent: true, apply: f => { store.emergency = store.emergency || { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }; store.emergency.medical = store.emergency.medical || {}; const k = EM_MED_KEYS[(f.category || '').toLowerCase()] || 'notes'; store.emergency.medical[k] = (k === 'notes' && store.emergency.medical.notes ? store.emergency.medical.notes + '\n' : '') + f.title; } },
+  note:      { icon: '📝', group: 'Hinweis', val: 'text', apply: () => {} }
+};
+function applyFinding(f) {
+  const t = FINDING_TYPES[f.type]; if (!t || f.applied) return false;
+  try { t.apply(f); } catch (e) { return false; }
+  f.applied = true; return true;
+}
+function normalizeFindings(arr, fallbackPrio) {
+  return (Array.isArray(arr) ? arr : []).filter(f => f && f.type && FINDING_TYPES[f.type] && f.title).slice(0, 14).map(f => ({
+    id: uid(), type: f.type, title: String(f.title).slice(0, 120),
+    amount: f.amount != null ? +f.amount : null,
+    date: (f.date && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) ? f.date : null,
+    time: f.time || null, category: f.category || '', from: f.from || null, to: f.to || null,
+    recurring: !!f.recurring, priority: f.priority || fallbackPrio || 'mittel',
+    consent: !!FINDING_TYPES[f.type].consent, selected: !FINDING_TYPES[f.type].consent, applied: false
+  }));
+}
+function findingRowHTML(f) {
+  const t = FINDING_TYPES[f.type];
+  let extra = '';
+  if (t.val === 'money') extra = '<input class="fnd-num" type="number" step="0.01" min="0" data-act="editFnd" data-fid="' + f.id + '" data-field="amount" value="' + (f.amount != null ? f.amount : '') + '"><span class="fnd-unit">€</span>';
+  else if (t.val === 'date') extra = '<input class="fnd-date" type="date" data-act="editFnd" data-fid="' + f.id + '" data-field="date" value="' + (f.date || '') + '">';
+  return '<div class="fnd-row' + (f.applied ? ' done' : '') + '">' +
+    (f.applied ? '<span class="fnd-check">✓</span>' : '<input type="checkbox" data-act="toggleFnd" data-fid="' + f.id + '"' + (f.selected ? ' checked' : '') + '>') +
+    '<span class="fnd-ic">' + t.icon + '</span>' +
+    '<input class="fnd-title" data-act="editFnd" data-fid="' + f.id + '" data-field="title" value="' + esc(f.title) + '"' + (f.applied ? ' disabled' : '') + '>' +
+    extra +
+    '<span class="fnd-mod">' + t.group + (f.consent ? ' 🔒' : '') + '</span></div>';
+}
+
+/* Dokument im KI-Chat weiterverwenden */
+let activeDocContext = null;
+function chatWithDoc(d) {
+  activeDocContext = { title: d.title, text: (d.ocrText || d.summary || d.explanation || '').slice(0, 6000) };
+  showView('chat');
+  const inp = $('#chatInput'); if (inp) { inp.value = 'Fasse mir dieses Dokument kurz zusammen: „' + d.title + '"'; inp.focus(); }
+  toast('📄 Dokument im Chat verfügbar – stell deine Frage.');
 }
 
 RENDERERS.docs = function () {
@@ -4852,15 +4983,22 @@ RENDERERS.docs = function () {
         '<div class="doc-explain"><b>💡 IN EINFACHEN WORTEN</b>' + esc(d.explanation) + '</div>' +
         (d.deadline ? '<div class="deadline-row ' + dlClass + '"><svg viewBox="0 0 24 24" width="17" height="17"><use href="#icClock"/></svg>Frist: ' +
           esc(fmtDate(d.deadline)) + ' (' + (dl < 0 ? 'abgelaufen' : esc(relDay(d.deadline))) + ')</div>' : '') +
-        (d.todos.length ? '<ul class="doc-todos">' + d.todos.map(t =>
-          '<li><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg>' + esc(t.title) +
-          (t.due ? '<span class="due">' + esc(fmtDateShort(t.due)) + '</span>' : '') + '</li>').join('') + '</ul>' : '') +
+        (d.findings && d.findings.length ? '<div class="fnd-box"><div class="fnd-hd">🔎 Erkannt &amp; automatische Zuordnung</div>' +
+          d.findings.map(findingRowHTML).join('') +
+          (d.findings.some(f => !f.applied)
+            ? '<div class="fnd-actions"><button class="btn btn-sm btn-primary" data-act="applySel">✓ Ausgewählte übernehmen</button><button class="btn btn-sm" data-act="applyAll">Alles übernehmen</button></div>'
+            : '<div class="fnd-done">✓ Alle Einträge übernommen</div>') + '</div>' : '') +
+        ((d.summary || (d.keyPoints && d.keyPoints.length) || (d.risks && d.risks.length) || (d.recommendations && d.recommendations.length))
+          ? '<details class="doc-ai"><summary>🧠 KI-Analyse (Zusammenfassung, Risiken, Empfehlungen)</summary><div class="doc-ai-body">' +
+            (d.summary ? '<p>' + esc(d.summary) + '</p>' : '') +
+            (d.keyPoints && d.keyPoints.length ? '<b>Wichtigste Punkte</b><ul>' + d.keyPoints.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>' : '') +
+            (d.risks && d.risks.length ? '<b>Risiken</b><ul>' + d.risks.map(x => '<li>⚠️ ' + esc(x) + '</li>').join('') + '</ul>' : '') +
+            (d.recommendations && d.recommendations.length ? '<b>Handlungsempfehlungen</b><ul>' + d.recommendations.map(x => '<li>👉 ' + esc(x) + '</li>').join('') + '</ul>' : '') +
+            '</div></details>' : '') +
+        (d.keywords && d.keywords.length ? '<div class="doc-tags">' + d.keywords.slice(0, 8).map(k => '<span class="doc-tag">#' + esc(k) + '</span>').join('') + '</div>' : '') +
         (d.replyDraft ? '<details class="doc-reply"><summary>✉️ Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div></details>' : '') +
         '<div class="doc-actions">' +
-        (d.todos.length ? '<button class="btn btn-sm btn-primary" data-act="applyTasks"' + (d.tasksApplied ? ' disabled' : '') + '>' +
-          (d.tasksApplied ? '✓ Aufgaben übernommen' : d.todos.length + ' Aufgabe' + (d.todos.length > 1 ? 'n' : '') + ' übernehmen') + '</button>' : '') +
-        (d.deadline ? '<button class="btn btn-sm" data-act="applyEvent"' + (d.eventApplied ? ' disabled' : '') + '>' +
-          (d.eventApplied ? '✓ Im Kalender' : '📅 Frist in Kalender') + '</button>' : '') +
+        '<button class="btn btn-sm" data-act="chatDoc"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Im Chat fragen</button>' +
         (d.replyDraft ? '<button class="btn btn-sm" data-act="copyReply"><svg viewBox="0 0 24 24"><use href="#icCopy"/></svg>Antwort kopieren</button>' : '') +
         '</div></div></div></div>';
     }).join('');
@@ -4889,20 +5027,30 @@ $('#docList').addEventListener('click', e => {
     store.docs = store.docs.filter(x => x.id !== id);
     save(); refresh(); toast('Dokument gelöscht');
   }
-  if (act.dataset.act === 'applyTasks' && !d.tasksApplied) {
-    d.todos.forEach(t => addTask(t.title, t.due || null, d.urgency === 'hoch' ? 'high' : 'med', 'doc'));
-    d.tasksApplied = true;
+  if (act.dataset.act === 'applySel' || act.dataset.act === 'applyAll') {
+    const all = act.dataset.act === 'applyAll';
+    let n = 0;
+    (d.findings || []).forEach(f => { if (!f.applied && (all ? (!f.consent || f.selected) : f.selected)) { if (applyFinding(f)) n++; } });
     save(); refresh();
-    toast(d.todos.length + ' Aufgabe' + (d.todos.length > 1 ? 'n' : '') + ' angelegt ✓');
+    toast(n ? n + ' Eintrag' + (n > 1 ? 'e' : '') + ' automatisch verteilt ✓' : 'Nichts ausgewählt');
   }
-  if (act.dataset.act === 'applyEvent' && !d.eventApplied && d.deadline) {
-    addEvent('⏰ Frist: ' + d.title, d.deadline, null, 'von ' + (d.sender || 'Dokument'), 'doc');
-    d.eventApplied = true;
-    save(); refresh();
-    toast('Frist im Kalender eingetragen ✓');
-  }
+  if (act.dataset.act === 'chatDoc') { chatWithDoc(d); }
   if (act.dataset.act === 'copyReply' && d.replyDraft) {
     copyText(d.replyDraft).then(ok => toast(ok ? 'Antwort kopiert ✓' : 'Kopieren nicht möglich'));
+  }
+});
+/* Auswahl (Checkbox) und Inline-Bearbeitung der erkannten Einträge */
+$('#docList').addEventListener('change', e => {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const card = el.closest('.doc-card'); if (!card) return;
+  const d = store.docs.find(x => x.id === card.dataset.id); if (!d) return;
+  const f = (d.findings || []).find(x => x.id === el.dataset.fid); if (!f) return;
+  if (el.dataset.act === 'toggleFnd') { f.selected = el.checked; save(); return; }
+  if (el.dataset.act === 'editFnd') {
+    const field = el.dataset.field;
+    if (field === 'amount') f.amount = parseFloat((el.value || '').replace(',', '.')) || 0;
+    else f[field] = el.value;
+    save(); return;
   }
 });
 
@@ -5036,7 +5184,7 @@ async function realReply(text) {
   const raw = await aiCall({
     model: store.settings.model,
     max_tokens: 1024,
-    system: buildSystemPrompt(),
+    system: buildSystemPrompt() + (activeDocContext ? '\n\nDer Nutzer bezieht sich auf dieses gescannte Dokument „' + activeDocContext.title + '":\n' + activeDocContext.text : ''),
     messages: history.length ? history : [{ role: 'user', content: text }]
   });
   let clean = raw;
