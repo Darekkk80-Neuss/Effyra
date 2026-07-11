@@ -15,13 +15,15 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const ALLOWED_MODELS = ['gpt-5-mini', 'gpt-5-nano'];   // im OpenAI-Projekt freigegebene Chat-Modelle
+const ALLOWED_MODELS = ['gpt-5-mini'];   // im OpenAI-Projekt aktuell freigegeben (gpt-5-nano hat KEINEN Zugriff → nicht nutzen)
 const DEFAULT_MODEL = 'gpt-5-mini';
-// Modell je Operation – SERVERSEITIG bestimmt (Client kann kein teureres Modell erzwingen)
+// Modell je Operation – SERVERSEITIG bestimmt (Client kann kein anderes Modell erzwingen).
+// Hinweis: gpt-5-nano ist im Projekt nicht freigeschaltet → überall gpt-5-mini. Sobald nano freigegeben ist,
+// hier question/voice wieder auf 'gpt-5-nano' setzen (günstiger).
 const OP_MODEL: Record<string, string> = {
-  question: 'gpt-5-nano',   // KI-Antworten: schnell & günstig
-  voice: 'gpt-5-nano',      // Sprachassistent-Antwort
-  text: 'gpt-5-mini',       // Text/Brief erstellen: bessere Qualität
+  question: 'gpt-5-mini',   // KI-Antworten
+  voice: 'gpt-5-mini',      // Sprachassistent-Antwort
+  text: 'gpt-5-mini',       // Text/Brief erstellen
   weekplan: 'gpt-5-mini',   // Wochenplanung
   scan: 'gpt-5-mini',       // Dokument analysieren (multimodal)
   invoice: 'gpt-5-mini',    // Rechnung/Bild analysieren (multimodal)
@@ -130,14 +132,18 @@ Deno.serve(async (req) => {
   const inMsgs = Array.isArray(body?.messages) ? body.messages : null;
   if (!inMsgs) return json({ error: 'bad_request' }, 400);
   const messages = body.system ? [{ role: 'system', content: body.system }, ...inMsgs] : inMsgs;
-  const isReasoning = /^(gpt-5|o[0-9])/.test(model);
-  const tokenParam = isReasoning ? { max_completion_tokens: Math.max(max_tokens, 800), reasoning_effort: 'minimal' } : { max_tokens };
-  const ar = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
-    body: JSON.stringify({ model, messages, ...tokenParam }),
-  });
-  const data = await ar.json();
+  const doChat = (m: string) => {
+    const isReasoning = /^(gpt-5|o[0-9])/.test(m);
+    const tokenParam = isReasoning ? { max_completion_tokens: Math.max(max_tokens, 800), reasoning_effort: 'minimal' } : { max_tokens };
+    return fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+      body: JSON.stringify({ model: m, messages, ...tokenParam }),
+    });
+  };
+  let ar = await doChat(model);
+  let data: any = await ar.json().catch(() => ({}));
+  if (!ar.ok && isAccessErr(data) && model !== DEFAULT_MODEL) { ar = await doChat(DEFAULT_MODEL); data = await ar.json().catch(() => ({})); }   // Fallback auf freigegebenes Modell
   if (!ar.ok) return json({ error: 'ai_failed', detail: data?.error?.message || '' }, ar.status);
   const text = data?.choices?.[0]?.message?.content || '';
   return json({ content: [{ type: 'text', text }], ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
