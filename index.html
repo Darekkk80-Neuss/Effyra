@@ -678,6 +678,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .mem-info{flex:1;min-width:0}
 .mem-info b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mem-info span{font-size:12.5px;color:var(--faint)}
+.t-meta .fam-assignee{font-weight:700;color:var(--muted)}
 .fam-code{font-family:var(--font-head);font-size:30px;letter-spacing:6px;text-align:center;background:var(--card2);
   border:1px dashed var(--border2);border-radius:14px;padding:16px 8px;margin:12px 0;color:#a78bfa}
 .notruf{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
@@ -2613,6 +2614,7 @@ RENDERERS.dashboard = function () {
   });
   store.events.filter(e => e.source === 'kind' && e.date >= today).sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 2).forEach(e => famRows.push({ emoji: '📌', title: e.title, sub: cap(fmtDate(e.date)), meta: relDay(e.date), go: 'school', k: '2' }));
   ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' wird ' + b.age, sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
+  ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done).slice(0, 3).forEach(t => { const m = t.assignee ? famMember(t.assignee) : null; const late = t.due && dayDiff(t.due) < 0; famRows.push({ svg: 'icCheck2', iconColor: m ? m.color : '', title: t.title, sub: (m ? m.name : 'Familie') + (t.due ? ' · ' + (late ? 'überfällig' : 'fällig ' + relDay(t.due)) : ''), chip: t.due ? { cls: late ? 'chip-danger' : dayDiff(t.due) === 0 ? 'chip-warn' : 'chip-ok', text: late ? 'Überfällig' : relDay(t.due) } : null, go: 'family', attrs: ' data-tab="ftasks"', k: (t.due && dayDiff(t.due) <= 0) ? '0' : '2' }); });
   famRows.sort((a, b) => a.k < b.k ? -1 : 1);
   if (famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
 
@@ -3636,6 +3638,7 @@ function ensureFamily() {
   if (!store.family) store.family = { members: [], occasions: [], code: null };
   if (!store.family.members) store.family.members = [];
   if (!store.family.occasions) store.family.occasions = [];
+  if (!store.family.tasks) store.family.tasks = [];   // Familienaufgaben (an Mitglieder vergeben)
   if (!store.family.members.length) {
     store.family.members.push({ id: uid(), name: (account && account.name) || store.name || 'Ich', role: 'Ich', color: KID_COLORS[0], birthday: '' });
     save();
@@ -3652,7 +3655,7 @@ function nextOccur(iso) {
 const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).getFullYear();
 
 /* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
-function famPayload() { return { members: store.family.members, occasions: store.family.occasions, events: store.events.filter(e => e.source === 'family') }; }
+function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], events: store.events.filter(e => e.source === 'family') }; }
 async function famPush() { if (!store.family.code || !CLOUD) return; try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
 async function famPull() {
   if (!store.family.code || !CLOUD) return false;
@@ -3663,6 +3666,7 @@ async function famPull() {
     const before = JSON.stringify(famPayload());
     store.family.members = d.members || [];
     store.family.occasions = d.occasions || [];
+    store.family.tasks = d.tasks || [];
     store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
     save();
     return JSON.stringify(famPayload()) !== before;
@@ -3704,9 +3708,9 @@ async function famLeave() {
 RENDERERS.family = function () {
   ensureFamily();
   let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.</p></div>';
-  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
+  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['ftasks', '✅ Aufgaben'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
     '<button data-ftab="' + x[0] + '" class="' + (famTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
-  h += famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
+  h += famTab === 'ftasks' ? famTasks() : famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
   $('#famRoot').innerHTML = h;
   if (store.family.code && CLOUD && Date.now() - famLastPull > 8000) {
     famLastPull = Date.now();
@@ -3723,6 +3727,37 @@ function famPersonen() {
     h += '<div class="mem"><span class="kid-dot" style="background:' + m.color + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b>' +
       '<span>' + esc(m.role) + (bd ? ' · ' + bd : '') + '</span></div>' +
       '<button class="t-del" data-fam="delMem" data-id="' + m.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  return h;
+}
+function famTasks() {
+  ensureFamily();
+  const members = store.family.members;
+  const list = (store.family.tasks || []).slice().sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    if (a.due && b.due) return a.due < b.due ? -1 : 1;
+    if (a.due) return -1; if (b.due) return 1;
+    const P = { high: 0, med: 1, low: 2 }; return (P[a.prio] == null ? 1 : P[a.prio]) - (P[b.prio] == null ? 1 : P[b.prio]);
+  });
+  const openN = list.filter(t => !t.done).length;
+  let h = '<p class="sub" style="margin:-2px 0 12px">Aufgaben an Familienmitglieder verteilen – mit Priorität und Termin.</p>' +
+    '<input type="text" id="ftTitle" placeholder="Aufgabe (z. B. Müll rausbringen)" maxlength="80" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><select id="ftWho"><option value="">👪 Ganze Familie</option>' +
+    members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
+    '<select id="ftPrio"><option value="high">🔴 Hoch</option><option value="med" selected>🟡 Mittel</option><option value="low">🟢 Niedrig</option></select></div>' +
+    '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="ftDue"><button class="btn btn-primary" data-fam="addFTask">+ Zuweisen</button></div>';
+  if (openN) h += '<div class="veh-stats" style="grid-template-columns:1fr;margin-bottom:12px"><div class="veh-stat"><b>' + openN + '</b><span>offene Familienaufgabe' + (openN === 1 ? '' : 'n') + '</span></div></div>';
+  if (!list.length) h += '<div class="empty" style="padding:14px">Noch keine Familienaufgaben. Verteil die erste ✨</div>';
+  list.forEach(t => {
+    const m = t.assignee ? famMember(t.assignee) : null;
+    const late = t.due && !t.done && dayDiff(t.due) < 0, isToday = t.due && !t.done && dayDiff(t.due) === 0;
+    h += '<div class="task' + (t.done ? ' done' : '') + '">' +
+      '<button class="tcheck" data-fam="toggleFTask" data-id="' + t.id + '" title="Erledigt" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+      '<span class="prio prio-' + (t.prio || 'med') + '"></span>' +
+      '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
+      '<div class="t-meta"><span class="fam-assignee"' + (m ? ' style="color:' + m.color + '"' : '') + '>' + (m ? esc(m.name) : '👪 Familie') + '</span>' +
+      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + '</span>' : '') + '</div></div>' +
+      '<button class="t-del" data-fam="delFTask" data-id="' + t.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
 }
@@ -3807,6 +3842,14 @@ $('#famRoot').addEventListener('click', e => {
     save(); RENDERERS.family(); toast('Budget-Eintrag gespeichert ✓'); return;
   }
   if (a === 'delBud') { ensureBudget(); store.budget.entries = store.budget.entries.filter(x => x.id !== b.dataset.id); save(); RENDERERS.family(); return; }
+  if (a === 'addFTask') {
+    ensureFamily();
+    const title = q('#ftTitle').value.trim(); if (!title) { q('#ftTitle').focus(); return; }
+    store.family.tasks.push({ id: uid(), title, assignee: q('#ftWho').value || '', prio: q('#ftPrio').value || 'med', due: q('#ftDue').value || null, done: false, createdAt: Date.now() });
+    famChanged(); toast('Aufgabe zugewiesen ✓'); return;
+  }
+  if (a === 'toggleFTask') { ensureFamily(); const t = store.family.tasks.find(x => x.id === b.dataset.id); if (t) { t.done = !t.done; famChanged(); } return; }
+  if (a === 'delFTask') { ensureFamily(); store.family.tasks = store.family.tasks.filter(x => x.id !== b.dataset.id); famChanged(); return; }
   if (a === 'create') { famCreate(); return; }
   if (a === 'join') { famJoin(q('#joinCode').value); return; }
   if (a === 'copyCode') { copyText(store.family.code).then(ok => toast(ok ? 'Code kopiert ✓' : 'Kopieren nicht möglich')); return; }
@@ -3818,6 +3861,7 @@ $('#famRoot').addEventListener('keydown', e => {
   else if (e.target.id === 'fevTitle') $('#famRoot [data-fam="addEv"]').click();
   else if (e.target.id === 'occTitle') $('#famRoot [data-fam="addOcc"]').click();
   else if (e.target.id === 'budLabel' || e.target.id === 'budAmount') $('#famRoot [data-fam="addBud"]').click();
+  else if (e.target.id === 'ftTitle') $('#famRoot [data-fam="addFTask"]').click();
   else if (e.target.id === 'joinCode') $('#famRoot [data-fam="join"]').click();
 });
 
