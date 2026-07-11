@@ -1543,14 +1543,14 @@ function schedulePush() {
 async function statePush() {
   if (!CLOUD || !sb || !(account && account.loggedIn)) return;
   try {
-    const u = (await sb.auth.getUser()).data.user; if (!u) return;
+    const sess = (await sb.auth.getSession()).data.session; if (!sess) return; const u = sess.user;
     await sb.from('user_state').upsert({ user_id: u.id, data: stateSnapshot(), updated_at: new Date().toISOString() });
   } catch (e) { /* Tabelle evtl. noch nicht angelegt – App läuft lokal weiter */ }
 }
 async function statePull() {
   if (!CLOUD || !sb || !(account && account.loggedIn)) return;
   try {
-    const u = (await sb.auth.getUser()).data.user; if (!u) return;
+    const sess = (await sb.auth.getSession()).data.session; if (!sess) return; const u = sess.user;
     const r = await sb.from('user_state').select('data').eq('user_id', u.id).maybeSingle();
     const d = r.data && r.data.data;
     if (!d || typeof d._ts !== 'number' || d._ts <= (store._ts || 0)) return;   // nur wenn Cloud neuer ist
