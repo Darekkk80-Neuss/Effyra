@@ -612,7 +612,14 @@
       <label class="vsel">🗣 Stimme: <select id="voiceSel"></select></label>
       <button class="btn" id="voiceTest">▶ Testen</button>
     </div>
-    <span class="hint">Für eine <b>menschliche, weibliche</b> Stimme den Spot in <b>Microsoft Edge</b> öffnen und oben eine <b>★‑Stimme (Online/Natural)</b> wählen – die klingen fast echt. Die Windows‑Standardstimme klingt technisch. Höchste Qualität: <b>Stimme</b> aus und ein echtes/KI‑Voice‑over (Sprecher‑Skript liegt vor) im Schnitt drüberlegen.</span>
+    <div class="row">
+      <label class="btn primary" for="voFile">🎧 Eigenes Voice‑over laden (100 % menschlich)</label>
+      <input type="file" id="voFile" accept="audio/*" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none">
+      <span id="voName" class="hint" style="display:none;opacity:1;color:#12b76a"></span>
+      <button class="btn" id="voClear" style="display:none">✕ entfernen</button>
+    </div>
+    <span class="hint"><b>Für 100 % menschlich:</b> mit dem Sprecher‑Skript ein Voice‑over erzeugen (ElevenLabs, warme dt. Frauenstimme) und oben als MP3 laden – es spielt dann synchron im Spot. <b>Alternativ</b> den Spot in <b>Microsoft Edge</b> öffnen und eine <b>★‑Stimme (Online/Natural)</b> wählen – klingt fast echt. Die Windows‑Standardstimme klingt technisch.</span>
+    <audio id="voAudio" preload="auto"></audio>
   </div>
 
 <script>
@@ -682,10 +689,16 @@
     replay.classList.remove('show');
     scenes.forEach(s => s.classList.remove('on'));
     resetDemo();
+    clearVoice();
+    if (voAudio){ try { voAudio.pause(); voAudio.currentTime = 0; } catch(e){} }
     void stage.offsetWidth;
     t0 = null;
     raf = requestAnimationFrame(frame);
-    if (fromUser){ startAudio(); startVoice(); }
+    if (fromUser){ startAudio(); startVoiceOrClip(); }
+  }
+  function startVoiceOrClip(){
+    if (voClip && voAudio){ try { voAudio.currentTime = 0; voAudio.muted = !voiceOn; voAudio.play(); } catch(e){} }
+    else startVoice();
   }
 
   /* ================= AUDIO: professioneller Synth-Score mit Hall ================= */
@@ -821,6 +834,7 @@
 
   /* ================= STIMME: deutsche Sprachausgabe (Werbeslogans) ================= */
   let voiceOn = true, voTimers = [], pickedVoice = null, utters = [];
+  let voClip = null; const voAudio = document.getElementById('voAudio');   // optionales, echtes/KI-Voice-over (MP3) = 100% menschlich
   const VO = [
     [0.5,  'Manchmal ist einfach alles zu viel.', 1.0, 1.0],
     [4.2,  'Termine, Kinder, Arbeit – und das alles gleichzeitig.', 1.0, 1.0],
@@ -859,14 +873,23 @@
   function startVoice(){
     if (!('speechSynthesis' in window)) return;
     clearVoice();
-    if (!voiceOn) return;
-    VO.forEach(line => voTimers.push(setTimeout(() => {
-      if (!voiceOn) return;
-      const u = new SpeechSynthesisUtterance(line[1]);
+    if (!voiceOn || voClip) return;
+    VO.forEach(line => voTimers.push(setTimeout(() => { if (voiceOn && !voClip) speakLine(line[1], line[2], line[3]); }, line[0] * 1000)));
+  }
+  // Satz in Phrasen zerlegen (an Punkt/Frage/Gedankenstrich) und mit Mikro-Variation sprechen:
+  // gegen den monotonen Roboter-Klang, mit Atempausen und natürlichem Absinken am Satzende.
+  function speakLine(text, baseRate, basePitch){
+    const phrases = text.split(/(?<=[.!?])\s+|\s+–\s+/).map(s => s.trim()).filter(Boolean);
+    phrases.forEach((p, i) => {
+      const u = new SpeechSynthesisUtterance(p);
       if (pickedVoice) u.voice = pickedVoice;
-      u.lang = 'de-DE'; u.rate = line[2] * 0.97; u.pitch = Math.min(1.5, line[3] + 0.08); u.volume = 1;   // wärmer, freundlicher
+      u.lang = 'de-DE';
+      const last = i === phrases.length - 1;
+      u.rate = baseRate * (0.94 + Math.random() * 0.05);
+      u.pitch = Math.min(1.6, Math.max(0.8, basePitch + 0.08 + (Math.random() * 0.06 - 0.03) - (last ? 0.07 : 0)));
+      u.volume = 1;
       utters.push(u); speechSynthesis.speak(u);
-    }, line[0] * 1000)));
+    });
   }
 
   /* controls */
@@ -877,7 +900,23 @@
   });
   voiceBtn.addEventListener('click', () => {
     voiceOn = !voiceOn; voiceBtn.classList.toggle('off', !voiceOn); voiceBtn.setAttribute('aria-pressed', String(!voiceOn));
-    if (!voiceOn) clearVoice();
+    if (voClip && voAudio) voAudio.muted = !voiceOn;
+    else if (!voiceOn) clearVoice();
+  });
+  // Eigenes Voice-over (MP3) laden = 100% menschliche Stimme
+  const voFile = document.getElementById('voFile'), voName = document.getElementById('voName'), voClearBtn = document.getElementById('voClear');
+  if (voFile) voFile.addEventListener('change', () => {
+    const f = voFile.files && voFile.files[0]; if (!f) return;
+    if (voClip) URL.revokeObjectURL(voClip);
+    voClip = URL.createObjectURL(f); voAudio.src = voClip; voAudio.load();
+    voName.textContent = '🎧 ' + f.name; voName.style.display = ''; voClearBtn.style.display = '';
+    clearVoice();   // TTS aus – dein Voice-over übernimmt
+  });
+  if (voClearBtn) voClearBtn.addEventListener('click', () => {
+    try { voAudio.pause(); } catch(e){}
+    if (voClip) URL.revokeObjectURL(voClip);
+    voClip = null; voAudio.removeAttribute('src'); voFile.value = '';
+    voName.style.display = 'none'; voClearBtn.style.display = 'none';
   });
   const voiceSel = document.getElementById('voiceSel');
   if (voiceSel) voiceSel.addEventListener('change', () => { pickedVoice = deVoices.find(v => v.voiceURI === voiceSel.value) || pickedVoice; });
