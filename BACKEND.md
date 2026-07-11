@@ -141,3 +141,61 @@ In `index.html`: `const BACKEND_V2 = true;` → committen & pushen. Fertig.
 - **Eigener Schlüssel** (nur Erwachsene) in den Einstellungen bleibt die unbegrenzte Alternative (läuft direkt an Anthropic, kein Credit-Verbrauch).
 
 > Sicherheit: `consume_credits`/`apply_purchase`/`add_family_member` sind `security definer` und für normale Nutzer gesperrt – nur Proxy/Webhook (service_role) dürfen sie aufrufen. Kinder werden in `consume_credits` hart abgewiesen. Der Anthropic-Schlüssel steht ausschließlich als Function-Secret, nie im Client.
+
+---
+
+# Phase 3 – Medikamenten-Erinnerungen per Web-Push (auch bei geschlossener App)
+
+Ohne diese Phase melden sich die Medikamenten-Erinnerungen nur im Vordergrund (solange Effyra offen ist). Mit Web-Push schickt ein serverseitiger Cron-Job zur Einnahmezeit echte Benachrichtigungen aufs Gerät – auch wenn die App geschlossen ist.
+
+**Bausteine:** Service Worker (`sw.js`, liegt schon im Repo) · Push-Abo im Browser · Tabellen für Abos + Medikamenten-Plan (`supabase-push.sql`) · Edge Function `send-med-reminders` (VAPID) · Cron, der die Function alle paar Minuten aufruft.
+
+## A. Datenbank erweitern
+SQL-Editor → **kompletten Inhalt** von [`supabase-push.sql`](supabase-push.sql) einfügen → **Run**. (Legt `push_subscriptions`, `med_schedules`, `med_reminder_log` + RLS und die RPCs `save_push_subscription`, `save_med_schedule`, `clear_med_schedule` an.)
+
+## B. VAPID-Schlüssel erzeugen
+Einmalig ein Schlüsselpaar für Web-Push erstellen:
+```bash
+npx web-push generate-vapid-keys
+```
+Notiere **Public Key** und **Private Key**.
+
+## C. Secrets setzen
+```bash
+supabase secrets set VAPID_PUBLIC=BM...        # Public Key aus Schritt B
+supabase secrets set VAPID_PRIVATE=...         # Private Key aus Schritt B
+supabase secrets set VAPID_SUBJECT=mailto:du@example.com
+```
+
+## D. Function deployen
+```bash
+supabase functions deploy send-med-reminders
+```
+
+## E. Cron einrichten (alle 5 Minuten)
+Im SQL-Editor `pg_cron` + `pg_net` aktivieren und den Aufruf planen:
+```sql
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+select cron.schedule('effyra-med-reminders', '*/5 * * * *', $$
+  select net.http_post(
+    url := 'https://DEIN-PROJEKT.functions.supabase.co/send-med-reminders',
+    headers := jsonb_build_object('Authorization', 'Bearer DEIN_SERVICE_ROLE_KEY')
+  );
+$$);
+```
+> Alternativ im Dashboard unter **Edge Functions → Schedules** einen 5-Minuten-Zeitplan setzen. Der `Authorization`-Header nutzt den **Service-Role-Key** (Dashboard → Settings → API); er steht nur serverseitig in der Cron-Definition, nie im Client.
+
+## F. Im Client aktivieren
+In `index.html` den **öffentlichen** VAPID-Schlüssel eintragen:
+```js
+const PUSH_VAPID_PUBLIC = 'BM…';   // derselbe Public Key wie VAPID_PUBLIC
+```
+Committen & pushen. Fertig.
+
+### Danach automatisch
+- Beim Einschalten von **„Erinnerungen zur Uhrzeit"** fragt Effyra die Benachrichtigungs-Erlaubnis an, abonniert Push (`save_push_subscription`) und lädt den Medikamenten-Plan hoch (`save_med_schedule`). Die Karte zeigt dann **„· Hintergrund"**.
+- Der **Cron** ruft `send-med-reminders` alle 5 Minuten auf; die Function bestimmt je Nutzer (in dessen Zeitzone) die fälligen Dosen, verschickt Push und protokolliert sie in `med_reminder_log` (kein Doppelversand, kein Nachfeuern älterer als ~20 Min).
+- **Ausschalten** entfernt Plan + Abos des Nutzers serverseitig (`clear_med_schedule`) – es kommen sofort keine Pushes mehr.
+
+> Ohne `PUSH_VAPID_PUBLIC` (leer) bleibt alles beim Vordergrund-Verhalten – nichts bricht. Web-Push funktioniert nur über **HTTPS** (GitHub Pages erfüllt das); auf iOS muss die PWA zum Home-Bildschirm hinzugefügt sein.

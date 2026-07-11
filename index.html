@@ -2119,6 +2119,13 @@ const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const BACKEND_V2 = false;
 const FN_URL = (name) => SUPABASE_URL + '/functions/v1/' + name;
 
+/* Web-Push (Phase 3): öffentlichen VAPID-Schlüssel eintragen, sobald die
+   Function `send-med-reminders` + supabase-push.sql deployt sind (siehe
+   BACKEND.md). Leer = aus → Medikamenten-Erinnerungen laufen weiter im
+   Vordergrund (nur solange die App offen ist). */
+const PUSH_VAPID_PUBLIC = '';
+const PUSH_READY = () => !!(PUSH_VAPID_PUBLIC && CLOUD && 'serviceWorker' in navigator && 'PushManager' in window);
+
 /* Berechtigungskonzept (Testphase/Basic/AI/Family, Rollen, Modul-Sperren,
    14-Tage-Ablauf, KI-/Credit-Sperren). Zum Testen AUS = false → alles
    freigeschaltet. Zum Scharfschalten wieder auf true setzen. */
@@ -3066,9 +3073,9 @@ $('#kidList').addEventListener('click', e => {
     const slots = Array.from(card.querySelectorAll('[data-kmedslots] .med-slot.on')).map(el => el.dataset.slot);
     if (!slots.length) { toast('Bitte mindestens eine Einnahmezeit wählen'); return; }
     store.family.meds.push({ id: uid(), name, dose: q('[data-in="kmedDose"]').value.trim(), member: kid.id, slots, days: 'daily', createdAt: Date.now() });
-    save(); famPush(); RENDERERS.school(); toast('Medikament für ' + kid.name + ' hinzugefügt ✓'); return;
+    save(); famPush(); medPushSync(); RENDERERS.school(); toast('Medikament für ' + kid.name + ' hinzugefügt ✓'); return;
   }
-  if (a === 'delKidMed') { store.family.meds = (store.family.meds || []).filter(m => m.id !== act.dataset.id); save(); famPush(); RENDERERS.school(); return; }
+  if (a === 'delKidMed') { store.family.meds = (store.family.meds || []).filter(m => m.id !== act.dataset.id); save(); famPush(); medPushSync(); RENDERERS.school(); return; }
   if (a === 'addHobby') {
     const name = q('[data-in="hobName"]').value.trim(); if (!name) { toast('Bitte einen Namen angeben'); return; }
     kid.hobbies.push({ id: uid(), name, day: q('[data-in="hobDay"]').value, time: q('[data-in="hobTime"]').value, place: q('[data-in="hobPlace"]').value.trim() });
@@ -3789,7 +3796,7 @@ async function famPull() {
     return JSON.stringify(famPayload()) !== before;
   } catch (e) { return false; }
 }
-function famChanged() { save(); famPush(); RENDERERS.family(); }
+function famChanged() { save(); famPush(); medPushSync(); RENDERERS.family(); }
 async function famCreate() {
   if (!CLOUD) { toast('Sync braucht das Cloud-Backend'); return; }
   try {
@@ -3916,8 +3923,56 @@ async function enableMedReminders() {
   if ('Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (e) {} }
   store.family.medReminders = true; save();
   startMedScheduler(); checkMedReminders();
+  let pushed = false;
+  if (PUSH_READY() && 'Notification' in window && Notification.permission === 'granted') {
+    pushed = await subscribeMedPush();
+  }
+  store.family.medPush = pushed; save();
   if (currentView === 'family') RENDERERS.family();
-  toast(('Notification' in window && Notification.permission === 'granted') ? 'Erinnerungen aktiv 🔔' : 'Erinnerungen aktiv (als Hinweis in der App)');
+  toast(pushed
+    ? 'Erinnerungen aktiv – auch bei geschlossener App 🔔'
+    : (('Notification' in window && Notification.permission === 'granted') ? 'Erinnerungen aktiv 🔔 (solange Effyra offen ist)' : 'Erinnerungen aktiv (als Hinweis in der App)'));
+}
+async function disableMedReminders() {
+  ensureFamily();
+  store.family.medReminders = false; store.family.medPush = false; save();
+  if (CLOUD && account && account.loggedIn) { try { await sb.rpc('clear_med_schedule'); } catch (e) {} }
+  if (currentView === 'family') RENDERERS.family();
+  toast('Erinnerungen aus');
+}
+/* --- Web-Push: Service Worker registrieren, abonnieren, Plan hochladen --- */
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64), arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+function medSchedulePayload() {
+  ensureFamily();
+  const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'Europe/Berlin';
+  const meds = (store.family.meds || []).map(m => ({
+    id: m.id, name: m.name, dose: m.dose || '', person: medWhoName(m.member),
+    days: m.days,   // 'daily' oder [0..6] (Mo = 0)
+    slots: (m.slots || []).map(s => ({ slot: s, time: SLOT_TIME[s] || null })).filter(x => x.time),
+  }));
+  return { tz, meds };
+}
+async function medPushSync(force) {
+  if (!PUSH_READY() || !store.family || (!force && !store.family.medPush)) return;
+  try { const p = medSchedulePayload(); await sb.rpc('save_med_schedule', { p_meds: p.meds, p_tz: p.tz }); } catch (e) {}
+}
+async function subscribeMedPush() {
+  if (!PUSH_READY()) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(PUSH_VAPID_PUBLIC) });
+    const j = sub.toJSON();
+    await sb.rpc('save_push_subscription', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth });
+    await medPushSync(true);
+    return true;
+  } catch (e) { return false; }
 }
 function fireMedReminder(m, s) {
   const title = '💊 ' + m.name + (m.dose ? ' · ' + m.dose : '');
@@ -3955,10 +4010,12 @@ function famMeds() {
   let h = '<p class="sub" style="margin:-2px 0 12px">Medikamentenplan für die Woche – für dich oder einzelne Familienmitglieder. Wird mit der Familie synchronisiert.</p>';
 
   // Erinnerungen zur Uhrzeit
-  const remOn = !!store.family.medReminders;
+  const remOn = !!store.family.medReminders, pushOn = !!store.family.medPush;
+  const remSub = !remOn ? 'Aus – aktivieren für Hinweise zur Einnahmezeit (' + Object.values(SLOT_TIME).join(' / ') + ').'
+    : pushOn ? 'Aktiv – meldet sich zur Einnahmezeit, auch bei geschlossener App.'
+    : 'Aktiv – meldet sich zur Einnahmezeit (' + Object.values(SLOT_TIME).join(' / ') + '), solange Effyra geöffnet ist.';
   h += '<div class="note-box" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;justify-content:space-between">' +
-    '<div><b>🔔 Erinnerungen zur Uhrzeit</b><div class="sub" style="margin-top:2px">' +
-    (remOn ? 'Aktiv – meldet sich zur Einnahmezeit (' + Object.values(SLOT_TIME).join(' / ') + '), solange Effyra geöffnet ist.' : 'Aus – aktivieren für Hinweise zur Einnahmezeit.') +
+    '<div><b>🔔 Erinnerungen zur Uhrzeit' + (pushOn ? ' · Hintergrund' : '') + '</b><div class="sub" style="margin-top:2px">' + remSub +
     '</div></div><button class="btn btn-sm ' + (remOn ? '' : 'btn-primary') + '" data-fam="toggleMedRem">' + (remOn ? 'Aus' : 'An') + '</button></div>';
 
   // Eingabe
@@ -4118,7 +4175,7 @@ $('#famRoot').addEventListener('click', e => {
     famChanged(); toast('Mitglied entfernt'); return;
   }
   if (a === 'toggleMedRem') {
-    if (store.family.medReminders) { store.family.medReminders = false; save(); RENDERERS.family(); toast('Erinnerungen aus'); }
+    if (store.family.medReminders) disableMedReminders();
     else enableMedReminders();
     return;
   }
@@ -6188,7 +6245,8 @@ $('#btnWipe').addEventListener('click', async () => {
    die Geräteerkennung schlägt beim Ersteinrichtungs-Fenster eine Sprache vor. */
 applyLang((store.profile && store.profile.lang) || 'de', { silent: true, persist: !!(store.profile && store.profile.lang) });
 refreshAIStatus();
-if (store.family && store.family.medReminders) { startMedScheduler(); checkMedReminders(); }   // Medikamenten-Erinnerungen fortsetzen
+if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('sw.js'); } catch (e) {} }   // Web-Push / PWA
+if (store.family && store.family.medReminders) { startMedScheduler(); checkMedReminders(); if (store.family.medPush) medPushSync(); }   // Erinnerungen fortsetzen
 if (CLOUD && store.family && store.family.code) famPull().then(c => { if (c && currentView === 'dashboard') RENDERERS.dashboard(); });
 if (CLOUD) {
   account = null;   /* lokales Konto ignorieren – Cloud entscheidet */
