@@ -618,6 +618,25 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .wq-chip:hover{border-color:var(--border2);transform:translateY(-1px)}
 .wq-chip.abs{border-color:rgba(56,189,248,.4)}
 .wq-chip.clr{border-color:rgba(248,113,113,.35);color:#fca5a5}
+/* Budget-Widget & -Karte */
+.bud-card{margin-bottom:22px}
+.bud-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.bud-head h3{font-size:15px}
+.bud-rest{font-size:19px;font-weight:800;white-space:nowrap}
+.bud-pos{color:#34d399}
+.bud-neg{color:#f87171}
+.bud-rows{display:flex;flex-direction:column;gap:10px}
+.bud-row{display:flex;align-items:center;gap:10px}
+.bud-lbl{font-size:12.5px;color:var(--muted);width:74px;flex:none}
+.bud-val{font-size:13px;font-weight:700;width:92px;text-align:right;flex:none}
+.bud-track{flex:1;height:12px;border-radius:8px;background:var(--border);overflow:hidden}
+.bud-fill{height:100%;border-radius:8px;transition:width .5s ease}
+.bud-fill.inc{background:linear-gradient(90deg,#10b981,#34d399)}
+.bud-fill.exp{background:linear-gradient(90deg,#f97316,#f87171)}
+.bud-foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:12px;color:var(--faint)}
+.bud-open{background:none;border:none;color:#a78bfa;font-weight:700;font-size:13px;cursor:pointer;padding:0}
+.bud-empty .bud-open{margin-top:4px}
+.bud-item-val{flex:none;font-size:14px;margin:0 4px}
 #v2pTitle{margin-bottom:8px}
 #v2pText{margin-bottom:12px}
 .v2p-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
@@ -912,6 +931,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div id="trialSlot"></div>
       </div>
       <div id="weatherWidget"></div>
+      <div id="budgetWidget"></div>
       <div class="qa-row">
         <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
           <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span><span data-i18n="dash.qa_photo">Foto analysieren</span></button>
@@ -1301,6 +1321,7 @@ const store = Object.assign({
   weatherLoc: null, // {name,lat,lon}
   weather: null,    // zuletzt geladene Wetterdaten (Cache)
   family: { members: [], occasions: [], code: null }, // Familienzentrale
+  budget: { entries: [] }, // Haushaltsbudget (lokal): {id,kind:'income'|'expense',label,amount,recurring,date}
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
   voiceNotes: [], // Voice2PDF gespeicherte Transkriptionen
@@ -2490,6 +2511,7 @@ RENDERERS.dashboard = function () {
   $('#dashWidgets').innerHTML = html;
   $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
   renderWeather();
+  renderBudgetWidget();
 };
 
 $('#qaDoc').addEventListener('click', () => { showView('docs'); setTimeout(() => $('#docInput').click(), 250); });
@@ -3570,9 +3592,9 @@ async function famLeave() {
 RENDERERS.family = function () {
   ensureFamily();
   let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.</p></div>';
-  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
+  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
     '<button data-ftab="' + x[0] + '" class="' + (famTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
-  h += famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
+  h += famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
   $('#famRoot').innerHTML = h;
   if (store.family.code && CLOUD && Date.now() - famLastPull > 8000) {
     famLastPull = Date.now();
@@ -3665,6 +3687,14 @@ $('#famRoot').addEventListener('click', e => {
     store.family.occasions.push({ id: uid(), title, date, yearly: true }); famChanged(); return;
   }
   if (a === 'delOcc') { store.family.occasions = store.family.occasions.filter(o => o.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'addBud') {
+    ensureBudget();
+    const label = q('#budLabel').value.trim(), amount = parseFloat((q('#budAmount').value || '').replace(',', '.'));
+    if (!label || !(amount > 0)) { toast('Bitte Bezeichnung und Betrag angeben'); return; }
+    store.budget.entries.push({ id: uid(), kind: q('#budKind').value, label, amount: Math.round(amount * 100) / 100, recurring: q('#budRec').checked, date: todayISO() });
+    save(); RENDERERS.family(); toast('Budget-Eintrag gespeichert ✓'); return;
+  }
+  if (a === 'delBud') { ensureBudget(); store.budget.entries = store.budget.entries.filter(x => x.id !== b.dataset.id); save(); RENDERERS.family(); return; }
   if (a === 'create') { famCreate(); return; }
   if (a === 'join') { famJoin(q('#joinCode').value); return; }
   if (a === 'copyCode') { copyText(store.family.code).then(ok => toast(ok ? 'Code kopiert ✓' : 'Kopieren nicht möglich')); return; }
@@ -3675,8 +3705,76 @@ $('#famRoot').addEventListener('keydown', e => {
   if (e.target.id === 'famName') $('#famRoot [data-fam="addMem"]').click();
   else if (e.target.id === 'fevTitle') $('#famRoot [data-fam="addEv"]').click();
   else if (e.target.id === 'occTitle') $('#famRoot [data-fam="addOcc"]').click();
+  else if (e.target.id === 'budLabel' || e.target.id === 'budAmount') $('#famRoot [data-fam="addBud"]').click();
   else if (e.target.id === 'joinCode') $('#famRoot [data-fam="join"]').click();
 });
+
+/* ============================== BUDGET (lokal) ============================== */
+function ensureBudget() { if (!store.budget) store.budget = { entries: [] }; if (!store.budget.entries) store.budget.entries = []; }
+function budMonthKey() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+const eur = (n) => (isNaN(+n) ? 0 : +n).toLocaleString(curLocale || 'de-DE', { style: 'currency', currency: 'EUR' });
+/* Zählt zum Monat ym (Standard: aktueller): wiederkehrende Einträge immer,
+   einmalige nur, wenn ihr Datum in diesem Monat liegt. */
+function budTotals(ym) {
+  ensureBudget(); ym = ym || budMonthKey();
+  let income = 0, expense = 0;
+  store.budget.entries.forEach(e => {
+    if (!(e.recurring || (e.date || '').slice(0, 7) === ym)) return;
+    if (e.kind === 'income') income += (+e.amount || 0); else expense += (+e.amount || 0);
+  });
+  return { income, expense, rest: income - expense };
+}
+
+function renderBudgetWidget() {
+  const el = $('#budgetWidget'); if (!el) return;
+  ensureBudget();
+  if (!store.budget.entries.length) {
+    el.innerHTML = '<div class="card bud-card"><div class="bud-head"><h3>💰 Budget</h3></div>' +
+      '<p class="sub" style="margin:2px 0 12px">Trage Einnahmen &amp; Ausgaben in der Familienzentrale ein – dein Monatsbudget erscheint dann hier.</p>' +
+      '<button class="bud-open" data-budgo>Budget einrichten →</button></div>';
+    return;
+  }
+  const t = budTotals(), max = Math.max(t.income, t.expense, 1);
+  const monthName = new Date().toLocaleDateString(curLocale, { month: 'long', year: 'numeric' });
+  el.innerHTML = '<div class="card bud-card">' +
+    '<div class="bud-head"><h3>💰 Budget · <span style="text-transform:capitalize">' + esc(monthName) + '</span></h3>' +
+    '<span class="bud-rest ' + (t.rest >= 0 ? 'bud-pos' : 'bud-neg') + '">' + eur(t.rest) + '</span></div>' +
+    '<div class="bud-rows">' +
+    '<div class="bud-row"><span class="bud-lbl">Einnahmen</span><div class="bud-track"><div class="bud-fill inc" style="width:' + (t.income / max * 100) + '%"></div></div><span class="bud-val">' + eur(t.income) + '</span></div>' +
+    '<div class="bud-row"><span class="bud-lbl">Ausgaben</span><div class="bud-track"><div class="bud-fill exp" style="width:' + (t.expense / max * 100) + '%"></div></div><span class="bud-val">' + eur(t.expense) + '</span></div>' +
+    '</div>' +
+    '<div class="bud-foot"><span>Verbleibend diesen Monat</span><button class="bud-open" data-budgo>Verwalten →</button></div></div>';
+}
+$('#budgetWidget').addEventListener('click', e => {
+  if (e.target.closest('[data-budgo]')) { famTab = 'budget'; showView('family'); }
+});
+
+function famBudget() {
+  ensureBudget();
+  const ym = budMonthKey(), t = budTotals(ym);
+  let h = '<div class="veh-stats">' +
+    '<div class="veh-stat"><b>' + eur(t.income) + '</b><span>Einnahmen</span></div>' +
+    '<div class="veh-stat"><b>' + eur(t.expense) + '</b><span>Ausgaben</span></div>' +
+    '<div class="veh-stat"><b class="' + (t.rest >= 0 ? 'bud-pos' : 'bud-neg') + '">' + eur(t.rest) + '</b><span>Rest (Monat)</span></div></div>';
+  h += '<div class="kid-row" style="margin-bottom:8px"><select id="budKind"><option value="expense">Ausgabe</option><option value="income">Einnahme</option></select>' +
+    '<input type="text" id="budLabel" placeholder="Bezeichnung (z. B. Miete, Gehalt)" maxlength="40"></div>' +
+    '<div class="kid-row" style="margin-bottom:8px"><input type="number" id="budAmount" placeholder="Betrag €" inputmode="decimal" step="0.01" min="0">' +
+    '<label class="veh-check" style="flex:1;justify-content:center"><input type="checkbox" id="budRec" checked> monatlich</label></div>' +
+    '<button class="btn btn-primary btn-sm" data-fam="addBud" style="width:100%;margin-bottom:14px">+ Eintragen</button>';
+  [['income', '⬆️ Einnahmen', '💶'], ['expense', '⬇️ Ausgaben', '🧾']].forEach(g => {
+    const items = store.budget.entries.filter(e => e.kind === g[0] && (e.recurring || (e.date || '').slice(0, 7) === ym));
+    h += '<div class="sec-title"><h2>' + g[1] + '</h2></div>';
+    if (!items.length) h += '<div class="empty" style="padding:10px">Noch nichts eingetragen.</div>';
+    items.forEach(e => {
+      h += '<div class="mem"><span style="font-size:18px">' + g[2] + '</span><div class="mem-info"><b>' + esc(e.label) + '</b>' +
+        '<span>' + (e.recurring ? 'monatlich' : fmtDateShort(e.date || todayISO())) + '</span></div>' +
+        '<b class="bud-item-val ' + (g[0] === 'income' ? 'bud-pos' : 'bud-neg') + '">' + eur(e.amount) + '</b>' +
+        '<button class="t-del" data-fam="delBud" data-id="' + e.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+    });
+  });
+  h += '<div class="em-priv">Budget bleibt nur auf diesem Gerät (keine Cloud-Synchronisierung).</div>';
+  return h;
+}
 
 /* ============================== NOTFALLBEREICH (nur lokal) ============================== */
 let emTab = 'kontakte';
