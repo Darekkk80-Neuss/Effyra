@@ -2730,6 +2730,9 @@ RENDERERS.dashboard = function () {
 
   /* NÄCHSTE TERMINE – ab morgen, die nächsten 3 */
   const upcoming = store.events.filter(e => e.date > today).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, 3);
+  const medsToday = ((store.family && store.family.meds) || []).filter(md => md.date === today || md.date === '').sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  if (medsToday.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medsToday.slice(0, 5).map(md => { const mm = famMember(md.memberId); return drow({ emoji: '💊', iconColor: mm ? mm.color : '#64748b', title: (mm ? mm.name + ': ' : '') + md.name, sub: md.date ? 'einmalig heute' : 'täglich', meta: md.time ? md.time + ' Uhr' : null, go: 'family', attrs: ' data-tab="meds"' }); }).join(''), ' data-tab="meds"');
+
   if (upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + e.time + ' Uhr' : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
 
   /* AUFGABEN – die 3 wichtigsten (ohne die bereits unter „Heute“) */
@@ -3825,6 +3828,7 @@ function ensureFamily() {
   if (!store.family.tasks) store.family.tasks = [];   // Familienaufgaben (an Mitglieder vergeben)
   if (!store.family.ai) store.family.ai = { limit: FAMILY_AI_LIMIT, resetDate: nextMonthFirstISO() };
   if (!store.family.addons) store.family.addons = { adult: 0, child: 0 };   // hinzugebuchte Zusatzplätze (Play Billing)
+  if (!store.family.meds) store.family.meds = [];   // Medikamentenplan {id,memberId,name,date(''=täglich|ISO),time,note,createdAt}
   if (!store.family.share) store.family.share = { calendar: true, appointments: true, tasks: true, reminders: true, documents: false, expenses: false, household: false };
   SHARE_AREAS.forEach(a => { if (typeof store.family.share[a.key] !== 'boolean') store.family.share[a.key] = a.def; });
   if (!store.family.members.length) {
@@ -3856,7 +3860,7 @@ function nextOccur(iso) {
 const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).getFullYear();
 
 /* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
-function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], events: store.events.filter(e => e.source === 'family') }; }
+function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], meds: store.family.meds || [], events: store.events.filter(e => e.source === 'family') }; }
 async function famPush() { if (!store.family.code || !CLOUD) return; try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
 async function famPull() {
   if (!store.family.code || !CLOUD) return false;
@@ -3868,6 +3872,7 @@ async function famPull() {
     store.family.members = d.members || [];
     store.family.occasions = d.occasions || [];
     store.family.tasks = d.tasks || [];
+    store.family.meds = d.meds || [];
     store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
     save();
     return JSON.stringify(famPayload()) !== before;
@@ -3909,9 +3914,9 @@ async function famLeave() {
 RENDERERS.family = function () {
   ensureFamily();
   let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.</p></div>';
-  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['ftasks', '✅ Aufgaben'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
+  h += '<div class="seg fam-tabs">' + [['personen', '👪 Personen'], ['ftasks', '✅ Aufgaben'], ['meds', '💊 Medikamente'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
     '<button data-ftab="' + x[0] + '" class="' + (famTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
-  h += famTab === 'ftasks' ? famTasks() : famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
+  h += famTab === 'ftasks' ? famTasks() : famTab === 'meds' ? famMeds() : famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
   $('#famRoot').innerHTML = h;
   if (store.family.code && CLOUD && Date.now() - famLastPull > 8000) {
     famLastPull = Date.now();
@@ -3973,6 +3978,25 @@ function famPersonen() {
         ? '<span class="badge b-premium" title="Administrator">👑 Admin</span>'
         : '<button class="t-del" data-fam="delMem" data-id="' + m.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button>') +
       '</div>';
+  });
+  return h;
+}
+function famMeds() {
+  ensureFamily();
+  const members = store.family.members;
+  const meds = (store.family.meds || []).slice().sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+  let h = '<p class="sub" style="margin:-2px 0 12px">Medikamentenpläne für Familienmitglieder – mit Uhrzeit. Datum leer lassen = <b>täglich</b>. Wird mit der Familie synchronisiert.</p>' +
+    '<input type="text" id="medName" placeholder="Medikament (z. B. Vitamin D, 1 Tablette)" maxlength="80" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><select id="medWho">' + members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
+    '<input type="time" id="medTime"></div>' +
+    '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="medDate" title="Datum (leer = täglich)"><button class="btn btn-primary" data-fam="addMed">+ Zuweisen</button></div>';
+  if (!meds.length) h += '<div class="empty" style="padding:14px">Noch keine Medikamente eingetragen. Leg den ersten Plan an 💊</div>';
+  meds.forEach(md => {
+    const m = famMember(md.memberId);
+    const when = (md.date ? cap(fmtDateShort(md.date)) : 'täglich') + (md.time ? ' · ' + md.time + ' Uhr' : '');
+    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>💊 ' + esc(md.name) + '</b>' +
+      '<span>' + (m ? esc(m.name) + ' · ' : '') + esc(when) + '</span></div>' +
+      '<button class="t-del" data-fam="delMed" data-id="' + md.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
 }
@@ -4088,6 +4112,13 @@ $('#famRoot').addEventListener('click', e => {
   }
   if (a === 'bookAdult') { bookAddon('adult'); return; }
   if (a === 'bookChild') { bookAddon('child'); return; }
+  if (a === 'addMed') {
+    const name = q('#medName').value.trim(); if (!name) { q('#medName').focus(); return; }
+    store.family.meds = store.family.meds || [];
+    store.family.meds.push({ id: uid(), memberId: q('#medWho').value, name, date: q('#medDate').value || '', time: q('#medTime').value || '', createdAt: Date.now() });
+    famChanged(); toast('Medikament zugewiesen ✓'); return;
+  }
+  if (a === 'delMed') { store.family.meds = (store.family.meds || []).filter(x => x.id !== b.dataset.id); famChanged(); return; }
   if (a === 'delMem') { store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return; }
   if (a === 'toggleShare') {
     const area = b.dataset.area; ensureFamily();
@@ -4137,6 +4168,7 @@ $('#famRoot').addEventListener('keydown', e => {
   else if (e.target.id === 'occTitle') $('#famRoot [data-fam="addOcc"]').click();
   else if (e.target.id === 'budLabel' || e.target.id === 'budAmount') $('#famRoot [data-fam="addBud"]').click();
   else if (e.target.id === 'ftTitle') $('#famRoot [data-fam="addFTask"]').click();
+  else if (e.target.id === 'medName') $('#famRoot [data-fam="addMed"]').click();
   else if (e.target.id === 'joinCode') $('#famRoot [data-fam="join"]').click();
 });
 
