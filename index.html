@@ -724,6 +724,19 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .v2p-mic:hover{transform:translateY(-2px)}
 .v2p-mic.rec{background:linear-gradient(135deg,#dc2626,#f87171);animation:micPulse 1.3s ease-in-out infinite}
 @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.5)}50%{box-shadow:0 0 0 16px rgba(248,113,113,0)}}
+.va-dock{padding:6px 0 2px}
+.va-status{min-height:18px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px;opacity:0;transition:opacity .18s;letter-spacing:.2px}
+.va-status.on{opacity:1}
+.va-status.va-listening{color:#22d3ee}
+.va-status.va-processing{color:#a78bfa}
+.va-status.va-acting{color:#34d399}
+.va-row{display:flex;align-items:center;gap:10px}
+.va-row .chat-inputbar{flex:1;margin:0}
+.va-mic{flex:none;width:52px;height:52px;border-radius:50%;border:none;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(124,58,237,.42);cursor:pointer;transition:transform .15s}
+.va-mic svg{width:24px;height:24px}
+.va-mic:hover{transform:translateY(-1px)}
+.va-mic:active{transform:scale(.96)}
+.va-mic.rec{background:linear-gradient(135deg,#dc2626,#f87171);animation:micPulse 1.3s ease-in-out infinite}
 .v2p-status{font-size:13.5px;color:var(--muted);font-weight:600;text-align:center}
 .v2p-interim{min-height:20px;font-size:14px;color:var(--faint);font-style:italic;margin-bottom:10px;text-align:center}
 .v2p-hint{margin:0 auto 12px;max-width:520px;font-size:12.5px}
@@ -1219,9 +1232,15 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
-      <div class="chat-inputbar">
-        <input type="text" id="chatInput" placeholder="Frag Effyra …" maxlength="1000" autocomplete="off">
-        <button class="send" id="chatSend"><svg viewBox="0 0 24 24"><use href="#icSend"/></svg></button>
+      <div class="va-dock">
+        <div class="va-status" id="vaStatus" aria-live="polite"></div>
+        <div class="va-row">
+          <button class="va-mic" id="vaMic" aria-label="Effyra AI – per Sprache steuern"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
+          <div class="chat-inputbar">
+            <input type="text" id="chatInput" placeholder="Sprich oder schreib …" maxlength="1000" autocomplete="off">
+            <button class="send" id="chatSend" aria-label="Senden"><svg viewBox="0 0 24 24"><use href="#icSend"/></svg></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -1962,6 +1981,7 @@ function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
   if (account && account.loggedIn && !isTrialExpired() && !moduleAllowed(name)) { showUpgrade(name); return; }
   currentView = name;
+  if (name !== 'chat' && typeof vaStopMic === 'function') vaStopMic();
   gate();
   $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
@@ -5085,9 +5105,11 @@ $('#docList').addEventListener('change', e => {
 
 /* ============================== CHAT ============================== */
 const CHAT_SUGGESTIONS = [
-  '🏖️ Ich möchte nächste Woche in den Urlaub',
-  '🛒 Erstelle mir eine Einkaufsliste',
-  '✨ Was kannst du alles?'
+  'Erstelle morgen um 14 Uhr einen Termin Zahnarzt',
+  'Trage 45 Euro für Lebensmittel heute ein',
+  'Ich habe heute von 8 bis 16 Uhr gearbeitet mit 30 Minuten Pause',
+  'Neue Aufgabe: Wäsche waschen bis Freitag',
+  'Was steht heute an?'
 ];
 let botTyping = false;
 
@@ -5097,7 +5119,7 @@ RENDERERS.chat = function () {
   if (!store.chat.length) {
     html += '<div class="chat-hello"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>' +
       '<h2>Hallo' + (store.name ? ', ' + esc(store.name) : '') + '! 👋</h2>' +
-      '<p>Ich bin Effyra. Erzähl mir, was ansteht –<br>ich organisiere den Rest.</p></div>' +
+      '<p>Ich bin <b>Effyra AI</b>. Tippe aufs Mikrofon und sag,<br>was ansteht – oder schreib es mir.</p></div>' +
       '<div class="suggest">' + CHAT_SUGGESTIONS.map(s => '<button data-sg="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>';
   } else {
     html += store.chat.map((m, mi) => {
@@ -5232,33 +5254,323 @@ async function realReply(text) {
   pushBot(clean || 'Okay!', actions);
 }
 
-async function sendChat(text) {
+/* ============================== EFFYRA AI – SPRACHAGENT ============================== */
+const VASpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let vaRec = null, vaListening = false, vaLastSpoken = false, vaGreeted = false;
+let vaPending = null;   // { run:fn->msg, summary:str } – wartet auf Ja/Nein
+let vaContext = null;   // letzter Intent für Nachfassen („noch 20 Euro …")
+
+/* --- Sprachausgabe (TTS) --- */
+function vaSpeak(text) {
+  try {
+    if (!('speechSynthesis' in window) || !text) return;
+    const clean = String(text).replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu, ' ').replace(/[„“”"]/g, '').replace(/\s{2,}/g, ' ').trim();
+    if (!clean) return;
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = 'de-DE'; u.rate = 1.03; u.pitch = 1;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* --- Status-Anzeige mit Animation --- */
+function vaSetStatus(state, extra) {
+  const el = $('#vaStatus'), mic = $('#vaMic');
+  const label = state === 'listening' ? (extra ? '🎧 ' + extra : '🎧 Effyra AI hört zu …')
+    : state === 'processing' ? '🧠 Effyra AI verarbeitet …'
+    : state === 'acting' ? '⚙️ Effyra AI führt aus …' : '';
+  if (el) { el.textContent = label; el.className = 'va-status' + (state && state !== 'idle' ? ' on va-' + state : ''); }
+  if (mic) mic.classList.toggle('rec', state === 'listening');
+}
+
+/* --- Mikrofon starten/stoppen --- */
+async function vaToggleMic() {
+  if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
+  if (vaListening) { vaStopMic(); return; }
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    vaSetStatus('listening', 'Mikrofon erlauben …');
+    try { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach(tr => tr.stop()); }
+    catch (e) { toast('🎤 Kein Mikrofon-Zugriff. Bitte für diese Seite erlauben.'); vaSetStatus('idle'); return; }
+  }
+  if (!vaGreeted) { vaGreeted = true; vaSpeak('Hallo' + (store.name ? ' ' + store.name : '') + ', ich bin Effyra AI. Wie kann ich dir helfen?'); }
+  let finalTx = '';
+  vaRec = new VASpeechRec();
+  vaRec.lang = 'de-DE'; vaRec.continuous = false; vaRec.interimResults = true; vaRec.maxAlternatives = 1;
+  vaRec.onresult = e => {
+    let interim = ''; finalTx = '';
+    for (let i = 0; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) finalTx += r[0].transcript; else interim += r[0].transcript; }
+    vaSetStatus('listening', (finalTx + ' ' + interim).trim());
+  };
+  vaRec.onerror = e => { vaListening = false; vaSetStatus('idle'); if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('🎤 Mikrofon-Zugriff abgelehnt'); };
+  vaRec.onend = () => {
+    vaListening = false; const mic = $('#vaMic'); if (mic) mic.classList.remove('rec');
+    const t = finalTx.trim();
+    if (t) { vaSetStatus('processing'); sendChat(t, true); } else vaSetStatus('idle');
+  };
+  vaListening = true; vaSetStatus('listening');
+  try { vaRec.start(); } catch (e) {}
+}
+function vaStopMic() { vaListening = false; if (vaRec) { try { vaRec.stop(); } catch (e) {} } }
+
+/* --- Deutsche Datums-/Zeit-/Betrags-Parser --- */
+const VA_WEEKDAYS = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6, sonnabend: 6 };
+const VA_MONTHS = { januar: 1, februar: 2, 'märz': 3, maerz: 3, april: 4, mai: 5, juni: 6, juli: 7, august: 8, september: 9, oktober: 10, november: 11, dezember: 12 };
+function vaParseDate(t) {
+  t = ' ' + t.toLowerCase() + ' ';
+  if (/\bübermorgen\b/.test(t)) return addDays(todayISO(), 2);
+  if (/\bvorgestern\b/.test(t)) return addDays(todayISO(), -2);
+  if (/\bmorgen\b/.test(t)) return addDays(todayISO(), 1);
+  if (/\bgestern\b/.test(t)) return addDays(todayISO(), -1);
+  if (/\bheute\b/.test(t)) return todayISO();
+  let m = t.match(/\bin\s+(\d{1,3})\s+tag/); if (m) return addDays(todayISO(), +m[1]);
+  m = t.match(/\bin\s+(einer|1|zwei|2|drei|3)\s+woche/); if (m) { const map = { einer: 1, '1': 1, zwei: 2, '2': 2, drei: 3, '3': 3 }; return addDays(todayISO(), 7 * (map[m[1]] || 1)); }
+  m = t.match(/\b(\d{1,2})\.\s*(\d{1,2})\.(?:\s*(\d{2,4}))?/);
+  if (m) { const d = +m[1], mo = +m[2]; let y = m[3] ? +m[3] : new Date().getFullYear(); if (y < 100) y += 2000; let iso = y + '-' + pad(mo) + '-' + pad(d); if (!m[3] && iso < todayISO()) iso = (y + 1) + '-' + pad(mo) + '-' + pad(d); return iso; }
+  m = t.match(/\b(\d{1,2})\.?\s+([a-zä]+)/); if (m && VA_MONTHS[m[2]]) { const d = +m[1], mo = VA_MONTHS[m[2]], y = new Date().getFullYear(); let iso = y + '-' + pad(mo) + '-' + pad(d); if (iso < todayISO()) iso = (y + 1) + '-' + pad(mo) + '-' + pad(d); return iso; }
+  for (const w in VA_WEEKDAYS) {
+    if (new RegExp('\\b' + w + '\\b').test(t)) {
+      const target = VA_WEEKDAYS[w], cur = parseISO(todayISO()).getDay();
+      let diff = (target - cur + 7) % 7; if (diff === 0) diff = 7;
+      if (/\b(nächst|naechst|kommend)/.test(t)) diff += (diff <= 7 && diff > 0 ? 0 : 0);
+      return addDays(todayISO(), diff);
+    }
+  }
+  return null;
+}
+function vaParseTime(t) {
+  t = t.toLowerCase();
+  let m = t.match(/\bum\s+(\d{1,2})[:.](\d{2})/) || t.match(/\b(\d{1,2})[:.](\d{2})\s*uhr/) || t.match(/\b(\d{1,2})[:.](\d{2})\b/);
+  if (m) return pad(+m[1]) + ':' + pad(+m[2]);
+  m = t.match(/\bviertel\s+vor\s+(\d{1,2})/); if (m) { let h = +m[1] - 1; if (h < 0) h = 23; return pad(h) + ':45'; }
+  m = t.match(/\bviertel\s+nach\s+(\d{1,2})/); if (m) return pad(+m[1]) + ':15';
+  m = t.match(/\bhalb\s+(\d{1,2})/); if (m) { let h = +m[1] - 1; if (h < 0) h = 23; return pad(h) + ':30'; }
+  m = t.match(/\bum\s+(\d{1,2})\s*(?:uhr)?\b/) || t.match(/\b(\d{1,2})\s*uhr\b/); if (m) return pad(+m[1]) + ':00';
+  return null;
+}
+function vaParseAmount(t) {
+  const m = t.toLowerCase().match(/(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?\s*(?:€|euros?|eur)\b/);
+  if (!m) return null;
+  const euros = +m[1].replace(/\./g, '');
+  let cents = m[2] || '0'; if (cents.length === 1) cents += '0';
+  return Math.round(euros * 100 + (+cents)) / 100;
+}
+const vaCap = (s) => { s = String(s || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; };
+function vaCleanTitle(s) {
+  return String(s || '')
+    .replace(/\b(um\s+\d{1,2}([:.]\d{2})?\s*uhr?|\d{1,2}[:.]\d{2}\s*uhr?|halb\s+\d{1,2}|viertel\s+(vor|nach)\s+\d{1,2})\b/gi, ' ')
+    .replace(/\b(heute|morgen|übermorgen|gestern|vorgestern|montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag|sonnabend)\b/gi, ' ')
+    .replace(/\b(bis|ab)\b[\s\S]*$/i, ' ')
+    .replace(/\b(am|um|den|einen|eine|einer|ein|der|die|das|mir|mich|bitte|noch|neuer|neue|neuen|neues|nächsten|kommenden)\b/gi, ' ')
+    .replace(/[:,]/g, ' ')
+    .replace(/\s{2,}/g, ' ').trim();
+}
+
+/* --- Ja/Nein-Bestätigung für kritische Aktionen --- */
+function vaHandleConfirm(text) {
+  const t = text.toLowerCase(), p = vaPending; vaPending = null;
+  if (/^\s*(ja|jo|jap|jup|okay|ok|klar|mach|bestätige|bestaetige|gerne|sicher|genau)\b/.test(t)) {
+    vaSetStatus('acting'); let msg; try { msg = p.run(); } catch (e) { msg = '⚠️ ' + e.message; }
+    vaReply(msg || 'Erledigt ✓');
+  } else if (/^\s*(nein|ne|nö|noe|abbrechen|abbruch|stop|stopp|lass|nicht|doch nicht)\b/.test(t)) {
+    vaReply('Alles klar, ich habe nichts geändert. 👍');
+  } else { vaPending = p; vaReply('Bitte antworte mit „ja" oder „nein". ' + p.summary); }
+}
+
+/* --- Bot-Antwort ausgeben (+ ggf. sprechen) --- */
+function vaReply(text) {
+  vaSetStatus('acting');
+  pushBot(text);
+  if (currentView === 'chat') RENDERERS.chat();
+  if (vaLastSpoken) vaSpeak(text);
+  setTimeout(() => { if (!vaListening) vaSetStatus('idle'); }, 500);
+}
+
+/* --- Lokale Intent-Engine: Sprache/Text -> Absicht -> Aktion (alle Module) --- */
+function vaRunLocal(text) {
+  const raw = text.trim(), t = raw.toLowerCase();
+
+  /* Nachfassen: „noch 20 Euro …" nach einer Ausgabe/Einnahme */
+  if (vaContext && (vaContext.type === 'expense' || vaContext.type === 'income')) {
+    const amt = vaParseAmount(t);
+    if (amt != null && /\b(noch|nochmal|nochmals|zusätzlich|zusaetzlich|außerdem|ausserdem|dazu|hinzu|und)\b/.test(t) && !/\bfür\b/.test(t)) {
+      ensureBudget();
+      store.budget.entries.push({ id: uid(), kind: vaContext.type, label: vaContext.label, amount: amt, recurring: false, date: todayISO() });
+      save();
+      vaReply('➕ Noch ' + eur(amt) + (vaContext.type === 'expense' ? ' für „' : ' als „') + vaContext.label + '" ergänzt.');
+      return true;
+    }
+  }
+
+  /* Kritisch: erledigte Aufgaben löschen -> Bestätigung */
+  if (/(lösch|loesch|entferne|entfern|räum|raeum)\w*/.test(t) && /(erledigt|abgeschlossen|abgehakt|fertig)\w*/.test(t) && /aufgabe/.test(t)) {
+    const n = store.tasks.filter(x => x.done).length;
+    if (!n) { vaReply('Es gibt keine erledigten Aufgaben zum Löschen. 👍'); return true; }
+    vaPending = { summary: 'Sollen die ' + n + ' erledigten Aufgaben gelöscht werden?', run: () => { const c = store.tasks.filter(x => x.done).length; store.tasks = store.tasks.filter(x => !x.done); save(); if (currentView === 'chat') RENDERERS.chat(); return '🗑️ ' + c + ' erledigte Aufgabe' + (c > 1 ? 'n' : '') + ' gelöscht.'; } };
+    vaReply('Ich habe ' + n + ' erledigte Aufgabe' + (n > 1 ? 'n' : '') + ' gefunden. Soll ich sie wirklich löschen? Sag „ja" oder „nein".');
+    return true;
+  }
+
+  /* Abfrage / Überblick */
+  if (/\b(was steht|was habe ich|was ist heute|was ist morgen|welche termine|zusammenfass|überblick|ueberblick|wie viele aufgaben|wie sieht mein tag|wie viel .*budget|wie viel .*übrig)\b/.test(t)) {
+    const forDate = /\bmorgen\b/.test(t) ? addDays(todayISO(), 1) : todayISO();
+    const evs = eventsOn(forDate), open = openTasksSorted();
+    const parts = [];
+    parts.push(evs.length ? (forDate === todayISO() ? 'Heute' : 'Morgen') + ' ' + evs.length + ' Termin' + (evs.length > 1 ? 'e' : '') + ': ' + evs.map(e => (e.time ? e.time + ' Uhr ' : '') + e.title).join(', ') : (forDate === todayISO() ? 'Heute' : 'Morgen') + ' keine Termine');
+    parts.push(open.length ? open.length + ' offene Aufgabe' + (open.length > 1 ? 'n' : '') + (open[0] ? ' – zuerst „' + open[0].title + '"' : '') : 'keine offenen Aufgaben');
+    if (store.budget && store.budget.entries && store.budget.entries.length) {
+      const ym = todayISO().slice(0, 7); let inc = 0, exp = 0;
+      store.budget.entries.forEach(e => { const inM = e.recurring || (e.date || '').slice(0, 7) === ym; if (!inM) return; if (e.kind === 'income') inc += +e.amount || 0; else exp += +e.amount || 0; });
+      parts.push('Budget diesen Monat: noch ' + eur(inc - exp));
+    }
+    vaReply('📋 ' + parts.join('. ') + '.');
+    return true;
+  }
+
+  /* Arbeitszeit erfassen */
+  if (/\b(gearbeitet|arbeitszeit|geschafft|im (büro|buero)|schicht gemacht)\b/.test(t) && /von\s+\d/.test(t)) {
+    const rng = t.match(/von\s+(\d{1,2})(?:[:.](\d{2}))?\s*(?:uhr)?\s*bis\s+(\d{1,2})(?:[:.](\d{2}))?/);
+    if (rng) {
+      const start = pad(+rng[1]) + ':' + pad(+(rng[2] || 0)), end = pad(+rng[3]) + ':' + pad(+(rng[4] || 0));
+      const pb = t.match(/(\d{1,3})\s*(?:min|minuten)\s*pause/) || t.match(/pause\s*(?:von\s*)?(\d{1,3})/);
+      const breakMin = pb ? +pb[1] : 0;
+      const iso = vaParseDate(t) || todayISO();
+      ensureWork();
+      store.work.entries[iso] = Object.assign({}, store.work.entries[iso] || {}, { start, end, breakStart: '', breakEnd: '', breakMin, note: 'per Sprache' });
+      save();
+      const net = netMinutes({ start, end, breakMin });
+      vaReply('🕒 Arbeitszeit erfasst: ' + fmtDate(iso) + ', ' + start + '–' + end + (breakMin ? ' (Pause ' + breakMin + ' Min)' : '') + ' – netto ' + hmDur(net) + ' Std.');
+      return true;
+    }
+  }
+
+  /* Abwesenheit: Urlaub / krank / kinderkrank */
+  const isSick = /\b(krankgeschrieben|krankschreibung|bin krank|melde mich krank|fühle mich krank)\b/.test(t);
+  const isKidSick = /\b(kinderkrank|kind ist krank|kind krank)\b/.test(t);
+  const isVac = /\burlaub\b/.test(t) && /\b(eintrag|trage|nehme|nehmen|beantrag|habe|hab|bin)\b/.test(t) && !/\b(in den urlaub|verreis|reise|fahren|fliegen|möchte|will)\b/.test(t);
+  const isFree = /\b(frei|abwesend)\b/.test(t) && /\b(eintrag|trage|nehme|beantrag)\b/.test(t);
+  if (isSick || isKidSick || isVac || isFree) {
+    const type = isKidSick ? 'kinderkrank' : isSick ? 'krank' : 'urlaub';
+    let from = todayISO(), to = null;
+    const bis = t.split(/\bbis\b/);
+    if (bis.length > 1) { from = vaParseDate(bis[0]) || vaParseDate(t) || todayISO(); to = vaParseDate(bis[1]) || from; }
+    else { from = vaParseDate(t) || todayISO(); to = from; }
+    ensureWork();
+    store.work.absences.push({ id: uid(), type, from, to, note: 'per Sprache' });
+    save();
+    const label = type === 'urlaub' ? 'Urlaub' : type === 'kinderkrank' ? 'Kind-krank' : 'Krank';
+    vaReply('🗓️ ' + label + ' eingetragen: ' + fmtDate(from) + (to && to !== from ? ' – ' + fmtDate(to) : '') + '.');
+    return true;
+  }
+
+  /* Einnahme */
+  const amtI = vaParseAmount(t);
+  if (amtI != null && /\b(eingenommen|einnahme|erhalten|bekommen|gehalt|verdient|gutschrift|lohn|überwiesen bekommen)\b/.test(t)) {
+    let m = raw.match(/(?:für|als|von)\s+(.+?)(?:\s+(?:heute|gestern|morgen|am|ein|eingetragen)\b[\s\S]*)?$/i);
+    let label = vaCleanTitle(m ? m[1] : '').replace(/\bein$/i, '').trim();
+    if (!label) label = 'Einnahme';
+    const recurring = /\b(monatlich|jeden monat|monatliche)\b/.test(t);
+    ensureBudget();
+    store.budget.entries.push({ id: uid(), kind: 'income', label: vaCap(label), amount: amtI, recurring, date: vaParseDate(t) || todayISO() });
+    save();
+    vaContext = { type: 'income', label: vaCap(label) };
+    vaReply('💶 Einnahme erfasst: ' + eur(amtI) + ' – „' + vaCap(label) + '"' + (recurring ? ' (monatlich)' : '') + '.');
+    return true;
+  }
+
+  /* Ausgabe */
+  const amtE = vaParseAmount(t);
+  if (amtE != null && (/\b(ausgegeben|ausgabe|bezahlt|gekauft|gezahlt|kostet|gekostet|ausgeben|trage|eintragen|notiere|für)\b/.test(t))) {
+    let m = raw.match(/für\s+(.+?)(?:\s+(?:heute|gestern|morgen|am|aus|ein|eingetragen)\b[\s\S]*)?$/i);
+    let label = vaCleanTitle(m ? m[1] : '').replace(/\b(ein|aus)$/i, '').trim();
+    if (!label) label = 'Ausgabe';
+    const recurring = /\b(monatlich|jeden monat|monatliche)\b/.test(t);
+    ensureBudget();
+    store.budget.entries.push({ id: uid(), kind: 'expense', label: vaCap(label), amount: amtE, recurring, date: vaParseDate(t) || todayISO() });
+    save();
+    vaContext = { type: 'expense', label: vaCap(label) };
+    vaReply('🧾 Ausgabe erfasst: ' + eur(amtE) + ' für „' + vaCap(label) + '"' + (recurring ? ' (monatlich)' : '') + '.');
+    return true;
+  }
+
+  /* Termin / Kalender */
+  const hasTime = vaParseTime(t) != null, hasDate = vaParseDate(t) != null;
+  if (/\btermin\b|\btreffen\b|\bmeeting\b|\barzt\b|\bzahnarzt\b|\bfriseur\b|\bkalendereintrag\b/.test(t) || (hasDate && hasTime)) {
+    const date = vaParseDate(t) || todayISO(), time = vaParseTime(t);
+    let title = '', m = raw.match(/termin(?:\s+(?:für|mit|zum|zur|beim|bei|am))?\s*[:,\-]?\s*(.+)$/i);
+    if (m) title = m[1]; else { m = raw.match(/(?:treffen|meeting)\s+(?:mit\s+)?(.+)$/i); if (m) title = m[1]; }
+    title = vaCleanTitle(title || raw);
+    if (!title) title = 'Termin';
+    addEvent(vaCap(title), date, time, 'per Sprache', 'chat');
+    vaContext = { type: 'event' };
+    vaReply('📅 Termin angelegt: „' + vaCap(title) + '" am ' + fmtDate(date) + (time ? ' um ' + time + ' Uhr' : '') + '.');
+    return true;
+  }
+
+  /* Notiz */
+  if (/\b(notiz|notiere|notier|merke dir|merk dir|schreib.*auf)\b/.test(t)) {
+    let m = raw.match(/(?:notiz|notiere|notier|merke dir|merk dir)\s*[:,\-]?\s*(.+)$/i);
+    let title = vaCleanTitle(m ? m[1] : raw);
+    if (!title) return false;
+    addTask('📝 ' + vaCap(title), null, 'low', 'chat');
+    vaContext = { type: 'note' };
+    vaReply('📝 Notiz gespeichert: „' + vaCap(title) + '" (als Aufgabe abrufbar).');
+    return true;
+  }
+
+  /* Aufgabe */
+  if (/\baufgabe\b|\bto-?do\b|\berinnere mich\b|\bnicht vergessen\b|\bich muss\b|\berledigen\b|\bbesorg/.test(t)) {
+    const due = vaParseDate(t);
+    let m = raw.match(/aufgabe\s*[:,\-]?\s*(.+)$/i) || raw.match(/to-?do\s*[:,\-]?\s*(.+)$/i)
+      || raw.match(/erinnere mich(?:\s+daran)?[:,\s]\s*(.+)$/i) || raw.match(/ich muss\s+(.+)$/i)
+      || raw.match(/nicht vergessen[:,\s]\s*(.+)$/i);
+    let title = vaCleanTitle(m ? m[1] : raw);
+    if (!title) return false;
+    addTask(vaCap(title), due, 'med', 'chat');
+    vaContext = { type: 'task' };
+    vaReply('✅ Aufgabe angelegt: „' + vaCap(title) + '"' + (due ? ' – fällig ' + fmtDate(due) : '') + '.');
+    return true;
+  }
+
+  return false;
+}
+
+async function sendChat(text, spoken) {
   text = (text || '').trim();
   if (!text || botTyping) return;
+  vaLastSpoken = !!spoken;
   store.chat.push({ role: 'user', text, actions: [] });
   save();
+  RENDERERS.chat();
+  /* 1) offene Ja/Nein-Bestätigung */
+  if (vaPending) { vaHandleConfirm(text); return; }
+  /* 2) lokale Intent-Engine (funktioniert für Sprache UND Text) */
+  try { if (vaRunLocal(text)) return; } catch (e) { /* bei Parser-Fehler an KI/Demo weiterreichen */ }
+  /* 3) freie KI-Antwort bzw. Demo */
   botTyping = true;
   RENDERERS.chat();
+  vaSetStatus('processing');
   try {
     if (canRealAI()) {
       await realReply(text);
     } else {
-      await new Promise(r => setTimeout(r, 900 + Math.random() * 700));
+      await new Promise(r => setTimeout(r, 800 + Math.random() * 500));
       demoReply(text);
     }
+    if (vaLastSpoken) { const last = store.chat[store.chat.length - 1]; if (last && last.role === 'bot') vaSpeak(last.text); }
   } catch (e) {
     pushBot('⚠️ ' + e.message);
   } finally {
     botTyping = false;
     if (currentView === 'chat') RENDERERS.chat();
+    vaSetStatus('idle');
   }
 }
 
 $('#chatSend').addEventListener('click', () => { const i = $('#chatInput'); const v = i.value; i.value = ''; sendChat(v); });
 $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#chatSend').click(); });
+$('#vaMic').addEventListener('click', vaToggleMic);
 $('#chatMsgs').addEventListener('click', e => {
   const sg = e.target.closest('[data-sg]');
-  if (sg) { sendChat(sg.dataset.sg.replace(/^\S+\s/, '')); return; }
+  if (sg) { sendChat(sg.dataset.sg); return; }
   const chip = e.target.closest('.chip[data-m]');
   if (!chip || chip.disabled) return;
   const msg = store.chat[+chip.dataset.m];
