@@ -401,7 +401,7 @@
         <div class="notif n6"><span class="ic">🦷</span><span class="tx">Zahnarzt bestätigen<small>Rückruf nötig</small></span><span class="badge">!</span></div>
       </div>
       <div class="sparks" data-fill="spark:12"></div>
-      <p class="cap">Zu viel. Zu laut. Zu&nbsp;schnell.</p>
+      <p class="cap">Manchmal ist alles zu&nbsp;viel.</p>
       <div class="vig"></div><div class="grain"></div>
     </section>
 
@@ -417,7 +417,7 @@
       </svg>
       <div class="sparks" data-fill="spark:16"></div>
       <div class="redpulse"></div><div class="riser"></div>
-      <p class="cap">Alles&nbsp;gleichzeitig.</p>
+      <p class="cap">Und alles&nbsp;gleichzeitig.</p>
       <div class="vig"></div><div class="grain"></div>
     </section>
 
@@ -436,7 +436,7 @@
         </svg>
         <div class="logotype">Effyra</div>
       </div>
-      <p class="cap">Durchatmen.</p>
+      <p class="cap">Einmal durchatmen.</p>
       <div class="vig"></div>
     </section>
 
@@ -465,7 +465,7 @@
           <div class="doc"><i></i><i></i><i></i><div class="scan"></div></div><span class="chk" style="animation:tick .4s cubic-bezier(.2,1.6,.4,1) 6.7s both">✓</span></div>
       </div>
       <p class="cap a">Sag, was du brauchst.</p>
-      <p class="cap b">Deine Woche – <b>automatisch geplant.</b></p>
+      <p class="cap b">Deine Woche? <b>Schon geplant.</b></p>
       <div class="vig" style="box-shadow:inset 0 0 20cqw 4cqw rgba(120,150,200,.15)"></div>
     </section>
 
@@ -547,7 +547,7 @@
           <g fill="#8a5636"><circle cx="114" cy="62" r="9"/><path d="M102 90 q0-18 12-18 t12 18 z"/></g>
         </g>
       </svg>
-      <p class="cap">Mehr Zeit für das, was wirklich&nbsp;zählt.</p>
+      <p class="cap">Einfach mal da&nbsp;sein.</p>
       <div class="vig" style="box-shadow:inset 0 0 22cqw 4cqw rgba(150,90,40,.2)"></div>
     </section>
 
@@ -568,7 +568,7 @@
         <div class="name">Effyra</div>
         <div class="sub">Ruhe für deinen Alltag.</div>
         <div class="tag">Plane weniger. Lebe mehr.</div>
-        <div class="cta">Jetzt kostenlos testen</div>
+        <div class="cta">Jetzt kostenlos ausprobieren</div>
       </div>
       <div class="vig"></div>
     </section>
@@ -629,8 +629,8 @@
   const SD_CAP = {
     2: ['Effyra AI scannt dein Dokument', 'scannt…'],
     3: ['Erkennt <b>Betrag, Frist &amp; Absender</b>', 'analysiert…'],
-    5: ['<b>Rechnung &amp; Termin</b> – automatisch erstellt', 'erstellt…'],
-    7: ['Fertig – ganz ohne Tippen.', 'fertig ✓']
+    5: ['<b>Rechnung &amp; Termin?</b> Schon erledigt.', 'erstellt…'],
+    7: ['Fertig. Ohne einen einzigen Klick.', 'fertig ✓']
   };
   let demoPhase = -1;
   function setDemoPhase(p){
@@ -794,15 +794,15 @@
   /* ================= STIMME: deutsche Sprachausgabe (Werbeslogans) ================= */
   let voiceOn = true, voTimers = [], pickedVoice = null, utters = [];
   const VO = [
-    [0.5,  'Dein Alltag. Zu viel, zu laut, zu schnell.', 1.02, 1.0],
-    [4.2,  'Termine, Kinder, Arbeit – alles gleichzeitig.', 1.0, 1.0],
-    [8.7,  'Durchatmen. Effyra bringt Ruhe in deinen Tag.', 0.92, 1.02],
+    [0.5,  'Manchmal ist einfach alles zu viel.', 1.0, 1.0],
+    [4.2,  'Termine, Kinder, Arbeit – und das alles gleichzeitig.', 1.0, 1.0],
+    [8.7,  'Einmal durchatmen. Effyra ist jetzt für dich da.', 0.92, 1.02],
     [12.6, 'Sag einfach, was du brauchst.', 0.98, 1.0],
-    [15.7, 'Effyra plant deine Woche – ganz automatisch.', 0.97, 1.0],
-    [19.3, 'Einfach abfotografieren – den Rest macht Effyra.', 0.98, 1.0],
-    [23.6, 'Rechnung erkannt, Termin erstellt. Wie von selbst.', 0.96, 1.0],
-    [28.2, 'Mehr Zeit für das, was wirklich zählt.', 0.9, 1.02],
-    [32.5, 'Effyra. Ruhe für deinen Alltag. Jetzt kostenlos testen.', 0.95, 1.02]
+    [15.7, 'Und Effyra plant deine ganze Woche. Ganz von allein.', 0.97, 1.0],
+    [19.3, 'Einfach abfotografieren – den Rest übernimmt Effyra.', 0.98, 1.0],
+    [23.6, 'Rechnung erkannt, Termin gespeichert. Wie von selbst.', 0.96, 1.0],
+    [28.2, 'Und abends? Bist du einfach da. Ganz ohne Handy.', 0.9, 1.02],
+    [32.5, 'Effyra. Ruhe für deinen Alltag. Probier es kostenlos aus.', 0.95, 1.02]
   ];
   function pickVoice(){
     if (!('speechSynthesis' in window)) return;

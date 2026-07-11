@@ -1,0 +1,85 @@
+EFFYRA — SPRECHER-SKRIPT / VOICE-OVER  (v2, humanisiert)
+Werbespot »Ruhe beginnt mit Effyra«  ·  Laenge ca. 0:36  ·  Deutsch  ·  9 Einsaetze  ·  ca. 63 Woerter
+Ton: warm, ruhig, natuerlich – als wuerde jemand mit dir reden, nicht "Werbestimme".
+Aussprache "Effyra": EFF-fue-ra (Betonung 1. Silbe, "y" = "ue") — im ganzen Spot einheitlich.
+Wichtig: Die Saetze sind bewusst gesprochen geschrieben (mit "und", kurzen Fragen, Rhythmuswechseln).
+Genau so lesen, nicht glattbuegeln.
+
+──────────────────────────────────────────────────────────────────────
+TIMECODES & REGIE
+──────────────────────────────────────────────────────────────────────
+
+[1]  EIN 0:00.5  →  0:03.0   | Chaos · anspannende Percussion
+     "Manchmal ist einfach alles zu viel."
+     Regie: Nachdenklich, mitfuehlend, ein leises Seufzen mitschwingen
+     lassen. Nicht dramatisch – eher ein "kennst du das?".
+
+[2]  EIN 0:04.2  →  0:07.4   | Chaos-Hoehepunkt · Riser
+     "Termine, Kinder, Arbeit – und das alles gleichzeitig."
+     Regie: Aufzaehlend, Tempo zieht leicht an. "und das alles gleichzeitig"
+     resigniert, mit einem hoerbaren Ausatmen.
+
+[3]  EIN 0:08.7  →  0:11.8   | Reveal/Logo · Impact -> warmer Dur-Akkord
+     "Einmal durchatmen. Effyra ist jetzt fuer dich da."
+     Regie: DER WENDEPUNKT. Nach "durchatmen." echte Pause (~0,6 s).
+     Dann ruhig, warm, erleichtert. "fuer dich da" ganz weich.
+
+[4]  EIN 0:12.6  →  0:14.6   | App – Eingabe · sanfte Progression
+     "Sag einfach, was du brauchst."
+     Regie: Einladend, freundlich, ruhig-selbstbewusst – wie ein guter
+     persoenlicher Assistent. "einfach" leicht betonen.
+
+[5]  EIN 0:15.7  →  0:18.4   | App – Ergebnisse · Uplift-Groove
+     "Und Effyra plant deine ganze Woche. Ganz von allein."
+     Regie: Leicht, mit einem Laecheln. "Ganz von allein" fast beilaeufig –
+     als waer's das Normalste der Welt.
+
+[6]  EIN 0:19.3  →  0:22.4   | Dokument-Scan · Cyan-Sweep
+     "Einfach abfotografieren – den Rest uebernimmt Effyra."
+     Regie: Locker-selbstbewusst. Kleiner Punkt vor "den Rest",
+     dann "uebernimmt Effyra" ruhig betonen.
+
+[7]  EIN 0:23.6  →  0:26.6   | Auto-Erstellung · "Ding" bei den Karten
+     "Rechnung erkannt, Termin gespeichert. Wie von selbst."
+     Regie: Ruhig-praezise, fast beilaeufig – genau das ist der Clou:
+     es passiert einfach, ohne Aufhebens.
+
+[8]  EIN 0:28.2  →  0:31.0   | Familie · warme Streicher
+     "Und abends? Bist du einfach da. Ganz ohne Handy."
+     Regie: Die herzlichste Zeile. Nach "abends?" kleine Pause.
+     Entschleunigt, warm, ein Laecheln. "ganz ohne Handy" leise,
+     fast augenzwinkernd.
+
+[9]  EIN 0:32.5  →  0:36.0   | Logo & CTA · aufgeloestes Finale
+     "Effyra. Ruhe fuer deinen Alltag. Probier es kostenlos aus."
+     Regie: Markenschluss. "Effyra." klar, kurz stehen lassen. Dann warm:
+     "Ruhe fuer deinen Alltag." CTA freundlich-einladend, NICHT draengend.
+
+──────────────────────────────────────────────────────────────────────
+AUFNAHME (Human)
+──────────────────────────────────────────────────────────────────────
+- Trocken aufnehmen (kein Raum/Hall – der Spot bringt den Hall mit).
+- 48 kHz / 24-bit, Pop-Filter, ~-6 dB Headroom.
+- Leichte Kompression + De-Esser, dezente Atmer & Sprechpausen lassen.
+- Jede Zeile als eigenen Take -> leichter auf die Timecodes zu setzen.
+
+──────────────────────────────────────────────────────────────────────
+FUER KI-STIMME (z. B. ElevenLabs) — Block einfuegen (Multilingual v2)
+Regler: Stability ~50 % · Similarity ~75 % · Style 0–15 % · Speaker Boost an
+──────────────────────────────────────────────────────────────────────
+Manchmal ist einfach alles zu viel. <break time="1.2s" />
+Termine, Kinder, Arbeit – und das alles gleichzeitig. <break time="1.3s" />
+Einmal durchatmen. <break time="0.6s" /> Effyra ist jetzt fuer dich da. <break time="0.8s" />
+Sag einfach, was du brauchst. <break time="1.1s" />
+Und Effyra plant deine ganze Woche. Ganz von allein. <break time="0.9s" />
+Einfach abfotografieren – den Rest uebernimmt Effyra. <break time="1.2s" />
+Rechnung erkannt, Termin gespeichert. Wie von selbst. <break time="1.6s" />
+Und abends? Bist du einfach da. Ganz ohne Handy. <break time="1.5s" />
+Effyra. Ruhe fuer deinen Alltag. Probier es kostenlos aus.
+
+(Falls das Tool keine <break>-Tags kennt: Zeilen einzeln generieren und
+im Schnitt an den Timecodes platzieren.)
+
+──────────────────────────────────────────────────────────────────────
+Spot mit eingebauter Musik: .../Effyra/werbespot.html  ->  dort die
+"Stimme" ausschalten und dieses Voice-over drueberlegen.
