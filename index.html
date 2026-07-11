@@ -325,6 +325,8 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .theme-toggle button{width:32px;height:32px;border:none;background:none;border-radius:999px;cursor:pointer;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);font-weight:800;transition:.15s}
 .theme-toggle button:hover{color:var(--text)}
 .theme-toggle button.active{background:var(--grad);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.35)}
+.fam-ai-row{display:flex;align-items:center;gap:6px;font-size:13px;margin-top:5px;color:var(--muted)}
+.fam-ai-row b{margin-left:auto;color:var(--text)}
 .dash-sub{color:var(--muted);font-size:15px;line-height:1.45;margin-top:7px;max-width:46ch}
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
 .dash-stats .stat{padding:13px 6px}
@@ -3645,17 +3647,37 @@ $('#weatherWidget').addEventListener('keydown', e => {
 });
 
 /* ============================== FAMILIENZENTRALE ============================== */
-const FAM_ROLES = ['Ich', 'Partner/in', 'Kind', 'Mutter', 'Vater', 'Oma', 'Opa', 'Geschwister', 'Sonstige'];
+/* Rollenmodell (Client, Phase 1): owner=Administrator, adult=Erwachsen, child=Kind (<18).
+   Kinder sind eingeschränkt (keine KI, kein API-Key, keine Ausgaben ohne Freigabe). Zahlung/serverseitiges Enforcement folgt in Phase 2. */
+const FAM_ROLE_META = { owner: { label: 'Administrator', icon: '👑' }, adult: { label: 'Erwachsen', icon: '🧑' }, child: { label: 'Kind', icon: '🧒' } };
+const FAMILY_AI_LIMIT = 1000;   // geteiltes Familien-KI-Kontingent/Monat (nur Erwachsene)
+const FAMILY_MAX_ADULTS = 2, FAMILY_MAX_CHILDREN = 3;   // im Familienabo enthalten (weitere = Zusatzpakete, Phase 2)
+function ageFrom(iso) { if (!iso) return null; const b = parseISO(iso), n = new Date(); let a = n.getFullYear() - b.getFullYear(); const mo = n.getMonth() - b.getMonth(); if (mo < 0 || (mo === 0 && n.getDate() < b.getDate())) a--; return a; }
+function nextMonthFirstISO() { const d = new Date(); return toISO(new Date(d.getFullYear(), d.getMonth() + 1, 1)); }
+const isChildMember = (m) => !!m && m.role === 'child';
+/* Was darf ein Mitglied? Kinder nur Ansicht; Erwachsene/Owner alles (Phase-2-Zahlung ausgenommen). */
+function memberCan(m, cap) { if (!m) return false; if (m.role === 'child') return cap === 'view'; return true; }
 let famTab = 'personen', famLastPull = 0;
 function ensureFamily() {
   if (!store.family) store.family = { members: [], occasions: [], code: null };
   if (!store.family.members) store.family.members = [];
   if (!store.family.occasions) store.family.occasions = [];
   if (!store.family.tasks) store.family.tasks = [];   // Familienaufgaben (an Mitglieder vergeben)
+  if (!store.family.ai) store.family.ai = { limit: FAMILY_AI_LIMIT, resetDate: nextMonthFirstISO() };
   if (!store.family.members.length) {
-    store.family.members.push({ id: uid(), name: (account && account.name) || store.name || 'Ich', role: 'Ich', color: KID_COLORS[0], birthday: '' });
+    store.family.members.push({ id: uid(), name: (account && account.name) || store.name || 'Ich', role: 'owner', color: KID_COLORS[0], birthday: '', aiUsed: 0 });
     save();
   }
+  /* Legacy-Rollen (Freitext) → owner/adult/child normalisieren; genau ein owner. */
+  let hasOwner = false;
+  store.family.members.forEach((m, i) => {
+    if (m.role !== 'owner' && m.role !== 'adult' && m.role !== 'child') {
+      m.role = /kind/i.test(m.role || '') ? 'child' : (/^ich$/i.test(m.role || '') || i === 0) ? 'owner' : 'adult';
+    }
+    if (m.role === 'owner') { if (hasOwner) m.role = 'adult'; else hasOwner = true; }
+    if (m.role !== 'child' && typeof m.aiUsed !== 'number') m.aiUsed = 0;
+  });
+  if (!hasOwner && store.family.members[0]) store.family.members[0].role = 'owner';
 }
 const famMember = (id) => store.family.members.find(m => m.id === id);
 function nextOccur(iso) {
@@ -3730,16 +3752,34 @@ RENDERERS.family = function () {
     famPull().then(changed => { if (changed && currentView === 'family') RENDERERS.family(); });
   }
 };
+function famAiPanel() {
+  const adults = store.family.members.filter(m => m.role !== 'child');
+  const used = adults.reduce((s, m) => s + (m.aiUsed || 0), 0);
+  const limit = (store.family.ai && store.family.ai.limit) || FAMILY_AI_LIMIT;
+  const pct = limit ? Math.min(100, Math.round(used / limit * 100)) : 0;
+  const reset = store.family.ai && store.family.ai.resetDate ? fmtDate(store.family.ai.resetDate) : '–';
+  let h = '<div class="note-box" style="margin-bottom:14px"><b>🤖 Familien-KI-Kontingent</b>' +
+    '<div class="quota-bar"><div class="quota-fill ' + (pct >= 100 ? 'full' : pct >= 90 ? 'warn' : '') + '" style="width:' + pct + '%"></div></div>' +
+    '<span class="sub">' + used + ' / ' + limit + ' Anfragen · Reset ' + esc(reset) + '</span>';
+  adults.forEach(m => { h += '<div class="fam-ai-row"><span class="kid-dot" style="background:' + m.color + '"></span>' + esc(m.name) + (m.role === 'owner' ? ' 👑' : '') + '<b>' + (m.aiUsed || 0) + '</b></div>'; });
+  h += '<div class="sub" style="margin-top:6px">Nur Erwachsene verbrauchen KI – Kinder haben keinen KI-Zugriff.</div></div>';
+  return h;
+}
 function famPersonen() {
-  let h = '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
-    '<div class="kid-row" style="margin-bottom:8px"><select id="famRole">' + FAM_ROLES.map(r => '<option>' + r + '</option>').join('') + '</select>' +
-    '<input type="date" id="famBday" title="Geburtstag"></div>' +
+  let h = famAiPanel();
+  h += '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
+    '<div class="kid-row" style="margin-bottom:8px"><select id="famType"><option value="adult">🧑 Erwachsen (18+)</option><option value="child">🧒 Kind (unter 18)</option></select>' +
+    '<input type="date" id="famBday" title="Geburtsdatum"></div>' +
     '<button class="btn btn-primary btn-sm" data-fam="addMem" style="width:100%;margin-bottom:14px">+ Person hinzufügen</button>';
   store.family.members.forEach(m => {
-    const bd = m.birthday ? '🎂 ' + fmtDateShort(m.birthday) : '';
-    h += '<div class="mem"><span class="kid-dot" style="background:' + m.color + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b>' +
-      '<span>' + esc(m.role) + (bd ? ' · ' + bd : '') + '</span></div>' +
-      '<button class="t-del" data-fam="delMem" data-id="' + m.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+    const meta = FAM_ROLE_META[m.role] || FAM_ROLE_META.adult;
+    const age = ageFrom(m.birthday);
+    const sub = meta.icon + ' ' + meta.label + (age != null ? ' · ' + age + ' J.' : '') + ' · ' + (m.role === 'child' ? '🔒 keine KI' : 'KI aktiv');
+    h += '<div class="mem"><span class="kid-dot" style="background:' + m.color + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b><span>' + sub + '</span></div>' +
+      (m.role === 'owner'
+        ? '<span class="badge b-premium" title="Administrator">👑 Admin</span>'
+        : '<button class="t-del" data-fam="delMem" data-id="' + m.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button>') +
+      '</div>';
   });
   return h;
 }
@@ -3830,8 +3870,17 @@ $('#famRoot').addEventListener('click', e => {
   const a = b.dataset.fam, q = s => $('#famRoot ' + s);
   if (a === 'addMem') {
     const name = q('#famName').value.trim(); if (!name) { q('#famName').focus(); return; }
-    store.family.members.push({ id: uid(), name, role: q('#famRole').value, color: KID_COLORS[store.family.members.length % KID_COLORS.length], birthday: q('#famBday').value || '' });
-    famChanged(); toast('Person hinzugefügt ✓'); return;
+    const type = q('#famType').value, bday = q('#famBday').value || '', age = ageFrom(bday);
+    if (type === 'child' && age != null && age >= 18) { toast('Ein Kinderkonto ist nur für unter 18-Jährige.'); return; }
+    if (type === 'adult' && age != null && age < 18) { toast('Erwachsene müssen 18+ sein – für unter 18 bitte „Kind" wählen.'); return; }
+    const adults = store.family.members.filter(m => m.role !== 'child').length;
+    const children = store.family.members.filter(m => m.role === 'child').length;
+    if (type === 'adult' && adults >= FAMILY_MAX_ADULTS) { toast('Im Familienabo sind ' + FAMILY_MAX_ADULTS + ' Erwachsene enthalten – weitere sind ein Zusatzpaket (3,99 €/Mon, Phase 2).'); return; }
+    if (type === 'child' && children >= FAMILY_MAX_CHILDREN) { toast('Im Familienabo sind bis zu ' + FAMILY_MAX_CHILDREN + ' Kinder enthalten – weitere sind ein Zusatzpaket (0,99 €/Mon, Phase 2).'); return; }
+    const m = { id: uid(), name, role: type, color: KID_COLORS[store.family.members.length % KID_COLORS.length], birthday: bday };
+    if (type !== 'child') m.aiUsed = 0;
+    store.family.members.push(m);
+    famChanged(); toast(type === 'child' ? 'Kinderkonto hinzugefügt ✓' : 'Person hinzugefügt ✓'); return;
   }
   if (a === 'delMem') { store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return; }
   if (a === 'addEv') {
