@@ -956,7 +956,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <h1 class="gate-brand font-head">Effyra</h1>
     <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
     <h2 id="authTitle">Konto erstellen</h2>
-    <p class="gate-sub" id="authSub">7 Tage kostenlos testen – alle Funktionen inklusive.</p>
+    <p class="gate-sub" id="authSub">14 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
       <input type="text" id="auName" placeholder="Vorname" maxlength="30" autocomplete="given-name">
       <input type="text" id="auLast" placeholder="Nachname" maxlength="40" autocomplete="family-name">
@@ -1000,14 +1000,14 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <button class="btn btn-primary tier-cta" data-buy="premium">Premium starten – 4,99 €/Mon.</button>
       </div>
       <div class="tier-card" data-tier="family">
-        <div class="tier-top"><span class="tier-name">Familienabo</span><span class="tier-price">15,00 €<small>/ Monat</small></span></div>
+        <div class="tier-top"><span class="tier-name">Familienabo</span><span class="tier-price">14,99 €<small>/ Monat</small></span></div>
         <ul class="tier-feats">
           <li>✅ 2 Erwachsene + bis zu 3 Kinder (unter 18)</li>
           <li>✅ Gemeinsamer Familienbereich &amp; Synchronisation</li>
           <li>✅ 1000 KI-Anfragen / Monat (geteilt, nur Erwachsene)</li>
           <li>➕ Zusatz: Erwachsener 3,99 € · Kind 0,99 € · KI-Boost 4,99 € (+1000)</li>
         </ul>
-        <button class="btn btn-primary tier-cta" data-buy="family">Familie starten – 15 €/Mon.</button>
+        <button class="btn btn-primary tier-cta" data-buy="family">Familie starten – 14,99 €/Mon.</button>
       </div>
     </div>
     <details class="up-code"><summary>Ich habe einen Freischalt-Code</summary>
@@ -2132,7 +2132,7 @@ const ENFORCE_TIERS = false;
 /* ============================== AUTH & PLAN ============================== */
 const ACC_KEY = 'effyra_account';
 const TRIAL0_KEY = 'effyra_trial0';
-const TRIAL_DAYS = 7;
+const TRIAL_DAYS = 14;
 /* SHA-256-Hashes gültiger Freischalt-Codes – die Codes selbst stehen nicht im Quelltext */
 const PREMIUM_HASHES = [
   '19d0030aea66bc3f6f6c244ed7ba921fe0f28cb0b4ea40b9084ab944b8352a2d',
@@ -2338,7 +2338,7 @@ function setupAuthForm() {
     $('#auEmail').style.display = '';
     $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Anmelden';
     $('#authSub').textContent = isReg
-      ? '7 Tage kostenlos testen – alle Funktionen inklusive.'
+      ? '14 Tage kostenlos testen – alle Funktionen inklusive.'
       : 'Schön, dass du wieder da bist!';
     $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
     $('#authToggle').style.display = '';
@@ -2353,7 +2353,7 @@ function setupAuthForm() {
   $('#auEmail').style.display = isReg ? '' : 'none';
   $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Willkommen zurück';
   $('#authSub').textContent = isReg
-    ? '7 Tage kostenlos testen – alle Funktionen inklusive.'
+    ? '14 Tage kostenlos testen – alle Funktionen inklusive.'
     : 'Angemeldet bleiben als ' + account.email;
   $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
   $('#authToggle').style.display = 'none';
@@ -2414,7 +2414,7 @@ async function cloudAuth(pass, err) {
         return;
       }
       await cloudSession(r.data.session, name);
-      toast('Konto erstellt – 7 Tage alles inklusive ✨');
+      toast('Konto erstellt – 14 Tage alles inklusive ✨');
     } else {
       const r = await sb.auth.signInWithPassword({ email, password: pass });
       if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
