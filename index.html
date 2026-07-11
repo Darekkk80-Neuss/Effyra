@@ -1486,12 +1486,12 @@ const relDay = (iso) => {
   return fmtDateShort(iso);
 };
 
-function toast(msg) {
+function toast(msg, ms) {
   const t = document.createElement('div');
   t.className = 'toast';
   t.textContent = msg;
   $('#toasts').appendChild(t);
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 2600);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, ms || 2600);
 }
 
 async function copyText(text) {
@@ -5692,6 +5692,15 @@ async function realReply(text) {
 /* ============================== EFFYRA AI – SPRACHAGENT ============================== */
 const VASpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 let vaRec = null, vaListening = false, vaLastSpoken = false, vaGreeted = false;
+/* OpenAI-Sprache verfügbar? Bei Fehler (z. B. Modell im Projekt nicht freigeschaltet) automatisch auf Browser-Sprache zurückfallen. */
+let aiSttOk = true, aiTtsOk = true, _voiceFellBack = false;
+function isModelAccessErr(m) { return /does not have access to model|model_not_found|does not exist|no access|verify|unsupported_model/i.test(String(m || '')); }
+function noteVoiceFallback(err) {
+  if (_voiceFellBack) return; _voiceFellBack = true;
+  const m = String((err && err.message) || err || '');
+  if (isModelAccessErr(m)) toast('ℹ️ Die OpenAI-Sprachmodelle (gpt-4o-mini-transcribe / gpt-4o-mini-tts) sind in deinem OpenAI-Projekt noch nicht freigeschaltet. Ich nutze vorerst die Browser-Sprache – im OpenAI-Dashboard die Modelle freigeben, dann klingt es besser.', 7000);
+  else toast('ℹ️ Sprach-KI gerade nicht verfügbar – ich nutze die Browser-Sprache.' + (m ? ' (' + m.slice(0, 80) + ')' : ''), 6000);
+}
 let vaPending = null;   // { run:fn->msg, summary:str } – wartet auf Ja/Nein
 let vaContext = null;   // letzter Intent für Nachfassen („noch 20 Euro …")
 
@@ -5713,7 +5722,7 @@ async function vaSpeak(text) {
   if (!clean) return;
   try { speechSynthesis.cancel(); } catch (e) {}
   if (vaAudioEl) { try { vaAudioEl.pause(); } catch (e) {} vaAudioEl = null; }
-  if (AI_VOICE && canRealAI()) {
+  if (AI_VOICE && aiTtsOk && canRealAI()) {
     try {
       const r = await callAudioHosted({ op: 'tts', text: clean, voice: TTS_VOICE });
       if (r && r.audio) {
@@ -5721,7 +5730,7 @@ async function vaSpeak(text) {
         vaAudioEl.play().catch(() => vaSpeakBrowser(clean));
         return;
       }
-    } catch (e) { /* Fallback auf Browser-Stimme */ }
+    } catch (e) { aiTtsOk = false; noteVoiceFallback(e); }   // Fallback auf Browser-Stimme
   }
   vaSpeakBrowser(clean);
 }
@@ -5774,7 +5783,7 @@ async function vaRecordOpenAI() {
       const r = await callAudioHosted({ op: 'transcribe', audio, mime: blob.type });
       const t = (r.text || '').trim();
       if (t) sendChat(t, true); else { vaSetStatus('idle'); toast('Nichts verstanden – bitte nochmal.'); }
-    } catch (e) { vaSetStatus('idle'); toast('⚠️ ' + e.message); }
+    } catch (e) { aiSttOk = false; vaSetStatus('idle'); noteVoiceFallback(e); toast('🎤 Tippe erneut aufs Mikrofon und sprich – jetzt über die Browser-Erkennung.', 5000); }
   };
   try { vaMediaRec.start(); } catch (e) { vaSetStatus('idle'); toast('⚠️ Aufnahme nicht möglich.'); return; }
   vaListening = true; vaSetStatus('listening', 'Sprich jetzt – tippe erneut zum Senden');
@@ -5783,7 +5792,7 @@ async function vaRecordOpenAI() {
 async function vaToggleMic() {
   if (vaListening) { vaStopMic(); return; }
   /* Bevorzugt echte OpenAI-Sprache (bessere Erkennung), sonst Browser-Spracherkennung als Fallback. */
-  if (AI_VOICE && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  if (AI_VOICE && aiSttOk && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     return vaRecordOpenAI();
   }
   if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
