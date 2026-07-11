@@ -2579,7 +2579,8 @@ RENDERERS.dashboard = function () {
 
   const slot = $('#trialSlot');
   if (account && isPremium()) slot.innerHTML = '<span class="trial-pill premium">💎 Premium – alles inklusive</span>';
-  else if (account) { const d = trialDaysLeft(); slot.innerHTML = '<button class="trial-pill" id="trialGo">⏳ Testphase: noch ' + d + ' Tag' + (d === 1 ? '' : 'e') + ' · <b>Premium freischalten</b></button>'; $('#trialGo').addEventListener('click', () => showView('settings')); }
+  else if (account && ENFORCE_TIERS) { const d = trialDaysLeft(); slot.innerHTML = '<button class="trial-pill" id="trialGo">⏳ Testphase: noch ' + d + ' Tag' + (d === 1 ? '' : 'e') + ' · <b>Premium freischalten</b></button>'; $('#trialGo').addEventListener('click', () => showView('settings')); }
+  else if (account) slot.innerHTML = '<span class="trial-pill">✨ Alle Funktionen freigeschaltet</span>';
   else slot.innerHTML = '';
 
   const stat = (n, l, go, i) => '<button class="stat rise" style="--i:' + i + '" data-go="' + go + '"><b>' + n + '</b><span>' + l + '</span></button>';
@@ -5761,7 +5762,7 @@ function renderAccountCard() {
   card.style.display = '';
   const tier = currentTier(), days = trialDaysLeft();
   let planHtml = '<span class="tier-pill ' + tier + '">' + (tier === 'premium' ? '💎 ' : tier === 'medium' ? '⭐ ' : '') + TIER_LABEL[tier] + '</span>';
-  if (tier === 'free') planHtml += ' <span class="badge b-trial" style="margin-left:6px">⏳ noch ' + days + ' Tag' + (days === 1 ? '' : 'e') + '</span>';
+  if (tier === 'free' && ENFORCE_TIERS) planHtml += ' <span class="badge b-trial" style="margin-left:6px">⏳ noch ' + days + ' Tag' + (days === 1 ? '' : 'e') + '</span>';
 
   let html = '<h3>Dein Konto</h3>' +
     '<p class="sub">' + (account.name ? esc(account.name) + ' · ' : '') + esc(account.email) + '</p>' +
