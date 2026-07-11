@@ -181,6 +181,48 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   html{scroll-behavior:auto}
   .orb{animation:none!important}
 }
+/* ============================== HELL-MODUS ==============================
+   Zweites Token-Set + gezielte Overrides fuer fest kodierte Dunkel-Werte.
+   Aktiv, wenn <html data-theme="light"> (per Systemeinstellung/Umschalter). */
+:root[data-theme="light"]{
+  --bg:#f5f7fb; --bg2:#eceff5;
+  --card:#ffffff; --card2:#eef1f7; --surface-3:#e4e9f2;
+  --border:rgba(16,24,40,.10); --border2:rgba(16,24,40,.17);
+  --text:#101828; --muted:#475467; --faint:#667085;
+  --focus:#7c3aed;
+  --ok:#059669; --warn:#b45309; --danger:#dc2626;
+}
+:root[data-theme="light"] .orbs{background:radial-gradient(ellipse 90% 55% at 50% -12%,rgba(124,58,237,.07),transparent 60%),var(--bg)}
+:root[data-theme="light"] .orb{opacity:.10}
+:root[data-theme="light"] .topbar{background:rgba(255,255,255,.82)}
+:root[data-theme="light"] .tabbar{background:rgba(255,255,255,.92)}
+:root[data-theme="light"] .sidebar{background:rgba(255,255,255,.7)}
+:root[data-theme="light"] input[type=text],:root[data-theme="light"] input[type=password],:root[data-theme="light"] input[type=date],:root[data-theme="light"] input[type=time],:root[data-theme="light"] select,:root[data-theme="light"] textarea{background:#fff}
+:root[data-theme="light"] input[type=date],:root[data-theme="light"] input[type=time]{color-scheme:light}
+:root[data-theme="light"] select option{background:#fff;color:var(--text)}
+:root[data-theme="light"] .veh-stat,:root[data-theme="light"] .doc-reply .reply-text,:root[data-theme="light"] .l-place,:root[data-theme="light"] .pack-list,:root[data-theme="light"] .ec-card{background:#f4f6fa}
+:root[data-theme="light"] .wmonth-g i{background:rgba(16,24,40,.06)}
+:root[data-theme="light"] .tab-center .bubble{box-shadow:0 6px 22px rgba(124,58,237,.32),0 0 0 5px rgba(245,247,251,.95)}
+:root[data-theme="light"] .status-pill .dot{background:var(--faint)}
+/* Akzent-Texte lesbar auf Hell (violett/cyan/lavendel abdunkeln) */
+:root[data-theme="light"] .sec-title button,:root[data-theme="light"] .doc-reply summary,:root[data-theme="light"] .doc-ai>summary,:root[data-theme="light"] .bud-open,:root[data-theme="light"] .mini .mini-ic,:root[data-theme="light"] .doc-todos li svg,:root[data-theme="light"] .tab.active svg,:root[data-theme="light"] .snav button.active svg,:root[data-theme="light"] .up-code summary,:root[data-theme="light"] .v2p-hint summary{color:#7c3aed}
+:root[data-theme="light"] .sec-title button:hover,:root[data-theme="light"] .doc-reply summary:hover{color:#6d28d9}
+:root[data-theme="light"] .mini .mini-ic{background:#ede9fe}
+:root[data-theme="light"] .doc-explain b,:root[data-theme="light"] .ls-tpl{color:#6d28d9}
+:root[data-theme="light"] .ev .ev-time,:root[data-theme="light"] .l-time,:root[data-theme="light"] .ls-when{color:#0e7490}
+:root[data-theme="light"] .cal-day .dots i{background:#0891b2}
+:root[data-theme="light"] .b-demo,:root[data-theme="light"] .demo-hint{color:#0e7490}
+:root[data-theme="light"] .demo-hint{background:rgba(6,182,212,.08);border-color:rgba(6,182,212,.3)}
+:root[data-theme="light"] .demo-hint a{color:#0e7490}
+:root[data-theme="light"] .deadline-row.ok{color:#047857}
+:root[data-theme="light"] .deadline-row.warn{color:#b45309}
+:root[data-theme="light"] .deadline-row.late{color:#b91c1c}
+:root[data-theme="light"] .b-mahnung{color:#b91c1c}
+:root[data-theme="light"] .b-rechnung{color:#b45309}
+:root[data-theme="light"] .b-vertrag{color:#1d4ed8}
+:root[data-theme="light"] .b-behoerde{color:#6d28d9}
+:root[data-theme="light"] .trial-pill b{color:#b45309}
+:root[data-theme="light"] .chip.done,:root[data-theme="light"] .task.done .tcheck{color:#047857}
 label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;
   font-size:12px;font-weight:700;letter-spacing:.2px}
@@ -1164,6 +1206,16 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
+        <h3>🎨 Erscheinungsbild</h3>
+        <p class="sub">Hell, dunkel – oder automatisch nach deiner Geräteeinstellung.</p>
+        <div class="seg" id="themeSeg" style="margin-bottom:0">
+          <button data-theme-set="auto">Auto</button>
+          <button data-theme-set="light">☀️ Hell</button>
+          <button data-theme-set="dark">🌙 Dunkel</button>
+        </div>
+      </div>
+
+      <div class="card set-card">
         <h3>Dein Name</h3>
         <p class="sub">So spricht Effyra dich an.</p>
         <div class="set-row">
@@ -1370,7 +1422,7 @@ const store = Object.assign({
   vehicles: [], // Auto & Motorrad
   voiceNotes: [], // Voice2PDF gespeicherte Transkriptionen
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
-  settings: { model: 'claude-sonnet-5', demoIdx: 0 }
+  settings: { model: 'claude-sonnet-5', demoIdx: 0, theme: 'auto' }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
 })());
@@ -1381,6 +1433,21 @@ function save() {
 }
 const getKey = () => { try { return localStorage.getItem(KEY_KEY) || ''; } catch (e) { return ''; } };
 const hasKey = () => getKey().length > 8;
+
+/* ---- Erscheinungsbild (Hell/Dunkel/Auto) ---- */
+const themePref = () => (store.settings && store.settings.theme) || 'auto';
+function applyTheme() {
+  const t = themePref();
+  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const light = t === 'light' || (t === 'auto' && prefersLight);
+  document.documentElement.dataset.theme = light ? 'light' : 'dark';
+}
+try {
+  const mq = window.matchMedia('(prefers-color-scheme: light)');
+  mq.addEventListener ? mq.addEventListener('change', () => { if (themePref() === 'auto') applyTheme(); })
+    : mq.addListener(() => { if (themePref() === 'auto') applyTheme(); });
+} catch (e) {}
+applyTheme();
 
 /* ============================== I18N / SPRACHE & REGION ============================== */
 /* Unterstützte Sprachen (Metadaten). native = Originalname; region = Kontinent;
@@ -5323,10 +5390,16 @@ RENDERERS.settings = function () {
   $('#langCardSub').textContent = lm.flag + ' ' + lm.native + (inCur.toLowerCase() !== lm.native.toLowerCase() ? ' (' + inCur + ')' : '') + ' · ' + (lm.country || '');
   refreshAIStatus();
   renderAccountCard();
+  $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref()));
   syncEntitlements().then(() => { if (currentView === 'settings') renderAccountCard(); });
 };
 
 $('#btnChangeLang').addEventListener('click', () => openLangPicker(false));
+$('#themeSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme-set]'); if (!b) return;
+  store.settings.theme = b.dataset.themeSet; save(); applyTheme();
+  $$('#themeSeg button').forEach(x => x.classList.toggle('active', x === b));
+});
 
 function renderAccountCard() {
   const card = $('#accountCard');
