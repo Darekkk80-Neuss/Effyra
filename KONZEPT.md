@@ -1,63 +1,118 @@
-# Effyra – Berechtigungskonzept & Kostenmodell
+# Effyra – Lizenz-, Rollen- & Credit-Modell (optimierte Version)
 
-## 1. Rollen & Rechte
+Ziel: höhere langfristige Einnahmen, bessere Nutzerpsychologie, planbare KI-Kosten und ein skalierbares SaaS-Modell.
 
-| Rolle | Zugang | Funktionen |
+**Positionierung:** „Der intelligente Familienassistent, der den Alltag organisiert, Zeit spart und die Familie verbindet."
+
+---
+
+## 1. Kostenloser Testzugang — Effyra Free Trial
+
+- **Dauer:** 14 Tage
+- **Enthalten:** Basisfunktionen, Kalender, Aufgaben, Erinnerungen, Dokumentenablage, Familiengrundfunktionen testen
+- **Nicht enthalten:** Effyra AI · KI-Credits · eigener API-Key · erweiterte Synchronisierung
+- **Nach Ablauf:** Der Account wechselt in den eingeschränkten Modus mit Plan-Auswahl (Lifetime Basic · Effyra AI Premium · Effyra Family). Daten bleiben erhalten.
+
+## 2. Lifetime Basic — einmal kaufen, dauerhaft nutzen
+
+- **Einführungspreis:** 4,99 € (später optional 7,99–9,99 €)
+- **Enthalten:** komplette App **ohne KI**, keine monatlichen Gebühren, persönliche Datenverwaltung, Kalender, Aufgaben, Erinnerungen, Dokumente
+- **Nicht enthalten:** Effyra AI · KI-Credits · Familien-KI-Funktionen
+- **Optional:** Erwachsene Nutzer können einen **eigenen KI-API-Key** hinterlegen (BYOK).
+
+## 3. Effyra AI Premium — für Einzelpersonen
+
+- **Preis:** 4,99 €/Monat · oder 49,99 €/Jahr
+- **Voraussetzung:** mindestens 18 Jahre
+- **Enthalten:** **500 Effyra Credits pro Monat** plus alle KI-Funktionen: Effyra AI Sprachassistent, Dokumentenanalyse, intelligente Vorschläge, automatische Planung, Zusammenfassungen, persönliche Auswertungen, Automatisierungen
+
+## 4. Effyra Family — der digitale Familienassistent
+
+- **Preis:** 15,99 €/Monat · oder 149,99 €/Jahr
+- **Enthalten:** Familienverwaltung mit **1 Administrator + 1 weiterer Erwachsener + bis zu 3 Kinder**
+- **Zusätzlich:** Familienzentrale, gemeinsamer Familienbereich, Synchronisierung, Rollenverwaltung, Berechtigungen, Haushaltsorganisation
+- **Familien-Credits:** **1500 Effyra Credits/Monat** – gemeinsamer Pool, **nur Erwachsene** verbrauchen Credits.
+
+  *Beispiel:* Darius 900 + Sandra 600 = 1500/1500 verbraucht · Kinder 0 Credits.
+
+## 5. Effyra Credit Boost
+
+Wenn die Credits verbraucht sind:
+
+- **Family Boost:** 4,99 € → **+1500 Effyra Credits**
+- **Credit-Boost (Effyra AI):** 4,99 € → **+500 Effyra Credits**
+- **Gültigkeit:** bis Ende des aktuellen Abrechnungszeitraums
+
+## 6. Familien-Erweiterungen
+
+Ausschließlich über die **Familienzentrale → Mitglieder verwalten → Mitglied hinzufügen**.
+
+| Erweiterung | Preis | Enthalten |
 |---|---|---|
-| **Gast** (nicht angemeldet) | Nur Login-/Registrierungsseite | Keine |
-| **Free** (Testphase, 3 Tage) | Voller Zugang | **Alles**: Dokument-Analysen, Aufgaben, Kalender, KI-Chat, Einstellungen |
-| **Free** (Testphase abgelaufen) | Paywall-Seite | Nur Premium-Freischaltung und Abmelden; alle Daten bleiben gespeichert |
-| **Premium** | Voller Zugang, unbegrenzt | Alles, dauerhaft |
+| Zusätzliches Erwachsenen-Mitglied | 3,99 €/Monat | Vollzugriff, Familiensynchronisierung, eigenes Profil, **500 Effyra Credits/Monat** |
+| Zusätzliches Kinder-Mitglied | 0,99 €/Monat | Kinderkonto, eigene Aufgaben, Termine, Erinnerungen, freigegebene Inhalte — **ohne** KI, Credits, eigenen API-Key |
 
-## 2. Regeln
+## 7. Effyra Credit-System
 
-- **Registrierung** (Name, E-Mail, Passwort) startet die Testphase. Das Passwort wird gesalzen und SHA-256-gehasht gespeichert – niemals im Klartext.
-- **Testphase**: 3 Kalendertage ab Erst-Registrierung, gerätegebunden. Der Startzeitpunkt wird separat gespeichert und überlebt ein Konto-Zurücksetzen – die Testphase lässt sich nicht durch Neuregistrierung verlängern.
-- **Premium-Freischaltung** über Codes im Format `NEXA-XXXX-XXXX`. Im Quelltext stehen nur die SHA-256-Hashes der gültigen Codes; die Codes selbst verwaltet der Betreiber und gibt sie z. B. nach Zahlungseingang heraus.
-- **Abmelden/Anmelden** jederzeit möglich; Daten (Aufgaben, Termine, Dokumente, Chat) bleiben lokal erhalten.
-- **„Alle Daten löschen"** entfernt auch das Konto (nicht aber den Testphasen-Zeitstempel).
+Die KI wird **nicht pro Anfrage**, sondern über **Credits** abgerechnet:
 
-## 3. Ehrliche Einordnung (wichtig)
+| Funktion | Credits |
+|---|---|
+| einfache KI-Frage | 1 |
+| Text erstellen | 2 |
+| Sprachassistent | 2 |
+| Bild/Dokument scannen | 5 |
+| Wochenplanung erstellen | 5 |
+| Rechnung analysieren | 10 |
+| Große Dokumentenanalyse | 20 |
 
-Effyra ist eine reine Client-App ohne Server. Das Berechtigungssystem läuft vollständig im Browser und ist damit eine **Komfort- und Produkt-Sperre, kein echter Schutz**: Wer die Entwicklerkonsole öffnet, kann sie umgehen. Für die aktuelle Phase (Prototyp, Freunde & Familie, Validierung der Idee) ist das völlig ausreichend und branchenüblich. Sobald echtes Geld fließt, braucht es die Architektur aus Abschnitt 5.
+## 8. Eigene KI-Verbindung (BYOK)
 
-## 4. KI-Kostenmodell – Empfehlung
+- **Nur Erwachsene**, nie Kinderkonten.
+- Eigener API-Key → eigene KI-Kosten, **keine Effyra Credits nötig**, unbegrenzte Nutzung.
 
-**Das Kernproblem:** Echte KI (Foto-Analyse, freier Chat) kostet pro Anfrage Geld bei Anthropic. Irgendjemand muss das bezahlen. Drei Modelle, als Ausbaustufen gedacht:
+## 9. Rollenmodell (Backend)
 
-### Stufe 1 – Heute: BYOK („Bring Your Own Key") + Demo-Modus
-Genau das, was Effyra jetzt macht: Ohne Schlüssel Demo-Modus, mit eigenem Anthropic-API-Key echte KI. **Kosten für den Betreiber: 0 €.** Jeder Nutzer zahlt seine eigene KI-Nutzung direkt bei Anthropic. Nachteil: Normale Nutzer haben keinen API-Key – das skaliert nicht für „Millionen von Menschen", ist aber perfekt zum Validieren.
+| User Role | Subscription Status |
+|---|---|
+| `OWNER` | `FREE_TRIAL` |
+| `ADULT_MEMBER` | `BASIC_LIFETIME` |
+| `CHILD_MEMBER` | `AI_MONTHLY` · `AI_YEARLY` |
+| | `FAMILY_MONTHLY` · `FAMILY_YEARLY` |
+| | `EXPIRED` |
 
-### Stufe 2 – Bei ersten zahlenden Nutzern: Du zahlst die KI, Nutzer zahlen dich
-Das klassische Freemium-Modell aus deiner Idee (8–15 €/Monat). Die Rechnung geht auf, weil KI-Anfragen sehr günstig sind (Preise Stand Juli 2026, Claude Sonnet 5: 3 $ Input / 15 $ Output je Mio. Token; Haiku 4.5: 1 $/5 $):
+## 10. Credit-Backend (Felder auf `profiles`)
 
-| Aktion | Kosten ca. (Sonnet 5) | Kosten ca. (Haiku 4.5) |
-|---|---|---|
-| 1 Dokument-Analyse (Foto ≈ 1.600 Token + Antwort) | ~1,2 Cent | ~0,4 Cent |
-| 1 Chat-Nachricht | ~0,6 Cent | ~0,2 Cent |
-| **Typischer Nutzer/Monat** (30 Analysen + 200 Chats) | **~1,50–2 €** | **~0,50–0,70 €** |
+`AI_ENABLED` · `CREDIT_BALANCE` (verbleibend) · `CREDIT_LIMIT_MONTHLY` · `CREDIT_USED_CURRENT_PERIOD` · `CREDIT_RESET_DATE` · `HAS_CUSTOM_API_KEY`
 
-Bei 10 €/Monat Abo bleiben also grob **80–90 % Marge** auf die KI-Kosten. Selbst Vielnutzer (100 Analysen + 1000 Chats) kosten nur ~7 € – deshalb braucht Premium ein Fair-Use-Limit (z. B. 150 Analysen/Monat).
+## 11. Sicherheitsregeln (serverseitig erzwungen)
 
-**Zwingend nötig dafür:** Der API-Key darf dann **niemals** in der App stecken (jeder könnte ihn auslesen und auf deine Kosten nutzen). Stattdessen:
+- ✅ Kinder können **niemals** KI starten
+- ✅ Kinder verbrauchen **keine** Credits
+- ✅ Familienfunktionen nur mit aktivem Family-Abo
+- ✅ Premium nur bei gültiger Zahlung
+- ✅ Credits nicht manipulierbar (Verbrauch/Kauf nur über `service_role`-RPCs)
+- ✅ API-Keys verschlüsselt speichern
+
+## 12. Beispiel-Familienanzeige
 
 ```
-App (Browser) ──► Dein Backend (prüft Login + Abo + Limit) ──► Anthropic API
+Effyra Family
+👤 Darius   Administrator
+👤 Sandra   Erwachsen
+👦 Liam     Kind
+
+KI-Verbrauch — Effyra Credits: 800 / 1500 verbraucht
+Reset: 01.08.2026
 ```
 
-Konkreter, günstiger Stack ohne eigenen Server:
-- **Supabase** (kostenloser Start): echte Benutzerkonten (E-Mail-Verifikation!) + Datenbank für Abos und Nutzungszähler
-- **Supabase Edge Function / Cloudflare Worker** (kostenloser Start): nimmt Anfragen der App an, prüft das Login-Token und das Monatslimit, ruft mit **deinem** API-Key Anthropic auf, gibt die Antwort zurück
-- **Stripe** für das Abo (8–15 €/Monat); Stripe-Webhook setzt `plan = premium` in der Datenbank
-- Missbrauchsschutz: Limits pro Nutzer/Tag, E-Mail-Verifikation, Trial nur einmal pro E-Mail
+---
 
-Die heutige `index.html` bleibt fast unverändert – nur die `fetch`-URL zeigt dann auf dein Backend statt auf `api.anthropic.com`.
+## Umsetzung im Code
 
-### Stufe 3 – Optimierung: Kostensteuerung
-- Demo-/Trial-Nutzer bekommen **Haiku 4.5** (Faktor 3 günstiger), Premium **Sonnet 5**
-- Trial-Kontingent begrenzen (z. B. 10 Analysen + 50 Chat-Nachrichten in den 3 Tagen) – begrenzt dein Risiko pro Trial-Nutzer auf wenige Cent
-- BYOK als Zusatzoption behalten: Power-User mit eigenem Key kosten dich weiterhin 0 €
+- **Client (`index.html`):** interne Stufe `account.tier` ∈ `free | basic | ai | family`, Rolle `account.role`, Abo-Status `account.status`. 14-Tage-Testphase, Credit-Anzeige, Paywall mit Monats-/Jahres-Umschalter, Credit-Boost, Kinder-Sperren. Enforcement steht per `ENFORCE_TIERS`/`BACKEND_V2` bis zum Scharfschalten auf `false`.
+- **Backend (`supabase-tiers.sql`):** Spalten für Stufe/Status/Rolle/Credits, RPCs `get_entitlements`, `consume_credits` (Credit-Kosten je Aktion, Family-Pool, Kinder-Sperre), `apply_purchase` (alle Kauf-Arten), `add_family_member`. Einrichtung → [BACKEND.md](BACKEND.md).
 
-**Empfehlung in einem Satz:** Bleib jetzt bei BYOK + Demo (kostet dich nichts, validiert die Idee), und wenn die ersten Leute zahlen wollen, bau die Stufe-2-Brücke mit Supabase + Stripe – die Zahlen zeigen, dass 8–15 €/Monat die KI-Kosten um ein Vielfaches decken.
+## Ehrliche Einordnung
 
-> **Update:** Der erste Teil von Stufe 2 – die **zentrale Nutzerverwaltung über Supabase** (Konten, serverseitige Testphase, einmalige Premium-Codes, Admin-Dashboard) – ist bereits fertig eingebaut. Einrichtung in ~10 Minuten: siehe [BACKEND.md](BACKEND.md). Es fehlt danach nur noch der KI-Proxy + Stripe für echtes Bezahlen.
+Effyra ist eine reine Client-App: Solange die Enforcement-Schalter aus sind bzw. ohne KI-Proxy, ist die Sperre eine **Komfort-/Produktsperre**, kein wasserdichter Schutz. Wirklich fälschungssicher wird das Credit- und Rollenmodell erst mit dem serverseitigen Proxy aus Phase 2 (siehe [BACKEND.md](BACKEND.md)), der bei jedem KI-Aufruf Stufe, Rolle und Credits prüft. Das Supabase-Backend hier ist bereits die richtige Grundlage dafür.

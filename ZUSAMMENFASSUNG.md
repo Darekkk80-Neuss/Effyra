@@ -30,14 +30,18 @@ Technisch: **eine einzige `index.html`** (Vanilla-JavaScript, kein Build-System,
 
 Beim ersten Start erscheint eine **Login-/Registrierungsseite** als erste Seite.
 
-| Rolle | Zugang |
+| Stufe | Zugang |
 |---|---|
 | **Gast** (nicht angemeldet) | Nur Login-Seite |
-| **Free – Testphase (3 Tage)** | Voller Zugang zu allen Funktionen |
-| **Free – abgelaufen** | Paywall-Seite; Daten bleiben erhalten |
-| **Premium** | Alles, unbegrenzt und dauerhaft |
+| **Free Trial (14 Tage)** | Voller Zugang – ohne Effyra AI / Credits |
+| **Free – abgelaufen** | Plan-Auswahl; Daten bleiben erhalten |
+| **Lifetime Basic** (4,99 € einmalig) | Komplette App ohne KI, dauerhaft (eigener API-Key optional) |
+| **Effyra AI Premium** (4,99 €/Mon. · 49,99 €/Jahr) | + Effyra AI, **500 Credits/Monat** (ab 18) |
+| **Effyra Family** (15,99 €/Mon. · 149,99 €/Jahr) | 1 Admin + 1 Erwachsener + bis 3 Kinder, **1500 Credits/Monat** (Pool), Familienzentrale & Rollen |
 
-**Sicherheit:** Passwort wird gesalzen und SHA-256-gehasht gespeichert (nie im Klartext). Die Testphase startet bei Registrierung und lässt sich nicht durch Neuanmeldung verlängern (Startzeitpunkt separat gespeichert). Premium wird über Codes im Format `NEXA-XXXX-XXXX` freigeschaltet – im Quelltext stehen nur die Hashes der Codes, nicht die Codes selbst.
+**Rollen:** `OWNER`, `ADULT_MEMBER`, `CHILD_MEMBER`. **Credits** statt Abrechnung pro Anfrage (Frage 1 · Scan 5 · Rechnung 10 · große Analyse 20 …). **Boost** 4,99 € (+1500 Family / +500 AI). Kinder starten nie KI und verbrauchen keine Credits. Vollständiges Modell: [KONZEPT.md](KONZEPT.md).
+
+**Sicherheit:** Passwort wird gesalzen und SHA-256-gehasht gespeichert (nie im Klartext). Die 14-Tage-Testphase startet bei Registrierung und lässt sich nicht durch Neuanmeldung verlängern (Startzeitpunkt separat gespeichert). Effyra AI Premium wird über Codes im Format `Effyra-XXXX-XXXX` freigeschaltet – im Quelltext stehen nur die Hashes der Codes, nicht die Codes selbst.
 
 > ⚠️ **Ehrlicher Hinweis:** Da Effyra ohne Server läuft, ist die Sperre eine **Komfort-Sperre, kein echter Schutz** – technisch versierte Nutzer könnten sie umgehen. Für die aktuelle Prototyp-Phase ist das ausreichend und üblich.
 
@@ -47,9 +51,9 @@ Beim ersten Start erscheint eine **Login-/Registrierungsseite** als erste Seite.
 
 Die zentrale Frage „Wer bezahlt die KI?" in drei Ausbaustufen:
 
-1. **Heute – BYOK + Demo:** Jeder Nutzer bringt seinen eigenen API-Schlüssel mit → **kostet dich 0 €**, ideal zum Validieren der Idee.
-2. **Bei zahlenden Nutzern – Freemium (8–15 €/Monat):** Du zahlst die KI, Nutzer zahlen dich. Eine Dokument-Analyse kostet ~1 Cent, ein typischer Nutzer ~1,50–2 €/Monat → **80–90 % Marge**. Braucht dann ein Backend (Supabase + Cloudflare/Stripe), damit der API-Key nicht in der App steckt.
-3. **Optimierung:** Trial-Nutzer bekommen das günstigere Modell (Haiku), Premium das bessere (Sonnet); Fair-Use-Limits.
+1. **Heute – BYOK + Demo:** Erwachsene bringen ihren eigenen API-Schlüssel mit → **kostet dich 0 €**, ideal zum Validieren der Idee.
+2. **Credits statt Abo-Willkür:** Effyra AI (500) und Family (1500 Pool) laufen über **Effyra Credits** – planbare KI-Kosten, klare Marge. Eine KI-Frage = 1 Credit, ein Scan = 5, eine große Analyse = 20. Boost 4,99 €. Braucht das Backend (Supabase + Stripe), damit der API-Key serverseitig bleibt und Credits fälschungssicher gezählt werden.
+3. **Optimierung:** günstigeres Modell (Haiku) für einfache Aktionen, besseres (Sonnet) für komplexe; Credit-Kosten je Aktion begrenzen das Risiko pro Nutzer.
 
 **Empfehlung:** Jetzt bei BYOK + Demo bleiben (kostenlos), erst bei zahlungsbereiten Nutzern die Backend-Brücke bauen. → Details in [KONZEPT.md](KONZEPT.md).
 

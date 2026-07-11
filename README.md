@@ -16,7 +16,7 @@ Effyra ist ein Alltagshelfer als Web-App: Briefe fotografieren und in einfachen 
 
 ## Konto & Testphase
 
-Beim ersten Start erstellst du ein Konto. Danach sind **3 Tage lang alle Funktionen kostenlos** nutzbar; ein Premium-Code (`Effyra-XXXX-XXXX`) schaltet alles dauerhaft frei. Details und Kostenmodell: [KONZEPT.md](KONZEPT.md).
+Beim ersten Start erstellst du ein Konto. Danach sind **14 Tage lang alle Funktionen kostenlos** nutzbar (Effyra Free Trial). Nach der Testphase wählst du einen Plan: **Lifetime Basic** (4,99 € einmalig, App ohne KI), **Effyra AI Premium** (4,99 €/Mon. oder 49,99 €/Jahr, 500 Credits) oder **Effyra Family** (15,99 €/Mon. oder 149,99 €/Jahr, 1500 Credits, Rollen & Familienzentrale). Ein Freischalt-Code (`Effyra-XXXX-XXXX`) schaltet Effyra AI Premium frei. Vollständiges Lizenz-, Rollen- und Credit-Modell: [KONZEPT.md](KONZEPT.md).
 
 Standardmäßig werden Konten nur lokal auf dem Gerät gespeichert. Optional lässt sich ein **kostenloses Supabase-Backend** anbinden (zentrale Nutzerverwaltung, serverseitige Testphase, einmalige Codes, Admin-Dashboard) – Anleitung: [BACKEND.md](BACKEND.md).
 

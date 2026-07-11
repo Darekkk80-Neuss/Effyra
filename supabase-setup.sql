@@ -40,7 +40,7 @@ grant  update (name)        on public.profiles to authenticated;
 
 -- ------------------------------------------------------------
 -- 2) Automatik: Bei jeder Registrierung wird das Profil angelegt
---    und die 3-Tage-Testphase gestartet (serverseitig!)
+--    und die 14-Tage-Testphase gestartet (serverseitig!)
 -- ------------------------------------------------------------
 create or replace function public.handle_new_user()
 returns trigger

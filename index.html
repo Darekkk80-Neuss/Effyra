@@ -237,8 +237,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .trial-pill{color:#b45309}
 :root[data-theme="light"] .trial-pill b{color:#92400e}
 :root[data-theme="light"] #accountCard .tier-pill.free{color:#475467}
-:root[data-theme="light"] #accountCard .tier-pill.medium{color:#0369a1}
-:root[data-theme="light"] #accountCard .tier-pill.premium,:root[data-theme="light"] #accountCard .b-premium{color:#6d28d9}
+:root[data-theme="light"] #accountCard .tier-pill.basic{color:#0369a1}
+:root[data-theme="light"] #accountCard .tier-pill.ai,:root[data-theme="light"] #accountCard .b-premium{color:#6d28d9}
+:root[data-theme="light"] #accountCard .tier-pill.family{color:#a21caf}
 :root[data-theme="light"] #accountCard .b-trial{color:#b45309}
 :root[data-theme="light"] #accountCard .b-expired{color:#b91c1c}
 label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
@@ -892,8 +893,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .tier-card.best{border-color:transparent;background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(6,182,212,.12));box-shadow:0 6px 24px rgba(124,58,237,.22)}
 .tier-badge{position:absolute;top:-9px;right:14px;font-size:11px;font-weight:700;color:#fff;background:var(--grad);padding:3px 10px;border-radius:20px}
 .tier-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
-.tier-name{font-size:17px;font-weight:700}
-.tier-price{font-size:20px;font-weight:800}
+.tier-name{font-size:17px;font-weight:700;color:var(--text)}
+.tier-price{font-size:20px;font-weight:800;color:var(--text)}
 .tier-price small{font-size:11px;font-weight:600;color:var(--muted);margin-left:4px}
 .tier-feats{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:5px}
 .tier-feats li{font-size:13px;color:var(--muted)}
@@ -908,8 +909,15 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .quota-fill.full{background:linear-gradient(135deg,#dc2626,#f87171)}
 .tier-pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
 .tier-pill.free{background:rgba(148,163,184,.18);color:#cbd5e1}
-.tier-pill.medium{background:rgba(56,189,248,.16);color:#7dd3fc}
-.tier-pill.premium{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));color:#ddd6fe}
+.tier-pill.basic{background:rgba(56,189,248,.16);color:#7dd3fc}
+.tier-pill.ai{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));color:#ddd6fe}
+.tier-pill.family{background:linear-gradient(135deg,rgba(236,72,153,.22),rgba(139,92,246,.25));color:#f5d0fe}
+/* Abrechnungs-Umschalter auf der Paywall */
+.bill-toggle{display:inline-flex;gap:4px;margin-bottom:14px;padding:4px;border-radius:14px;background:var(--border)}
+.bill-opt{border:none;background:none;color:var(--muted);font-size:13px;font-weight:600;padding:7px 14px;border-radius:11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.bill-opt.on{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.bill-save{font-size:10.5px;font-weight:700;color:#fff;background:var(--grad);padding:2px 7px;border-radius:20px}
+.tier-note{font-size:11.5px;color:var(--muted);margin:8px 0 0;text-align:center}
 .b-trial{background:rgba(251,191,36,.14);color:#fcd34d}
 .b-expired{background:rgba(248,113,113,.15);color:#fca5a5}
 .b-premium{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));color:#ddd6fe;border:1px solid rgba(167,139,250,.4)}
@@ -943,7 +951,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <h1 class="gate-brand font-head">Effyra</h1>
     <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
     <h2 id="authTitle">Konto erstellen</h2>
-    <p class="gate-sub" id="authSub">3 Tage kostenlos testen – alle Funktionen inklusive.</p>
+    <p class="gate-sub" id="authSub">14 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
       <input type="text" id="auName" placeholder="Vorname" maxlength="30" autocomplete="given-name">
       <input type="text" id="auEmail" placeholder="E-Mail-Adresse" maxlength="80" autocomplete="email" inputmode="email">
@@ -953,7 +961,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
     </div>
-    <p class="gate-note">🔒 Dein Konto wird nur auf diesem Gerät gespeichert – keine Cloud, keine Werbung.<br>Nach der Testphase schaltet ein Premium-Code alle Funktionen dauerhaft frei.</p>
+    <p class="gate-note">🔒 Dein Konto wird nur auf diesem Gerät gespeichert – keine Cloud, keine Werbung.<br>Nach der 14-tägigen Testphase wählst du deinen Plan – Lifetime Basic, Effyra AI Premium oder Effyra Family.</p>
   </div>
 </div>
 
@@ -963,27 +971,42 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <div class="pw-icon">💎</div>
     <h2 id="pwHead">Wähle deinen Plan</h2>
     <p class="gate-sub" id="pwSub">Deine Daten bleiben immer erhalten. Jederzeit wechselbar.</p>
+    <div class="bill-toggle" id="billToggle" role="tablist" aria-label="Abrechnungszeitraum">
+      <button class="bill-opt on" data-period="monthly" role="tab" aria-selected="true">Monatlich</button>
+      <button class="bill-opt" data-period="yearly" role="tab" aria-selected="false">Jährlich <span class="bill-save">2 Monate gratis</span></button>
+    </div>
     <div class="tier-cards">
-      <div class="tier-card" data-tier="medium">
-        <div class="tier-top"><span class="tier-name">Medium</span><span class="tier-price">4,99 €<small>einmalig</small></span></div>
+      <div class="tier-card" data-tier="basic">
+        <div class="tier-top"><span class="tier-name">Lifetime Basic</span><span class="tier-price">4,99 €<small>einmalig</small></span></div>
         <ul class="tier-feats">
-          <li>✅ Alle Module dauerhaft freigeschaltet</li>
-          <li>✅ Arbeitszeit, Kinder, Familie, Auto, Notfall …</li>
-          <li>✅ Dokumentvorlagen &amp; PDF-Export</li>
-          <li>➖ Ohne KI (nur Demo-Modus)</li>
+          <li>✅ Komplette App – dauerhaft, keine Abo-Gebühr</li>
+          <li>✅ Kalender, Aufgaben, Erinnerungen, Dokumente</li>
+          <li>✅ Familiengrundfunktionen &amp; persönliche Datenverwaltung</li>
+          <li>➖ Ohne Effyra AI &amp; Credits (eigener API-Key optional)</li>
         </ul>
-        <button class="btn btn-primary tier-cta" data-buy="medium">Medium kaufen – 4,99 €</button>
+        <button class="btn btn-primary tier-cta" data-buy="basic_lifetime">Lifetime Basic – 4,99 €</button>
       </div>
-      <div class="tier-card best" data-tier="premium">
-        <div class="tier-badge">Beste Wahl</div>
-        <div class="tier-top"><span class="tier-name">Premium</span><span class="tier-price">4,99 €<small>/ Monat</small></span></div>
+      <div class="tier-card best" data-tier="ai">
+        <div class="tier-badge">Beliebt</div>
+        <div class="tier-top"><span class="tier-name">Effyra AI Premium</span><span class="tier-price" data-m="4,99 €" data-y="49,99 €" data-ms="/ Monat" data-ys="/ Jahr">4,99 €<small>/ Monat</small></span></div>
         <ul class="tier-feats">
-          <li>✅ Alles aus Medium</li>
-          <li>✅ Echte KI: 500 Abfragen / Monat</li>
-          <li>✅ Foto-Analyse, KI-Chat, Textverbesserung</li>
-          <li>✅ Nachbestellen oder eigener Schlüssel möglich</li>
+          <li>✅ Effyra AI Sprachassistent &amp; Dokumentenanalyse</li>
+          <li>✅ 500 Effyra Credits / Monat</li>
+          <li>✅ Intelligente Vorschläge, Planung, Zusammenfassungen</li>
+          <li>✅ Credit-Boost oder eigener Schlüssel möglich</li>
         </ul>
-        <button class="btn btn-primary tier-cta" data-buy="premium">Premium starten – 4,99 €/Mon.</button>
+        <button class="btn btn-primary tier-cta" data-buy="ai_monthly" data-buy-m="ai_monthly" data-buy-y="ai_yearly">Effyra AI starten – 4,99 €/Mon.</button>
+        <p class="tier-note">Nur für Erwachsene (ab 18).</p>
+      </div>
+      <div class="tier-card" data-tier="family">
+        <div class="tier-top"><span class="tier-name">Effyra Family</span><span class="tier-price" data-m="15,99 €" data-y="149,99 €" data-ms="/ Monat" data-ys="/ Jahr">15,99 €<small>/ Monat</small></span></div>
+        <ul class="tier-feats">
+          <li>✅ 1 Admin + 1 Erwachsener + bis zu 3 Kinder</li>
+          <li>✅ 1500 Effyra Credits / Monat (nur Erwachsene)</li>
+          <li>✅ Familienzentrale, Synchronisierung, Rollen &amp; Rechte</li>
+          <li>✅ Erweiterbar: +Erwachsener 3,99 € · +Kind 0,99 €/Mon.</li>
+        </ul>
+        <button class="btn btn-primary tier-cta" data-buy="family_monthly" data-buy-m="family_monthly" data-buy-y="family_yearly">Effyra Family starten – 15,99 €/Mon.</button>
       </div>
     </div>
     <details class="up-code"><summary>Ich habe einen Freischalt-Code</summary>
@@ -2002,8 +2025,8 @@ const viewLabel = (v) => { try { return t('nav.' + v); } catch (e) { return v; }
 function showUpgrade(lockedView) {
   const pw = $('#paywall'); if (!pw) return;
   if (lockedView) {
-    $('#pwHead').textContent = '„' + viewLabel(lockedView) + '" ist ab Medium verfügbar';
-    $('#pwSub').textContent = 'Schalte alle Module frei – oder gleich Premium mit echter KI.';
+    $('#pwHead').textContent = '„' + viewLabel(lockedView) + '" ist ab Lifetime Basic verfügbar';
+    $('#pwSub').textContent = 'Schalte alle Module dauerhaft frei – oder gleich Effyra AI / Family mit echter KI.';
     $('#pwBack').style.display = '';
   } else {
     $('#pwHead').textContent = 'Wähle deinen Plan';
@@ -2090,15 +2113,15 @@ const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const BACKEND_V2 = false;
 const FN_URL = (name) => SUPABASE_URL + '/functions/v1/' + name;
 
-/* Berechtigungskonzept (Free/Medium/Premium, Modul-Sperren, 3-Tage-Ablauf,
-   KI-Sperren). Zum Testen AUS = false → alles freigeschaltet. Zum Scharfschalten
-   wieder auf true setzen. */
+/* Berechtigungskonzept (Testphase/Basic/AI/Family, Rollen, Modul-Sperren,
+   14-Tage-Ablauf, KI-/Credit-Sperren). Zum Testen AUS = false → alles
+   freigeschaltet. Zum Scharfschalten wieder auf true setzen. */
 const ENFORCE_TIERS = false;
 
 /* ============================== AUTH & PLAN ============================== */
 const ACC_KEY = 'effyra_account';
 const TRIAL0_KEY = 'effyra_trial0';
-const TRIAL_DAYS = 3;
+const TRIAL_DAYS = 14;
 /* SHA-256-Hashes gültiger Freischalt-Codes – die Codes selbst stehen nicht im Quelltext */
 const PREMIUM_HASHES = [
   '19d0030aea66bc3f6f6c244ed7ba921fe0f28cb0b4ea40b9084ab944b8352a2d',
@@ -2129,24 +2152,53 @@ async function sha256Hex(s) {
   return 'f_' + h1.toString(16) + '_' + h2.toString(16);
 }
 
-/* ---- Stufen (Free / Medium / Premium) & Berechtigungen ---- */
-const TIER_RANK = { free: 0, medium: 1, premium: 2 };
-const TIER_LABEL = { free: 'Free', medium: 'Medium', premium: 'Premium' };
-const AI_MONTHLY_LIMIT = 500;
-/* Module, die mindestens Medium brauchen (im 3-Tage-Free-Test gesperrt).
-   Frei in jeder Stufe: dashboard, tasks, calendar, voice, docgen, chat, settings. */
-const MODULE_MIN_TIER = { work: 'medium', school: 'medium', family: 'medium', vehicles: 'medium', emergency: 'medium', life: 'medium', docs: 'medium' };
+/* ---- Stufen, Rollen & Credits (optimiertes Modell) ----
+   Stufen:  free   = Testphase (14 Tage, alles außer KI)
+            basic  = Lifetime Basic (App ohne KI, einmalig, optional eigener API-Key)
+            ai     = Effyra AI Premium (Einzelperson, 500 Credits/Monat)
+            family = Effyra Family (Familie, 1500 Credits/Monat, Rollen)
+   Interne Stufe (account.tier) + Abo-Status (account.status) laufen parallel. */
+const TIER_RANK = { free: 0, basic: 1, ai: 2, family: 3 };
+const TIER_LABEL = { free: 'Testphase', basic: 'Lifetime Basic', ai: 'Effyra AI Premium', family: 'Effyra Family' };
+/* Monatliches Credit-Kontingent je Stufe (nur ai/family haben KI). */
+const TIER_CREDITS = { free: 0, basic: 0, ai: 500, family: 1500 };
+/* Credit-Boost (Nachbestellung) je Stufe – beide 4,99 €. */
+const BOOST_CREDITS = { ai: 500, family: 1500 };
+/* Rollen im Backend (Section 9). Kinder haben nie KI/Credits/API-Key. */
+const ROLE = { OWNER: 'OWNER', ADULT_MEMBER: 'ADULT_MEMBER', CHILD_MEMBER: 'CHILD_MEMBER' };
+/* Abo-Status (Section 9). */
+const SUB_STATUS = ['FREE_TRIAL', 'BASIC_LIFETIME', 'AI_MONTHLY', 'AI_YEARLY', 'FAMILY_MONTHLY', 'FAMILY_YEARLY', 'EXPIRED'];
+/* Credit-Kosten je KI-Aktion (Section 7). Serverseitig maßgeblich; hier für Anzeige. */
+const CREDIT_COST = { frage: 1, text: 2, sprachassistent: 2, scan: 5, rechnung: 10, wochenplan: 5, grossanalyse: 20 };
+/* Module, die mindestens Basic brauchen (in der 14-Tage-Testphase mit dabei,
+   nach Ablauf gesperrt). Frei in jeder Stufe: dashboard, tasks, calendar,
+   voice, docgen, chat, settings. */
+const MODULE_MIN_TIER = { work: 'basic', school: 'basic', family: 'basic', vehicles: 'basic', emergency: 'basic', life: 'basic', docs: 'basic' };
 
+/* Legacy-Werte (medium/premium) auf das neue Modell abbilden. */
+function normalizeTier(t) {
+  if (t === 'medium') return 'basic';
+  if (t === 'premium') return 'ai';
+  return TIER_RANK[t] != null ? t : null;
+}
 function currentTier() {
   if (!account) return 'free';
-  if (account.tier && TIER_RANK[account.tier] != null) return account.tier;
-  if (account.plan === 'premium') return 'premium';   // Rückwärtskompatibilität
+  const n = normalizeTier(account.tier);
+  if (n) return n;
+  if (account.plan === 'premium') return 'ai';   // Rückwärtskompatibilität
   return 'free';
 }
 const tierRank = () => TIER_RANK[currentTier()] || 0;
-const isPremium = () => currentTier() === 'premium';
+/* Rolle des angemeldeten Nutzers (Standard: OWNER). */
+function currentRole() { return (account && account.role) || ROLE.OWNER; }
+const isChild = () => currentRole() === ROLE.CHILD_MEMBER;
+const isAdult = () => !isChild();
+/* Hat diese Stufe echte KI (Credits)? Nur Erwachsene, nur ai/family. */
+const tierHasAI = () => TIER_CREDITS[currentTier()] > 0;
+const hasAI = () => isAdult() && tierHasAI();
+const isPremium = () => hasAI();     // Alias für bestehende Aufrufer
 const isPaid = () => tierRank() >= 1;
-/* Nur die Free-Stufe hat ein Zeitlimit (3 Tage). */
+/* Nur die Testphase (free) hat ein Zeitlimit (14 Tage). */
 const isTrialExpired = () => ENFORCE_TIERS && currentTier() === 'free' && !!account &&
   Date.now() > (account.trialStart || Date.now()) + TRIAL_DAYS * 864e5;
 function trialDaysLeft() {
@@ -2159,62 +2211,71 @@ function moduleAllowed(view) {
   return !need || tierRank() >= TIER_RANK[need];
 }
 
-/* ---- KI-Kontingent (500/Monat, Reset am 1.) ---- */
+/* ---- Effyra Credits (ai 500 / family 1500 pro Monat, Reset am 1.) ---- */
 function aiMonthKey() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
+/* Monatliches Basiskontingent der aktuellen Stufe (0 bei free/basic). */
+function creditBase() { return TIER_CREDITS[currentTier()] || 0; }
 function ensureAIQuota() {
   if (!account) return;
   if (!account.ai) account.ai = { month: aiMonthKey(), used: 0, extra: 0 };
   if (account.ai.month !== aiMonthKey()) { account.ai.month = aiMonthKey(); account.ai.used = 0; account.ai.extra = 0; saveAccount(); }   // Monatswechsel → Reset
 }
-function aiLimit() { ensureAIQuota(); return AI_MONTHLY_LIMIT + (account.ai.extra || 0); }
-function aiUsed() { ensureAIQuota(); return account.ai.used || 0; }
+function aiLimit() { ensureAIQuota(); return creditBase() + (account.ai.extra || 0); }   // verfügbare Credits
+function aiUsed() { ensureAIQuota(); return account.ai.used || 0; }                       // verbrauchte Credits
 const aiRemaining = () => Math.max(0, aiLimit() - aiUsed());
 function aiPct() { const l = aiLimit(); return l ? Math.min(100, Math.round(aiUsed() / l * 100)) : 0; }
-const usingOwnKey = () => hasKey();                 // eigener Schlüssel = unbegrenzt, zählt nicht aufs Kontingent
+/* Eigener Schlüssel = unbegrenzt, zählt nicht auf Credits – nur für Erwachsene. */
+const usingOwnKey = () => isAdult() && hasKey();
 function canRealAI() {
+  if (isChild()) return false;                             // Kinder: nie echte KI
   if (usingOwnKey()) return true;
   if (!ENFORCE_TIERS) return false;                        // Konzept aus → echte KI nur mit eigenem Schlüssel, sonst Demo
-  return BACKEND_V2 && isPremium() && aiRemaining() > 0;   // gehostete KI nur mit Backend + Premium + Kontingent
+  return BACKEND_V2 && hasAI() && aiRemaining() > 0;       // gehostete KI nur mit Backend + ai/family + Credits
 }
 let _aiWarned90 = false;
-function noteAIUsage() {
-  if (usingOwnKey()) return;                          // eigener Schlüssel: kein Verbrauch aufs Kontingent
-  ensureAIQuota(); account.ai.used = (account.ai.used || 0) + 1; saveAccount();
+function noteAIUsage(cost) {
+  if (usingOwnKey()) return;                          // eigener Schlüssel: kein Credit-Verbrauch
+  const n = cost > 0 ? cost : 1;
+  ensureAIQuota(); account.ai.used = (account.ai.used || 0) + n; saveAccount();
   const pct = aiPct();
-  if (aiRemaining() === 0) toast('⚠️ KI-Kontingent für ' + aiMonthKey() + ' aufgebraucht. In den Einstellungen nachbestellen oder eigenen Schlüssel hinterlegen.');
-  else if (pct >= 90 && !_aiWarned90) { _aiWarned90 = true; toast('ℹ️ 90 % deines KI-Kontingents verbraucht (' + aiUsed() + '/' + aiLimit() + '). Denk ans Nachbestellen.'); }
+  if (aiRemaining() === 0) toast('⚠️ Effyra Credits für ' + aiMonthKey() + ' aufgebraucht. Credit-Boost nachbestellen oder eigenen Schlüssel hinterlegen.');
+  else if (pct >= 90 && !_aiWarned90) { _aiWarned90 = true; toast('ℹ️ 90 % deiner Credits verbraucht (' + aiUsed() + '/' + aiLimit() + '). Denk an den Credit-Boost.'); }
   if (pct < 90) _aiWarned90 = false;
 }
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
 function requireAI() {
+  if (isChild()) { toast('👦 Kinderkonten können keine KI starten. Frag ein erwachsenes Familienmitglied.'); return false; }
   if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an Anthropic
   if (!ENFORCE_TIERS) { toast('✨ Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
-  if (!isPremium()) { toast('✨ Echte KI ist eine Premium-Funktion.'); showUpgrade(); return false; }
-  if (aiRemaining() <= 0) { toast('Dein KI-Kontingent ist aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
+  if (!hasAI()) { toast('✨ Echte KI gibt es mit Effyra AI Premium oder Effyra Family.'); showUpgrade(); return false; }
+  if (aiRemaining() <= 0) { toast('Deine Effyra Credits sind aufgebraucht – Credit-Boost nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
   if (!BACKEND_V2) { toast('Die gehostete KI wird gerade aktiviert. Bitte hinterlege vorerst deinen eigenen Schlüssel in den Einstellungen.'); showView('settings'); return false; }
-  return true;   // Premium + Kontingent + Backend live → läuft über den Proxy
+  return true;   // ai/family + Credits + Backend live → läuft über den Proxy
 }
-/* Kontingentstand vom Server übernehmen (Proxy-Antwort) + warnen */
+/* Credit-Stand vom Server übernehmen (Proxy-Antwort) + warnen */
 function applyServerUsage(used, limit) {
   if (!account || typeof used !== 'number') return;
   ensureAIQuota();
   account.ai.used = used;
-  if (typeof limit === 'number') account.ai.extra = Math.max(0, limit - AI_MONTHLY_LIMIT);
+  if (typeof limit === 'number') account.ai.extra = Math.max(0, limit - creditBase());
   saveAccount();
   const pct = aiPct();
-  if (aiRemaining() === 0) toast('⚠️ KI-Kontingent aufgebraucht. In den Einstellungen nachbestellen oder eigenen Schlüssel hinterlegen.');
-  else if (pct >= 90 && !_aiWarned90) { _aiWarned90 = true; toast('ℹ️ 90 % deines KI-Kontingents verbraucht (' + aiUsed() + '/' + aiLimit() + ').'); }
+  if (aiRemaining() === 0) toast('⚠️ Effyra Credits aufgebraucht. Credit-Boost nachbestellen oder eigenen Schlüssel hinterlegen.');
+  else if (pct >= 90 && !_aiWarned90) { _aiWarned90 = true; toast('ℹ️ 90 % deiner Credits verbraucht (' + aiUsed() + '/' + aiLimit() + ').'); }
   if (pct < 90) _aiWarned90 = false;
   if (currentView === 'settings') RENDERERS.settings();
 }
-/* Aktuellen Stufen-/Kontingentstand serverseitig holen (nach Login, nach Kauf) */
+/* Aktuellen Stufen-/Credit-Stand serverseitig holen (nach Login, nach Kauf) */
 async function syncEntitlements() {
   if (!BACKEND_V2 || !CLOUD || !account || !account.loggedIn) return;
   try {
     const r = await sb.rpc('get_entitlements');
     if (r && !r.error && r.data) {
-      account.tier = r.data.tier || account.tier || 'free';
-      account.ai = { month: r.data.usage_month, used: r.data.ai_used || 0, extra: Math.max(0, (r.data.ai_limit || AI_MONTHLY_LIMIT) - AI_MONTHLY_LIMIT) };
+      account.tier = normalizeTier(r.data.tier) || account.tier || 'free';
+      account.status = r.data.status || account.status || null;
+      account.role = r.data.role || account.role || ROLE.OWNER;
+      const base = TIER_CREDITS[account.tier] || 0;
+      account.ai = { month: r.data.usage_month, used: r.data.ai_used || 0, extra: Math.max(0, (r.data.ai_limit || base) - base) };
       account.premiumUntil = r.data.premium_until || null;
     }
   } catch (e) { /* Backend evtl. noch nicht deployt – Phase-1-Werte behalten */ }
@@ -2287,7 +2348,7 @@ function setupAuthForm() {
     $('#auEmail').style.display = '';
     $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Anmelden';
     $('#authSub').textContent = isReg
-      ? '3 Tage kostenlos testen – alle Funktionen inklusive.'
+      ? '14 Tage kostenlos testen – alle Funktionen inklusive.'
       : 'Schön, dass du wieder da bist!';
     $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
     $('#authToggle').style.display = '';
@@ -2301,7 +2362,7 @@ function setupAuthForm() {
   $('#auEmail').style.display = isReg ? '' : 'none';
   $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Willkommen zurück';
   $('#authSub').textContent = isReg
-    ? '3 Tage kostenlos testen – alle Funktionen inklusive.'
+    ? '14 Tage kostenlos testen – alle Funktionen inklusive.'
     : 'Angemeldet bleiben als ' + account.email;
   $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
   $('#authToggle').style.display = 'none';
@@ -2356,7 +2417,7 @@ async function cloudAuth(pass, err) {
         return;
       }
       await cloudSession(r.data.session, name);
-      toast('Konto erstellt – 3 Tage alles inklusive ✨');
+      toast('Konto erstellt – 14 Tage alles inklusive ✨');
     } else {
       const r = await sb.auth.signInWithPassword({ email, password: pass });
       if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
@@ -2394,7 +2455,7 @@ async function submitAuth() {
     /* Trial-Start überlebt ein Konto-Zurücksetzen – kein Neustart der Testphase */
     let t0 = parseInt(localStorage.getItem(TRIAL0_KEY) || '0', 10);
     if (!t0) { t0 = Date.now(); try { localStorage.setItem(TRIAL0_KEY, String(t0)); } catch (e) {} }
-    account = { name, email, salt, hash, plan: 'free', trialStart: t0, createdAt: Date.now(), loggedIn: true };
+    account = { name, email, salt, hash, plan: 'free', tier: 'free', status: 'FREE_TRIAL', role: ROLE.OWNER, trialStart: t0, createdAt: Date.now(), loggedIn: true };
     saveAccount();
     if (name && !store.name) { store.name = name; save(); }
     $('#auPass').value = '';
@@ -2404,7 +2465,7 @@ async function submitAuth() {
       obShow(0);
       $('#obName').value = store.name;
     }
-    toast('Konto erstellt – 3 Tage alles inklusive ✨');
+    toast('Konto erstellt – 14 Tage alles inklusive ✨');
     refresh();
   } else {
     const hash = await sha256Hex(account.salt + ':' + pass);
@@ -2441,9 +2502,9 @@ async function activatePremium(code, errEl) {
       const r = await sb.rpc('redeem_code', { p_code: code });
       if (r.error) { errEl.textContent = 'Das hat nicht geklappt – bitte später erneut versuchen.'; return false; }
       if (r.data === 'ok') {
-        account.plan = 'premium'; account.tier = 'premium';
+        account.plan = 'premium'; account.tier = 'ai'; account.status = 'AI_YEARLY';
         $('#paywall').classList.remove('on'); gate();
-        toast('Premium freigeschaltet – alles inklusive 💎');
+        toast('Effyra AI Premium freigeschaltet – 500 Credits/Monat 💎');
         showView('dashboard');
         return true;
       }
@@ -2459,11 +2520,11 @@ async function activatePremium(code, errEl) {
   if (!(window.crypto && crypto.subtle)) { errEl.textContent = 'Die Aktivierung benötigt eine sichere Verbindung (https).'; return false; }
   const h = await sha256Hex(code);
   if (PREMIUM_HASHES.indexOf(h) === -1) { errEl.textContent = 'Dieser Code ist leider ungültig.'; return false; }
-  account.plan = 'premium'; account.tier = 'premium';
+  account.plan = 'premium'; account.tier = 'ai'; account.status = 'AI_YEARLY';
   account.premiumSince = Date.now();
   saveAccount();
   $('#paywall').classList.remove('on'); gate();
-  toast('Premium freigeschaltet – alles inklusive 💎');
+  toast('Effyra AI Premium freigeschaltet – 500 Credits/Monat 💎');
   showView('dashboard');
   return true;
 }
@@ -2507,6 +2568,24 @@ $('#pwGo').addEventListener('click', () => activatePremium($('#pwCode').value, $
 $('#pwCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pwGo').click(); });
 $('#pwLogout').addEventListener('click', logout);
 $('#paywall').addEventListener('click', e => { const buy = e.target.closest('[data-buy]'); if (buy) startCheckout(buy.dataset.buy); });
+/* Abrechnungszeitraum (Monatlich / Jährlich) auf der Paywall umschalten */
+function setBillingPeriod(period) {
+  const yearly = period === 'yearly';
+  $$('#billToggle .bill-opt').forEach(b => {
+    const on = b.dataset.period === period;
+    b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  $$('#paywall .tier-price[data-m]').forEach(p => {
+    p.innerHTML = (yearly ? p.dataset.y : p.dataset.m) + '<small>' + (yearly ? p.dataset.ys : p.dataset.ms) + '</small>';
+  });
+  $$('#paywall .tier-cta[data-buy-m]').forEach(btn => {
+    btn.dataset.buy = yearly ? btn.dataset.buyY : btn.dataset.buyM;
+    const card = btn.closest('.tier-card'), name = card && card.querySelector('.tier-name');
+    const price = card && card.querySelector('.tier-price');
+    if (name && price) btn.textContent = name.textContent + ' starten – ' + price.firstChild.textContent + (yearly ? '/Jahr' : '/Mon.');
+  });
+}
+$('#billToggle') && $('#billToggle').addEventListener('click', e => { const o = e.target.closest('.bill-opt'); if (o) setBillingPeriod(o.dataset.period); });
 $('#pwBack').addEventListener('click', () => { $('#paywall').classList.remove('on'); showView('dashboard'); });
 
 /* ============================== TASKS (Daten) ============================== */
@@ -2563,8 +2642,9 @@ RENDERERS.dashboard = function () {
   } else $('#greetSub').textContent = dstr + ' — alles im Griff, nichts Dringendes. 🌿';
 
   const slot = $('#trialSlot');
-  if (account && isPremium()) slot.innerHTML = '<span class="trial-pill premium">💎 Premium – alles inklusive</span>';
-  else if (account) { const d = trialDaysLeft(); slot.innerHTML = '<button class="trial-pill" id="trialGo">⏳ Testphase: noch ' + d + ' Tag' + (d === 1 ? '' : 'e') + ' · <b>Premium freischalten</b></button>'; $('#trialGo').addEventListener('click', () => showView('settings')); }
+  if (account && hasAI()) slot.innerHTML = '<span class="trial-pill premium">' + (currentTier() === 'family' ? '👪 Effyra Family' : '💎 Effyra AI Premium') + ' – ' + aiRemaining() + ' Credits übrig</span>';
+  else if (account && currentTier() === 'basic') slot.innerHTML = '<span class="trial-pill premium">⭐ Lifetime Basic – dauerhaft freigeschaltet</span>';
+  else if (account) { const d = trialDaysLeft(); slot.innerHTML = '<button class="trial-pill" id="trialGo">⏳ Testphase: noch ' + d + ' Tag' + (d === 1 ? '' : 'e') + ' · <b>Plan wählen</b></button>'; $('#trialGo').addEventListener('click', () => showView('settings')); }
   else slot.innerHTML = '';
 
   const stat = (n, l, go, i) => '<button class="stat rise" style="--i:' + i + '" data-go="' + go + '"><b>' + n + '</b><span>' + l + '</span></button>';
@@ -5742,35 +5822,41 @@ function renderAccountCard() {
   if (!account) { card.style.display = 'none'; return; }
   card.style.display = '';
   const tier = currentTier(), days = trialDaysLeft();
-  let planHtml = '<span class="tier-pill ' + tier + '">' + (tier === 'premium' ? '💎 ' : tier === 'medium' ? '⭐ ' : '') + TIER_LABEL[tier] + '</span>';
+  const tierIcon = { free: '', basic: '⭐ ', ai: '💎 ', family: '👪 ' };
+  let planHtml = '<span class="tier-pill ' + tier + '">' + (tierIcon[tier] || '') + TIER_LABEL[tier] + '</span>';
   if (tier === 'free') planHtml += ' <span class="badge b-trial" style="margin-left:6px">⏳ noch ' + days + ' Tag' + (days === 1 ? '' : 'e') + '</span>';
+  const roleLabel = { OWNER: 'Administrator', ADULT_MEMBER: 'Erwachsen', CHILD_MEMBER: 'Kind' };
+  if (tier === 'family') planHtml += ' <span class="badge b-trial" style="margin-left:6px">' + (roleLabel[currentRole()] || 'Administrator') + '</span>';
 
   let html = '<h3>Dein Konto</h3>' +
     '<p class="sub">' + (account.name ? esc(account.name) + ' · ' : '') + esc(account.email) + '</p>' +
     '<div style="margin-bottom:14px">' + planHtml + '</div>';
 
-  if (tier === 'premium' && !usingOwnKey()) {
+  if (isChild()) {
+    html += '<div class="note-box" style="margin-bottom:12px">👦 Kinderkonto: eigene Aufgaben, Termine und Erinnerungen. Effyra AI und Credits sind Erwachsenen vorbehalten.</div>';
+  } else if (hasAI() && !usingOwnKey()) {
     const used = aiUsed(), lim = aiLimit(), pct = aiPct(), cls = pct >= 100 ? 'full' : pct >= 90 ? 'warn' : '';
-    html += '<div class="note-box" style="margin-bottom:12px"><b>KI-Kontingent (' + aiMonthKey() + ')</b>' +
+    const boost = BOOST_CREDITS[tier] || 500;
+    html += '<div class="note-box" style="margin-bottom:12px"><b>Effyra Credits (' + aiMonthKey() + ')</b>' +
       '<div class="quota-bar"><div class="quota-fill ' + cls + '" style="width:' + Math.min(100, pct) + '%"></div></div>' +
-      '<span class="sub">' + used + ' / ' + lim + ' Abfragen · noch ' + aiRemaining() + ' übrig</span>' +
-      (pct >= 90 ? '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" data-buy="topup">+500 nachbestellen · 4,99 €</button></div>' : '') +
-      '<div class="sub" style="margin-top:6px">Reset am 1. des Folgemonats. Alternativ eigenen Schlüssel (unten) für unbegrenzte Nutzung.</div></div>';
-  } else if (tier === 'premium' && usingOwnKey()) {
-    html += '<div class="note-box" style="margin-bottom:12px">🔑 Eigener API-Schlüssel aktiv – <b>unbegrenzte</b> KI, kein Kontingentverbrauch.</div>';
+      '<span class="sub">' + used + ' / ' + lim + ' Credits · noch ' + aiRemaining() + ' übrig</span>' +
+      (pct >= 90 ? '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" id="btnBoost">Credit-Boost +' + boost + ' · 4,99 €</button></div>' : '') +
+      '<div class="sub" style="margin-top:6px">Reset am 1. des Folgemonats.' + (tier === 'family' ? ' Nur Erwachsene verbrauchen Credits.' : '') + ' Alternativ eigenen Schlüssel (unten) für unbegrenzte Nutzung.</div></div>';
+  } else if (hasAI() && usingOwnKey()) {
+    html += '<div class="note-box" style="margin-bottom:12px">🔑 Eigener API-Schlüssel aktiv – <b>unbegrenzte</b> KI, kein Credit-Verbrauch.</div>';
   }
 
-  if (tier !== 'premium') html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">⭐ Plan ansehen / upgraden</button>';
+  if (!hasAI() && !isChild()) html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">⭐ Plan ansehen / upgraden</button>';
 
-  html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
+  if (!isChild()) html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
     '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
-    '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>' +
-    '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>';
+    '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>';
+  html += '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>';
 
   card.innerHTML = html;
   const up = $('#btnUpgrade'); if (up) up.addEventListener('click', () => showUpgrade());
   const go = $('#setCodeGo'); if (go) go.addEventListener('click', async () => { if (await activatePremium($('#setCode').value, $('#setCodeErr'))) renderAccountCard(); });
-  const tu = card.querySelector('[data-buy="topup"]'); if (tu) tu.addEventListener('click', () => startCheckout('topup'));
+  const boostBtn = $('#btnBoost'); if (boostBtn) boostBtn.addEventListener('click', () => startCheckout(tier === 'family' ? 'family_boost' : 'topup'));
   $('#btnLogout').addEventListener('click', logout);
 }
 
@@ -5786,6 +5872,7 @@ $('#setNameSave').addEventListener('click', () => {
   toast(store.name ? 'Gespeichert, ' + store.name + ' ✓' : 'Name entfernt');
 });
 $('#setKeySave').addEventListener('click', () => {
+  if (isChild()) { toast('👦 Kinderkonten können keinen eigenen KI-Schlüssel hinterlegen.'); return; }
   const v = $('#setKey').value.trim();
   if (!v || v.startsWith('••')) { toast('Bitte einen API-Schlüssel eingeben'); return; }
   try { localStorage.setItem(KEY_KEY, v); } catch (e) {}
