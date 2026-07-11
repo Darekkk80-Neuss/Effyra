@@ -969,7 +969,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
     </div>
-    <p class="gate-note">🔒 Dein Konto wird nur auf diesem Gerät gespeichert – keine Cloud, keine Werbung.<br>Nach der Testphase schaltet ein Premium-Code alle Funktionen dauerhaft frei.</p>
+    <p class="gate-note">🔒 Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
   </div>
 </div>
 
@@ -1063,7 +1063,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <div class="ob-name">
       <input type="text" id="obName" placeholder="Dein Vorname (optional)" maxlength="30" autocomplete="given-name">
     </div>
-    <p style="font-size:12.5px">Alle Daten bleiben auf deinem Gerät. Kein Konto, keine Cloud, keine Werbung.</p>
+    <p style="font-size:12.5px">Local-first mit Cloud-Backup: Deine Daten liegen auf dem Gerät und werden – angemeldet – sicher in deinem Konto gesichert. Keine Werbung, kein Tracking.</p>
   </div>
   <div class="ob-ctrl">
     <button class="btn btn-primary" id="obNext">Weiter</button>
@@ -1279,7 +1279,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <section class="view" id="view-settings">
       <div class="view-head">
         <h1>Einstellungen</h1>
-        <p>Alles bleibt lokal auf deinem Gerät.</p>
+        <p>Local-first: lokal gespeichert, angemeldet zusätzlich sicher in deinem Konto (Backup &amp; Sync).</p>
       </div>
 
       <div class="card set-card" id="accountCard"></div>
@@ -1341,7 +1341,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <h3>Über Effyra</h3>
         <p class="sub">Version 1.0 – Dein persönlicher KI-Alltagsmanager.<br>
         Dokumente verstehen · Fristen erkennen · Aufgaben &amp; Termine organisieren · KI-Chat.<br>
-        Ohne Konto, ohne Tracking, ohne Werbung. Alle Daten bleiben auf diesem Gerät.</p>
+        Local-first mit optionalem Cloud-Backup &amp; Sync. Ohne Tracking, ohne Werbung. Notfall- &amp; Budgetdaten bleiben nur lokal.</p>
       </div>
     </section>
 
@@ -6072,6 +6072,12 @@ if (CLOUD) {
 showView('dashboard');
 
 })();
+</script>
+<script>
+/* PWA: Service Worker registrieren (installierbar + offline). Netzwerk-zuerst, damit Updates sofort ankommen. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
 </script>
 </body>
 </html>

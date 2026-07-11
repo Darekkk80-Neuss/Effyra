@@ -1,0 +1,23 @@
+{
+  "//": "Referenz-Konfig für Bubblewrap (TWA -> Google Play). `bubblewrap init` erzeugt diese Datei normalerweise selbst aus der Web-App-Manifest-URL. Passe packageId, iconUrl und signingKey an. Siehe ANDROID.md.",
+  "packageId": "app.effyra.twa",
+  "host": "darekkk80-neuss.github.io",
+  "name": "Effyra",
+  "launcherName": "Effyra",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#07090f",
+  "themeColorDark": "#07090f",
+  "navigationColor": "#07090f",
+  "backgroundColor": "#07090f",
+  "enableNotifications": false,
+  "startUrl": "/Effyra/",
+  "webManifestUrl": "https://darekkk80-neuss.github.io/Effyra/manifest.webmanifest",
+  "webManifestId": "https://darekkk80-neuss.github.io/Effyra/",
+  "iconUrl": "https://darekkk80-neuss.github.io/Effyra/icon-512.png",
+  "maskableIconUrl": "https://darekkk80-neuss.github.io/Effyra/icon-512.png",
+  "fallbackType": "customtabs",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": { "path": "./android.keystore", "alias": "effyra" }
+}
