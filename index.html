@@ -962,8 +962,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 #toasts{position:fixed;bottom:calc(var(--tabbar-h) + 18px);left:50%;transform:translateX(-50%);
   z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 @media(min-width:900px){#toasts{bottom:28px}}
-.toast{padding:11px 20px;border-radius:14px;background:rgba(20,23,34,.92);border:1px solid var(--border2);
-  backdrop-filter:blur(12px);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);
+.toast{padding:11px 20px;border-radius:14px;background:rgba(20,23,34,.96);border:1px solid rgba(255,255,255,.16);
+  color:#f5f7fb;backdrop-filter:blur(12px);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);
   animation:toastIn .3s ease both;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .toast.out{animation:toastOut .3s ease both}
