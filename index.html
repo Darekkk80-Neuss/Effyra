@@ -1043,9 +1043,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <nav class="snav">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="nav.dashboard">Start</span></button>
       <button data-view="work"><svg viewBox="0 0 24 24"><use href="#icWork"/></svg><span data-i18n="nav.work">Arbeitszeit</span></button>
-      <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.docs">Dokumentenscanner</span></button>
-      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Dokumentenassistent</span></button>
-      <button data-view="voice"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg><span data-i18n="nav.voice">Voice2PDF</span></button>
+      <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.docs">Effyra AI Dokumentenassistent</span></button>
+      <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Briefe Vorlagen</span></button>
       <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg><span data-i18n="nav.life">Lebenslagen</span></button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="nav.tasks">Aufgaben</span></button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span data-i18n="nav.calendar">Kalender</span></button>
@@ -1053,7 +1052,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="family"><svg viewBox="0 0 24 24"><use href="#icFamily"/></svg><span data-i18n="nav.family">Familienzentrale</span></button>
       <button data-view="emergency"><svg viewBox="0 0 24 24"><use href="#icAlert"/></svg><span data-i18n="nav.emergency">Notfallbereich</span></button>
       <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg><span data-i18n="nav.vehicles">Auto &amp; Motorrad</span></button>
-      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg><span data-i18n="nav.chat">Effyra Chat</span></button>
+      <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg><span data-i18n="nav.chat">Effyra AI</span></button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
     <div class="foot">
@@ -1093,8 +1092,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <!-- ============================== DOKUMENTE ============================== -->
     <section class="view" id="view-docs">
       <div class="view-head">
-        <h1>Dokumentenscanner mit Texterkennung</h1>
-        <p>Brief fotografieren – Effyra liest den Text, erklärt ihn und erkennt Fristen.</p>
+        <h1>Effyra AI Dokumentenassistent</h1>
+        <p>Brief fotografieren – Effyra AI liest den Text, erklärt ihn, erkennt Fristen und verteilt alles automatisch.</p>
       </div>
       <div class="dropzone" id="dropzone">
         <div class="dz-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></div>
@@ -1203,30 +1202,6 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div id="workRoot"></div>
     </section>
 
-    <!-- ============================== VOICE2PDF ============================== -->
-    <section class="view" id="view-voice">
-      <div class="view-head">
-        <h1>Voice2PDF</h1>
-        <p>Sprich einfach – Effyra macht daraus Text und ein PDF.</p>
-      </div>
-      <div class="v2p-rec">
-        <button class="v2p-mic" id="v2pMic" aria-label="Aufnahme starten oder stoppen"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
-        <div class="v2p-status" id="v2pStatus">Tippe aufs Mikrofon und leg los</div>
-      </div>
-      <details class="v2p-hint"><summary>💡 Satzzeichen &amp; Absätze diktieren</summary>
-        <p>Sprich Satzzeichen einfach mit: <b>Komma</b>, <b>Punkt</b>, <b>Fragezeichen</b>, <b>Ausrufezeichen</b>, <b>Doppelpunkt</b>, <b>Klammer auf</b>/<b>Klammer zu</b>. Für Zeilen sag <b>neue Zeile</b>, für einen Absatz <b>neuer Absatz</b>.</p></details>
-      <div class="v2p-interim" id="v2pInterim"></div>
-      <input type="text" id="v2pTitle" placeholder="Titel (z. B. Besprechung Montag)" maxlength="60">
-      <textarea id="v2pText" rows="7" placeholder="Dein gesprochener Text erscheint hier – du kannst ihn frei bearbeiten."></textarea>
-      <div class="v2p-actions">
-        <button class="btn btn-primary btn-sm" id="v2pPdf">🖨️ Als PDF speichern</button>
-        <button class="btn btn-sm" id="v2pSave">💾 Merken</button>
-        <button class="btn btn-sm" id="v2pCopy">📋 Kopieren</button>
-        <button class="btn btn-sm" id="v2pClear">🗑️ Leeren</button>
-      </div>
-      <div id="v2pList"></div>
-    </section>
-
     <!-- ============================== AUTO & MOTORRAD ============================== -->
     <section class="view" id="view-vehicles">
       <div class="view-head">
@@ -1324,8 +1299,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
   <nav class="tabbar">
     <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="tab.start">Start</span></button>
-    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="tab.assistant">Assistent</span></button>
-    <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>Effyra</span></button>
+    <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="tab.assistant">Vorlagen</span></button>
+    <button class="tab tab-center" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>Effyra AI</span></button>
     <button class="tab" data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="tab.tasks">Aufgaben</span></button>
     <button class="tab" id="moreTab"><svg viewBox="0 0 24 24"><use href="#icMore"/></svg><span data-i18n="nav.more">Mehr</span></button>
   </nav>
@@ -1336,10 +1311,9 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   <div class="more-panel">
     <div class="more-grid">
       <button data-view="work"><span class="mi">🕒</span><span data-i18n="nav.work">Arbeitszeit</span></button>
-      <button data-view="docs"><span class="mi">📄</span><span data-i18n="nav.docs">Dokumentenscanner</span></button>
+      <button data-view="docs"><span class="mi">📄</span><span data-i18n="nav.docs">Effyra AI Dokumentenassistent</span></button>
       <button data-view="school"><span class="mi">🧒</span><span data-i18n="nav.school">Kinder</span></button>
       <button data-view="calendar"><span class="mi">📅</span><span data-i18n="nav.calendar">Kalender</span></button>
-      <button data-view="voice"><span class="mi">🎙️</span><span data-i18n="nav.voice">Voice2PDF</span></button>
       <button data-view="life"><span class="mi">🧭</span><span data-i18n="nav.life">Lebenslagen</span></button>
       <button data-view="family"><span class="mi">👪</span><span data-i18n="nav.family">Familie</span></button>
       <button data-view="emergency"><span class="mi">🆘</span><span data-i18n="nav.emergency">Notfall</span></button>
@@ -1480,7 +1454,6 @@ const store = Object.assign({
   budget: { entries: [] }, // Haushaltsbudget (lokal): {id,kind:'income'|'expense',label,amount,recurring,date}
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
-  voiceNotes: [], // Voice2PDF gespeicherte Transkriptionen
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
   settings: { model: 'claude-sonnet-5', demoIdx: 0, theme: 'light' }
 }, (() => {
@@ -1539,7 +1512,7 @@ const LANGS = [
 const I18N = {
   de: {
     'date.today': 'heute', 'date.tomorrow': 'morgen', 'date.yesterday': 'gestern', 'date.days_ago': 'vor {n} Tagen', 'date.in_days': 'in {n} Tagen',
-    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Dokumentenscanner', 'nav.docgen': 'Dokumentenassistent', 'nav.voice': 'Voice2PDF', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
+    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
     'tab.start': 'Start', 'tab.assistant': 'Assistent', 'tab.tasks': 'Aufgaben',
     'dash.morning': 'Guten Morgen', 'dash.day': 'Guten Tag', 'dash.evening': 'Guten Abend', 'dash.night': 'Gute Nacht',
     'dash.stat_open': 'Offene Aufgaben', 'dash.stat_today': 'Termine heute', 'dash.stat_docs': 'Dokumente',
@@ -1789,8 +1762,8 @@ const TDICT_SRC = {
   /* Navigation */
   'Start': { en: 'Home', fr: 'Accueil', es: 'Inicio', it: 'Home', pl: 'Start' },
   'Arbeitszeit': { en: 'Working hours', fr: 'Temps de travail', es: 'Horario laboral', it: 'Orario di lavoro', pl: 'Czas pracy' },
-  'Dokumentenscanner': { en: 'Document scanner', fr: 'Scanner de documents', es: 'Escáner de documentos', it: 'Scanner documenti', pl: 'Skaner dokumentów' },
-  'Dokumentenassistent': { en: 'Document assistant', fr: 'Assistant de documents', es: 'Asistente de documentos', it: 'Assistente documenti', pl: 'Asystent dokumentów' },
+  'Effyra AI Dokumentenassistent': { en: 'Effyra AI Document Assistant', fr: 'Assistant de documents Effyra AI', es: 'Asistente de documentos Effyra AI', it: 'Assistente documenti Effyra AI', pl: 'Asystent dokumentów Effyra AI' },
+  'Briefe Vorlagen': { en: 'Letter templates', fr: 'Modèles de lettres', es: 'Plantillas de cartas', it: 'Modelli di lettere', pl: 'Szablony pism' },
   'Lebenslagen': { en: 'Life situations', fr: 'Situations de vie', es: 'Situaciones de vida', it: 'Situazioni di vita', pl: 'Sytuacje życiowe' },
   'Aufgaben': { en: 'Tasks', fr: 'Tâches', es: 'Tareas', it: 'Attività', pl: 'Zadania' },
   'Kalender': { en: 'Calendar', fr: 'Calendrier', es: 'Calendario', it: 'Calendario', pl: 'Kalendarz' },
@@ -1963,7 +1936,7 @@ async function flushAI() {
     const langName = langMeta(curLang).native;
     const prompt = 'Du übersetzt die Oberfläche einer deutschen Alltags-App nach ' + langName + ' (' + curLang + '). ' +
       'Übersetze jeden Eintrag knapp und natürlich im UI-Stil. Behalte Platzhalter ({n}, {name} …), Emojis, Zahlen, ' +
-      'Satzzeichen und führende/abschließende Symbole bei. Übersetze KEINE Eigennamen (Effyra, TÜV, PDF, Voice2PDF). ' +
+      'Satzzeichen und führende/abschließende Symbole bei. Übersetze KEINE Eigennamen (Effyra, TÜV, PDF). ' +
       'Antworte AUSSCHLIESSLICH mit einem JSON-Objekt {"t":[ ... ]}, dessen Array die Übersetzungen in exakt derselben ' +
       'Reihenfolge wie die Eingabe enthält:\n' + JSON.stringify(batch);
     const text = await callClaude({ model: store.settings.model, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] });
@@ -1984,13 +1957,12 @@ async function flushAI() {
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['work', 'docs', 'voice', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
+const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
 function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
   if (account && account.loggedIn && !isTrialExpired() && !moduleAllowed(name)) { showUpgrade(name); return; }
   currentView = name;
   gate();
-  if (name !== 'voice') stopVoiceIfRec();
   $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   $$('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
@@ -3112,7 +3084,7 @@ function tplList(items) {
 function dgBrowseHTML() {
   const q = dgQuery.trim().toLowerCase();
   const match = (t) => !q || t.title.toLowerCase().includes(q);
-  let h = '<div class="view-head"><h1>Dokumentenassistent</h1><p>Fertige Briefe für Kündigungen, Behörden, Umzug & mehr – in Minuten erledigt.</p></div>';
+  let h = '<div class="view-head"><h1>Briefe Vorlagen</h1><p>Fertige Briefe für Kündigungen, Behörden, Umzug & mehr – in Minuten erledigt.</p></div>';
   h += '<input type="text" id="dgSearch" class="dg-search" placeholder="🔎 Vorlage suchen …" value="' + esc(dgQuery) + '">';
   h += '<button class="btn btn-sm dg-free" data-dg="free">✨ Eigenes Anliegen mit KI formulieren</button>';
   const favs = DOC_TPL.filter(t => store.docFavs.includes(t.id) && t.cat && match(t));
@@ -4047,126 +4019,6 @@ $('#emRoot').addEventListener('keydown', e => {
   else if (e.target.id === 'insType' || e.target.id === 'insCompany' || e.target.id === 'insNumber') $('#emRoot [data-em="addIns"]').click();
 });
 
-/* ============================== VOICE2PDF ============================== */
-const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-let vRecog = null, vRecording = false, vCommitted = 0;
-function updateMicUI() {
-  const mic = $('#v2pMic'), st = $('#v2pStatus');
-  if (!mic) return;
-  mic.classList.toggle('rec', vRecording);
-  st.textContent = vRecording ? '● Aufnahme läuft – tippe zum Stoppen' : 'Tippe aufs Mikrofon und leg los';
-  if (!vRecording && $('#v2pInterim')) $('#v2pInterim').textContent = '';
-}
-/* Gesprochene Satzzeichen-/Absatz-Befehle in Zeichen umwandeln (z. B. „Komma" → „,").
-   Token-basiert, damit sich benachbarte Befehle nicht gegenseitig stören. */
-const V_SINGLE = { komma: ',', punkt: '.', fragezeichen: '?', ausrufezeichen: '!', ausrufungszeichen: '!', doppelpunkt: ':', semikolon: ';', strichpunkt: ';', bindestrich: '-', gedankenstrich: '-', anführungszeichen: '"', gänsefüßchen: '"', zeilenumbruch: '\n', zeilenwechsel: '\n' };
-function applyVoiceCommands(s) {
-  const words = String(s).split(/\s+/).filter(Boolean);
-  let out = '';
-  const addWord = (w) => { out += (out && !/[\n(]$/.test(out) ? ' ' : '') + w; };
-  for (let i = 0; i < words.length; i++) {
-    const w = words[i], lw = w.toLowerCase(), next = (words[i + 1] || '').toLowerCase();
-    if ((lw === 'neuer' || lw === 'neuen' || lw === 'neue') && next === 'absatz') { out += '\n\n'; i++; continue; }
-    if (lw === 'neue' && next === 'zeile') { out += '\n'; i++; continue; }
-    if (lw === 'klammer' && next === 'auf') { out += (out && !/\s$/.test(out) ? ' ' : '') + '('; i++; continue; }
-    if (lw === 'klammer' && next === 'zu') { out += ')'; i++; continue; }
-    if (V_SINGLE[lw] != null) { out += V_SINGLE[lw]; continue; }
-    addWord(w);
-  }
-  return out.replace(/\s+([,.;:!?)])/g, '$1').replace(/\(\s+/g, '(').replace(/[ \t]{2,}/g, ' ').replace(/[ \t]*\n[ \t]*/g, '\n').trim();
-}
-function vAppendFinal(text) {
-  const clean = applyVoiceCommands(text);
-  if (!clean) return;
-  const ta = $('#v2pText'); if (!ta) return;
-  let cur = ta.value;
-  /* Bindeglied bestimmen: kein Leerzeichen nach Zeilenumbruch/öffnender Klammer/vor Satzzeichen */
-  let joiner = '';
-  if (cur) {
-    if (/[\n(]$/.test(cur) || /^[,.;:!?)]/.test(clean)) joiner = '';
-    else if (!/\s$/.test(cur)) joiner = ' ';
-  }
-  ta.value = cur + joiner + clean;
-  ta.scrollTop = ta.scrollHeight;
-}
-async function vStart() {
-  if (!SpeechRec) { toast('Live-Transkription braucht Chrome, Edge oder Safari'); return; }
-  /* Mikrofon-Zugriff explizit anfragen, damit der Browser den Freigabe-Dialog zeigt. */
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    const st = $('#v2pStatus'); if (st) st.textContent = '🎤 Bitte Mikrofon-Zugriff erlauben …';
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(tr => tr.stop());   // Stream wieder freigeben – Erkennung nutzt eigene Aufnahme
-    } catch (err) {
-      toast('🎤 Kein Mikrofon-Zugriff. Bitte in den Browser-Einstellungen für diese Seite erlauben.');
-      updateMicUI();
-      return;
-    }
-  }
-  vRecog = new SpeechRec();
-  vRecog.lang = 'de-DE'; vRecog.continuous = true; vRecog.interimResults = true;
-  vCommitted = 0;
-  vRecog.onresult = e => {
-    let interim = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const r = e.results[i];
-      if (r.isFinal) {
-        if (i >= vCommitted) { vAppendFinal(r[0].transcript); vCommitted = i + 1; }
-      } else interim += r[0].transcript;
-    }
-    if ($('#v2pInterim')) $('#v2pInterim').textContent = interim;
-  };
-  vRecog.onerror = e => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { toast('🎤 Mikrofon-Zugriff abgelehnt'); vRecording = false; updateMicUI(); }
-    else if (e.error === 'no-speech') { /* Stille – Neustart über onend */ }
-  };
-  vRecog.onend = () => { if (vRecording) { vCommitted = 0; try { vRecog.start(); } catch (e) {} } };
-  vRecording = true;
-  try { vRecog.start(); } catch (e) {}
-  updateMicUI();
-}
-function vStop() { vRecording = false; if (vRecog) { try { vRecog.stop(); } catch (e) {} } updateMicUI(); }
-function stopVoiceIfRec() { if (vRecording) vStop(); }
-
-function voicePDF(title, text) {
-  if (!text.trim()) { toast('Kein Text vorhanden'); return; }
-  const today = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-  $('#printRoot').innerHTML = '<div class="letter"><div class="l-subject" style="font-size:20px">' + esc(title || 'Sprachnotiz') + '</div>' +
-    '<div class="l-place">' + esc(today) + '</div>' +
-    '<div class="l-body"><p>' + esc(text.trim()).replace(/\n/g, '<br>') + '</p></div>' +
-    '<p style="margin-top:22px;color:#777">Erstellt mit Effyra · Voice2PDF</p></div>';
-  window.print();
-}
-RENDERERS.voice = function () {
-  const box = $('#v2pList');
-  const notes = store.voiceNotes.slice().reverse();
-  if (!notes.length) { box.innerHTML = ''; return; }
-  box.innerHTML = '<div class="sec-title"><h2>💾 Gemerkte Aufnahmen</h2></div>' + notes.map(n =>
-    '<div class="v2p-note" data-vn="' + n.id + '"><div class="v2p-note-head"><b>' + esc(n.title) + '</b><time>' + new Date(n.ts).toLocaleDateString('de-DE') + '</time></div>' +
-    '<p>' + esc(n.text) + '</p><div class="v2p-note-actions">' +
-    '<button class="btn btn-sm" data-vn-act="open">✏️ Öffnen</button>' +
-    '<button class="btn btn-sm" data-vn-act="pdf">🖨️ PDF</button>' +
-    '<button class="btn btn-sm" data-vn-act="copy">📋</button>' +
-    '<button class="btn btn-sm btn-danger" data-vn-act="del">Löschen</button></div></div>').join('');
-};
-$('#v2pMic').addEventListener('click', () => { vRecording ? vStop() : vStart(); });
-$('#v2pPdf').addEventListener('click', () => voicePDF($('#v2pTitle').value.trim(), $('#v2pText').value));
-$('#v2pCopy').addEventListener('click', () => { const t = $('#v2pText').value.trim(); if (!t) { toast('Kein Text'); return; } copyText(t).then(ok => toast(ok ? 'Kopiert ✓' : 'Kopieren nicht möglich')); });
-$('#v2pClear').addEventListener('click', () => { if (!$('#v2pText').value.trim() || confirm('Text wirklich leeren?')) { $('#v2pText').value = ''; $('#v2pTitle').value = ''; $('#v2pInterim').textContent = ''; } });
-$('#v2pSave').addEventListener('click', () => {
-  const text = $('#v2pText').value.trim(); if (!text) { toast('Kein Text zum Merken'); return; }
-  store.voiceNotes.push({ id: uid(), title: $('#v2pTitle').value.trim() || 'Sprachnotiz', text, ts: Date.now() });
-  save(); RENDERERS.voice(); toast('Aufnahme gemerkt ✓');
-});
-$('#v2pList').addEventListener('click', e => {
-  const act = e.target.closest('[data-vn-act]'); if (!act) return;
-  const id = act.closest('[data-vn]').dataset.vn, n = store.voiceNotes.find(x => x.id === id); if (!n) return;
-  const a = act.dataset.vnAct;
-  if (a === 'open') { $('#v2pTitle').value = n.title; $('#v2pText').value = n.text; window.scrollTo(0, 0); toast('Zum Bearbeiten geladen'); }
-  else if (a === 'pdf') voicePDF(n.title, n.text);
-  else if (a === 'copy') copyText(n.text).then(ok => toast(ok ? 'Kopiert ✓' : 'Kopieren nicht möglich'));
-  else if (a === 'del') { store.voiceNotes = store.voiceNotes.filter(x => x.id !== id); save(); RENDERERS.voice(); toast('Gelöscht'); }
-});
 
 /* ============================== AUTO & MOTORRAD ============================== */
 const vehTab = {};
@@ -5320,7 +5172,7 @@ function demoReply(text) {
   }
 
   if (/was kannst|hilfe|funktionen|können|kannst du/.test(t)) {
-    pushBot('Ich nehme dir Alltagsarbeit ab' + name + ':\n\n📄 Fotografiere einen Brief im Bereich „Dokumentenscanner" – ich lese den Text, erkläre ihn in einfachen Worten, erkenne Fristen und erstelle Aufgaben.\n✅ Ich lege Aufgaben und Termine für dich an.\n🏖️ Sag z. B. „Ich möchte nächste Woche in den Urlaub" – ich plane alles.\n\n💡 Gerade läuft der Demo-Modus. Mit einem eigenen API-Schlüssel (Einstellungen) werde ich zur echten KI und kann frei mit dir sprechen.');
+    pushBot('Ich nehme dir Alltagsarbeit ab' + name + ':\n\n📄 Fotografiere einen Brief im Bereich „Effyra AI Dokumentenassistent" – ich lese den Text, erkläre ihn in einfachen Worten, erkenne Fristen und erstelle Aufgaben.\n✅ Ich lege Aufgaben und Termine für dich an.\n🏖️ Sag z. B. „Ich möchte nächste Woche in den Urlaub" – ich plane alles.\n\n💡 Gerade läuft der Demo-Modus. Mit einem eigenen API-Schlüssel (Einstellungen) werde ich zur echten KI und kann frei mit dir sprechen.');
     return;
   }
 
@@ -5330,7 +5182,7 @@ function demoReply(text) {
   }
 
   if (/brief|dokument|rechnung|vertrag|post\b/.test(t)) {
-    pushBot('Dafür bin ich da! 📄 Geh in den Bereich „Dokumentenscanner" und fotografiere den Brief – ich lese den Text, erkläre dir in einfachen Worten, was drinsteht, und erkenne automatisch Fristen und Aufgaben.');
+    pushBot('Dafür bin ich da! 📄 Geh in den Bereich „Effyra AI Dokumentenassistent" und fotografiere den Brief – ich lese den Text, erkläre dir in einfachen Worten, was drinsteht, und erkenne automatisch Fristen und Aufgaben.');
     return;
   }
 
