@@ -1,10 +1,11 @@
-// Effyra – Claude-Proxy (Supabase Edge Function)
-// Hält den echten Anthropic-Schlüssel serverseitig und setzt das 500/Monat-
-// Kontingent fälschungssicher durch (RPC consume_ai). Der Client ruft diese
-// Funktion mit dem eingeloggten Supabase-JWT auf – niemals mit dem echten Key.
+// Effyra – KI-Proxy (Supabase Edge Function) — OpenAI-Backend
+// Hält den echten OpenAI-Schlüssel serverseitig und setzt das Credit-Kontingent
+// fälschungssicher durch (RPC consume_ai). Der Client ruft diese Funktion mit
+// dem eingeloggten Supabase-JWT auf – niemals mit dem echten Key.
+// (Funktionsname bleibt aus Kompatibilität "claude-proxy"; Backend ist OpenAI.)
 //
-// Benötigte Secrets (supabase secrets set ...):
-//   ANTHROPIC_API_KEY   (gibst du später an – der eigentliche Claude-Schlüssel)
+// Benötigtes Secret (supabase secrets set ...):
+//   OPENAI_API_KEY   (dein OpenAI-Schlüssel, sk-…)
 // Automatisch vorhanden: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -14,7 +15,8 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const ALLOWED_MODELS = ['claude-sonnet-5', 'claude-haiku-4-5-20251001'];
+const ALLOWED_MODELS = ['gpt-4o', 'gpt-4o-mini'];
+const DEFAULT_MODEL = 'gpt-4o-mini';
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { ...CORS, 'content-type': 'application/json' } });
@@ -30,8 +32,8 @@ Deno.serve(async (req) => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
   const ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
   const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!ANTHROPIC_API_KEY) return json({ error: 'server_not_configured' }, 500);
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!OPENAI_API_KEY) return json({ error: 'server_not_configured' }, 500);
 
   // 1) Nutzer aus dem JWT bestimmen
   const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: `Bearer ${jwt}` } } });
@@ -42,10 +44,12 @@ Deno.serve(async (req) => {
   // 2) Anfrage validieren & begrenzen
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
-  const model = ALLOWED_MODELS.includes(body?.model) ? body.model : 'claude-sonnet-5';
+  const model = ALLOWED_MODELS.includes(body?.model) ? body.model : DEFAULT_MODEL;
   const max_tokens = Math.min(Math.max(1, Number(body?.max_tokens) || 1024), 2000);
-  const messages = Array.isArray(body?.messages) ? body.messages : null;
-  if (!messages) return json({ error: 'bad_request' }, 400);
+  const inMsgs = Array.isArray(body?.messages) ? body.messages : null;
+  if (!inMsgs) return json({ error: 'bad_request' }, 400);
+  // System-Prompt wird bei OpenAI als erste Nachricht im messages-Array gesendet
+  const messages = body.system ? [{ role: 'system', content: body.system }, ...inMsgs] : inMsgs;
 
   // 3) Kontingent serverseitig verbrauchen (atomar, prüft Premium + Restmenge)
   const admin = createClient(SUPABASE_URL, SERVICE);
@@ -56,14 +60,16 @@ Deno.serve(async (req) => {
     return json({ error: consumed?.reason || 'quota', ai_used: consumed?.ai_used, ai_limit: consumed?.ai_limit }, 402);
   }
 
-  // 4) Claude aufrufen (echter Schlüssel, nur hier)
-  const ar = await fetch('https://api.anthropic.com/v1/messages', {
+  // 4) OpenAI aufrufen (echter Schlüssel, nur hier)
+  const ar = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model, max_tokens, messages, ...(body.system ? { system: body.system } : {}) }),
+    headers: { 'content-type': 'application/json', 'Authorization': `Bearer ${OPENAI_API_KEY}` },
+    body: JSON.stringify({ model, max_tokens, messages }),
   });
   const data = await ar.json();
   if (!ar.ok) return json({ error: 'ai_failed', detail: data?.error?.message || '' }, ar.status);
 
-  return json({ content: data.content, ai_used: consumed.ai_used, ai_limit: consumed.ai_limit }, 200);
+  const text = data?.choices?.[0]?.message?.content || '';
+  // Antwort im gewohnten content-Format zurückgeben – der Client bleibt unverändert
+  return json({ content: [{ type: 'text', text }], ai_used: consumed.ai_used, ai_limit: consumed.ai_limit }, 200);
 });

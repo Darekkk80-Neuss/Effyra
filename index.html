@@ -1313,17 +1313,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <h3>Echte KI aktivieren <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
         <p class="sub">Mit einem eigenen Anthropic-API-Schlüssel analysiert Claude deine Fotos wirklich und der Chat wird echt. Ohne Schlüssel läuft Effyra im Demo-Modus mit simulierten Antworten.</p>
         <div class="set-row">
-          <input type="password" id="setKey" placeholder="sk-ant-…" autocomplete="off">
+          <input type="password" id="setKey" placeholder="sk-…" autocomplete="off">
           <button class="btn btn-primary" id="setKeySave">Aktivieren</button>
         </div>
         <div style="margin-top:10px">
           <label class="fld" for="setModel">Modell</label>
           <select id="setModel">
-            <option value="claude-sonnet-5">Claude Sonnet 5 – empfohlen</option>
-            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 – schnell &amp; günstig</option>
+            <option value="gpt-4o-mini">GPT-4o mini – empfohlen &amp; günstig</option>
+            <option value="gpt-4o">GPT-4o – stärker</option>
           </select>
         </div>
-        <div class="note-box">🔒 <b>Privat:</b> Der Schlüssel wird nur in deinem Browser gespeichert (localStorage) und direkt an die Anthropic-API gesendet – niemals an andere Server. Einen Schlüssel bekommst du unter <b>console.anthropic.com</b>.</div>
+        <div class="note-box">🔒 <b>Privat:</b> Der Schlüssel wird nur in deinem Browser gespeichert (localStorage) und direkt an die OpenAI-API gesendet – niemals an andere Server. Einen Schlüssel bekommst du unter <b>platform.openai.com</b>.</div>
         <div style="margin-top:10px"><button class="btn btn-sm btn-danger" id="setKeyClear">Schlüssel entfernen</button></div>
       </div>
 
@@ -1510,10 +1510,12 @@ const store = Object.assign({
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
-  settings: { model: 'claude-sonnet-5', demoIdx: 0, theme: 'light' }
+  settings: { model: 'gpt-4o-mini', demoIdx: 0, theme: 'light' }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
 })());
+/* Migration: alte Claude-Modell-Werte auf OpenAI umstellen (Backend läuft jetzt über OpenAI). */
+if (store.settings && /^claude/i.test(store.settings.model || '')) store.settings.model = 'gpt-4o-mini';
 
 function save() {
   try { localStorage.setItem(DATA_KEY, JSON.stringify(store)); }
@@ -4830,23 +4832,23 @@ $('#workRoot').addEventListener('keydown', e => {
 });
 
 /* ============================== KI-ADAPTER ============================== */
-const API_URL = 'https://api.anthropic.com/v1/messages';
+const API_URL = 'https://api.openai.com/v1/chat/completions';
+/* Auf erlaubte OpenAI-Modelle abbilden (Alt-Werte wie claude-* → günstiges Default). */
+const OPENAI_MODELS = ['gpt-4o', 'gpt-4o-mini'];
+const mapModel = (m) => OPENAI_MODELS.indexOf(m) >= 0 ? m : 'gpt-4o-mini';
 
+/* Direkter OpenAI-Aufruf mit eigenem Schlüssel (im Browser). System-Prompt = erste Nachricht. */
 async function callClaude(payload) {
+  const messages = payload.system ? [{ role: 'system', content: payload.system }].concat(payload.messages || []) : (payload.messages || []);
   let res;
   try {
     res = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': getKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify(payload)
+      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + getKey() },
+      body: JSON.stringify({ model: mapModel(payload.model), max_tokens: payload.max_tokens, messages: messages })
     });
   } catch (e) {
-    throw new Error('Keine Verbindung zur KI möglich. Bist du online?');
+    throw new Error('Keine Verbindung zur KI möglich. Bist du online? (Eigene Schlüssel funktionieren im Browser evtl. nicht – dann Premium nutzen.)');
   }
   if (!res.ok) {
     if (res.status === 401) throw new Error('Der API-Schlüssel ist ungültig. Bitte prüfe ihn in den Einstellungen.');
@@ -4855,7 +4857,7 @@ async function callClaude(payload) {
     throw new Error('KI-Anfrage fehlgeschlagen (Fehler ' + res.status + ').');
   }
   const data = await res.json();
-  return (data.content || []).map(b => b.type === 'text' ? b.text : '').join('');
+  return (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
 }
 
 function extractJSON(text) {
@@ -4897,8 +4899,8 @@ async function aiAnalyze(dataUrl) {
     messages: [{
       role: 'user',
       content: [
-        { type: 'image', source: { type: 'base64', media_type: m[1], data: m[2] } },
-        { type: 'text', text: prompt }
+        { type: 'text', text: prompt },
+        { type: 'image_url', image_url: { url: dataUrl } }
       ]
     }]
   });
