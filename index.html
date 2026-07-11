@@ -1339,8 +1339,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Echte KI aktivieren <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
-        <p class="sub">Mit einem eigenen Anthropic-API-Schlüssel analysiert Claude deine Fotos wirklich und der Chat wird echt. Ohne Schlüssel läuft Effyra im Demo-Modus mit simulierten Antworten.</p>
+        <h3>Echte KI <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
+        <p class="sub">Die echte KI (Chat, Dokument- &amp; Bildanalyse) ist über den sicheren Effyra-Server aktiv – du brauchst dafür keinen eigenen Schlüssel. Optional kannst du einen eigenen OpenAI-Schlüssel hinterlegen, dann laufen die Anfragen direkt über dein Konto.</p>
         <div class="set-row">
           <input type="password" id="setKey" placeholder="sk-…" autocomplete="off">
           <button class="btn btn-primary" id="setKeySave">Aktivieren</button>
@@ -2158,7 +2158,7 @@ $('#moreTab').addEventListener('click', () => $('#moreSheet').classList.toggle('
 $('#moreSheet').addEventListener('click', e => { if (e.target === $('#moreSheet')) $('#moreSheet').classList.remove('on'); });
 
 function refreshAIStatus() {
-  const on = hasKey();
+  const on = canRealAI();
   [$('#aiStatusSide'), $('#aiStatusSet')].forEach(el => {
     if (!el) return;
     el.classList.toggle('on', on);
@@ -2297,7 +2297,8 @@ const isChildUser = () => !!(account && account.role === 'child');
 function canRealAI() {
   if (isChildUser()) return false;                  // Kinder: niemals KI
   if (usingOwnKey()) return true;
-  return BACKEND_V2 && isPremium() && aiRemaining() > 0;   // gehostete KI: Backend + Premium + Credits (serverseitig via consume_ai doppelt geprüft)
+  if (BACKEND_V2 && !ENFORCE_TIERS && account && account.loggedIn) return true;   // Vorstart: „alles freigeschaltet" → KI ohne Premium nutzbar
+  return BACKEND_V2 && isPremium() && aiRemaining() > 0;   // später (Billing live): Backend + Premium + Credits (serverseitig via consume_ai geprüft)
 }
 let _aiWarned90 = false;
 function noteAIUsage() {
@@ -2311,8 +2312,12 @@ function noteAIUsage() {
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
 function requireAI() {
   if (isChildUser()) { toast('🔒 KI ist für Kinderkonten nicht verfügbar.'); return false; }
-  if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an Anthropic
+  if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an OpenAI
   if (!BACKEND_V2) { toast('✨ Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
+  if (!ENFORCE_TIERS) {                              // Vorstart: KI ist für alle angemeldeten Nutzer freigeschaltet
+    if (!(account && account.loggedIn)) { toast('Bitte melde dich an, um die KI zu nutzen.'); return false; }
+    return true;
+  }
   if (!isPremium()) { toast('✨ Echte KI ist eine Premium-Funktion.'); showUpgrade(); return false; }
   if (aiRemaining() <= 0) { toast('Deine KI-Credits sind aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
   return true;   // Premium + Credits + Backend live → läuft über den Proxy
@@ -5415,7 +5420,7 @@ function chatWithDoc(d) {
 }
 
 RENDERERS.docs = function () {
-  $('#demoHintDocs').innerHTML = hasKey() ? '' :
+  $('#demoHintDocs').innerHTML = canRealAI() ? '' :
     '<div class="demo-hint">🧪 <b>Demo-Modus:</b> Der Upload zeigt eine Beispiel-Analyse. Mit einem eigenen API-Schlüssel analysiert die KI deine echten Briefe – <a data-go-settings>jetzt in den Einstellungen aktivieren</a>.</div>';
   const link = $('#demoHintDocs [data-go-settings]');
   if (link) link.addEventListener('click', () => showView('settings'));

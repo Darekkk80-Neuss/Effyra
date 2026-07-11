@@ -15,10 +15,22 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const ALLOWED_MODELS = ['gpt-5-mini'];   // nur das im OpenAI-Projekt freigegebene Modell → alles andere wird darauf abgebildet
+const ALLOWED_MODELS = ['gpt-5-mini', 'gpt-5-nano'];   // im OpenAI-Projekt freigegebene Chat-Modelle
 const DEFAULT_MODEL = 'gpt-5-mini';
+// Modell je Operation – SERVERSEITIG bestimmt (Client kann kein teureres Modell erzwingen)
+const OP_MODEL: Record<string, string> = {
+  question: 'gpt-5-nano',   // KI-Antworten: schnell & günstig
+  voice: 'gpt-5-nano',      // Sprachassistent-Antwort
+  text: 'gpt-5-mini',       // Text/Brief erstellen: bessere Qualität
+  weekplan: 'gpt-5-mini',   // Wochenplanung
+  scan: 'gpt-5-mini',       // Dokument analysieren (multimodal)
+  invoice: 'gpt-5-mini',    // Rechnung/Bild analysieren (multimodal)
+};
 // Credit-Kosten je Operation (serverseitig = fälschungssicher, Client kann sie nicht drücken)
 const OP_COST: Record<string, number> = { question: 1, text: 2, voice: 2, scan: 5, invoice: 10, weekplan: 5 };
+// Vorstart: „alles freigeschaltet" → angemeldete Nutzer dürfen die KI ohne Premium nutzen.
+// MUSS zum Client-Flag ENFORCE_TIERS passen. Auf true stellen, sobald Play-Billing live ist (dann greifen Premium + Credits).
+const ENFORCE_TIERS = false;
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { ...CORS, 'content-type': 'application/json' } });
@@ -46,21 +58,27 @@ Deno.serve(async (req) => {
   // 2) Anfrage validieren & begrenzen
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
-  const model = ALLOWED_MODELS.includes(body?.model) ? body.model : DEFAULT_MODEL;
+  const op = String(body?.op || '');
+  const model = OP_MODEL[op] || (ALLOWED_MODELS.includes(body?.model) ? body.model : DEFAULT_MODEL);
   const max_tokens = Math.min(Math.max(1, Number(body?.max_tokens) || 1024), 4000);
   const inMsgs = Array.isArray(body?.messages) ? body.messages : null;
   if (!inMsgs) return json({ error: 'bad_request' }, 400);
   // System-Prompt wird bei OpenAI als erste Nachricht im messages-Array gesendet
   const messages = body.system ? [{ role: 'system', content: body.system }, ...inMsgs] : inMsgs;
 
-  // 3) Kontingent serverseitig verbrauchen (atomar, prüft Premium + Restmenge)
-  const cost = OP_COST[String(body?.op || '')] || 1;   // Credits je nach Operation
-  const admin = createClient(SUPABASE_URL, SERVICE);
-  const { data: consumed, error: cerr } = await admin.rpc('consume_ai', { p_user: uid, p_n: cost });
-  if (cerr) return json({ error: 'quota_error' }, 500);
-  if (!consumed?.ok) {
-    // reason: not_premium | quota_exceeded | no_profile
-    return json({ error: consumed?.reason || 'quota', ai_used: consumed?.ai_used, ai_limit: consumed?.ai_limit }, 402);
+  // 3) Kontingent serverseitig verbrauchen (atomar, prüft Premium + Restmenge) – nur wenn ENFORCE_TIERS aktiv ist.
+  //    Im Vorstart (ENFORCE_TIERS=false) ist die KI für jede angemeldete Person freigeschaltet.
+  let usage: { ai_used: number; ai_limit: number } = { ai_used: 0, ai_limit: 1000000 };
+  if (ENFORCE_TIERS) {
+    const cost = OP_COST[op] || 1;   // Credits je nach Operation
+    const admin = createClient(SUPABASE_URL, SERVICE);
+    const { data: consumed, error: cerr } = await admin.rpc('consume_ai', { p_user: uid, p_n: cost });
+    if (cerr) return json({ error: 'quota_error' }, 500);
+    if (!consumed?.ok) {
+      // reason: not_premium | quota_exceeded | no_profile
+      return json({ error: consumed?.reason || 'quota', ai_used: consumed?.ai_used, ai_limit: consumed?.ai_limit }, 402);
+    }
+    usage = { ai_used: consumed.ai_used, ai_limit: consumed.ai_limit };
   }
 
   // 4) OpenAI aufrufen (echter Schlüssel, nur hier)
@@ -77,5 +95,5 @@ Deno.serve(async (req) => {
 
   const text = data?.choices?.[0]?.message?.content || '';
   // Antwort im gewohnten content-Format zurückgeben – der Client bleibt unverändert
-  return json({ content: [{ type: 'text', text }], ai_used: consumed.ai_used, ai_limit: consumed.ai_limit }, 200);
+  return json({ content: [{ type: 'text', text }], ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
 });
