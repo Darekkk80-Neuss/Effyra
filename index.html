@@ -5364,6 +5364,20 @@ function vaCleanTitle(s) {
     .replace(/\s{2,}/g, ' ').trim();
 }
 
+/* --- Termin/Aufgabe per Text-Ähnlichkeit finden --- */
+const VA_STOP = new Set(['termin', 'termine', 'aufgabe', 'aufgaben', 'kalender', 'treffen', 'meeting', 'verschiebe', 'verschieben', 'verleg', 'verlege', 'verlegen', 'ändere', 'aendere', 'ändern', 'aendern', 'lösche', 'loesche', 'löschen', 'entferne', 'entfernen', 'streiche', 'streichen', 'markiere', 'markieren', 'erledigt', 'erledige', 'erledigen', 'abhaken', 'abgehakt', 'fertig', 'heute', 'morgen', 'übermorgen', 'uebermorgen', 'gestern', 'montag', 'dienstag', 'mittwoch', 'donnerstag', 'freitag', 'samstag', 'sonntag', 'sonnabend', 'nächsten', 'naechsten', 'kommenden', 'wirklich', 'bitte', 'einen', 'eine', 'einer', 'mein', 'meine', 'meinen', 'meinem', 'deine', 'diesen', 'dieser', 'dieses']);
+function vaMatchByTitle(list, text) {
+  const words = String(text || '').toLowerCase().replace(/[„“”"()\-.,;:!?]/g, ' ').split(/\s+/).filter(w => w.length >= 4 && !VA_STOP.has(w));
+  let best = null, bestScore = 0;
+  (list || []).forEach(it => { const title = (it.title || '').toLowerCase(); let s = 0; words.forEach(w => { if (title.indexOf(w) >= 0) s++; }); if (s > bestScore) { bestScore = s; best = it; } });
+  return bestScore > 0 ? best : null;
+}
+function vaFindKid(t) {
+  if (!store.kids || !store.kids.length) return null;
+  for (let i = 0; i < store.kids.length; i++) { const k = store.kids[i]; if (k.name && new RegExp('\\b' + k.name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(t)) return k; }
+  return null;
+}
+
 /* --- Ja/Nein-Bestätigung für kritische Aktionen --- */
 function vaHandleConfirm(text) {
   const t = text.toLowerCase(), p = vaPending; vaPending = null;
@@ -5406,6 +5420,47 @@ function vaRunLocal(text) {
     if (!n) { vaReply('Es gibt keine erledigten Aufgaben zum Löschen. 👍'); return true; }
     vaPending = { summary: 'Sollen die ' + n + ' erledigten Aufgaben gelöscht werden?', run: () => { const c = store.tasks.filter(x => x.done).length; store.tasks = store.tasks.filter(x => !x.done); save(); if (currentView === 'chat') RENDERERS.chat(); return '🗑️ ' + c + ' erledigte Aufgabe' + (c > 1 ? 'n' : '') + ' gelöscht.'; } };
     vaReply('Ich habe ' + n + ' erledigte Aufgabe' + (n > 1 ? 'n' : '') + ' gefunden. Soll ich sie wirklich löschen? Sag „ja" oder „nein".');
+    return true;
+  }
+
+  /* Bestimmten Termin / bestimmte Aufgabe löschen -> Bestätigung */
+  if (/(lösch|loesch|entfern|streich)\w*/.test(t) && !/(erledigt|abgeschlossen|abgehakt)\w*/.test(t)) {
+    if (/\btermin\b|\bkalender\b|\btreffen\b|\bmeeting\b/.test(t)) {
+      const ev = vaMatchByTitle(store.events, t);
+      if (!ev) { vaReply('Welchen Termin soll ich löschen? Nenn mir den Titel.'); return true; }
+      vaPending = { summary: 'Soll der Termin „' + ev.title + '" gelöscht werden?', run: function () { store.events = store.events.filter(x => x.id !== ev.id); save(); if (currentView === 'chat') RENDERERS.chat(); return '🗑️ Termin „' + ev.title + '" gelöscht.'; } };
+      vaReply('Soll ich den Termin „' + ev.title + '" am ' + fmtDate(ev.date) + ' wirklich löschen? Sag „ja" oder „nein".');
+      return true;
+    }
+    if (/\baufgabe/.test(t)) {
+      const tk = vaMatchByTitle(store.tasks, t);
+      if (!tk) { vaReply('Welche Aufgabe soll ich löschen? Nenn mir den Titel.'); return true; }
+      vaPending = { summary: 'Soll die Aufgabe „' + tk.title + '" gelöscht werden?', run: function () { store.tasks = store.tasks.filter(x => x.id !== tk.id); save(); if (currentView === 'chat') RENDERERS.chat(); return '🗑️ Aufgabe „' + tk.title + '" gelöscht.'; } };
+      vaReply('Soll ich die Aufgabe „' + tk.title + '" wirklich löschen? Sag „ja" oder „nein".');
+      return true;
+    }
+  }
+
+  /* Termin verschieben / verlegen */
+  if (/(verschieb|verleg|umbuch|verrück|verrueck)\w*/.test(t) || (/(ändere|aendere|ändern|aendern)/.test(t) && /\btermin\b/.test(t))) {
+    const ev = vaMatchByTitle(store.events.filter(e => e.date >= todayISO()), t) || vaMatchByTitle(store.events, t);
+    if (!ev) { vaReply('Ich habe keinen passenden Termin gefunden. Welchen soll ich verschieben?'); return true; }
+    const nd = vaParseDate(t), nt = vaParseTime(t);
+    if (!nd && !nt) { vaReply('Auf wann soll ich „' + ev.title + '" verschieben? Nenn Datum oder Uhrzeit.'); return true; }
+    if (nd) ev.date = nd; if (nt) ev.time = nt;
+    save(); if (currentView === 'chat') RENDERERS.chat();
+    vaContext = { type: 'event' };
+    vaReply('🔀 „' + ev.title + '" verschoben auf ' + fmtDate(ev.date) + (ev.time ? ' um ' + ev.time + ' Uhr' : '') + '.');
+    return true;
+  }
+
+  /* Aufgabe als erledigt markieren */
+  if ((/\bals\s+(erledigt|fertig)\b/.test(t) || /\babgehakt\b/.test(t) || /\bhake?\b[\s\S]*\bab\b/.test(t) || /\b(hab|habe)\b[\s\S]*\berledigt\b/.test(t) || /\bist erledigt\b/.test(t) || /\bmarkiere?\b[\s\S]*\berledigt\b/.test(t)) && !/(lösch|loesch|entfern)/.test(t)) {
+    const tk = vaMatchByTitle(store.tasks.filter(x => !x.done), t);
+    if (!tk) { vaReply('Welche Aufgabe soll ich als erledigt markieren?'); return true; }
+    tk.done = true; save(); if (currentView === 'chat') RENDERERS.chat();
+    vaContext = { type: 'task' };
+    vaReply('✅ „' + tk.title + '" als erledigt markiert. Stark! 🎉');
     return true;
   }
 
@@ -5491,9 +5546,47 @@ function vaRunLocal(text) {
     return true;
   }
 
+  /* Fahrzeug: TÜV / HU eintragen */
+  if (/\b(tüv|tuev|hu|hauptuntersuchung|hauptunter)\b/.test(t) && /\b(auto|motorrad|wagen|fahrzeug|pkw|roller|tüv|tuev|hu|fällig|termin|trage|eintrag|hauptunter)\b/.test(t)) {
+    const date = vaParseDate(t);
+    if (!date) { vaReply('Wann ist der TÜV fällig? Sag z. B. „TÜV fürs Auto am 15. März".'); return true; }
+    const vm = raw.match(/(?:für|fürs|beim|am)\s+(?:mein(?:en|em)?\s+|meine\s+)?([A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß\-]+)/i);
+    const vname = vm ? vm[1].toLowerCase() : '';
+    let v;
+    if (/^(auto|wagen|pkw|fahrzeug)$/.test(vname)) v = (store.vehicles || []).find(x => x.type === 'auto') || pickOrCreateVehicle('Auto');
+    else if (/^(motorrad|roller|bike|maschine)$/.test(vname)) v = (store.vehicles || []).find(x => x.type === 'motorrad') || pickOrCreateVehicle('Motorrad');
+    else v = pickOrCreateVehicle(vm ? vm[1] : '');
+    v.tuev = date; save();
+    addTask('TÜV/HU: ' + v.name, addDays(date, -14), 'high', 'veh');
+    addEvent('🔧 TÜV fällig: ' + v.name, date, null, v.plate || '', 'veh');
+    if (currentView === 'chat') RENDERERS.chat();
+    vaContext = { type: 'vehicle' };
+    vaReply('🔧 TÜV/HU für „' + v.name + '" gespeichert: fällig ' + fmtDate(date) + '. Ich erinnere dich 14 Tage vorher (Aufgabe + Kalender).');
+    return true;
+  }
+
+  /* Kinder-Termin */
+  const vaKid = vaFindKid(t);
+  if ((vaKid || /\b(kind|kindes|tochter|sohn|kita|elternabend|klassenfahrt|kinderarzt)\b/.test(t)) && /(termin|arzt|impf|untersuch|elternabend|klassenfahrt|kita|schule|sprechtag|sprechstunde|zahn)/.test(t)) {
+    const kid = vaKid || pickKid('');
+    if (!kid) { vaReply('Ich finde kein angelegtes Kind. Leg zuerst im Bereich „Kinder" ein Kind an, dann trage ich Termine ein. 🧒'); return true; }
+    const kind = /impf/.test(t) ? 'impf' : /(zahnarzt|zahn|arzt|kinderarzt|untersuch|kieferortho)/.test(t) ? 'arzt' : /(kita|schule|elternabend|klassenfahrt|sprechtag|sprechstunde)/.test(t) ? 'schule' : 'sonst';
+    const date = vaParseDate(t) || todayISO(), time = vaParseTime(t);
+    let title = '', mm = raw.match(/\b([A-Za-zÄÖÜäöüß]+(?:termin|untersuchung|impfung|elternabend|klassenfahrt|sprechtag|sprechstunde))\b/i);
+    if (mm) title = mm[1];
+    if (!title) { mm = raw.match(/\b(zahnarzt|kinderarzt|kieferorthopäde|augenarzt|hausarzt|arzt)\b/i); if (mm) title = mm[1]; }
+    if (!title) title = APPT_KIND[kind].l;
+    title = vaCap(vaCleanTitle(title) || title);
+    addEvent(APPT_KIND[kind].i + ' ' + title, date, time, kid.name, 'kind', { kidId: kid.id, apptKind: kind });
+    if (currentView === 'chat') RENDERERS.chat();
+    vaContext = { type: 'event' };
+    vaReply('🧒 Termin für ' + kid.name + ' angelegt: „' + title + '" am ' + fmtDate(date) + (time ? ' um ' + time + ' Uhr' : '') + '.');
+    return true;
+  }
+
   /* Termin / Kalender */
   const hasTime = vaParseTime(t) != null, hasDate = vaParseDate(t) != null;
-  if (/\btermin\b|\btreffen\b|\bmeeting\b|\barzt\b|\bzahnarzt\b|\bfriseur\b|\bkalendereintrag\b/.test(t) || (hasDate && hasTime)) {
+  if (/termin|treffen|meeting|\barzt|zahnarzt|friseur|kalendereintrag/.test(t) || (hasDate && hasTime)) {
     const date = vaParseDate(t) || todayISO(), time = vaParseTime(t);
     let title = '', m = raw.match(/termin(?:\s+(?:für|mit|zum|zur|beim|bei|am))?\s*[:,\-]?\s*(.+)$/i);
     if (m) title = m[1]; else { m = raw.match(/(?:treffen|meeting)\s+(?:mit\s+)?(.+)$/i); if (m) title = m[1]; }
