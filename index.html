@@ -994,7 +994,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="tier-top"><span class="tier-name">Effyra AI Premium</span><span class="tier-price">4,99 €<small>/ Monat</small></span></div>
         <ul class="tier-feats">
           <li>✅ Komplette App + echte KI</li>
-          <li>✅ 500 KI-Anfragen / Monat</li>
+          <li>✅ 500 KI-Credits / Monat</li>
           <li>✅ Effyra AI Sprachassistent, Dokumentenanalyse, Automatisierungen</li>
         </ul>
         <button class="btn btn-primary tier-cta" data-buy="premium">Premium starten – 4,99 €/Mon.</button>
@@ -1004,7 +1004,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <ul class="tier-feats">
           <li>✅ 2 Erwachsene + bis zu 3 Kinder (unter 18)</li>
           <li>✅ Gemeinsamer Familienbereich &amp; Synchronisation</li>
-          <li>✅ 1000 KI-Anfragen / Monat (geteilt, nur Erwachsene)</li>
+          <li>✅ 1000 KI-Credits / Monat (geteilt, nur Erwachsene)</li>
           <li>➕ Zusatz: Erwachsener 3,99 € · Kind 0,99 € · KI-Boost 4,99 € (+1000)</li>
         </ul>
         <button class="btn btn-primary tier-cta" data-buy="family">Familie starten – 14,99 €/Mon.</button>
@@ -2121,7 +2121,7 @@ const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
    (supabase-tiers.sql) deployt sind. Dann läuft gehostete KI über den Proxy
    und die Käufe über Stripe. Solange false: Phase-1-Verhalten (eigener
    Schlüssel + Freischalt-Codes), damit nichts bricht. */
-const BACKEND_V2 = false;
+const BACKEND_V2 = true;
 const FN_URL = (name) => SUPABASE_URL + '/functions/v1/' + name;
 
 /* Berechtigungskonzept (Free/Medium/Premium, Modul-Sperren, 3-Tage-Ablauf,
@@ -2211,8 +2211,7 @@ const isChildUser = () => !!(account && account.role === 'child');
 function canRealAI() {
   if (isChildUser()) return false;                  // Kinder: niemals KI
   if (usingOwnKey()) return true;
-  if (!ENFORCE_TIERS) return false;                        // Konzept aus → echte KI nur mit eigenem Schlüssel, sonst Demo
-  return BACKEND_V2 && isPremium() && aiRemaining() > 0;   // gehostete KI nur mit Backend + Premium + Kontingent
+  return BACKEND_V2 && isPremium() && aiRemaining() > 0;   // gehostete KI: Backend + Premium + Credits (serverseitig via consume_ai doppelt geprüft)
 }
 let _aiWarned90 = false;
 function noteAIUsage() {
@@ -2227,11 +2226,10 @@ function noteAIUsage() {
 function requireAI() {
   if (isChildUser()) { toast('🔒 KI ist für Kinderkonten nicht verfügbar.'); return false; }
   if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an Anthropic
-  if (!ENFORCE_TIERS) { toast('✨ Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
+  if (!BACKEND_V2) { toast('✨ Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
   if (!isPremium()) { toast('✨ Echte KI ist eine Premium-Funktion.'); showUpgrade(); return false; }
-  if (aiRemaining() <= 0) { toast('Dein KI-Kontingent ist aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
-  if (!BACKEND_V2) { toast('Die gehostete KI wird gerade aktiviert. Bitte hinterlege vorerst deinen eigenen Schlüssel in den Einstellungen.'); showView('settings'); return false; }
-  return true;   // Premium + Kontingent + Backend live → läuft über den Proxy
+  if (aiRemaining() <= 0) { toast('Deine KI-Credits sind aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); showView('settings'); return false; }
+  return true;   // Premium + Credits + Backend live → läuft über den Proxy
 }
 /* Kontingentstand vom Server übernehmen (Proxy-Antwort) + warnen */
 function applyServerUsage(used, limit) {
@@ -2284,7 +2282,7 @@ async function callClaudeHosted(payload) {
   try {
     res = await fetch(FN_URL('claude-proxy'), {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token },
       body: JSON.stringify({ model: payload.model, max_tokens: payload.max_tokens, messages: payload.messages, system: payload.system })
     });
   } catch (e) { throw new Error('Keine Verbindung zur KI. Bist du online?'); }
@@ -2292,6 +2290,7 @@ async function callClaudeHosted(payload) {
   if (!res.ok) {
     if (data.error === 'quota_exceeded' || res.status === 402) { applyServerUsage(data.ai_used, data.ai_limit); throw new Error('KI-Kontingent aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); }
     if (data.error === 'not_premium') throw new Error('Echte KI ist eine Premium-Funktion.');
+    if (data.error === 'server_not_configured') throw new Error('Die gehostete KI ist noch nicht fertig eingerichtet (Server-Schlüssel fehlt).');
     throw new Error('KI-Anfrage fehlgeschlagen.' + (data.detail ? ' (' + data.detail + ')' : ''));
   }
   applyServerUsage(data.ai_used, data.ai_limit);
@@ -3821,7 +3820,7 @@ function famAiPanel() {
   const reset = store.family.ai && store.family.ai.resetDate ? fmtDate(store.family.ai.resetDate) : '–';
   let h = '<div class="note-box" style="margin-bottom:14px"><b>🤖 Familien-KI-Kontingent</b>' +
     '<div class="quota-bar"><div class="quota-fill ' + (pct >= 100 ? 'full' : pct >= 90 ? 'warn' : '') + '" style="width:' + pct + '%"></div></div>' +
-    '<span class="sub">' + used + ' / ' + limit + ' Anfragen · Reset ' + esc(reset) + '</span>';
+    '<span class="sub">' + used + ' / ' + limit + ' Credits · Reset ' + esc(reset) + '</span>';
   adults.forEach(m => { h += '<div class="fam-ai-row"><span class="kid-dot" style="background:' + m.color + '"></span>' + esc(m.name) + (m.role === 'owner' ? ' 👑' : '') + '<b>' + (m.aiUsed || 0) + '</b></div>'; });
   h += '<div class="sub" style="margin-top:6px">Nur Erwachsene verbrauchen KI – Kinder haben keinen KI-Zugriff.</div></div>';
   return h;
