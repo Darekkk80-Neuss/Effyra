@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Effyra – Werbespot · Ruhe beginnt mit Effyra</title>
+<style>
+  :root{
+    --cold-0:#08090d; --cold-1:#0f131b; --cold-2:#1a2130; --steel:#2b3446; --steel-2:#3a465c;
+    --alarm:#ff453a; --cold-text:#aab3c4; --cold-faint:#5c6678;
+    --warm-0:#f7f4ee; --warm-1:#ffffff; --soft-blue:#dbe7f6; --ink:#0d1019; --ink-soft:#5a6273;
+    --a1:#8b5cf6; --a2:#06b6d4; --cyan:#22d3ee;
+    --grad:linear-gradient(135deg,#8b5cf6 0%,#06b6d4 100%);
+    --font:"SF Pro Display","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:var(--font); background:#050609; color:#e8ebf2;
+    min-height:100dvh; display:grid; grid-template-rows:1fr auto; place-items:center;
+    gap:18px; padding:18px; overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 0%,#0d1017 0%,#050609 60%);
+  }
+
+  /* ===== FILM FRAME (9:16) ===== */
+  .stage{
+    position:relative; aspect-ratio:9/16; height:min(86dvh,calc(94vw * 16 / 9));
+    border-radius:26px; overflow:hidden; container-type:size;
+    background:var(--cold-0);
+    box-shadow:0 40px 120px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06),
+               inset 0 0 0 1px rgba(255,255,255,.03);
+    isolation:isolate;
+  }
+  .scene{position:absolute; inset:0; opacity:0; transition:opacity .7s ease}
+  .scene.on{opacity:1}
+  .bg{position:absolute; inset:0}
+  .vig{position:absolute; inset:0; pointer-events:none; z-index:40;
+    box-shadow:inset 0 0 22cqw 6cqw rgba(0,0,0,.45); border-radius:inherit;
+    background:radial-gradient(120% 80% at 50% 40%,transparent 55%,rgba(0,0,0,.28) 100%)}
+  .grain{position:absolute; inset:0; pointer-events:none; z-index:41; opacity:.05; mix-blend-mode:overlay;
+    background-image:radial-gradient(rgba(255,255,255,.9) .5px,transparent .6px); background-size:3px 3px;
+    animation:grain 3.5s steps(6) infinite}
+  @keyframes grain{0%,100%{transform:translate(0,0)}20%{transform:translate(-1%,1%)}40%{transform:translate(1%,-1%)}60%{transform:translate(-1%,-1%)}80%{transform:translate(1%,1%)}}
+
+  .cap{position:absolute; left:8cqw; right:8cqw; bottom:9cqw; z-index:45; text-align:center;
+    font-size:4.6cqw; line-height:1.32; font-weight:600; letter-spacing:.2px; color:#fff;
+    text-wrap:balance; text-shadow:0 2px 18px rgba(0,0,0,.6); opacity:0}
+  .s1 .cap,.s5 .cap{animation:capIn 1s ease .8s both}
+  @keyframes capIn{from{opacity:0;transform:translateY(2cqw)}to{opacity:1;transform:none}}
+
+  /* ===== SCENE 1 — TOO MUCH ===== */
+  .s1 .bg{background:radial-gradient(90% 70% at 50% 30%,#161c28 0%,var(--cold-0) 70%)}
+  .phone{position:absolute; left:50%; top:50%; width:56cqw; height:112cqw; margin:-56cqw 0 0 -28cqw;
+    border-radius:10cqw; background:linear-gradient(160deg,#20283a,#10151f);
+    box-shadow:0 8cqw 20cqw rgba(0,0,0,.6), inset 0 0 0 .5cqw rgba(255,255,255,.06);
+    overflow:hidden}
+  .phone .screen{position:absolute; inset:2.2cqw; border-radius:8cqw; background:#0b0f17; overflow:hidden}
+  .s1 .phone{animation:buzz .12s linear infinite}
+  @keyframes buzz{0%,100%{transform:translate(0,0) rotate(-.4deg)}25%{transform:translate(.5cqw,-.3cqw)}50%{transform:translate(-.4cqw,.4cqw) rotate(.5deg)}75%{transform:translate(.3cqw,.3cqw)}}
+
+  .notif{position:absolute; left:6cqw; right:6cqw; display:flex; align-items:center; gap:3cqw;
+    padding:3.2cqw 3.6cqw; border-radius:4cqw; background:rgba(38,46,63,.92);
+    box-shadow:0 3cqw 8cqw rgba(0,0,0,.5); color:var(--cold-text); font-size:3.3cqw; font-weight:600;
+    opacity:0}
+  .notif .ic{width:8cqw;height:8cqw;border-radius:2.4cqw;flex:none;display:grid;place-items:center;
+    background:var(--steel); font-size:4cqw}
+  .notif .tx{flex:1;min-width:0}
+  .notif .tx small{display:block;font-weight:500;color:var(--cold-faint);font-size:2.7cqw;margin-top:.4cqw}
+  .notif .badge{width:5cqw;height:5cqw;border-radius:50%;background:var(--alarm);color:#fff;
+    display:grid;place-items:center;font-size:3cqw;font-weight:800;flex:none;
+    box-shadow:0 0 0 0 rgba(255,69,58,.6); animation:badge 1.1s ease-in-out infinite}
+  @keyframes badge{0%,100%{box-shadow:0 0 0 0 rgba(255,69,58,.5)}50%{box-shadow:0 0 0 2cqw rgba(255,69,58,0)}}
+  .s1 .n1{top:9cqw;  animation:drop .55s cubic-bezier(.2,.9,.25,1) .2s both}
+  .s1 .n2{top:26cqw; animation:drop .55s cubic-bezier(.2,.9,.25,1) .5s both}
+  .s1 .n3{top:43cqw; animation:drop .55s cubic-bezier(.2,.9,.25,1) .85s both}
+  .s1 .n4{top:60cqw; animation:drop .55s cubic-bezier(.2,.9,.25,1) 1.25s both}
+  .s1 .n5{top:77cqw; animation:drop .55s cubic-bezier(.2,.9,.25,1) 1.7s both}
+  @keyframes drop{from{opacity:0;transform:translateY(-9cqw) scale(.94) rotate(-2deg)}to{opacity:1;transform:none}}
+  .counter{position:absolute; right:8cqw; top:6cqw; z-index:6; width:12cqw;height:12cqw;border-radius:50%;
+    background:var(--alarm); color:#fff; display:grid;place-items:center; font-size:5.6cqw;font-weight:800;
+    box-shadow:0 2cqw 8cqw rgba(255,69,58,.5); animation:countpop .5s ease 1.9s both}
+  @keyframes countpop{from{opacity:0;transform:scale(0)}60%{transform:scale(1.25)}to{opacity:1;transform:scale(1)}}
+  .silh{position:absolute; left:50%; bottom:-1cqw; width:70cqw; height:34cqw; margin-left:-35cqw; z-index:2; opacity:.5}
+
+  /* ===== SCENE 2 — CHAOS ===== */
+  .s2 .bg{background:radial-gradient(80% 60% at 50% 45%,#171c27 0%,#05070b 75%)}
+  .s2 .redpulse{position:absolute; inset:0; z-index:3; box-shadow:inset 0 0 24cqw 4cqw rgba(255,69,58,.0);
+    animation:redp 1.2s ease-in-out infinite}
+  @keyframes redp{0%,100%{box-shadow:inset 0 0 20cqw 2cqw rgba(255,69,58,0)}50%{box-shadow:inset 0 0 30cqw 8cqw rgba(255,69,58,.22)}}
+  .swarm{position:absolute; inset:0; animation:chaosZoom 5s ease-in both}
+  @keyframes chaosZoom{0%{transform:scale(1);filter:blur(0)}70%{filter:blur(.4cqw)}100%{transform:scale(1.14);filter:blur(1.3cqw)}}
+  .cal{position:absolute; width:44cqw;height:52cqw;border-radius:4cqw;background:rgba(43,52,70,.5);
+    border:1px solid rgba(255,255,255,.08); backdrop-filter:blur(2px)}
+  .cal::before{content:"";position:absolute;inset:0;background-image:
+    linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);
+    background-size:6.2cqw 6.2cqw}
+  .cal.a{left:6cqw; top:14cqw; animation:slideA 5s ease-in-out infinite}
+  .cal.b{right:5cqw; top:30cqw; transform:rotate(6deg); animation:slideB 4.2s ease-in-out infinite}
+  .cal.c{left:20cqw; top:52cqw; transform:rotate(-5deg); animation:slideA 3.6s ease-in-out infinite reverse}
+  @keyframes slideA{0%,100%{transform:translate(0,0) rotate(-3deg)}50%{transform:translate(6cqw,-4cqw) rotate(2deg)}}
+  @keyframes slideB{0%,100%{transform:translate(0,0) rotate(6deg)}50%{transform:translate(-7cqw,5cqw) rotate(-3deg)}}
+  .task{position:absolute; height:5.5cqw; border-radius:3cqw; background:rgba(58,70,92,.75);
+    filter:blur(.2cqw)}
+  .s2 .t-a{left:10cqw;top:9cqw;width:52cqw;animation:jit 1.7s ease-in-out infinite}
+  .s2 .t-b{right:8cqw;top:72cqw;width:44cqw;animation:jit 1.3s ease-in-out infinite reverse}
+  .s2 .t-c{left:14cqw;bottom:20cqw;width:38cqw;animation:jit 2.1s ease-in-out infinite}
+  @keyframes jit{0%,100%{transform:translate(0,0)}25%{transform:translate(1.5cqw,-1cqw)}50%{transform:translate(-1cqw,1.5cqw)}75%{transform:translate(1cqw,1cqw)}}
+  .ecg{position:absolute; left:0; right:0; top:50%; height:24cqw; margin-top:-12cqw; z-index:5; opacity:.9}
+  .ecg path{stroke:var(--alarm); stroke-width:1.1cqw; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    filter:drop-shadow(0 0 2cqw rgba(255,69,58,.7));
+    stroke-dasharray:220 220; stroke-dashoffset:220; animation:ecg 1.1s linear infinite}
+  .s2 .ecg path{animation-duration:.55s}
+  @keyframes ecg{to{stroke-dashoffset:-220}}
+  .s2 .cap{bottom:auto; top:8cqw; font-size:5.4cqw; font-weight:800; color:#fff;
+    animation:capIn 1s ease 3.6s both; text-shadow:0 2px 20px rgba(255,69,58,.5)}
+
+  /* ===== SCENE 3 — CALM ARRIVES ===== */
+  .s3 .bg{background:#05070b; animation:warmup 3.4s ease .6s forwards}
+  @keyframes warmup{to{background:radial-gradient(100% 80% at 50% 42%,#ffffff 0%,#eef3fb 55%,#dbe7f6 100%)}}
+  .sweep{position:absolute; top:-20%; bottom:-20%; width:40cqw; left:-45cqw; z-index:6;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.95),transparent);
+    filter:blur(2cqw); transform:skewX(-12deg); animation:sweep 1.5s cubic-bezier(.5,0,.2,1) .2s both}
+  @keyframes sweep{to{left:120cqw}}
+  .s3 .chaosghost{position:absolute; inset:0; z-index:2; opacity:.5;
+    animation:dissolve 1.4s ease .2s forwards}
+  @keyframes dissolve{to{opacity:0; transform:scale(1.1); filter:blur(4cqw)}}
+
+  .logo-wrap{position:absolute; inset:0; z-index:7; display:grid; place-content:center; justify-items:center; gap:6cqw}
+  .mark{width:34cqw;height:34cqw; filter:drop-shadow(0 3cqw 8cqw rgba(124,58,237,.28))}
+  .mark .ring{stroke:url(#lg); stroke-width:22; fill:none; stroke-linecap:round;
+    stroke-dasharray:1105; stroke-dashoffset:1105; animation:draw 1.2s ease .9s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .mark .tick{stroke:url(#lg); stroke-width:16; stroke-linecap:round; opacity:0; animation:tin .5s ease 1.9s forwards}
+  @keyframes tin{to{opacity:1}}
+  .mark .hand{stroke:url(#lg); stroke-width:26; fill:none; stroke-linecap:round; stroke-linejoin:round;
+    transform-origin:256px 256px; transform:rotate(-120deg); opacity:0;
+    animation:hin .2s ease 1.7s forwards, hsweep 1s cubic-bezier(.3,.8,.2,1) 1.7s forwards}
+  @keyframes hin{to{opacity:1}}
+  @keyframes hsweep{to{transform:rotate(0deg)}}
+  .mark .dot{fill:var(--cyan); opacity:0; animation:din .5s ease 2.5s forwards}
+  @keyframes din{from{opacity:0;transform:scale(0);transform-box:fill-box;transform-origin:center}to{opacity:1;transform:scale(1)}}
+  .logotype{font-size:14cqw; font-weight:800; letter-spacing:-.5cqw; opacity:0;
+    background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:capIn 1s ease 2.6s both}
+
+  /* ===== SCENE 4 — THE PRODUCT ===== */
+  .s4 .bg{background:radial-gradient(90% 70% at 50% 20%,#ffffff 0%,#eef3fb 60%,#dfeaf7 100%)}
+  .s4 .orb{position:absolute; border-radius:50%; filter:blur(8cqw); opacity:.5; z-index:1}
+  .s4 .orb.o1{width:52cqw;height:52cqw;background:#b9a5ff;left:-14cqw;top:6cqw}
+  .s4 .orb.o2{width:48cqw;height:48cqw;background:#8ee3f2;right:-12cqw;bottom:8cqw}
+  .app{position:absolute; left:8cqw; right:8cqw; top:8cqw; bottom:8cqw; z-index:5;
+    border-radius:9cqw; background:rgba(255,255,255,.72); backdrop-filter:blur(24px) saturate(1.2);
+    box-shadow:0 12cqw 40cqw rgba(30,50,90,.16), inset 0 0 0 1px rgba(255,255,255,.7);
+    padding:6cqw 5.5cqw; overflow:hidden}
+  .app .head{display:flex;align-items:center;gap:3cqw;margin-bottom:4.5cqw}
+  .app .head .lm{width:9cqw;height:9cqw;flex:none}
+  .app .head b{font-size:4.6cqw;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+  .app .head span{margin-left:auto;font-size:3cqw;font-weight:700;color:#12b76a;
+    background:rgba(18,183,106,.12);padding:1.4cqw 2.6cqw;border-radius:3cqw}
+
+  .bubble{margin-left:auto; max-width:74cqw; background:var(--grad); color:#fff;
+    padding:3cqw 4cqw; border-radius:5cqw 5cqw 1.5cqw 5cqw; font-size:3.9cqw; font-weight:700;
+    box-shadow:0 3cqw 10cqw rgba(124,58,237,.3); opacity:0; width:max-content;
+    animation:bin .4s ease .3s both}
+  @keyframes bin{from{opacity:0;transform:translateY(2cqw) scale(.96)}to{opacity:1;transform:none}}
+  .bubble .tw{display:inline-block; overflow:hidden; white-space:nowrap; vertical-align:bottom;
+    border-right:.5cqw solid rgba(255,255,255,.9); width:0;
+    animation:type 1.4s steps(20,end) .5s forwards, caret .7s step-end 8 .5s}
+  @keyframes type{to{width:35.5cqw}}
+  @keyframes caret{50%{border-color:transparent}}
+  .reply{margin:4cqw 0 4.5cqw; font-size:3.5cqw; font-weight:600; color:var(--ink-soft); opacity:0;
+    animation:capIn .6s ease 2.4s both}
+  .reply b{color:var(--ink)}
+
+  .rcard{display:flex; align-items:center; gap:3.4cqw; padding:3.4cqw 3.8cqw; margin-bottom:2.8cqw;
+    border-radius:4.5cqw; background:rgba(255,255,255,.85); border:1px solid rgba(120,140,180,.16);
+    box-shadow:0 3cqw 10cqw rgba(40,60,100,.08); opacity:0}
+  .rcard .ic{width:11cqw;height:11cqw;border-radius:3.4cqw;flex:none;display:grid;place-items:center;
+    font-size:5.4cqw; background:linear-gradient(140deg,#efe9ff,#e2f5fb)}
+  .rcard .m{flex:1;min-width:0}
+  .rcard .m b{display:block;font-size:3.9cqw;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+  .rcard .m small{font-size:3cqw;color:var(--ink-soft);font-weight:600}
+  .rcard .chk{width:6.4cqw;height:6.4cqw;border-radius:50%;flex:none;background:#12b76a;color:#fff;
+    display:grid;place-items:center;font-size:3.6cqw;font-weight:900; transform:scale(0)}
+  .s4 .c1{animation:rise .6s cubic-bezier(.2,.8,.25,1) 2.7s both}
+  .s4 .c2{animation:rise .6s cubic-bezier(.2,.8,.25,1) 3.3s both}
+  .s4 .c3{animation:rise .6s cubic-bezier(.2,.8,.25,1) 3.9s both}
+  .s4 .c4{animation:rise .6s cubic-bezier(.2,.8,.25,1) 4.5s both}
+  .s4 .c5{animation:rise .6s cubic-bezier(.2,.8,.25,1) 5.1s both}
+  @keyframes rise{from{opacity:0;transform:translateY(5cqw) scale(.97)}to{opacity:1;transform:none}}
+  .s4 .c1 .chk{animation:tick .4s back 3.4s forwards}
+  .s4 .c2 .chk{animation:tick .4s back 4.0s forwards}
+  .s4 .c4 .chk{animation:tick .4s back 5.2s forwards}
+  @keyframes tick{from{transform:scale(0)}70%{transform:scale(1.25)}to{transform:scale(1)}}
+
+  /* mini calendar inside card 1 */
+  .mini{display:grid;grid-template-columns:repeat(7,1fr);gap:.9cqw;width:26cqw}
+  .mini i{aspect-ratio:1;border-radius:1cqw;background:rgba(120,140,180,.18)}
+  .s4 .mini i.on{background:var(--grad);animation:cellpop .4s ease both}
+  @keyframes cellpop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  /* family dots inside card 4 */
+  .fam{display:flex;gap:-2cqw}
+  .fam b{width:7.4cqw;height:7.4cqw;border-radius:50%;margin-left:-1.6cqw;border:.6cqw solid #fff;
+    display:grid;place-items:center;color:#fff;font-size:3.2cqw;font-weight:800;transform:scale(0)}
+  .s4 .fam b{animation:famin .4s back both}
+  .s4 .fam b:nth-child(1){animation-delay:4.7s}
+  .s4 .fam b:nth-child(2){animation-delay:4.85s}
+  .s4 .fam b:nth-child(3){animation-delay:5.0s}
+  .s4 .fam b:nth-child(4){animation-delay:5.15s}
+  @keyframes famin{from{transform:scale(0)}70%{transform:scale(1.2)}to{transform:scale(1)}}
+  .bell{position:absolute; right:6cqw; margin-top:-2cqw; font-size:5cqw; opacity:0;
+    animation:bell 1.6s ease 6.4s both}
+  @keyframes bell{0%{opacity:0;transform:translateY(1cqw) rotate(0)}15%{opacity:1;transform:translateY(0) rotate(0)}
+    30%{transform:rotate(16deg)}45%{transform:rotate(-13deg)}60%{transform:rotate(9deg)}75%{transform:rotate(-5deg)}100%{opacity:1;transform:rotate(0)}}
+  /* document scan inside card 5 */
+  .doc{position:relative;width:14cqw;height:11cqw;border-radius:1.6cqw;background:#fff;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(120,140,180,.3)}
+  .doc i{position:absolute;left:2cqw;right:2cqw;height:1cqw;border-radius:1cqw;background:rgba(120,140,180,.35)}
+  .doc i:nth-child(1){top:2cqw;right:6cqw}.doc i:nth-child(2){top:4.4cqw}.doc i:nth-child(3){top:6.8cqw;right:5cqw}
+  .doc .scan{position:absolute;left:0;right:0;height:2.4cqw;top:-3cqw;
+    background:linear-gradient(rgba(34,211,238,0),rgba(34,211,238,.9),rgba(34,211,238,0));
+    box-shadow:0 0 3cqw rgba(34,211,238,.8)}
+  .s4 .doc .scan{animation:scan 1.4s ease 5.4s 2}
+  @keyframes scan{0%{top:-3cqw}100%{top:12cqw}}
+
+  /* ===== SCENE 5 — CALM LIFE ===== */
+  .s5 .bg{background:linear-gradient(180deg,#fff5e9 0%,#ffe6cf 46%,#ffd9c2 100%);
+    animation:push5 5s ease both}
+  @keyframes push5{from{transform:scale(1.08)}to{transform:scale(1)}}
+  .rays{position:absolute; left:50%; top:-30cqw; width:160cqw;height:160cqw;margin-left:-80cqw; z-index:2;
+    background:conic-gradient(from 0deg, rgba(255,255,255,.0) 0deg, rgba(255,255,255,.5) 6deg, rgba(255,255,255,0) 12deg,
+      rgba(255,255,255,0) 30deg, rgba(255,255,255,.45) 36deg, rgba(255,255,255,0) 42deg,
+      rgba(255,255,255,0) 60deg, rgba(255,255,255,.5) 66deg, rgba(255,255,255,0) 72deg,
+      rgba(255,255,255,0) 90deg, rgba(255,255,255,.4) 96deg, rgba(255,255,255,0) 102deg);
+    opacity:.6; filter:blur(2cqw); animation:spin 40s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .sun{position:absolute;left:50%;top:8cqw;width:40cqw;height:40cqw;margin-left:-20cqw;border-radius:50%;z-index:2;
+    background:radial-gradient(circle,rgba(255,244,214,.95) 0%,rgba(255,224,178,.4) 45%,transparent 70%);
+    filter:blur(1cqw)}
+  .bokeh{position:absolute;border-radius:50%;background:rgba(255,255,255,.6);filter:blur(1.4cqw);z-index:3}
+  .b1{width:9cqw;height:9cqw;left:16cqw;top:30cqw;animation:float 6s ease-in-out infinite}
+  .b2{width:6cqw;height:6cqw;right:20cqw;top:24cqw;animation:float 7.5s ease-in-out infinite reverse}
+  .b3{width:12cqw;height:12cqw;right:14cqw;bottom:40cqw;animation:float 8s ease-in-out infinite}
+  .b4{width:5cqw;height:5cqw;left:24cqw;bottom:46cqw;animation:float 6.8s ease-in-out infinite reverse}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4cqw)}}
+  .family{position:absolute;left:0;right:0;bottom:0;height:60cqw;z-index:4}
+  .s5 .cap{color:#5a3d28; text-shadow:0 2px 14px rgba(255,255,255,.6); bottom:11cqw; font-size:5cqw; font-weight:700}
+
+  /* ===== SCENE 6 — LOGO & CTA ===== */
+  .s6 .bg{background:radial-gradient(80% 60% at 50% 38%,#ffffff 0%,#f4f6fb 100%)}
+  .end{position:absolute; inset:0; z-index:6; display:grid; place-content:center; justify-items:center;
+    gap:3.2cqw; text-align:center; padding:0 8cqw}
+  .end .mark2{position:relative; width:26cqw;height:26cqw; margin-bottom:2cqw;
+    filter:drop-shadow(0 2cqw 6cqw rgba(124,58,237,.22)); opacity:0; animation:capIn .9s ease .3s both}
+  .end .mark2 .shine{position:absolute; inset:0; border-radius:24%; overflow:hidden}
+  .end .mark2 .shine::after{content:"";position:absolute;top:-30%;bottom:-30%;width:30%;left:-40%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-14deg);
+    animation:shine 2.2s ease 1.1s infinite}
+  @keyframes shine{0%{left:-40%}45%,100%{left:130%}}
+  .end .name{font-size:15cqw;font-weight:800;letter-spacing:-.6cqw;line-height:1;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    opacity:0;animation:capIn .9s ease .7s both}
+  .end .sub{font-size:5.4cqw;font-weight:700;color:var(--ink);opacity:0;animation:capIn .9s ease 1.1s both}
+  .end .tag{font-size:4cqw;font-weight:500;color:var(--ink-soft);opacity:0;animation:capIn .9s ease 1.5s both}
+  .end .cta{margin-top:3cqw;font-size:4.4cqw;font-weight:800;color:#fff;padding:4cqw 9cqw;border-radius:99cqw;
+    background:var(--grad);box-shadow:0 5cqw 20cqw rgba(124,58,237,.4);opacity:0;
+    animation:capIn .9s ease 1.9s both, ctaGlow 2.4s ease 2.8s infinite}
+  @keyframes ctaGlow{0%,100%{box-shadow:0 5cqw 20cqw rgba(124,58,237,.35)}50%{box-shadow:0 5cqw 28cqw rgba(6,182,212,.55)}}
+
+  /* ===== overlays / controls (OUTSIDE the recorded frame) ===== */
+  .hud{display:flex;flex-direction:column;align-items:center;gap:10px;color:#8a93a6;font-size:13px}
+  .row{display:flex;gap:10px;align-items:center}
+  .progress{width:min(86dvh*9/16,94vw);max-width:420px;height:4px;border-radius:99px;background:#1b2130;overflow:hidden}
+  .progress i{display:block;height:100%;width:0;background:var(--grad);border-radius:99px}
+  .btn{appearance:none;border:1px solid #2b3446;background:#121724;color:#e8ebf2;font:inherit;font-weight:700;
+    font-size:13px;padding:9px 16px;border-radius:99px;cursor:pointer;display:inline-flex;gap:7px;align-items:center;
+    transition:.2s}
+  .btn:hover{border-color:#3a465c;background:#161c2b}
+  .btn:focus-visible{outline:2px solid var(--a2);outline-offset:2px}
+  .btn.primary{background:var(--grad);border:none;color:#fff}
+  .hint{opacity:.7}
+  .replay{position:absolute;inset:auto 0 0 0;z-index:60;margin:0 auto 6cqw;width:max-content;
+    background:rgba(10,12,18,.6);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.2);
+    padding:3cqw 6cqw;border-radius:99px;font-weight:700;font-size:3.6cqw;cursor:pointer;
+    opacity:0;pointer-events:none;transition:opacity .5s}
+  .replay.show{opacity:1;pointer-events:auto}
+
+  @media (prefers-reduced-motion: reduce){
+    .grain,.rays,.b1,.b2,.b3,.b4,.badge,.end .mark2 .shine::after,.end .cta{animation:none!important}
+  }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+
+    <!-- SCENE 1 -->
+    <section class="scene s1" data-start="0" data-end="3">
+      <div class="bg"></div>
+      <svg class="silh" viewBox="0 0 200 100" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <path fill="#0a0e16" d="M0 100 V70 Q0 55 16 55 H60 l6-18 q3-10 14-10 h20 q11 0 14 10 l6 18 h44 q16 0 16 15 v20 Z"/>
+        <circle cx="100" cy="34" r="15" fill="#0a0e16"/>
+        <path fill="#0a0e16" d="M74 62 q26 -20 52 0 v10 h-52 z"/>
+      </svg>
+      <div class="phone">
+        <div class="screen"></div>
+        <div class="counter">7</div>
+        <div class="notif n1"><span class="ic">📅</span><span class="tx">Meeting verschoben<small>heute · 14:00</small></span><span class="badge">!</span></div>
+        <div class="notif n2"><span class="ic">🚗</span><span class="tx">Kinder abholen<small>15:30 · Schule</small></span><span class="badge">!</span></div>
+        <div class="notif n3"><span class="ic">✉️</span><span class="tx">3 neue E‑Mails<small>2 dringend</small></span><span class="badge">3</span></div>
+        <div class="notif n4"><span class="ic">💶</span><span class="tx">Rechnung fällig<small>Frist heute</small></span><span class="badge">!</span></div>
+        <div class="notif n5"><span class="ic">🛒</span><span class="tx">Einkauf: Milch, Brot…<small>+ 6 Dinge</small></span><span class="badge">6</span></div>
+      </div>
+      <p class="cap">Fühlt sich dein Alltag manchmal einfach zu&nbsp;viel&nbsp;an?</p>
+      <div class="vig"></div><div class="grain"></div>
+    </section>
+
+    <!-- SCENE 2 -->
+    <section class="scene s2" data-start="3" data-end="8">
+      <div class="bg"></div>
+      <div class="swarm">
+        <div class="cal a"></div><div class="cal b"></div><div class="cal c"></div>
+        <div class="task t-a"></div><div class="task t-b"></div><div class="task t-c"></div>
+      </div>
+      <svg class="ecg" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 50 H120 l10 -34 l14 62 l12 -46 l10 18 H210 l10 -30 l14 58 l12 -42 l10 14 H400"/>
+      </svg>
+      <div class="redpulse"></div>
+      <p class="cap">Zu viele Termine. Zu wenig&nbsp;Kopf&nbsp;dafür.</p>
+      <div class="vig"></div><div class="grain"></div>
+    </section>
+
+    <!-- SCENE 3 -->
+    <section class="scene s3" data-start="8" data-end="12">
+      <div class="bg"></div>
+      <div class="chaosghost">
+        <div class="cal a" style="opacity:.35"></div><div class="cal b" style="opacity:.35"></div>
+      </div>
+      <div class="sweep"></div>
+      <div class="logo-wrap">
+        <svg class="mark" viewBox="0 0 512 512" aria-hidden="true">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
+          <circle class="ring" cx="256" cy="256" r="176"/>
+          <g class="tick"><path d="M256 116v26M396 256h-26M256 396v-26M116 256h26" stroke-linecap="round"/></g>
+          <path class="hand" d="M256 256V150M256 256l74 44"/>
+          <circle class="dot" cx="256" cy="256" r="22"/>
+        </svg>
+        <div class="logotype">Effyra</div>
+      </div>
+      <div class="vig"></div>
+    </section>
+
+    <!-- SCENE 4 -->
+    <section class="scene s4" data-start="12" data-end="22">
+      <div class="bg"></div>
+      <div class="orb o1"></div><div class="orb o2"></div>
+      <div class="app">
+        <div class="head">
+          <svg class="lm" viewBox="0 0 512 512" aria-hidden="true">
+            <circle cx="256" cy="256" r="176" fill="none" stroke="url(#lg)" stroke-width="26"/>
+            <path d="M256 256V150M256 256l74 44" fill="none" stroke="url(#lg)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="256" cy="256" r="20" fill="#22d3ee"/>
+          </svg>
+          <b>Effyra</b><span>synchronisiert</span>
+        </div>
+        <div class="bubble"><span class="tw">Plane meine Woche.</span></div>
+        <p class="reply"><b>Erledigt.</b> Deine Woche ist organisiert:</p>
+
+        <div class="rcard c1"><span class="ic">📅</span><div class="m"><b>Termine</b><small>Mo–Fr automatisch synchronisiert</small></div>
+          <div class="mini"><i></i><i class="on" style="animation-delay:2.9s"></i><i></i><i class="on" style="animation-delay:3.05s"></i><i></i><i></i><i></i>
+            <i class="on" style="animation-delay:3.15s"></i><i></i><i></i><i class="on" style="animation-delay:3.25s"></i><i></i><i></i><i class="on" style="animation-delay:3.35s"></i></div></div>
+
+        <div class="rcard c2"><span class="ic">✅</span><div class="m"><b>Aufgaben</b><small>priorisiert & verteilt</small></div><span class="chk">✓</span></div>
+
+        <div class="rcard c3"><span class="ic">🔔</span><div class="m"><b>Erinnerungen</b><small>zur richtigen Zeit, ganz automatisch</small></div></div>
+
+        <div class="rcard c4"><span class="ic">👪</span><div class="m"><b>Familienübersicht</b><small>alle auf demselben Stand</small></div>
+          <div class="fam"><b style="background:#7c3aed">S</b><b style="background:#06b6d4">T</b><b style="background:#f59e0b">L</b><b style="background:#ec4899">M</b></div>
+          <span class="bell">🔔</span></div>
+
+        <div class="rcard c5"><span class="ic">📄</span><div class="m"><b>Dokumente</b><small>fotografiert · sofort erkannt</small></div>
+          <div class="doc"><i></i><i></i><i></i><div class="scan"></div></div>
+          <span class="chk" style="animation:tick .4s 6.7s both">✓</span></div>
+      </div>
+      <div class="vig" style="box-shadow:inset 0 0 20cqw 4cqw rgba(120,150,200,.15)"></div>
+    </section>
+
+    <!-- SCENE 5 -->
+    <section class="scene s5" data-start="22" data-end="27">
+      <div class="bg"></div>
+      <div class="rays"></div><div class="sun"></div>
+      <div class="bokeh b1"></div><div class="bokeh b2"></div><div class="bokeh b3"></div><div class="bokeh b4"></div>
+      <svg class="family" viewBox="0 0 200 120" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <ellipse cx="100" cy="112" rx="92" ry="12" fill="rgba(120,70,40,.18)"/>
+        <rect x="34" y="86" width="132" height="10" rx="5" fill="rgba(120,70,40,.5)"/>
+        <rect x="40" y="94" width="8" height="24" rx="3" fill="rgba(120,70,40,.45)"/>
+        <rect x="152" y="94" width="8" height="24" rx="3" fill="rgba(120,70,40,.45)"/>
+        <g fill="#7a4a2c">
+          <g><circle cx="58" cy="52" r="12"/><path d="M42 90 q0-24 16-24 t16 24 z"/></g>
+          <g><circle cx="142" cy="52" r="12"/><path d="M126 90 q0-24 16-24 t16 24 z"/></g>
+          <g fill="#8a5636"><circle cx="88" cy="62" r="9"/><path d="M76 90 q0-18 12-18 t12 18 z"/></g>
+          <g fill="#8a5636"><circle cx="114" cy="62" r="9"/><path d="M102 90 q0-18 12-18 t12 18 z"/></g>
+        </g>
+      </svg>
+      <p class="cap">Mehr Zeit für das, was wirklich&nbsp;zählt.</p>
+      <div class="vig" style="box-shadow:inset 0 0 22cqw 4cqw rgba(150,90,40,.2)"></div>
+    </section>
+
+    <!-- SCENE 6 -->
+    <section class="scene s6" data-start="27" data-end="30">
+      <div class="bg"></div>
+      <div class="end">
+        <div class="mark2">
+          <svg viewBox="0 0 512 512" aria-hidden="true">
+            <rect width="512" height="512" rx="118" fill="#0d1019"/>
+            <circle cx="256" cy="256" r="176" fill="none" stroke="url(#lg)" stroke-width="26"/>
+            <g stroke="url(#lg)" stroke-width="18" stroke-linecap="round"><path d="M256 116v26M396 256h-26M256 396v-26M116 256h26"/></g>
+            <path d="M256 256V150M256 256l74 44" fill="none" stroke="url(#lg)" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="256" cy="256" r="22" fill="#22d3ee"/>
+          </svg>
+          <div class="shine"></div>
+        </div>
+        <div class="name">Effyra</div>
+        <div class="sub">Ruhe für deinen Alltag.</div>
+        <div class="tag">Plane weniger. Lebe mehr.</div>
+        <div class="cta">Jetzt kostenlos testen</div>
+      </div>
+      <div class="vig"></div>
+    </section>
+
+    <button class="replay" id="replay">↻ Erneut abspielen</button>
+  </div>
+
+  <div class="hud">
+    <div class="progress"><i id="bar"></i></div>
+    <div class="row">
+      <button class="btn primary" id="play">▶ Mit Ton abspielen</button>
+      <button class="btn" id="mute" aria-pressed="false">🔊 Ton an</button>
+    </div>
+    <span class="hint">Vollbild + Bildschirmaufnahme (9:16) = dein Video · Musik ist eingebaut · für eigenes Voice‑over ggf. stummschalten</span>
+  </div>
+
+<script>
+  const TOTAL = 30;
+  const stage = document.getElementById('stage');
+  const scenes = [...stage.querySelectorAll('.scene')];
+  const bar = document.getElementById('bar');
+  const replay = document.getElementById('replay');
+  const playBtn = document.getElementById('play');
+  let t0 = null, raf = 0;
+
+  function frame(ts){
+    if (t0 === null) t0 = ts;
+    const t = (ts - t0) / 1000;
+    bar.style.width = Math.min(t / TOTAL, 1) * 100 + '%';
+    scenes.forEach(s => s.classList.toggle('on', t >= +s.dataset.start && t < +s.dataset.end));
+    if (t >= TOTAL){ scenes[scenes.length-1].classList.add('on'); replay.classList.add('show'); return; }
+    raf = requestAnimationFrame(frame);
+  }
+  function play(fromUser){
+    cancelAnimationFrame(raf);
+    replay.classList.remove('show');
+    scenes.forEach(s => s.classList.remove('on'));
+    void stage.offsetWidth;          // reflow → restart all scene animations
+    t0 = null;
+    raf = requestAnimationFrame(frame);
+    if (fromUser) startAudio();      // Ton braucht eine Nutzer-Geste
+  }
+
+  /* ---- Synth-Soundtrack (WebAudio): Spannung → Auflösung → Ruhe ---- */
+  let actx = null, envGain = null, outGain = null, srcs = [], audioOn = true;
+  function ensureCtx(){
+    if (!actx){
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      envGain = actx.createGain(); envGain.gain.value = 0.0001;
+      const comp = actx.createDynamicsCompressor();
+      outGain = actx.createGain(); outGain.gain.value = audioOn ? 1 : 0;
+      envGain.connect(comp); comp.connect(outGain); outGain.connect(actx.destination);
+    }
+    if (actx.state === 'suspended') actx.resume();
+  }
+  function stopAudio(){ srcs.forEach(n => { try { n.stop(); } catch(e){} }); srcs = []; }
+  function tone(t, dur, freq, type, peak, o){
+    o = o || {};
+    const osc = actx.createOscillator(); osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    if (o.glideTo) osc.frequency.exponentialRampToValueAtTime(o.glideTo, t + dur);
+    if (o.detune) osc.detune.value = o.detune;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    if (o.lp){ const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(o.lp, t);
+      if (o.lpTo) f.frequency.exponentialRampToValueAtTime(o.lpTo, t + dur); osc.connect(f); f.connect(g); }
+    else osc.connect(g);
+    g.connect(envGain);
+    const a = o.attack || 0.03, r = o.release != null ? o.release : Math.min(0.4, dur * 0.5);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.setValueAtTime(peak, t + Math.max(a, dur - r));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.start(t); osc.stop(t + dur + 0.05); srcs.push(osc);
+  }
+  function noise(t, dur, peak, bp){
+    const b = actx.createBuffer(1, Math.ceil(actx.sampleRate * dur), actx.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const s = actx.createBufferSource(); s.buffer = b;
+    const f = actx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = bp || 1400; f.Q.value = 0.7;
+    const g = actx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(envGain); s.start(t); s.stop(t + dur + 0.02); srcs.push(s);
+  }
+  function schedule(z){
+    envGain.gain.cancelScheduledValues(z);
+    envGain.gain.setValueAtTime(0.0001, z);
+    envGain.gain.exponentialRampToValueAtTime(0.62, z + 0.7);
+    envGain.gain.setValueAtTime(0.62, z + 28.8);
+    envGain.gain.exponentialRampToValueAtTime(0.0001, z + 30.2);
+    // TENSION 0–8s: beschleunigender Herzschlag + unruhiges Cluster + Ticks
+    let t = 0.2, gap = 1.0;
+    while (t < 8){
+      tone(z + t, 0.16, 58, 'sine', 0.3, { attack:0.005, release:0.12, lp:200 });
+      tone(z + t + 0.17, 0.14, 50, 'sine', 0.26, { attack:0.005, release:0.1, lp:180 });
+      gap = Math.max(0.42, gap - 0.06); t += gap;
+    }
+    tone(z + 0.5, 7.6, 220, 'sawtooth', 0.05, { attack:3, release:2.2, lp:280, lpTo:640 });
+    tone(z + 0.5, 7.6, 233, 'sawtooth', 0.045, { attack:3, release:2.2, lp:280 });
+    let tt = 0.6, tg = 0.5;
+    while (tt < 7.8){ noise(z + tt, 0.05, 0.045, 1700); tg = Math.max(0.17, tg - 0.03); tt += tg; }
+    // TRANSITION 8–12s: aufsteigender Sweep löst sich in warmen Dur-Akkord + Schimmer
+    tone(z + 8, 1.7, 170, 'triangle', 0.1, { attack:0.5, release:0.7, glideTo:520, lp:380, lpTo:3200 });
+    noise(z + 8, 1.6, 0.05, 2600);
+    [261.6, 329.6, 392.0, 523.3].forEach(f => tone(z + 9.5, 3.0, f, 'sine', 0.07, { attack:0.9, release:1.6, lp:1900 }));
+    tone(z + 10.6, 1.8, 1046.5, 'sine', 0.045, { attack:0.01, release:1.6 });
+    // CALM 12–30s: warmer Pad + sanfte pentatonische Glöckchen
+    [130.8, 196.0, 261.6, 329.6, 587.3].forEach(f => tone(z + 12, 15.6, f, 'sine', 0.045, { attack:2, release:3, lp:1500 }));
+    const penta = [523.3, 587.3, 659.3, 784.0, 880.0], motif = [0, 2, 4, 1, 3, 4, 2, 0, 3, 2, 4, 1];
+    let bt = 12.6, mi = 0;
+    while (bt < 26.6){ tone(z + bt, 1.2, penta[motif[mi % motif.length]], 'sine', 0.055, { attack:0.01, release:1.0 }); mi++; bt += 1.15; }
+    [329.6, 415.3, 493.9].forEach(f => tone(z + 22, 5, f, 'sine', 0.038, { attack:1.5, release:2, lp:1650 }));
+    // FINALE 27–30s: aufgelöster Akkord + Glöckchen-Arpeggio auf den Grundton
+    [261.6, 329.6, 392.0, 523.3, 659.3].forEach(f => tone(z + 27, 3.1, f, 'sine', 0.06, { attack:0.6, release:2.4, lp:2100 }));
+    [523.3, 659.3, 784.0, 1046.5].forEach((f, i) => tone(z + 27.2 + i * 0.18, 2.3, f, 'sine', 0.045, { attack:0.01, release:2.0 }));
+  }
+  function startAudio(){ ensureCtx(); stopAudio(); schedule(actx.currentTime + 0.06); }
+
+  const muteBtn = document.getElementById('mute');
+  muteBtn.addEventListener('click', () => {
+    audioOn = !audioOn;
+    muteBtn.textContent = audioOn ? '🔊 Ton an' : '🔇 Ton aus';
+    muteBtn.setAttribute('aria-pressed', String(!audioOn));
+    if (actx && outGain) outGain.gain.setTargetAtTime(audioOn ? 1 : 0, actx.currentTime, 0.04);
+  });
+  replay.addEventListener('click', () => play(true));
+  playBtn.addEventListener('click', () => play(true));
+  // Sauberer (stummer) Start, sobald die Seite sichtbar ist – Ton kommt per Klick dazu
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) play(false); });
+  if (document.visibilityState === 'visible' && !matchMedia('(prefers-reduced-motion: reduce)').matches) play(false);
+  else scenes[0].classList.add('on');
+</script>
+</body>
+</html>
