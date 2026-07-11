@@ -223,6 +223,24 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .b-behoerde{color:#6d28d9}
 :root[data-theme="light"] .trial-pill b{color:#b45309}
 :root[data-theme="light"] .chip.done,:root[data-theme="light"] .task.done .tcheck{color:#047857}
+/* Login/Paywall/Sprachwähler bleiben fotobasiert-dunkel: dunkle Tokens im .gate re-assertieren */
+:root[data-theme="light"] .gate{--text:#f5f7fb;--muted:#c6cddb;--faint:#9aa6ba;--card:#161b27;--card2:#1f2636;--border:rgba(255,255,255,.10);--border2:rgba(255,255,255,.17)}
+/* Restliche dunkle Inset-Flächen → hell */
+:root[data-theme="light"] .note-box,:root[data-theme="light"] .lesson{background:#f4f6fa}
+/* Restliche Akzent-Texte lesbar auf Hell */
+:root[data-theme="light"] .chip{color:#5b21b6}
+:root[data-theme="light"] .dg-free,:root[data-theme="light"] .fnd-mod,:root[data-theme="light"] .fam-code{color:#6d28d9}
+:root[data-theme="light"] .wq-chip.clr{color:#dc2626}
+:root[data-theme="light"] .b-ok{color:#047857}
+:root[data-theme="light"] .b-soon{color:#b45309}
+:root[data-theme="light"] .b-late{color:#b91c1c}
+:root[data-theme="light"] .trial-pill{color:#b45309}
+:root[data-theme="light"] .trial-pill b{color:#92400e}
+:root[data-theme="light"] #accountCard .tier-pill.free{color:#475467}
+:root[data-theme="light"] #accountCard .tier-pill.medium{color:#0369a1}
+:root[data-theme="light"] #accountCard .tier-pill.premium,:root[data-theme="light"] #accountCard .b-premium{color:#6d28d9}
+:root[data-theme="light"] #accountCard .b-trial{color:#b45309}
+:root[data-theme="light"] #accountCard .b-expired{color:#b91c1c}
 label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;
   font-size:12px;font-weight:700;letter-spacing:.2px}
@@ -1422,7 +1440,7 @@ const store = Object.assign({
   vehicles: [], // Auto & Motorrad
   voiceNotes: [], // Voice2PDF gespeicherte Transkriptionen
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
-  settings: { model: 'claude-sonnet-5', demoIdx: 0, theme: 'auto' }
+  settings: { model: 'claude-sonnet-5', demoIdx: 0, theme: 'light' }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
 })());
