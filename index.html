@@ -201,6 +201,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] input[type=text],:root[data-theme="light"] input[type=password],:root[data-theme="light"] input[type=date],:root[data-theme="light"] input[type=time],:root[data-theme="light"] select,:root[data-theme="light"] textarea{background:#fff}
 :root[data-theme="light"] input[type=date],:root[data-theme="light"] input[type=time]{color-scheme:light}
 :root[data-theme="light"] select option{background:#fff;color:var(--text)}
+/* Login/Paywall bleiben dunkel → Felder dort NICHT weiß machen (sonst heller Text auf weiß = unsichtbar) */
+:root[data-theme="light"] .gate input[type=text],:root[data-theme="light"] .gate input[type=password],:root[data-theme="light"] .gate input[type=date],:root[data-theme="light"] .gate input[type=time],:root[data-theme="light"] .gate select,:root[data-theme="light"] .gate textarea{background:rgba(0,0,0,.3);color:var(--text);color-scheme:dark}
+:root[data-theme="light"] .gate select option{background:#1f2636;color:var(--text)}
 :root[data-theme="light"] .veh-stat,:root[data-theme="light"] .doc-reply .reply-text,:root[data-theme="light"] .l-place,:root[data-theme="light"] .pack-list,:root[data-theme="light"] .ec-card{background:#f4f6fa}
 :root[data-theme="light"] .wmonth-g i{background:rgba(16,24,40,.06)}
 :root[data-theme="light"] .tab-center .bubble{box-shadow:0 6px 22px rgba(124,58,237,.32),0 0 0 5px rgba(245,247,251,.95)}
