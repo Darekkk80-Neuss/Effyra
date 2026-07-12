@@ -2790,13 +2790,11 @@ RENDERERS.dashboard = function () {
   if (fTasks.length) html += dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
     const m = t.assignee ? famMember(t.assignee) : null;
     const late = t.due && dayDiff(t.due) < 0, isTodayD = t.due && dayDiff(t.due) === 0;
-    return drow({
-      svg: 'icCheck2', iconColor: m ? m.color : '#64748b',
-      title: t.title,
-      sub: '➜ ' + (m ? m.name : '👪 ganze Familie') + (t.due ? ' · ' + (late ? 'überfällig' : 'fällig ' + relDay(t.due)) : ''),
-      chip: t.due ? { cls: late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok', text: late ? 'Überfällig' : relDay(t.due) } : null,
-      go: 'family', attrs: ' data-tab="ftasks"'
-    });
+    const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
+    return '<div class="drow drow-check">' +
+      '<button class="tcheck" data-ftoggle="' + t.id + '" title="Als erledigt abhaken" aria-label="Als erledigt abhaken"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+      '<span class="drow-tx" data-go="family" data-tab="ftasks" role="button" tabindex="0" style="color:' + (m ? m.color : '#64748b') + '"><b style="color:var(--text)">' + esc(t.title) + '</b><span>➜ ' + esc(m ? m.name : '👪 ganze Familie') + (t.due ? ' · ' + esc(late ? 'überfällig' : 'fällig ' + relDay(t.due)) : '') + '</span></span>' +
+      chip + '</div>';
   }).join(''), ' data-tab="ftasks"');
 
   /* FINANZEN – Monatsbudget auf einen Blick */
@@ -2828,6 +2826,16 @@ RENDERERS.dashboard = function () {
 
   $('#dashWidgets').innerHTML = html;
   $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
+  /* Familienaufgabe direkt vom Dashboard abhaken (ohne in die Familienzentrale zu springen) */
+  $$('#dashWidgets [data-ftoggle]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); ensureFamily();
+    const tk = (store.family.tasks || []).find(x => x.id === b.dataset.ftoggle);
+    if (!tk) return;
+    tk.done = true; save();
+    if (typeof famPush === 'function') { try { famPush(); } catch (err) {} }
+    toast('✅ „' + tk.title + '" erledigt.');
+    RENDERERS.dashboard();
+  }));
   $$('#statRow [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
   renderWeather();
 };
