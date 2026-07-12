@@ -4385,9 +4385,24 @@ const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).ge
 
 /* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
 function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], meds: store.family.meds || [], medTaken: store.family.medTaken || {}, events: store.events.filter(e => e.source === 'family') }; }
-async function famPush() { if (!store.family.code || !CLOUD) return; try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
+/* Frisches Auth-Token vor Familien-RPCs erzwingen – sonst wirft die RPC serverseitig
+   „not authenticated" (auth.uid() null), sobald das Access-Token abgelaufen ist. */
+async function famAuth() {
+  if (!CLOUD || !sb) return false;
+  try {
+    let { data } = await sb.auth.getSession();
+    let s = data && data.session;
+    if (s && s.expires_at && (s.expires_at * 1000 - Date.now()) < 120000) {   // < 2 Min Restlaufzeit → erneuern
+      const rr = await sb.auth.refreshSession();
+      s = (rr && rr.data && rr.data.session) || s;
+    }
+    return !!s;
+  } catch (e) { return false; }
+}
+async function famPush() { if (!store.family.code || !CLOUD) return; await famAuth(); try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
 async function famPull() {
   if (!store.family.code || !CLOUD) return false;
+  await famAuth();
   try {
     const r = await sb.rpc('get_family');
     if (r.error || !r.data) return false;
@@ -4406,9 +4421,11 @@ async function famPull() {
 function famChanged() { save(); famPush(); RENDERERS.family(); }
 async function famCreate() {
   if (!CLOUD) { toast('Sync braucht das Cloud-Backend'); return; }
+  if (!await famAuth()) { toast('Sitzung abgelaufen – bitte App neu laden und anmelden.'); return; }
   try {
     const r = await sb.rpc('create_family');
-    if (r.error || !r.data) { toast('Bitte zuerst supabase-family.sql ausführen'); return; }
+    if (r.error) { toast('Sync fehlgeschlagen – ist supabase-family.sql ausgeführt?'); return; }
+    if (!r.data) { toast('Bitte zuerst supabase-family.sql ausführen'); return; }
     store.family.code = r.data.code; save();
     await famPush();
     RENDERERS.family();
@@ -4426,9 +4443,10 @@ async function famJoin(code) {
     if (!confirm('Zu einer anderen Familie wechseln? Deine aktuelle Verbindung (' + store.family.code + ') wird getrennt.')) { joinStatus('', ''); return; }
   }
   joinStatus('Prüfe Code …', 'busy'); if (btn) btn.disabled = true;
+  if (!await famAuth()) { joinStatus('Sitzung abgelaufen. Bitte lade die App neu und melde dich an.', 'err'); if (btn) btn.disabled = false; return; }
   try {
     const r = await sb.rpc('join_family', { p_code: code });
-    if (r.error) { joinStatus('Verbindung fehlgeschlagen. Bitte erneut versuchen.', 'err'); toast('Verbindung fehlgeschlagen.'); if (btn) btn.disabled = false; return; }
+    if (r.error) { joinStatus('Verbindung fehlgeschlagen. Bitte lade die App neu und versuche es erneut.', 'err'); toast('Verbindung fehlgeschlagen.'); if (btn) btn.disabled = false; return; }
     if (!r.data) { joinStatus('Kein Familiencode gefunden. Bitte prüfen.', 'err'); toast('Code nicht gefunden'); if (btn) btn.disabled = false; return; }
     store.family.code = r.data.code; save();
     await famPull();
@@ -4438,6 +4456,7 @@ async function famJoin(code) {
 }
 async function famLeave() {
   if (!confirm('Verbindung zur Familie wirklich trennen?')) return;
+  await famAuth();
   try { await sb.rpc('leave_family'); } catch (e) {}
   store.family.code = null; save();
   RENDERERS.family();
