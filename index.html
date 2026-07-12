@@ -4405,7 +4405,7 @@ function ensureFamily() {
   if (!store.family.ai) store.family.ai = { limit: FAMILY_AI_LIMIT, resetDate: nextMonthFirstISO() };
   if (!store.family.addons) store.family.addons = { adult: 0, child: 0 };   // hinzugebuchte Zusatzplätze (Play Billing)
   if (!store.family.meds) store.family.meds = [];   // Medikamentenplan {id,memberId,name,dose,date(''=täglich|ISO),times[],note,createdAt}
-  if (!store.family.medTaken) store.family.medTaken = {};   // eingenommen: {'medId|HH:MM|YYYY-MM-DD': ts} (synchronisiert)
+  if (!store.family.medTaken) store.family.medTaken = {};   // eingenommen: {'medId|HH:MM|YYYY-MM-DD': ts} (nur lokal, Art. 9 DSGVO)
   if (!store.family.share) store.family.share = { calendar: true, appointments: true, tasks: true, reminders: true, documents: false, expenses: false, household: false };
   SHARE_AREAS.forEach(a => { if (typeof store.family.share[a.key] !== 'boolean') store.family.share[a.key] = a.def; });
   if (!store.family.members.length) {
@@ -4609,7 +4609,9 @@ function nextOccur(iso) {
 const ageOn = (iso) => parseISO(nextOccur(iso)).getFullYear() - parseISO(iso).getFullYear();
 
 /* --- Partner-Sync über Supabase (RPCs aus supabase-family.sql) --- */
-function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], meds: store.family.meds || [], medTaken: store.family.medTaken || {}, events: store.events.filter(e => e.source === 'family') }; }
+/* Medikamente (meds/medTaken) sind Gesundheitsdaten (Art. 9 DSGVO) und werden BEWUSST NICHT
+   synchronisiert – wie Notfall- und Budgetdaten bleiben sie ausschließlich lokal auf dem Gerät. */
+function famPayload() { return { members: store.family.members, occasions: store.family.occasions, tasks: store.family.tasks || [], events: store.events.filter(e => e.source === 'family') }; }
 /* Frisches Auth-Token vor Familien-RPCs erzwingen – sonst wirft die RPC serverseitig
    „not authenticated" (auth.uid() null), sobald das Access-Token abgelaufen ist. */
 async function famAuth() {
@@ -4636,8 +4638,7 @@ async function famPull() {
     store.family.members = d.members || [];
     store.family.occasions = d.occasions || [];
     store.family.tasks = d.tasks || [];
-    store.family.meds = d.meds || [];
-    store.family.medTaken = d.medTaken || {};
+    // Medikamente (Gesundheitsdaten, Art. 9 DSGVO) bleiben rein lokal – niemals aus dem Sync-Blob übernehmen.
     store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
     save();
     const selfAdded = famEnsureSelfMember();   // beide Konten automatisch als Mitglied führen
