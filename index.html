@@ -2373,7 +2373,11 @@ const TDICT_SRC = {
   'Lege pro Bereich fest, was mit der Familie geteilt wird. Nur Erwachsene teilen – Kinder sehen ausschließlich Freigegebenes.': { en: 'Set per area what is shared with the family. Only adults share – children only see what’s shared.', fr: 'Définissez par zone ce qui est partagé avec la famille. Seuls les adultes partagent – les enfants ne voient que ce qui est partagé.', es: 'Define por área qué se comparte con la familia. Solo los adultos comparten; los niños solo ven lo compartido.', it: 'Imposta per area cosa condividere con la famiglia. Solo gli adulti condividono – i bambini vedono solo ciò che è condiviso.', pl: 'Ustaw dla każdego obszaru, co jest udostępniane rodzinie. Udostępniają tylko dorośli – dzieci widzą wyłącznie udostępnione.' },
   '✅ Erlaubt': { en: '✅ Allowed', fr: '✅ Autorisé', es: '✅ Permitido', it: '✅ Consentito', pl: '✅ Dozwolone' },
   '❌ Aus': { en: '❌ Off', fr: '❌ Désactivé', es: '❌ Desactivado', it: '❌ Disattivato', pl: '❌ Wyłączone' },
-  '🎬 Film ansehen': { en: '🎬 Watch the film', fr: '🎬 Voir le film', es: '🎬 Ver el vídeo', it: '🎬 Guarda il video', pl: '🎬 Zobacz film' }
+  '🎬 Film ansehen': { en: '🎬 Watch the film', fr: '🎬 Voir le film', es: '🎬 Ver el vídeo', it: '🎬 Guarda il video', pl: '🎬 Zobacz film' },
+  'Anderes Gerät verbinden?': { en: 'Connect another device?', fr: 'Connecter un autre appareil ?', es: '¿Conectar otro dispositivo?', it: 'Collegare un altro dispositivo?', pl: 'Połączyć inne urządzenie?' },
+  'Auf dem Gerät deines Partners denselben Code oben eingeben – oder hier den Code einer anderen Familie eintragen, um zu wechseln.': { en: 'On your partner’s device, enter the same code above – or enter another family’s code here to switch.', fr: 'Sur l’appareil de votre partenaire, saisissez le même code ci-dessus – ou saisissez ici le code d’une autre famille pour changer.', es: 'En el dispositivo de tu pareja, introduce arriba el mismo código, o introduce aquí el código de otra familia para cambiar.', it: 'Sul dispositivo del partner inserisci lo stesso codice qui sopra – oppure inserisci qui il codice di un’altra famiglia per cambiare.', pl: 'Na urządzeniu partnera wpisz powyżej ten sam kod – albo wpisz tutaj kod innej rodziny, aby przełączyć.' },
+  '🔗 Anderer Familie beitreten': { en: '🔗 Join another family', fr: '🔗 Rejoindre une autre famille', es: '🔗 Unirse a otra familia', it: '🔗 Unisciti a un’altra famiglia', pl: '🔗 Dołącz do innej rodziny' },
+  'Deine aktuelle Verbindung wird dabei getrennt.': { en: 'Your current connection will be disconnected.', fr: 'Votre connexion actuelle sera interrompue.', es: 'Tu conexión actual se desconectará.', it: 'La tua connessione attuale verrà interrotta.', pl: 'Twoje obecne połączenie zostanie rozłączone.' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -4409,9 +4413,9 @@ async function famJoin(code) {
   const btn = $('#famRoot #joinBtn');
   if (!/^[A-Z0-9]{6}$/.test(code)) { joinStatus('Bitte 6-stelligen Code eingeben (Buchstaben & Zahlen).', 'err'); return; }
   if (!CLOUD) { joinStatus('Sync benötigt das Cloud-Backend.', 'err'); return; }
-  if (store.family.code) {   // schon verbunden → kein Selbst-Pairing / Doppel-Beitritt
-    joinStatus(code === store.family.code ? 'Das ist dein eigener Code.' : 'Du bist bereits mit einer Familie verbunden.', 'err');
-    toast('Du bist bereits verbunden – erst „Verbindung trennen".'); return;
+  if (store.family.code) {   // bereits verbunden → eigener Code abfangen, Wechsel bestätigen
+    if (code === store.family.code) { joinStatus('Das ist dein eigener Code – du bist bereits verbunden.', 'err'); return; }
+    if (!confirm('Zu einer anderen Familie wechseln? Deine aktuelle Verbindung (' + store.family.code + ') wird getrennt.')) { joinStatus('', ''); return; }
   }
   joinStatus('Prüfe Code …', 'busy'); if (btn) btn.disabled = true;
   try {
@@ -4648,6 +4652,15 @@ function famShareCard() {
   h += '<div class="sub" style="font-size:12px;color:var(--faint);margin-top:10px">Diese Freigaben werden gespeichert und im Live-Sync mit dem Backend voll wirksam (Phase 2). Heute teilen sich Personen, Kalender & Anlässe wie bisher.</div>';
   return h + '</div>';
 }
+/* Wiederverwendbarer „Familie beitreten"-Block (Code-Eingabe + Validierung). */
+function famJoinBlock(heading, desc) {
+  return '<div class="fam-join-block"><div class="fam-join-h">' + heading + '</div>' +
+    '<p class="sub" style="color:var(--faint);font-size:12.5px;margin:2px 0 8px">' + desc + '</p>' +
+    '<div class="fam-join-row"><input type="text" id="joinCode" class="fam-join-inp" inputmode="latin" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="C57A36" maxlength="6" aria-label="Familiencode eingeben">' +
+    '<button class="btn" data-fam="pasteCode" title="Aus Zwischenablage einfügen" aria-label="Aus Zwischenablage einfügen">📋</button></div>' +
+    '<div class="fam-join-status" id="joinStatus"></div>' +
+    '<button class="btn btn-primary" data-fam="join" id="joinBtn" style="width:100%" disabled>Verbinden</button></div>';
+}
 function famSync() {
   let conn;
   if (!CLOUD) conn = '<div class="card"><h3 style="margin-bottom:6px">🔗 Partner-Synchronisierung</h3><p class="sub" style="color:var(--muted);font-size:13px">Die Synchronisierung benötigt das Cloud-Backend (Supabase). Ohne Cloud funktioniert die Familienzentrale lokal auf diesem Gerät.</p></div>';
@@ -4657,17 +4670,14 @@ function famSync() {
     '<p class="sub" style="color:var(--faint);font-size:12.5px;margin:2px 0 10px">Erzeuge einen 6-stelligen Code und teile ihn mit deinem Partner.</p>' +
     '<button class="btn btn-primary" data-fam="create" style="width:100%">Code erzeugen</button></div>' +
     '<div class="fam-or">oder</div>' +
-    '<div class="fam-join-block"><div class="fam-join-h">🔗 Familie beitreten</div>' +
-    '<p class="sub" style="color:var(--faint);font-size:12.5px;margin:2px 0 8px">Gib den 6-stelligen Code deines Partners ein (Buchstaben &amp; Zahlen).</p>' +
-    '<div class="fam-join-row"><input type="text" id="joinCode" class="fam-join-inp" inputmode="latin" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="C57A36" maxlength="6" aria-label="Familiencode eingeben">' +
-    '<button class="btn" data-fam="pasteCode" title="Aus Zwischenablage einfügen" aria-label="Aus Zwischenablage einfügen">📋</button></div>' +
-    '<div class="fam-join-status" id="joinStatus"></div>' +
-    '<button class="btn btn-primary" data-fam="join" id="joinBtn" style="width:100%" disabled>Verbinden</button></div></div>';
+    famJoinBlock('🔗 Familie beitreten', 'Gib den 6-stelligen Code deines Partners ein (Buchstaben &amp; Zahlen).') + '</div>';
   else conn = '<div class="card" style="text-align:center"><h3>Familie verbunden ✓</h3><p class="sub" style="color:var(--muted);font-size:13px">Teile diesen Code mit deinem Partner:</p>' +
     '<div class="fam-code">' + esc(store.family.code) + '</div>' +
     '<button class="btn btn-sm" data-fam="copyCode" style="margin-bottom:10px">📋 Code kopieren</button><br>' +
     '<button class="btn btn-sm btn-danger" data-fam="leave">Verbindung trennen</button>' +
-    '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>';
+    '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>' +
+    '<div class="card"><h3 style="margin-bottom:6px">Anderes Gerät verbinden?</h3><p class="sub" style="color:var(--muted);font-size:13px;margin-bottom:2px">Auf dem Gerät deines Partners denselben Code oben eingeben – oder hier den Code einer anderen Familie eintragen, um zu wechseln.</p>' +
+    famJoinBlock('🔗 Anderer Familie beitreten', 'Deine aktuelle Verbindung wird dabei getrennt.') + '</div>';
   return conn + famShareCard();
 }
 /* Familiencode-Feld: Auto-Uppercase, Filter, Live-Validierung des „Verbinden"-Buttons */
