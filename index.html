@@ -2336,7 +2336,8 @@ const TDICT_SRC = {
   /* ===== Dokumentenassistent – intelligentes Routing ===== */
   '📋 Vollständige Extraktion': { en: '📋 Full extraction', fr: '📋 Extraction complète', es: '📋 Extracción completa', it: '📋 Estrazione completa', pl: '📋 Pełna ekstrakcja' },
   '❓ Kurze Rückfrage:': { en: '❓ Quick question:', fr: '❓ Petite question :', es: '❓ Pregunta rápida:', it: '❓ Domanda veloce:', pl: '❓ Krótkie pytanie:' },
-  'Kinder · Plan': { en: 'Kids · Plan', fr: 'Enfants · Plan', es: 'Niños · Plan', it: 'Bambini · Piano', pl: 'Dzieci · Plan' }
+  'Kinder · Plan': { en: 'Kids · Plan', fr: 'Enfants · Plan', es: 'Niños · Plan', it: 'Bambini · Piano', pl: 'Dzieci · Plan' },
+  'Arbeitszeit · Plan': { en: 'Working hours · Plan', fr: 'Temps de travail · Plan', es: 'Horario · Plan', it: 'Orario · Piano', pl: 'Czas pracy · Plan' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -5634,7 +5635,8 @@ async function aiAnalyze(dataUrl) {
     '5) SEKUNDÄRE Aktionen ableiten: nur EINZELNE datumsfixe Termine bzw. Aufgaben mit Frist.\n' +
     '6) Als EIN JSON-Objekt ausgeben.\n\n' +
     'KERNREGEL: Ein Dokument lebt in GENAU EINEM Fachmodul. Kalender und Aufgaben bekommen NIEMALS das ganze Dokument, sondern nur einzelne ABGELEITETE Einträge mit Rückverweis.\n' +
-    'NEGATIVBEISPIEL (unbedingt vermeiden): Einen Stundenplan NICHT in einzelne Kalendertermine je Schulstunde zerlegen. Er wird als EIN zusammenhängender Plan dem Kind zugeordnet. Nur echte Sonderereignisse (Elternabend, Wandertag, Ferienbeginn) werden als einzelne Termine abgeleitet.\n\n' +
+    'NEGATIVBEISPIEL (unbedingt vermeiden): Einen Stundenplan NICHT in einzelne Kalendertermine je Schulstunde zerlegen. Er wird als EIN zusammenhängender Plan dem Kind zugeordnet. Nur echte Sonderereignisse (Elternabend, Wandertag, Ferienbeginn) werden als einzelne Termine abgeleitet.\n' +
+    'EBENSO: Ein Dienstplan/Schichtplan wird als EIN Plan in die ARBEITSZEIT übernommen (nicht in den normalen Kalender, nicht als viele Einzeltermine). Nutze dafür EIN dienstplan-finding mit allen Schichten.\n\n' +
     'ROUTING (primaryModule):\n' +
     '- Stundenplan/Schulplan/Klassenliste → "Kinder" (als Plan beim Kind)\n' +
     '- Elternbrief/Info aus Schule/Kita → "Kinder"\n' +
@@ -5660,6 +5662,7 @@ async function aiAnalyze(dataUrl) {
     '"replyDraft":"höflicher Antwortbrief falls sinnvoll, sonst null","findings":[nur EINZELNE ableitbare Aktionen]}\n' +
     'findings – ein zusammenhängender Plan ergibt KEINE Einzeltermine, sondern EINEN Plan-Eintrag:\n' +
     '- schulplan (GANZER Stundenplan als EIN Eintrag, NICHT je Stunde ein event): {"type":"schulplan","title":"Stundenplan für <Kind>","childName":"Name","schedule":{"mon":["Fach1","Fach2",…],"tue":[…],"wed":[…],"thu":[…],"fri":[…]},"start":{"mon":"08:00","tue":"08:00","wed":"08:00","thu":"08:00","fri":"08:00"}}\n' +
+    '- dienstplan (GANZER Dienst-/Schichtplan als EIN Eintrag, NICHT je Schicht ein event): {"type":"dienstplan","title":"Dienstplan …","shifts":[{"date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","shift":"early|late|night","breakMin":30,"label":"Frühdienst"}, …]}\n' +
     '- expense/income: {"type":"expense","title":"...","amount":Zahl,"category":"..."}\n' +
     '- task: {"type":"task","title":"...","date":"YYYY-MM-DD|null","priority":"hoch|mittel|niedrig"}\n' +
     '- event (NUR echtes Einzel-Sonderereignis, z. B. Elternabend): {"type":"event","title":"...","date":"YYYY-MM-DD","time":"HH:MM|null"}\n' +
@@ -5710,6 +5713,27 @@ function demoAnalyses() {
           start: { mon: '08:00', tue: '08:00', wed: '08:45', thu: '08:00', fri: '08:00' } },
         { type: 'child', apptKind: 'schule', title: 'Elternabend', childName: 'Liam', date: addDays(T, 14), time: '19:00' },
         { type: 'task', title: 'Sportzeug für Mittwoch bereitlegen', date: addDays(T, 2), priority: 'niedrig' }
+      ],
+      replyDraft: null
+    },
+    {
+      docType: 'Sonstiges', title: 'Dienstplan KW ' + (Math.ceil(((new Date() - new Date(new Date().getFullYear(), 0, 1)) / 86400000 + 1) / 7)), sender: 'Schichtleitung',
+      primaryModule: 'Arbeitszeit', subject: { type: 'elternteil', name: null },
+      explanation: 'Das ist dein Dienstplan für die kommende Woche. Ich trage die Schichten direkt in deine Arbeitszeit ein – nicht in den normalen Kalender.',
+      summary: 'Wochendienstplan mit Früh-, Spät- und Nachtschichten, in die Arbeitszeit übernommen.',
+      rawStructured: 'Mo ' + fmtDateShort(addDays(T, 1)) + ': Frühdienst 06:00–14:00 (30 Min Pause)\nDi ' + fmtDateShort(addDays(T, 2)) + ': Spätdienst 14:00–22:00 (30 Min Pause)\nMi ' + fmtDateShort(addDays(T, 3)) + ': Frühdienst 06:00–14:00\nDo ' + fmtDateShort(addDays(T, 4)) + ': Nachtdienst 22:00–06:00 (45 Min Pause)\nFr ' + fmtDateShort(addDays(T, 5)) + ': frei',
+      urgency: 'mittel', priority: 'mittel', deadline: null,
+      keyPoints: ['3 Frühdienste, 1 Spätdienst, 1 Nachtdienst', 'Freitag frei'],
+      risks: [], recommendations: ['Fahrgemeinschaft für die Nachtschicht klären'],
+      keywords: ['Dienstplan', 'Schicht', 'Arbeit'],
+      needsConfirmation: false, clarifyingQuestion: null, todos: [],
+      findings: [
+        { type: 'dienstplan', title: 'Dienstplan übernehmen (in Arbeitszeit)', shifts: [
+          { date: addDays(T, 1), start: '06:00', end: '14:00', shift: 'early', breakMin: 30, label: 'Frühdienst' },
+          { date: addDays(T, 2), start: '14:00', end: '22:00', shift: 'late', breakMin: 30, label: 'Spätdienst' },
+          { date: addDays(T, 3), start: '06:00', end: '14:00', shift: 'early', breakMin: 30, label: 'Frühdienst' },
+          { date: addDays(T, 4), start: '22:00', end: '06:00', shift: 'night', breakMin: 45, label: 'Nachtdienst' }
+        ] }
       ],
       replyDraft: null
     },
@@ -5920,6 +5944,20 @@ const FINDING_TYPES = {
   } },
   work:      { icon: '🕒', group: 'Arbeitszeit', val: 'date', apply: f => { ensureWork(); if (f.from && f.to && /urlaub|krank|kinder/.test(f.category || '')) store.work.absences.push({ id: uid(), type: f.category, from: f.from, to: f.to, note: f.title }); else if (/dienst|schicht/.test(f.category || '') && f.date) store.work.shifts.push({ id: uid(), name: f.title, date: f.date, start: f.time || '', end: '' }); else addTask(f.title, f.date || null, 'med', 'doc'); } },
   child:     { icon: '🎒', group: 'Kinder', val: 'date', apply: f => { const kid = pickKid(f.childName); const kind = ['arzt', 'impf', 'schule', 'sonst'].indexOf(f.apptKind) >= 0 ? f.apptKind : 'schule'; if (kid) addEvent(APPT_KIND[kind].i + ' ' + f.title, f.date || todayISO(), f.time || null, kid.name, 'kind', { kidId: kid.id, apptKind: kind }); else addEvent('🎒 ' + f.title, f.date || todayISO(), f.time || null, 'Kinder', 'family'); } },
+  /* Dienstplan als GANZEN Plan in die Arbeitszeit übernehmen – füllt den Arbeitszeit-Kalender, KEINE Termine im normalen Kalender. */
+  dienstplan: { icon: '🗂️', group: 'Arbeitszeit · Plan', val: 'text', apply: f => {
+    ensureWork();
+    (Array.isArray(f.shifts) ? f.shifts : []).forEach(s => {
+      if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s.date || '')) return;
+      const start = /^\d{1,2}:\d{2}$/.test(s.start || '') ? s.start : '';
+      const end = /^\d{1,2}:\d{2}$/.test(s.end || '') ? s.end : '';
+      if (!start && !end) return;   // freier Tag → kein Eintrag
+      const shift = ['early', 'late', 'night'].indexOf(s.shift) >= 0 ? s.shift : inferShift(start);
+      const breakMin = s.breakMin != null ? Math.max(0, Math.round(+s.breakMin)) : (start && end ? 30 : 0);
+      store.work.absences = (store.work.absences || []).filter(z => !(z.from === s.date && z.to === s.date));   // Ganztags-Abwesenheit dieses Tages ersetzen
+      store.work.entries[s.date] = Object.assign({}, store.work.entries[s.date] || {}, { start, end, breakStart: '', breakEnd: '', breakMin, note: String(s.label || f.title || 'Dienstplan').slice(0, 60), shift });
+    });
+  } },
   /* Stundenplan als GANZEN Plan beim Kind ablegen – erzeugt KEINE Kalendertermine je Schulstunde. */
   schulplan: { icon: '📅', group: 'Kinder · Plan', val: 'text', apply: f => {
     const kid = pickKid(f.childName); if (!kid) return;
@@ -5946,6 +5984,7 @@ function normalizeFindings(arr, fallbackPrio) {
     time: f.time || null, category: f.category || '', from: f.from || null, to: f.to || null,
     subtype: f.subtype || '', vehicleName: f.vehicleName || '', childName: f.childName || '', apptKind: f.apptKind || '', km: f.km != null ? +f.km : null,
     schedule: (f.schedule && typeof f.schedule === 'object') ? f.schedule : null, start: (f.start && typeof f.start === 'object') ? f.start : null,
+    shifts: Array.isArray(f.shifts) ? f.shifts.slice(0, 62) : null,
     recurring: !!f.recurring, priority: f.priority || fallbackPrio || 'mittel',
     consent: !!FINDING_TYPES[f.type].consent, selected: !FINDING_TYPES[f.type].consent, applied: false
   }));
