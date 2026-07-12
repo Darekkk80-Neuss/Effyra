@@ -945,8 +945,12 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-box .logo-mark{width:88px;height:88px;margin:0 auto 12px;filter:drop-shadow(0 10px 34px rgba(124,58,237,.6))}
 .gate-brand{font-size:46px;font-weight:700;letter-spacing:1px;margin-bottom:2px;line-height:1;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.brand-slogan{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#c4b5fd;margin:0 0 22px}
+.brand-slogan{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#c4b5fd;margin:0 0 14px}
 .brand-slogan svg{width:17px;height:17px;color:#a78bfa;flex:none}
+.gate-film{display:inline-flex;align-items:center;gap:7px;margin:0 0 20px;padding:9px 16px;border-radius:999px;
+  border:1px solid var(--border2);background:rgba(124,58,237,.08);color:#c4b5fd;text-decoration:none;
+  font-size:13px;font-weight:700;min-height:40px;transition:.18s}
+.gate-film:hover{color:#fff;border-color:#7c3aed;background:rgba(124,58,237,.18)}
 .brand-slogan-lg{font-size:17px;margin-bottom:16px}
 .brand-slogan-lg svg{width:19px;height:19px}
 .gate-box h2{font-size:21px;margin-bottom:8px}
@@ -1014,6 +1018,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
     <h1 class="gate-brand font-head">Effyra</h1>
     <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
+    <a class="gate-film" href="werbespot.html">🎬 Film ansehen</a>
     <h2 id="authTitle">Konto erstellen</h2>
     <p class="gate-sub" id="authSub">14 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
@@ -2367,7 +2372,8 @@ const TDICT_SRC = {
   '🔐 Sync-Freigaben': { en: '🔐 Sync permissions', fr: '🔐 Autorisations de synchro', es: '🔐 Permisos de sincronización', it: '🔐 Permessi di sync', pl: '🔐 Uprawnienia synchronizacji' },
   'Lege pro Bereich fest, was mit der Familie geteilt wird. Nur Erwachsene teilen – Kinder sehen ausschließlich Freigegebenes.': { en: 'Set per area what is shared with the family. Only adults share – children only see what’s shared.', fr: 'Définissez par zone ce qui est partagé avec la famille. Seuls les adultes partagent – les enfants ne voient que ce qui est partagé.', es: 'Define por área qué se comparte con la familia. Solo los adultos comparten; los niños solo ven lo compartido.', it: 'Imposta per area cosa condividere con la famiglia. Solo gli adulti condividono – i bambini vedono solo ciò che è condiviso.', pl: 'Ustaw dla każdego obszaru, co jest udostępniane rodzinie. Udostępniają tylko dorośli – dzieci widzą wyłącznie udostępnione.' },
   '✅ Erlaubt': { en: '✅ Allowed', fr: '✅ Autorisé', es: '✅ Permitido', it: '✅ Consentito', pl: '✅ Dozwolone' },
-  '❌ Aus': { en: '❌ Off', fr: '❌ Désactivé', es: '❌ Desactivado', it: '❌ Disattivato', pl: '❌ Wyłączone' }
+  '❌ Aus': { en: '❌ Off', fr: '❌ Désactivé', es: '❌ Desactivado', it: '❌ Disattivato', pl: '❌ Wyłączone' },
+  '🎬 Film ansehen': { en: '🎬 Watch the film', fr: '🎬 Voir le film', es: '🎬 Ver el vídeo', it: '🎬 Guarda il video', pl: '🎬 Zobacz film' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
