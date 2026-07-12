@@ -492,14 +492,14 @@ body.store-safe [data-buy]{display:none!important}
 .cal-nav{display:flex;gap:8px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--faint);padding:6px 0;letter-spacing:.5px}
-.cal-day{position:relative;aspect-ratio:1;border:none;border-radius:12px;background:none;
+.cal-day{position:relative;aspect-ratio:1;border:none;border-radius:14px;background:none;
   color:var(--text);font-size:13.5px;font-weight:600;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;transition:.15s}
+  align-items:center;justify-content:center;gap:3px;transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .18s ease,background .2s ease}
 .cal-day:hover{background:var(--card2)}
-.cal-day:active{transform:scale(.94)}
-.cal-day.dim{color:var(--faint);opacity:.55}
+.cal-day:active{transform:scale(.92)}
+.cal-day.dim{color:var(--faint);opacity:.5}
 .cal-day.today{box-shadow:inset 0 0 0 1.5px #a78bfa}
-.cal-day.sel{background:var(--grad);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.45)}
+.cal-day.sel{background:var(--grad);color:#fff;box-shadow:0 6px 18px rgba(124,58,237,.45);transform:scale(1.03)}
 .cal-day .dots{display:flex;gap:3px;height:5px}
 .cal-day .dots i{width:5px;height:5px;border-radius:50%;background:#67e8f9}
 .cal-day.sel .dots i{background:#fff}
@@ -737,20 +737,32 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .em-priv{font-size:12px;color:var(--faint);text-align:center;margin-top:16px;padding:0 10px;line-height:1.5}
 
 /* ============================== ARBEITSZEIT ============================== */
-.cal-day.wd-feiertag{background:rgba(167,139,250,.24)}
-.cal-day.wd-urlaub{background:rgba(96,165,250,.24)}
-.cal-day.wd-krank{background:rgba(248,113,113,.24)}
-.cal-day.wd-kinder{background:rgba(251,191,36,.24)}
-.cal-day.wd-worked{background:rgba(52,211,153,.22)}
-.wlegend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11.5px;color:var(--muted)}
+/* Dienst-Kachel (Glassmorphism, dezente Farbe je Dienst über CSS-Variablen aus WORK_SHIFTS) */
+.cal-day.wsh{background:var(--wshbg);box-shadow:inset 0 0 0 1px var(--wshbd),0 2px 8px rgba(30,40,80,.05)}
+.cal-day.wsh:hover{background:var(--wshbg);box-shadow:inset 0 0 0 1.5px var(--wsh),0 5px 14px rgba(30,40,80,.12)}
+.cal-day.wsh.today{box-shadow:inset 0 0 0 1.6px var(--wsh),0 2px 8px rgba(30,40,80,.06)}
+.cal-day .cd-num{position:relative;z-index:1}
+.cal-day .cd-ic{position:absolute;top:3px;right:4px;font-size:9px;line-height:1}
+.cal-day .cd-badges{position:absolute;bottom:3px;left:0;right:0;display:flex;justify-content:center;gap:3px;height:5px}
+.cal-day .cd-badges i{width:5px;height:5px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+.wlegend{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:12px;font-size:11.5px;color:var(--muted)}
 .wlegend span{display:inline-flex;align-items:center;gap:5px}
-.wlegend i{width:12px;height:12px;border-radius:3px;display:inline-block}
-.wl-worked{background:#34d399}.wl-urlaub{background:#60a5fa}.wl-krank{background:#f87171}.wl-kinder{background:#fbbf24}.wl-feiertag{background:#a78bfa}
+.wlegend i{width:11px;height:11px;border-radius:4px;display:inline-block;flex:none}
+/* Monatsstatistik über dem Kalender */
+.wstats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.wstat{display:inline-flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:7px 11px;font-size:12px;font-weight:600;color:var(--muted)}
+.wstat b{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums}
+.wstat .dot{width:9px;height:9px;border-radius:3px;flex:none}
+.wq-shift{box-shadow:inset 0 0 0 1.5px var(--c);color:var(--c);font-weight:700}
+.wsd-title{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:8px}
+.wsd-title small{font-weight:500;color:var(--faint)}
+.wsd-card{border-left:3px solid var(--c);padding:10px 12px;background:var(--card2);border-radius:10px;display:flex;flex-direction:column;gap:8px}
+.wsd-h{display:flex;align-items:center;gap:8px;font-size:16px}
+.wsd-h input{font-weight:700;font-size:14px;flex:1}
 .wyear{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
 .wmonth-t{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:capitalize}
 .wmonth-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.wmonth-g i{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.07)}
-.wmonth-g i.wdt-feiertag{background:#a78bfa}.wmonth-g i.wdt-urlaub{background:#60a5fa}.wmonth-g i.wdt-krank{background:#f87171}.wmonth-g i.wdt-kinder{background:#fbbf24}.wmonth-g i.wdt-worked{background:#34d399}
+.wmonth-g i{aspect-ratio:1;border-radius:3px;background:rgba(120,130,150,.14)}
 .letter .wtable{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
 .letter .wtable th,.letter .wtable td{border:1px solid #ccc;padding:4px 7px;text-align:left}
 .letter .wtable th{background:#f0f0f0}
@@ -4761,11 +4773,27 @@ $('#vehList').addEventListener('keydown', e => {
 
 /* ============================== ARBEITSZEIT ============================== */
 const DE_STATES = { BW: 'Baden-Württemberg', BY: 'Bayern', BE: 'Berlin', BB: 'Brandenburg', HB: 'Bremen', HH: 'Hamburg', HE: 'Hessen', MV: 'Mecklenburg-Vorpommern', NI: 'Niedersachsen', NW: 'Nordrhein-Westfalen', RP: 'Rheinland-Pfalz', SL: 'Saarland', SN: 'Sachsen', ST: 'Sachsen-Anhalt', SH: 'Schleswig-Holstein', TH: 'Thüringen' };
-const WD_CLS = { feiertag: 'wd-feiertag', urlaub: 'wd-urlaub', krank: 'wd-krank', krank_au: 'wd-krank', kinderkrank: 'wd-kinder', gearbeitet: 'wd-worked' };
-const WD_DOT = { feiertag: 'wdt-feiertag', urlaub: 'wdt-urlaub', krank: 'wdt-krank', krank_au: 'wdt-krank', kinderkrank: 'wdt-kinder', gearbeitet: 'wdt-worked' };
+/* ===== Zentrale Dienstdefinition – Farben, Icons, Kalender, Legende & Statistik basieren AUSSCHLIESSLICH hierauf.
+   Neue Dienste = einfach hier ergänzen. Frühdienst/Spätdienst/Nachtdienst sind bearbeitbar (store.work.shiftDefs). ===== */
+const WORK_SHIFTS = {
+  early:       { name: 'Frühdienst',  icon: '🌅', color: '#2563eb', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', defStart: '06:00', defEnd: '14:00', defBreak: 30, shift: true },
+  late:        { name: 'Spätdienst',  icon: '🌇', color: '#ea580c', grad: 'linear-gradient(135deg,#fb923c,#f59e0b)', defStart: '14:00', defEnd: '22:00', defBreak: 30, shift: true },
+  night:       { name: 'Nachtdienst', icon: '🌙', color: '#4f46e5', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', defStart: '21:00', defEnd: '06:00', defBreak: 30, shift: true },
+  urlaub:      { name: 'Urlaub',      icon: '🏖️', color: '#0d9488' },
+  krank:       { name: 'Krank',       icon: '🤒', color: '#ef4444' },
+  kinderkrank: { name: 'Kinderkrank', icon: '🧒', color: '#eab308' },
+  feiertag:    { name: 'Feiertag',    icon: '🎉', color: '#a855f7' }
+};
+const SHIFT_KEYS = ['early', 'late', 'night'];
 const ABS_ICON = { urlaub: '🏖️', krank: '🤒', krank_au: '🩺', kinderkrank: '🧒' };
 const ABS_LABEL = { urlaub: 'Urlaub', krank: 'Krank (ohne AU)', krank_au: 'Krank mit AU', kinderkrank: 'Kinderkrank' };
-const WD_LEGEND = '<div class="wlegend"><span><i class="wl-worked"></i>Gearbeitet</span><span><i class="wl-urlaub"></i>Urlaub</span><span><i class="wl-krank"></i>Krank</span><span><i class="wl-kinder"></i>Kinderkrank</span><span><i class="wl-feiertag"></i>Feiertag</span></div>';
+/* Effektive (evtl. vom Nutzer angepasste) Definition eines Standard-Dienstes */
+function shiftDef(key) { const base = WORK_SHIFTS[key]; if (!base) return null; const u = (store.work && store.work.shiftDefs && store.work.shiftDefs[key]) || {}; return { key, icon: base.icon, color: base.color, grad: base.grad, name: u.name || base.name, start: u.start || base.defStart, end: u.end || base.defEnd, breakMin: (u.breakMin != null ? u.breakMin : base.defBreak) }; }
+/* Dienst aus einer Startzeit ableiten (für Einträge ohne gespeicherten Dienst) */
+function inferShift(start) { if (!start) return 'late'; const h = +String(start).slice(0, 2); return h < 11 ? 'early' : (h < 18 ? 'late' : 'night'); }
+/* Alle Dienst-/Status-Schlüssel eines Tages (erstes = primär = füllt die Kachel) */
+function dayShifts(iso) { const out = []; const ab = absenceOn(iso), e = store.work.entries[iso]; if (ab) out.push(ab.type === 'kinderkrank' ? 'kinderkrank' : ab.type === 'urlaub' ? 'urlaub' : 'krank'); else if (e && e.start && e.end) out.push((e.shift && WORK_SHIFTS[e.shift]) ? e.shift : inferShift(e.start)); if (isHoliday(iso)) out.push('feiertag'); return out; }
+const WD_LEGEND = '<div class="wlegend">' + ['early', 'late', 'night', 'urlaub', 'krank', 'feiertag'].map(k => '<span><i style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' ' + WORK_SHIFTS[k].name + '</span>').join('') + '</div>';
 let workTab = 'heute', workCal = null, workSel = null, workYear = null, workMonthSel = null, workAI = null;
 const holCache = {};
 function easterSunday(y) {
@@ -4794,6 +4822,9 @@ function ensureWork() {
   const w = store.work = store.work || {};
   w.settings = Object.assign({ weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, w.settings || {});
   w.entries = w.entries || {}; w.shifts = w.shifts || []; w.absences = w.absences || []; w.shiftTemplates = w.shiftTemplates || [];
+  /* Standard-Dienste (Früh/Spät/Nacht) – automatisch vorhanden, bearbeitbar, nicht löschbar */
+  w.shiftDefs = w.shiftDefs || {};
+  SHIFT_KEYS.forEach(k => { w.shiftDefs[k] = Object.assign({ name: WORK_SHIFTS[k].name, start: WORK_SHIFTS[k].defStart, end: WORK_SHIFTS[k].defEnd, breakMin: WORK_SHIFTS[k].defBreak }, w.shiftDefs[k] || {}); });
 }
 function tplNet(x) { return netMinutes({ start: x.start, end: x.end, breakMin: x.breakMin }); }
 function netMinutes(e) {
@@ -4846,6 +4877,12 @@ RENDERERS.work = function () {
     '<div><label class="fld">Urlaubstage/Jahr</label><input type="number" data-ws="vacationDays" value="' + s.vacationDays + '" inputmode="numeric"></div>' +
     '<div><label class="fld">Kinderkrank/Jahr</label><input type="number" data-ws="childSickMax" value="' + s.childSickMax + '" inputmode="numeric"></div>' +
     '<label class="veh-check span2"><input type="checkbox" data-ws="autoBreak"' + (s.autoBreak ? ' checked' : '') + '> Gesetzliche Pausen automatisch abziehen (30 Min ab 6 h, 45 Min ab 9 h)</label>' +
+    '<div class="span2 wsd-title">🗂️ Standard-Dienste <small>– Beginn, Ende, Pause &amp; Bezeichnung</small></div>' +
+    SHIFT_KEYS.map(k => { const sd = shiftDef(k), c = WORK_SHIFTS[k]; return '<div class="span2 wsd-card" style="--c:' + c.color + '">' +
+      '<div class="wsd-h">' + c.icon + '<input type="text" data-wsd="' + k + '.name" value="' + esc(sd.name) + '" maxlength="24" aria-label="Bezeichnung ' + esc(sd.name) + '"></div>' +
+      '<div class="kid-row"><div style="flex:1"><label class="fld">Beginn</label><input type="time" data-wsd="' + k + '.start" value="' + sd.start + '"></div>' +
+      '<div style="flex:1"><label class="fld">Ende</label><input type="time" data-wsd="' + k + '.end" value="' + sd.end + '"></div>' +
+      '<div style="flex:1"><label class="fld">Pause</label><input type="number" data-wsd="' + k + '.breakMin" value="' + sd.breakMin + '" min="0" inputmode="numeric"></div></div></div>'; }).join('') +
     '</div></details>';
   const tabs = [['heute', '🕒 Heute'], ['kalender', '📅 Kalender'], ['abwesenheit', '🏖️ Frei'], ['dienste', '🗂️ Dienste'], ['jahr', '📊 Jahr'], ['bericht', '📄 Bericht']];
   h += '<div class="veh-tabs">' + tabs.map(t => '<button data-wtab="' + t[0] + '" class="' + (workTab === t[0] ? 'active' : '') + '">' + t[1] + '</button>').join('') + '</div>';
@@ -4861,15 +4898,12 @@ function workEntryForm(iso) {
     '<div class="veh-stat"><b>' + hmDur(net) + ' h</b><span>Nettoarbeitszeit' + (e.breakMin && !(e.breakStart && e.breakEnd) ? ' · Pause ' + e.breakMin + ' Min' : (auto ? ' · autom. Pause abgezogen' : '')) + '</span></div>';
 }
 function quickAssignChips(iso) {
-  const tpls = store.work.shiftTemplates || [];
   let h = '<div class="wq-chips">';
-  tpls.forEach(x => {
-    h += '<button class="wq-chip" data-wa="applyTpl" data-id="' + x.id + '" data-iso="' + iso + '">🗂️ ' + esc(x.name) + ' <span>' + (x.start || '') + '–' + (x.end || '') + '</span></button>';
-  });
-  h += '<button class="wq-chip abs" data-wa="dayAbs" data-type="urlaub" data-iso="' + iso + '">🏖️ Urlaub</button>' +
-    '<button class="wq-chip abs" data-wa="dayAbs" data-type="krank" data-iso="' + iso + '">🤒 Krank</button>' +
+  SHIFT_KEYS.forEach(k => { const s = shiftDef(k); h += '<button class="wq-chip wq-shift" data-wa="applyShift" data-shift="' + k + '" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS[k].color + '">' + WORK_SHIFTS[k].icon + ' ' + esc(s.name) + ' <span>' + s.start + '–' + s.end + '</span></button>'; });
+  (store.work.shiftTemplates || []).forEach(x => { h += '<button class="wq-chip" data-wa="applyTpl" data-id="' + x.id + '" data-iso="' + iso + '">🗂️ ' + esc(x.name) + ' <span>' + (x.start || '') + '–' + (x.end || '') + '</span></button>'; });
+  h += '<button class="wq-chip abs" data-wa="dayAbs" data-type="urlaub" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.urlaub.color + '">🏖️ Urlaub</button>' +
+    '<button class="wq-chip abs" data-wa="dayAbs" data-type="krank" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.krank.color + '">🤒 Krank</button>' +
     '<button class="wq-chip clr" data-wa="clearDay" data-iso="' + iso + '">🗑️ Leeren</button></div>';
-  if (!tpls.length) h += '<p class="sub" style="margin:2px 0 10px">Tipp: Lege im Tab „🗂️ Dienste" Vorlagen an (z. B. Frühdienst) – dann weist du sie hier mit einem Klick zu.</p>';
   return h;
 }
 function workHeute() {
@@ -4894,10 +4928,17 @@ function workKalender() {
   let grid = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => '<div class="cal-dow">' + d + '</div>').join('');
   for (let i = 0; i < cells; i++) {
     const d = new Date(workCal.y, workCal.m, i - offset + 1), iso = toISO(d), dim = d.getMonth() !== workCal.m;
-    const cls = iso === workSel ? '' : (WD_CLS[dayType(iso)] || '');
-    grid += '<button class="cal-day ' + cls + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' sel' : '') + '" data-wday="' + iso + '">' + d.getDate() + '</button>';
+    const sh = dayShifts(iso), primary = sh[0], pd = primary ? WORK_SHIFTS[primary] : null, wsh = pd && iso !== workSel;
+    const vars = wsh ? ' style="--wsh:' + pd.color + ';--wshbg:' + pd.color + '22;--wshbd:' + pd.color + '55"' : '';
+    const ic = wsh ? '<span class="cd-ic">' + pd.icon + '</span>' : '';
+    const badges = (sh.length > 1 && iso !== workSel) ? '<span class="cd-badges">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
+    grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' sel' : '') + '" data-wday="' + iso + '"' + vars + '><span class="cd-num">' + d.getDate() + '</span>' + ic + badges + '</button>';
   }
-  let h = '<div class="card"><div class="cal-head"><h2 style="text-transform:capitalize">' + first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }) + '</h2><div class="cal-nav"><button class="icon-btn" data-wa="calPrev"><svg viewBox="0 0 24 24"><use href="#icLeft"/></svg></button><button class="icon-btn" data-wa="calNext"><svg viewBox="0 0 24 24"><use href="#icRight"/></svg></button></div></div><div class="cal-grid">' + grid + '</div>' + WD_LEGEND + '</div>';
+  const _ms = { early: 0, late: 0, night: 0, urlaub: 0, krank: 0 };
+  { const _mr = monthRange(workCal.y, workCal.m), _end = parseISO(_mr[1]); for (let d = parseISO(_mr[0]); d <= _end; d.setDate(d.getDate() + 1)) { dayShifts(toISO(d)).forEach(k => { if (k === 'kinderkrank') _ms.krank++; else if (k in _ms) _ms[k]++; }); } }
+  const _sc = (k, n, l) => '<span class="wstat"><i class="dot" style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' <b>' + n + '</b> ' + l + '</span>';
+  const wstats = '<div class="wstats">' + _sc('early', _ms.early, 'Früh') + _sc('late', _ms.late, 'Spät') + _sc('night', _ms.night, 'Nacht') + _sc('urlaub', _ms.urlaub, 'Urlaub') + _sc('krank', _ms.krank, 'Krank') + '</div>';
+  let h = wstats + '<div class="card"><div class="cal-head"><h2 style="text-transform:capitalize">' + first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }) + '</h2><div class="cal-nav"><button class="icon-btn" data-wa="calPrev"><svg viewBox="0 0 24 24"><use href="#icLeft"/></svg></button><button class="icon-btn" data-wa="calNext"><svg viewBox="0 0 24 24"><use href="#icRight"/></svg></button></div></div><div class="cal-grid">' + grid + '</div>' + WD_LEGEND + '</div>';
   h += '<div class="sec-title"><h2>' + fmtDate(workSel) + '</h2></div>';
   if (isHoliday(workSel)) h += '<div class="mem"><span style="font-size:18px">🎉</span><div class="mem-info"><b>Feiertag</b><span>' + esc(holidayName(workSel)) + '</span></div></div>';
   h += quickAssignChips(workSel);
@@ -4960,7 +5001,7 @@ function miniMonth(y, m) {
   const first = new Date(y, m, 1), offset = (first.getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
   let cells = '';
   for (let i = 0; i < offset; i++) cells += '<i></i>';
-  for (let dd = 1; dd <= days; dd++) { const iso = toISO(new Date(y, m, dd)); cells += '<i class="' + (WD_DOT[dayType(iso)] || '') + '"></i>'; }
+  for (let dd = 1; dd <= days; dd++) { const iso = toISO(new Date(y, m, dd)), p = dayShifts(iso)[0]; cells += '<i' + (p ? ' style="background:' + WORK_SHIFTS[p].color + '"' : '') + '></i>'; }
   return '<div class="wmonth"><div class="wmonth-t">' + first.toLocaleDateString('de-DE', { month: 'short' }) + '</div><div class="wmonth-g">' + cells + '</div></div>';
 }
 function workJahr() {
@@ -5081,10 +5122,16 @@ $('#workRoot').addEventListener('click', e => {
     save(); RENDERERS.work(); toast('Vorlage „' + name + '" gespeichert ✓'); return;
   }
   if (a === 'delTpl') { store.work.shiftTemplates = (store.work.shiftTemplates || []).filter(x => x.id !== b.dataset.id); save(); RENDERERS.work(); return; }
+  if (a === 'applyShift') {
+    const di = b.dataset.iso, k = b.dataset.shift, s = shiftDef(k); if (!s) return;
+    store.work.absences = (store.work.absences || []).filter(z => !(z.from === di && z.to === di));
+    store.work.entries[di] = Object.assign({}, store.work.entries[di] || {}, { start: s.start, end: s.end, breakStart: '', breakEnd: '', breakMin: s.breakMin, note: s.name, shift: k });
+    save(); RENDERERS.work(); toast(WORK_SHIFTS[k].icon + ' ' + s.name + ' zugewiesen ✓'); return;
+  }
   if (a === 'applyTpl') {
     const di = b.dataset.iso, x = (store.work.shiftTemplates || []).find(t => t.id === b.dataset.id); if (!x) return;
     store.work.absences = (store.work.absences || []).filter(z => !(z.from === di && z.to === di));   // evtl. Ganztags-Abwesenheit dieses Tages ersetzen
-    store.work.entries[di] = Object.assign({}, store.work.entries[di] || {}, { start: x.start, end: x.end, breakStart: '', breakEnd: '', breakMin: x.breakMin, note: x.name });
+    store.work.entries[di] = Object.assign({}, store.work.entries[di] || {}, { start: x.start, end: x.end, breakStart: '', breakEnd: '', breakMin: x.breakMin, note: x.name, shift: inferShift(x.start) });
     save(); RENDERERS.work(); toast('„' + x.name + '" zugewiesen ✓'); return;
   }
   if (a === 'dayAbs') {
@@ -5123,6 +5170,13 @@ $('#workRoot').addEventListener('change', e => {
     else if (k === 'weeklyHours' || k === 'hoursPerDay') s[k] = Math.max(0, +t.value || 0);
     else s[k] = Math.max(0, Math.round(+t.value || 0));
     save(); RENDERERS.work(); return;
+  }
+  if (t.dataset.wsd) {                                   // Standard-Dienst bearbeiten (Beginn/Ende/Pause/Name)
+    ensureWork();
+    const p = t.dataset.wsd.split('.'), key = p[0], field = p[1];
+    store.work.shiftDefs[key] = store.work.shiftDefs[key] || {};
+    store.work.shiftDefs[key][field] = field === 'breakMin' ? Math.max(0, Math.round(+t.value || 0)) : t.value;
+    save(); return;   // kein Re-Render → Einstellungen bleiben beim Bearbeiten offen
   }
   if (t.dataset.we) {
     const i = t.dataset.iso, f = t.dataset.we;
@@ -6379,7 +6433,7 @@ const AGENT_TOOLS = {
       if (!start || !end) return null;
       if (typeof ensureWork === 'function') ensureWork();
       const iso = agentDate(p.date), breakMin = agentNum(p.breakMin) || 0;
-      store.work.entries[iso] = Object.assign({}, store.work.entries[iso] || {}, { start, end, breakStart: '', breakEnd: '', breakMin, note: 'per Effyra AI' });
+      store.work.entries[iso] = Object.assign({}, store.work.entries[iso] || {}, { start, end, breakStart: '', breakEnd: '', breakMin, note: 'per Effyra AI', shift: inferShift(start) });
       save();
       const net = netMinutes({ start, end, breakMin });
       return '🕒 Arbeitszeit erfasst: ' + fmtDate(iso) + ', ' + start + '–' + end + (breakMin ? ' (Pause ' + breakMin + ' Min)' : '') + ' – netto ' + hmDur(net) + ' Std.';
