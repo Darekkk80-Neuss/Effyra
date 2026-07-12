@@ -715,6 +715,23 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .fam-nav button:hover{color:var(--text);border-color:var(--border2)}
 .fam-nav button:active{transform:scale(.96)}
 .fam-nav button.active{color:#fff;border-color:transparent;background:linear-gradient(135deg,#7c3aed,#06b6d4);box-shadow:0 6px 16px rgba(124,58,237,.35)}
+/* Pop-up: neue zugewiesene Familienaufgabe */
+.fam-alert-ov{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+  background:rgba(4,6,12,.7);backdrop-filter:blur(4px);padding:20px}
+.fam-alert-ov.on{display:flex;animation:faFade .2s ease}
+@keyframes faFade{from{opacity:0}to{opacity:1}}
+.fam-alert{width:100%;max-width:400px;background:var(--card);border:1px solid var(--border2);border-radius:20px;
+  padding:24px 22px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:faPop .25s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes faPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.fam-alert-ic{font-size:40px;animation:faRing .6s ease 2}
+@keyframes faRing{0%,100%{transform:rotate(0)}25%{transform:rotate(14deg)}75%{transform:rotate(-14deg)}}
+.fam-alert h3{margin:8px 0 14px;font-size:20px}
+.fam-alert-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.fam-alert-task{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;text-align:left}
+.fam-alert-task b{display:block;font-size:15px}
+.fam-alert-task span{font-size:12.5px;color:var(--muted)}
+.fam-alert-btns{display:flex;gap:10px}
+.fam-alert-btns .btn{flex:1;min-height:44px}
 .mem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:13px;border:1px solid var(--border);background:var(--card);margin-bottom:8px}
 .mem-info{flex:1;min-width:0}
 .mem-info b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1242,6 +1259,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
       <div class="task-opts">
         <input type="date" id="taskDue" title="Fällig am">
+        <input type="time" id="taskTime" title="Uhrzeit (optional)">
         <select id="taskPrio" title="Priorität">
           <option value="med">Mittel</option>
           <option value="high">Hoch</option>
@@ -2385,7 +2403,10 @@ const TDICT_SRC = {
   'Anderes Gerät verbinden?': { en: 'Connect another device?', fr: 'Connecter un autre appareil ?', es: '¿Conectar otro dispositivo?', it: 'Collegare un altro dispositivo?', pl: 'Połączyć inne urządzenie?' },
   'Auf dem Gerät deines Partners denselben Code oben eingeben – oder hier den Code einer anderen Familie eintragen, um zu wechseln.': { en: 'On your partner’s device, enter the same code above – or enter another family’s code here to switch.', fr: 'Sur l’appareil de votre partenaire, saisissez le même code ci-dessus – ou saisissez ici le code d’une autre famille pour changer.', es: 'En el dispositivo de tu pareja, introduce arriba el mismo código, o introduce aquí el código de otra familia para cambiar.', it: 'Sul dispositivo del partner inserisci lo stesso codice qui sopra – oppure inserisci qui il codice di un’altra famiglia per cambiare.', pl: 'Na urządzeniu partnera wpisz powyżej ten sam kod – albo wpisz tutaj kod innej rodziny, aby przełączyć.' },
   '🔗 Anderer Familie beitreten': { en: '🔗 Join another family', fr: '🔗 Rejoindre une autre famille', es: '🔗 Unirse a otra familia', it: '🔗 Unisciti a un’altra famiglia', pl: '🔗 Dołącz do innej rodziny' },
-  'Deine aktuelle Verbindung wird dabei getrennt.': { en: 'Your current connection will be disconnected.', fr: 'Votre connexion actuelle sera interrompue.', es: 'Tu conexión actual se desconectará.', it: 'La tua connessione attuale verrà interrotta.', pl: 'Twoje obecne połączenie zostanie rozłączone.' }
+  'Deine aktuelle Verbindung wird dabei getrennt.': { en: 'Your current connection will be disconnected.', fr: 'Votre connexion actuelle sera interrompue.', es: 'Tu conexión actual se desconectará.', it: 'La tua connessione attuale verrà interrotta.', pl: 'Twoje obecne połączenie zostanie rozłączone.' },
+  /* Familienaufgaben-Pop-up */
+  'Neue Aufgabe für dich': { en: 'New task for you', fr: 'Nouvelle tâche pour vous', es: 'Nueva tarea para ti', it: 'Nuova attività per te', pl: 'Nowe zadanie dla Ciebie' },
+  'Zu den Aufgaben': { en: 'Go to tasks', fr: 'Voir les tâches', es: 'Ir a tareas', it: 'Vai alle attività', pl: 'Do zadań' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -2948,6 +2969,7 @@ async function cloudSession(session, fallbackName) {
   const meta = user.user_metadata || {};
   account = {
     cloud: true,
+    uid: user.id,   // Supabase-User-ID – stabile Identität über Geräte (für Familienmitglied-Zuordnung)
     name: (p && p.name) || fallbackName || meta.name || '',
     lastName: meta.last_name || '',
     birthday: meta.birthday || '',
@@ -3140,8 +3162,8 @@ $('#paywall').addEventListener('click', e => { const buy = e.target.closest('[da
 $('#pwBack').addEventListener('click', () => { $('#paywall').classList.remove('on'); showView('dashboard'); });
 
 /* ============================== TASKS (Daten) ============================== */
-function addTask(title, due, prio, source) {
-  const t = { id: uid(), title: title.trim(), due: due || null, prio: prio || 'med', done: false, source: source || 'manual', createdAt: Date.now() };
+function addTask(title, due, prio, source, time) {
+  const t = { id: uid(), title: title.trim(), due: due || null, time: (time && /^\d{1,2}:\d{2}$/.test(time)) ? time : null, prio: prio || 'med', done: false, source: source || 'manual', createdAt: Date.now() };
   if (!t.title) return null;
   store.tasks.push(t);
   save();
@@ -3325,7 +3347,8 @@ RENDERERS.tasks = function () {
       '<button class="tcheck" data-act="toggle" title="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
       '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
       '<div class="t-meta"><span class="prio prio-' + esc(t.prio) + '"></span>' +
-      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">' + esc(dueTxt(t.due)) + '</span>' : '<span>' + TT('fmt.nodate') + '</span>') +
+      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">' + esc(dueTxt(t.due)) + (t.time ? ' · ' + esc(oclock(t.time)) : '') + '</span>' : '<span>' + TT('fmt.nodate') + '</span>') +
+      (t.time && !t.due ? '<span>' + esc(oclock(t.time)) + '</span>' : '') +
       (SOURCE_LABEL[t.source] ? '<span class="src-badge">' + SOURCE_LABEL[t.source] + '</span>' : '') +
       '</div></div>' +
       '<button class="t-del" data-act="del" title="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
@@ -3335,8 +3358,8 @@ RENDERERS.tasks = function () {
 $('#taskAddBtn').addEventListener('click', () => {
   const title = $('#taskTitle').value;
   if (!title.trim()) { $('#taskTitle').focus(); return; }
-  addTask(title, $('#taskDue').value || null, $('#taskPrio').value, 'manual');
-  $('#taskTitle').value = ''; $('#taskDue').value = '';
+  addTask(title, $('#taskDue').value || null, $('#taskPrio').value, 'manual', $('#taskTime').value || null);
+  $('#taskTitle').value = ''; $('#taskDue').value = ''; $('#taskTime').value = '';
   refresh();
   toast('Aufgabe angelegt ✓');
 });
@@ -4346,6 +4369,8 @@ const SHARE_AREAS = [
 ];
 const isShared = (key) => !!(store.family && store.family.share && store.family.share[key]);
 let famTab = 'personen', famLastPull = 0;
+/* Stabile Identität des aktuellen Nutzers über Geräte hinweg (Supabase-User-ID). */
+const famSelfId = () => (account && account.uid) || null;
 function ensureFamily() {
   if (!store.family) store.family = { members: [], occasions: [], code: null };
   if (!store.family.members) store.family.members = [];
@@ -4358,7 +4383,7 @@ function ensureFamily() {
   if (!store.family.share) store.family.share = { calendar: true, appointments: true, tasks: true, reminders: true, documents: false, expenses: false, household: false };
   SHARE_AREAS.forEach(a => { if (typeof store.family.share[a.key] !== 'boolean') store.family.share[a.key] = a.def; });
   if (!store.family.members.length) {
-    store.family.members.push({ id: uid(), name: (account && account.name) || store.name || 'Ich', role: 'owner', color: KID_COLORS[0], birthday: '', aiUsed: 0 });
+    store.family.members.push({ id: uid(), authId: famSelfId(), name: (account && account.name) || store.name || 'Ich', role: 'owner', color: KID_COLORS[0], birthday: '', aiUsed: 0 });
     save();
   }
   /* Legacy-Rollen (Freitext) → owner/adult/child normalisieren; genau ein owner. */
@@ -4374,8 +4399,73 @@ function ensureFamily() {
   /* Owner-Mitglied mit den Konto-Stammdaten (Name/Geburtsdatum) synchron halten. */
   const owner = store.family.members.find(m => m.role === 'owner');
   if (owner && account) { if (!owner.birthday && account.birthday) owner.birthday = account.birthday; if (account.name) owner.name = account.name; }
+  /* Migration: Owner-Mitglied des Erstellers mit eigener authId versehen (nur wenn Name passt / einziges Mitglied). */
+  if (owner && !owner.authId && famSelfId()) {
+    const myName = ((account && account.name) || store.name || '').toLowerCase();
+    if (store.family.members.length === 1 || (myName && (owner.name || '').toLowerCase() === myName)) owner.authId = famSelfId();
+  }
 }
 const famMember = (id) => store.family.members.find(m => m.id === id);
+/* Aktuellen Nutzer als Familienmitglied sicherstellen (beide Konten automatisch gelistet), auch nach dem Beitreten. */
+function famEnsureSelfMember() {
+  if (!store.family || !store.family.code || !CLOUD) return false;
+  const myId = famSelfId(); if (!myId) return false;
+  ensureFamily();
+  const ms = store.family.members;
+  const existing = ms.find(m => m.authId === myId);
+  if (existing) { if (account && account.name && existing.name !== account.name) { existing.name = account.name; save(); } return false; }
+  const myName = (account && account.name) || store.name || '';
+  const orphan = myName ? ms.find(m => !m.authId && (m.name || '').toLowerCase() === myName.toLowerCase()) : null;
+  if (orphan) { orphan.authId = myId; }
+  else ms.push({ id: uid(), authId: myId, name: myName || 'Ich', role: ms.some(m => m.role === 'owner') ? 'adult' : 'owner', color: KID_COLORS[ms.length % KID_COLORS.length], birthday: (account && account.birthday) || '', aiUsed: 0 });
+  save();
+  return true;   // etwas geändert → Aufrufer pusht
+}
+/* ===== Benachrichtigung: mir neu zugewiesene Familienaufgaben (Pop-up + Signal) ===== */
+function checkFamilyTaskAlerts() {
+  if (!store.family || !store.family.code) return;
+  const myId = famSelfId(); if (!myId) return;
+  const me = (store.family.members || []).find(m => m.authId === myId); if (!me) return;
+  let seen; try { seen = JSON.parse(localStorage.getItem('effyra_fam_seen') || 'null'); } catch (e) { seen = null; }
+  const allIds = (store.family.tasks || []).map(t => t.id);
+  if (seen === null) { try { localStorage.setItem('effyra_fam_seen', JSON.stringify(allIds)); } catch (e) {} return; }   // Erstlauf: nur merken, nicht alarmieren
+  const seenSet = new Set(seen);
+  const newForMe = (store.family.tasks || []).filter(t => !t.done && t.assignee === me.id && !seenSet.has(t.id) && t.by !== myId);
+  try { localStorage.setItem('effyra_fam_seen', JSON.stringify(allIds)); } catch (e) {}
+  if (newForMe.length) famTaskAlert(newForMe);
+}
+function playAlertBeep() {
+  try { if (navigator.vibrate) navigator.vibrate([200, 90, 200]); } catch (e) {}
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    const ctx = new AC(), now = ctx.currentTime;
+    [[880, 0], [1320, 0.18]].forEach(pair => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = pair[0];
+      g.gain.setValueAtTime(0.0001, now + pair[1]); g.gain.exponentialRampToValueAtTime(0.28, now + pair[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + pair[1] + 0.16);
+      o.connect(g); g.connect(ctx.destination); o.start(now + pair[1]); o.stop(now + pair[1] + 0.17);
+    });
+    setTimeout(function () { try { ctx.close(); } catch (e) {} }, 700);
+  } catch (e) {}
+}
+function askFamNotify() { try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
+function famTaskAlert(tasks) {
+  playAlertBeep();
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    tasks.forEach(t => { try { new Notification('👪 Neue Aufgabe für dich', { body: t.title + (t.due ? ' – ' + fmtDate(t.due) : '') + (t.time ? (t.due ? ', ' : ' – ') + t.time + ' Uhr' : ''), tag: 'famtask-' + t.id }); } catch (e) {} });
+  }
+  let ov = document.getElementById('famAlertOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'famAlertOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  const rows = tasks.map(t => '<div class="fam-alert-task"><b>' + esc(t.title) + '</b>' + ((t.due || t.time) ? '<span>' + (t.due ? esc(fmtDate(t.due)) : 'heute') + (t.time ? ' · ' + esc(t.time) + ' Uhr' : '') + '</span>' : '') + '</div>').join('');
+  ov.innerHTML = '<div class="fam-alert" role="alertdialog" aria-live="assertive"><div class="fam-alert-ic">🔔</div>' +
+    '<h3>' + (tasks.length > 1 ? tasks.length + ' neue Aufgaben für dich' : 'Neue Aufgabe für dich') + '</h3>' +
+    '<div class="fam-alert-list">' + rows + '</div>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="famAlertClose">Schließen</button><button class="btn btn-sm btn-primary" id="famAlertGo">Zu den Aufgaben</button></div></div>';
+  ov.classList.add('on');
+  document.getElementById('famAlertClose').onclick = function () { ov.classList.remove('on'); };
+  document.getElementById('famAlertGo').onclick = function () { ov.classList.remove('on'); famTab = 'ftasks'; showView('family'); };
+  ov.onclick = function (e) { if (e.target === ov) ov.classList.remove('on'); };
+}
 function nextOccur(iso) {
   const d = parseISO(iso), t = new Date();
   const todayMid = new Date(t.getFullYear(), t.getMonth(), t.getDate());
@@ -4417,7 +4507,10 @@ async function famPull() {
     store.family.medTaken = d.medTaken || {};
     store.events = store.events.filter(e => e.source !== 'family').concat(d.events || []);
     save();
-    return JSON.stringify(famPayload()) !== before;
+    const selfAdded = famEnsureSelfMember();   // beide Konten automatisch als Mitglied führen
+    if (selfAdded) { try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
+    checkFamilyTaskAlerts();                    // neue, mir zugewiesene Aufgaben → Pop-up + Signal
+    return JSON.stringify(famPayload()) !== before || selfAdded;
   } catch (e) { return false; }
 }
 function famChanged() { save(); famPush(); RENDERERS.family(); }
@@ -4429,8 +4522,10 @@ async function famCreate() {
     if (r.error) { toast('Sync fehlgeschlagen – ist supabase-family.sql ausgeführt?'); return; }
     if (!r.data) { toast('Bitte zuerst supabase-family.sql ausführen'); return; }
     store.family.code = r.data.code; save();
+    ensureFamily(); famEnsureSelfMember();   // Ersteller mit stabiler authId als Mitglied, bevor gepusht wird
     await famPush();
     RENDERERS.family();
+    askFamNotify();
     toast('Familie erstellt – teile den Code 👪');
   } catch (e) { toast('Fehler beim Erstellen'); }
 }
@@ -4459,6 +4554,7 @@ async function famJoin(code) {
     store.family.code = r.data.code; save();
     await famPull();
     RENDERERS.family();
+    askFamNotify();
     toast('Mit Familie verbunden ✓');
   } catch (e) { console.warn('[Effyra join]', e); joinStatus('Verbindung fehlgeschlagen: ' + String(e.message || '').slice(0, 80), 'err'); if (btn) btn.disabled = false; }
 }
@@ -4624,7 +4720,7 @@ function famTasks() {
     '<div class="kid-row" style="margin-bottom:8px"><select id="ftWho"><option value="">👪 Ganze Familie</option>' +
     members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
     '<select id="ftPrio"><option value="high">🔴 Hoch</option><option value="med" selected>🟡 Mittel</option><option value="low">🟢 Niedrig</option></select></div>' +
-    '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="ftDue"><button class="btn btn-primary" data-fam="addFTask">+ Zuweisen</button></div>';
+    '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="ftDue" title="Fällig am"><input type="time" id="ftTime" title="Uhrzeit (optional)"><button class="btn btn-primary" data-fam="addFTask">+ Zuweisen</button></div>';
   if (openN) h += '<div class="veh-stats" style="grid-template-columns:1fr;margin-bottom:12px"><div class="veh-stat"><b>' + openN + '</b><span>offene Familienaufgabe' + (openN === 1 ? '' : 'n') + '</span></div></div>';
   if (!list.length) h += '<div class="empty" style="padding:14px">Noch keine Familienaufgaben. Verteil die erste ✨</div>';
   list.forEach(t => {
@@ -4635,7 +4731,7 @@ function famTasks() {
       '<span class="prio prio-' + (t.prio || 'med') + '"></span>' +
       '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
       '<div class="t-meta"><span class="fam-assignee"' + (m ? ' style="color:' + m.color + '"' : '') + '>' + (m ? esc(m.name) : '👪 Familie') + '</span>' +
-      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + '</span>' : '') + '</div></div>' +
+      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + (t.time ? ' ' + esc(oclock(t.time)) : '') + '</span>' : (t.time ? '<span>· ' + esc(oclock(t.time)) + '</span>' : '')) + '</div></div>' +
       '<button class="t-del" data-fam="delFTask" data-id="' + t.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
@@ -4805,7 +4901,8 @@ $('#famRoot').addEventListener('click', e => {
   if (a === 'addFTask') {
     ensureFamily();
     const title = q('#ftTitle').value.trim(); if (!title) { q('#ftTitle').focus(); return; }
-    store.family.tasks.push({ id: uid(), title, assignee: q('#ftWho').value || '', prio: q('#ftPrio').value || 'med', due: q('#ftDue').value || null, done: false, createdAt: Date.now() });
+    const ftTime = q('#ftTime') && /^\d{1,2}:\d{2}$/.test(q('#ftTime').value) ? q('#ftTime').value : null;
+    store.family.tasks.push({ id: uid(), title, assignee: q('#ftWho').value || '', prio: q('#ftPrio').value || 'med', due: q('#ftDue').value || null, time: ftTime, done: false, createdAt: Date.now(), by: famSelfId() });
     famChanged(); toast('Aufgabe zugewiesen ✓'); return;
   }
   if (a === 'toggleFTask') { ensureFamily(); const t = store.family.tasks.find(x => x.id === b.dataset.id); if (t) { t.done = !t.done; famChanged(); } return; }
@@ -7106,13 +7203,14 @@ const AGENT_TOOLS = {
     }
   },
   create_task: {
-    desc: 'Aufgabe/To-do/„ich muss …" → Aufgabenliste.',
-    params: 'title:Text, due:date, priority:(high|med|low)',
+    desc: 'Aufgabe/To-do/„ich muss …" → Aufgabenliste. Optional mit Uhrzeit (wann am Tag erledigt werden soll).',
+    params: 'title:Text, due:date, time:(HH:MM), priority:(high|med|low)',
     run(p) {
       const pr = /hoch|high|dringend/.test(String(p.priority || '')) ? 'high' : /nied|low/.test(String(p.priority || '')) ? 'low' : 'med';
-      const t = addTask(vaCap(String(p.title || '').trim()), p.due ? agentDate(p.due) : null, pr, 'chat');
+      const tm = p.time ? agentTime(p.time) : null;
+      const t = addTask(vaCap(String(p.title || '').trim()), p.due ? agentDate(p.due) : null, pr, 'chat', tm);
       if (!t) return null; if (currentView === 'chat') RENDERERS.chat(); vaContext = { type: 'task' };
-      return '✅ Aufgabe: „' + t.title + '"' + (t.due ? ' – fällig ' + fmtDate(t.due) : '') + '.';
+      return '✅ Aufgabe: „' + t.title + '"' + (t.due ? ' – fällig ' + fmtDate(t.due) : '') + (t.time ? ' um ' + t.time + ' Uhr' : '') + '.';
     }
   },
   create_reminder: {
@@ -7201,8 +7299,8 @@ const AGENT_TOOLS = {
     }
   },
   assign_family_task: {
-    desc: 'Aufgabe an ein FAMILIENMITGLIED zuweisen („weise Sandra … zu", „Papa soll …", „Aufgabe für Emma"). Nutze dies statt create_task, sobald eine bestimmte Person genannt ist. Ohne Namen = ganze Familie.',
-    params: 'title:Text, member:Name des Familienmitglieds (leer=ganze Familie), due:date, priority:(high|med|low)',
+    desc: 'Aufgabe an ein FAMILIENMITGLIED zuweisen („weise Sandra … zu", „Papa soll …", „Aufgabe für Emma"). Nutze dies statt create_task, sobald eine bestimmte Person genannt ist. Ohne Namen = ganze Familie. Optional mit Uhrzeit.',
+    params: 'title:Text, member:Name des Familienmitglieds (leer=ganze Familie), due:date, time:(HH:MM), priority:(high|med|low)',
     run(p) {
       ensureFamily();
       const title = vaCap(String(p.title || '').trim()); if (!title) return null;
@@ -7210,12 +7308,12 @@ const AGENT_TOOLS = {
       const nm = String(p.member || '').trim().toLowerCase();
       let m = null;
       if (nm) { const ms = store.family.members || []; m = ms.find(x => (x.name || '').toLowerCase() === nm) || ms.find(x => { const n = (x.name || '').toLowerCase(); return n && (n.indexOf(nm) >= 0 || nm.indexOf(n) >= 0); }); }
-      const task = { id: uid(), title, assignee: m ? m.id : '', prio: pr, due: p.due ? agentDate(p.due) : null, done: false, createdAt: Date.now() };
+      const task = { id: uid(), title, assignee: m ? m.id : '', prio: pr, due: p.due ? agentDate(p.due) : null, time: p.time ? agentTime(p.time) : null, done: false, createdAt: Date.now(), by: famSelfId() };
       store.family.tasks.push(task); save();
       if (typeof famPush === 'function') { try { famPush(); } catch (e) {} }
       if (currentView === 'family') RENDERERS.family();
       vaContext = { type: 'famtask' };
-      return '👪 Familienaufgabe: „' + title + '" ' + (m ? '→ ' + m.name : '(ganze Familie)') + (task.due ? ' · fällig ' + fmtDate(task.due) : '') + '.' + (nm && !m ? ' (Mitglied „' + esc(String(p.member)) + '" nicht gefunden – der ganzen Familie zugewiesen.)' : '');
+      return '👪 Familienaufgabe: „' + title + '" ' + (m ? '→ ' + m.name : '(ganze Familie)') + (task.due ? ' · fällig ' + fmtDate(task.due) : '') + (task.time ? ' um ' + task.time + ' Uhr' : '') + '.' + (nm && !m ? ' (Mitglied „' + esc(String(p.member)) + '" nicht gefunden – der ganzen Familie zugewiesen.)' : '');
     }
   }
 };
@@ -7514,6 +7612,14 @@ showView('dashboard');
 pruneMedTaken();                              // alte „genommen"-Marken aufräumen
 checkMedReminders();                          // Medikamenten-Erinnerungen: beim Start prüfen …
 setInterval(checkMedReminders, 60000);        // … und dann jede Minute (solange die App geöffnet ist)
+
+/* Familien-Sync im Hintergrund pollen → neu zugewiesene Aufgaben erreichen den Empfänger zeitnah (Pop-up + Signal). */
+function famBgPull() {
+  if (!(CLOUD && store.family && store.family.code) || document.visibilityState !== 'visible') return;
+  famPull().then(ch => { if (ch && (currentView === 'family' || currentView === 'dashboard')) RENDERERS[currentView] && RENDERERS[currentView](); });
+}
+setInterval(famBgPull, 45000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') famBgPull(); });
 
 })();
 </script>
