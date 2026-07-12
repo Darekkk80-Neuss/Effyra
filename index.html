@@ -789,6 +789,9 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .va-mic:active{transform:scale(.96)}
 .va-mic.rec{background:linear-gradient(135deg,#dc2626,#f87171);animation:micPulse 1.3s ease-in-out infinite}
 .va-mic.vad{background:linear-gradient(135deg,#06b6d4,#3b82f6);animation:none;box-shadow:0 0 0 calc(4px + var(--lvl,0) * 20px) rgba(34,211,238,.30), 0 6px 22px rgba(6,182,212,.45);transition:box-shadow .08s linear}
+.va-live{flex:none;height:36px;padding:0 13px;border-radius:99px;border:1.5px solid var(--border2);background:var(--card2);color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.va-live:hover{border-color:#ef4444;color:#ef4444}
+.va-live.on{background:linear-gradient(135deg,#ef4444,#f97316);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(239,68,68,.4);animation:micPulse 1.5s ease-in-out infinite}
 .v2p-status{font-size:13.5px;color:var(--muted);font-weight:600;text-align:center}
 .v2p-interim{min-height:20px;font-size:14px;color:var(--faint);font-style:italic;margin-bottom:10px;text-align:center}
 .v2p-hint{margin:0 auto 12px;max-width:520px;font-size:12.5px}
@@ -1309,6 +1312,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div class="va-dock">
         <div class="va-status" id="vaStatus" aria-live="polite"></div>
         <div class="va-row">
+          <button class="va-live" id="vaLive" title="Live-Gespräch mit Effyra AI (Beta)" aria-label="Live-Gespräch starten">🔴 Live</button>
           <button class="va-mic" id="vaMic" aria-label="Effyra AI – per Sprache steuern"><svg viewBox="0 0 24 24"><use href="#icMic"/></svg></button>
           <div class="chat-inputbar">
             <input type="text" id="chatInput" placeholder="Sprich oder schreib …" maxlength="1000" autocomplete="off">
@@ -2110,6 +2114,7 @@ function showView(name) {
   if (!_navBack && currentView && currentView !== name) viewHistory.push(currentView);   // Verlauf für „Zurück"
   currentView = name;
   if (name !== 'chat' && typeof vaStopMic === 'function') vaStopMic();
+  if (name !== 'chat' && typeof RT !== 'undefined' && RT && RT.active) rtStop();
   gate();
   $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
@@ -5958,6 +5963,91 @@ function vaStopMic() {
   else if (vaRec) { try { vaRec.stop(); } catch (e) {} }
 }
 
+/* ============================== REALTIME LIVE-MODUS (gpt-realtime, WebRTC) — Beta ==============================
+   Dauerhaftes Live-Gespräch: OpenAI erkennt Sprechpausen selbst (server VAD), transkribiert live, antwortet mit
+   Stimme UND ruft die App-Tools (AGENT_TOOLS) direkt auf → sofortige Aktion. Fallback: der normale VAD-Modus. */
+let RT = null;
+/* AGENT_TOOLS → lockere JSON-Schemas fürs Realtime-Function-Calling (run(p) ist tolerant). */
+function rtToolSchemas() {
+  return Object.keys(AGENT_TOOLS).map(name => {
+    const t = AGENT_TOOLS[name], props = {};
+    String(t.params || '').split(',').forEach(part => {
+      const seg = part.trim(); if (!seg) return;
+      const nm = seg.split(':')[0].trim().split(/[\s(]/)[0]; if (!nm) return;
+      const low = seg.toLowerCase(), type = /zahl|betrag|number|minuten|€/.test(low) ? 'number' : /bool/.test(low) ? 'boolean' : 'string';
+      props[nm] = { type, description: seg };
+    });
+    return { type: 'function', name, description: t.desc, parameters: { type: 'object', properties: props, required: [] } };
+  });
+}
+function rtSetStatus(txt, cls) { const st = $('#vaStatus'); if (st) { st.textContent = txt; st.className = 'va-status on va-' + (cls || 'listening'); } }
+async function rtToggle() { if (RT && RT.active) { rtStop('Live-Gespräch beendet.'); return; } await rtStart(); }
+async function rtStart() {
+  if (!canRealAI()) { toast('Bitte melde dich an, um den Live-Modus zu nutzen.'); return; }
+  if (!window.RTCPeerConnection) { toast('Live-Modus braucht Chrome, Edge oder Safari.'); return; }
+  if (vaListening) vaStopMic();
+  const liveBtn = $('#vaLive'); if (liveBtn) liveBtn.classList.add('on');
+  rtSetStatus('🔗 Verbinde Live …', 'processing');
+  let token;
+  try { const r = await callAudioHosted({ op: 'realtime_token' }); token = r.token; if (!token) throw new Error('kein Token'); }
+  catch (e) { rtStop(); toast('Live-Modus nicht verfügbar. (' + (e.message || 'Fehler') + ')'); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  catch (e) { rtStop(); toast('🎤 Kein Mikrofon-Zugriff. Bitte für diese Seite erlauben.'); return; }
+  const pc = new RTCPeerConnection();
+  const audioEl = new Audio(); audioEl.autoplay = true;
+  pc.ontrack = e => { try { audioEl.srcObject = e.streams[0]; audioEl.play().catch(() => {}); } catch (er) {} };
+  try { pc.addTrack(stream.getAudioTracks()[0], stream); } catch (e) {}
+  const dc = pc.createDataChannel('oai-events');
+  RT = { pc, dc, stream, audioEl, active: true };
+  dc.onopen = () => {
+    rtSetStatus('🎧 Live – sprich einfach …', 'listening');
+    rtSend({ type: 'session.update', session: {
+      type: 'realtime',
+      instructions: buildAgentPrompt() + '\n\nDu bist im LIVE-Sprachmodus. Antworte KURZ und natürlich auf Deutsch. Nutze für jede Alltags-Aktion die passende Funktion (Tool) und bestätige knapp, was du getan hast.',
+      audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'server_vad' } }, output: { voice: TTS_VOICE } },
+      tools: rtToolSchemas(), tool_choice: 'auto'
+    }});
+  };
+  dc.onmessage = rtOnEvent;
+  const offer = await pc.createOffer(); await pc.setLocalDescription(offer);
+  let ans = null;
+  const endpoints = ['https://api.openai.com/v1/realtime/calls', 'https://api.openai.com/v1/realtime?model=gpt-realtime', 'https://api.openai.com/v1/realtime/calls?model=gpt-realtime'];
+  for (let i = 0; i < endpoints.length && ans == null; i++) {
+    try { const r = await fetch(endpoints[i], { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/sdp' }, body: offer.sdp }); if (r.ok) ans = await r.text(); else console.warn('[Effyra RT] SDP', endpoints[i], r.status); } catch (e) { console.warn('[Effyra RT] SDP err', e); }
+  }
+  if (ans == null) { rtStop(); toast('Live-Verbindung fehlgeschlagen. (Konsole für Details)'); return; }
+  try { await pc.setRemoteDescription({ type: 'answer', sdp: ans }); }
+  catch (e) { rtStop(); toast('Live-Verbindung fehlgeschlagen.'); }
+}
+function rtSend(obj) { try { if (RT && RT.dc && RT.dc.readyState === 'open') RT.dc.send(JSON.stringify(obj)); } catch (e) {} }
+function rtStop(msg) {
+  const liveBtn = $('#vaLive'); if (liveBtn) liveBtn.classList.remove('on');
+  if (RT) {
+    try { RT.dc && RT.dc.close(); } catch (e) {}
+    try { RT.pc && RT.pc.close(); } catch (e) {}
+    try { RT.stream && RT.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    try { if (RT.audioEl) RT.audioEl.srcObject = null; } catch (e) {}
+  }
+  RT = null; vaSetStatus('idle'); if (msg) toast(msg);
+}
+function rtOnEvent(ev) {
+  let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+  const type = m.type || '';
+  if (!/audio\.delta|audio_transcript\.delta|output_audio\.delta/.test(type)) console.debug('[Effyra RT]', type);
+  if (type === 'conversation.item.input_audio_transcription.completed' && m.transcript) {
+    store.chat.push({ role: 'user', text: String(m.transcript).trim(), actions: [] }); save(); if (currentView === 'chat') RENDERERS.chat();
+  } else if ((type === 'response.audio_transcript.done' || type === 'response.output_audio_transcript.done') && m.transcript) {
+    pushBot(String(m.transcript).trim()); if (currentView === 'chat') RENDERERS.chat();
+  } else if (type === 'response.function_call_arguments.done') {
+    const tool = AGENT_TOOLS[m.name]; let out = 'ok';
+    if (tool) { let p = {}; try { p = JSON.parse(m.arguments || '{}'); } catch (e) {} try { const s = tool.run(p); if (s) { out = s; pushBot(s); if (currentView === 'chat') RENDERERS.chat(); } } catch (e) { out = 'Fehler: ' + e.message; } }
+    else out = 'unbekanntes Tool';
+    rtSend({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: m.call_id, output: String(out) } });
+    rtSend({ type: 'response.create' });
+  } else if (type === 'error') { console.warn('[Effyra RT] error', m.error || m); }
+}
+
 /* --- Deutsche Datums-/Zeit-/Betrags-Parser --- */
 const VA_WEEKDAYS = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6, sonnabend: 6 };
 const VA_MONTHS = { januar: 1, februar: 2, 'märz': 3, maerz: 3, april: 4, mai: 5, juni: 6, juli: 7, august: 8, september: 9, oktober: 10, november: 11, dezember: 12 };
@@ -6583,6 +6673,7 @@ async function sendChat(text, spoken) {
 $('#chatSend').addEventListener('click', () => { const i = $('#chatInput'); const v = i.value; i.value = ''; sendChat(v); });
 $('#chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#chatSend').click(); });
 $('#vaMic').addEventListener('click', vaToggleMic);
+{ const lv = $('#vaLive'); if (lv) lv.addEventListener('click', rtToggle); }
 $('#chatMsgs').addEventListener('click', e => {
   const sg = e.target.closest('[data-sg]');
   if (sg) { sendChat(sg.dataset.sg); return; }
