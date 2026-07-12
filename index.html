@@ -4475,7 +4475,45 @@ function playAlertBeep() {
     });
   } catch (e) {}
 }
-function askFamNotify() { try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
+/* ===== Web Push: Hintergrund-Benachrichtigungen (auch bei geschlossener App) ===== */
+const VAPID_PUBLIC = 'BBAzv2_kQDhxKzY2OsRjZuU-Icbt8btSdfcDVIsOvjaNO2E3SXdJYC6ZE397mDzoVVC64IaFkIKtJ3qBCKQjSfI';
+function urlB64ToUint8(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(s), arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+async function subscribeFamilyPush() {
+  try {
+    if (!CLOUD || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    if (!store.family || !store.family.code) return;
+    const uid = famSelfId(); if (!uid) return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+    const j = sub.toJSON();
+    await famAuth();
+    await sb.from('push_subscriptions').upsert({ user_id: uid, endpoint: j.endpoint, sub: j, updated_at: new Date().toISOString() }, { onConflict: 'user_id,endpoint' });
+  } catch (e) {}
+}
+async function pushNotifyMember(toUserId, title, bodyText) {
+  try {
+    if (!CLOUD || !toUserId || toUserId === famSelfId()) return;
+    await famAuth();
+    const { data } = await sb.auth.getSession();
+    const tok = data && data.session && data.session.access_token; if (!tok) return;
+    await fetch(FN_URL('push-send'), { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + tok }, body: JSON.stringify({ toUserId, title, body: bodyText }) });
+  } catch (e) {}
+}
+function askFamNotify() {
+  try {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') Notification.requestPermission().then(p => { if (p === 'granted') subscribeFamilyPush(); });
+    else if (Notification.permission === 'granted') subscribeFamilyPush();
+  } catch (e) {}
+}
 /* Lesebestätigung: aktuellen Nutzer als „gelesen" auf die Aufgabe(n) setzen (nicht erledigt!). */
 function markFamTaskRead(ids) {
   ensureFamily();
@@ -4951,8 +4989,12 @@ $('#famRoot').addEventListener('click', e => {
     ensureFamily();
     const title = q('#ftTitle').value.trim(); if (!title) { q('#ftTitle').focus(); return; }
     const ftTime = q('#ftTime') && /^\d{1,2}:\d{2}$/.test(q('#ftTime').value) ? q('#ftTime').value : null;
-    store.family.tasks.push({ id: uid(), title, assignee: q('#ftWho').value || '', prio: q('#ftPrio').value || 'med', due: q('#ftDue').value || null, time: ftTime, done: false, createdAt: Date.now(), by: famSelfId() });
-    famChanged(); toast('Aufgabe zugewiesen ✓'); return;
+    const ftAssignee = q('#ftWho').value || '';
+    store.family.tasks.push({ id: uid(), title, assignee: ftAssignee, prio: q('#ftPrio').value || 'med', due: q('#ftDue').value || null, time: ftTime, done: false, createdAt: Date.now(), by: famSelfId() });
+    famChanged();
+    const ftM = ftAssignee ? famMember(ftAssignee) : null;
+    if (ftM && ftM.authId) pushNotifyMember(ftM.authId, '👪 Neue Aufgabe für dich', title + (ftTime ? ' – ' + ftTime + ' Uhr' : ''));
+    toast('Aufgabe zugewiesen ✓'); return;
   }
   if (a === 'toggleFTask') { ensureFamily(); const t = store.family.tasks.find(x => x.id === b.dataset.id); if (t) { t.done = !t.done; famChanged(); } return; }
   if (a === 'readFTask') { if (markFamTaskRead(b.dataset.id)) toast('👁 Als gelesen bestätigt'); RENDERERS.family(); return; }
@@ -7361,6 +7403,7 @@ const AGENT_TOOLS = {
       const task = { id: uid(), title, assignee: m ? m.id : '', prio: pr, due: p.due ? agentDate(p.due) : null, time: p.time ? agentTime(p.time) : null, done: false, createdAt: Date.now(), by: famSelfId() };
       store.family.tasks.push(task); save();
       if (typeof famPush === 'function') { try { famPush(); } catch (e) {} }
+      if (m && m.authId && typeof pushNotifyMember === 'function') pushNotifyMember(m.authId, '👪 Neue Aufgabe für dich', title + (task.time ? ' – ' + task.time + ' Uhr' : ''));
       if (currentView === 'family') RENDERERS.family();
       vaContext = { type: 'famtask' };
       return '👪 Familienaufgabe: „' + title + '" ' + (m ? '→ ' + m.name : '(ganze Familie)') + (task.due ? ' · fällig ' + fmtDate(task.due) : '') + (task.time ? ' um ' + task.time + ' Uhr' : '') + '.' + (nm && !m ? ' (Mitglied „' + esc(String(p.member)) + '" nicht gefunden – der ganzen Familie zugewiesen.)' : '');
@@ -7670,6 +7713,12 @@ function famBgPull() {
 }
 setInterval(famBgPull, 45000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') famBgPull(); });
+
+/* Web Push: nach dem Boot Abo sicherstellen (falls Benachrichtigungen erlaubt + in Familie). */
+setTimeout(() => { try { subscribeFamilyPush(); } catch (e) {} }, 2500);
+/* Tippt der Empfänger auf die System-Benachrichtigung → App fokussiert → Familienaufgaben zeigen. */
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.type === 'fam-open') { famTab = 'ftasks'; showView('family'); } });
+try { if (new URLSearchParams(location.search).get('fam')) { famTab = 'ftasks'; setTimeout(() => showView('family'), 900); } } catch (e) {}
 
 })();
 </script>

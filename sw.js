@@ -3,7 +3,7 @@
    (kein „hängengebliebenes" altes HTML), offline greift der Cache.
    Nur GET-Anfragen der eigenen Origin werden abgefangen – Supabase, OpenAI,
    Google Fonts usw. laufen immer direkt durch. */
-const CACHE = 'effyra-v1';
+const CACHE = 'effyra-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './bg.jpg'];
 
 self.addEventListener('install', (e) => {
@@ -32,5 +32,33 @@ self.addEventListener('fetch', (e) => {
         return res;
       })
       .catch(() => caches.match(req).then((r) => r || caches.match('./index.html')))
+  );
+});
+
+/* ===== Web Push: System-Benachrichtigung anzeigen, auch wenn die App geschlossen/​im Hintergrund ist ===== */
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: '👪 Effyra', body: e.data ? e.data.text() : '' }; }
+  const opts = {
+    body: d.body || '',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag: d.tag || 'effyra-fam',
+    renotify: true,
+    vibrate: [250, 100, 250, 100, 400],
+    requireInteraction: true,          // bleibt sichtbar, bis der Nutzer reagiert
+    data: { url: d.url || './?fam=1' }
+  };
+  e.waitUntil(self.registration.showNotification(d.title || '👪 Neue Aufgabe für dich', opts));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const target = (e.notification.data && e.notification.data.url) || './?fam=1';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cls) => {
+      for (const c of cls) { if ('focus' in c) { try { c.postMessage({ type: 'fam-open' }); } catch (er) {} return c.focus(); } }
+      if (self.clients.openWindow) return self.clients.openWindow(target);
+    })
   );
 });
