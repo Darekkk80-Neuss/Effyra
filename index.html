@@ -2784,6 +2784,21 @@ RENDERERS.dashboard = function () {
   const upTasks = openTasksSorted().filter(t => !(t.due && dayDiff(t.due) <= 0)).slice(0, 3);
   if (upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? 'fällig ' + relDay(t.due) : 'ohne Datum', chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
 
+  /* FAMILIENAUFGABEN – an Mitglieder zugewiesen, hier zur Kontrolle (Überblick, wer was hat) */
+  const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done)
+    .sort((a, b) => { if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; if (a.due) return -1; if (b.due) return 1; return 0; });
+  if (fTasks.length) html += dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
+    const m = t.assignee ? famMember(t.assignee) : null;
+    const late = t.due && dayDiff(t.due) < 0, isTodayD = t.due && dayDiff(t.due) === 0;
+    return drow({
+      svg: 'icCheck2', iconColor: m ? m.color : '#64748b',
+      title: t.title,
+      sub: '➜ ' + (m ? m.name : '👪 ganze Familie') + (t.due ? ' · ' + (late ? 'überfällig' : 'fällig ' + relDay(t.due)) : ''),
+      chip: t.due ? { cls: late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok', text: late ? 'Überfällig' : relDay(t.due) } : null,
+      go: 'family', attrs: ' data-tab="ftasks"'
+    });
+  }).join(''), ' data-tab="ftasks"');
+
   /* FINANZEN – Monatsbudget auf einen Blick */
   ensureBudget();
   if (store.budget.entries.length) {
@@ -2803,7 +2818,7 @@ RENDERERS.dashboard = function () {
   });
   store.events.filter(e => e.source === 'kind' && e.date >= today).sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 2).forEach(e => famRows.push({ emoji: '📌', title: e.title, sub: cap(fmtDate(e.date)), meta: relDay(e.date), go: 'school', k: '2' }));
   ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' wird ' + b.age, sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
-  ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done).slice(0, 3).forEach(t => { const m = t.assignee ? famMember(t.assignee) : null; const late = t.due && dayDiff(t.due) < 0; famRows.push({ svg: 'icCheck2', iconColor: m ? m.color : '', title: t.title, sub: (m ? m.name : 'Familie') + (t.due ? ' · ' + (late ? 'überfällig' : 'fällig ' + relDay(t.due)) : ''), chip: t.due ? { cls: late ? 'chip-danger' : dayDiff(t.due) === 0 ? 'chip-warn' : 'chip-ok', text: late ? 'Überfällig' : relDay(t.due) } : null, go: 'family', attrs: ' data-tab="ftasks"', k: (t.due && dayDiff(t.due) <= 0) ? '0' : '2' }); });
+  /* Familienaufgaben haben eine eigene Dashboard-Sektion („👪 Familienaufgaben") – hier nicht doppelt zeigen. */
   famRows.sort((a, b) => a.k < b.k ? -1 : 1);
   if (famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
 
