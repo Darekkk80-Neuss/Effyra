@@ -852,6 +852,10 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .doc-ai-body li{margin-bottom:3px}
 .doc-tags{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 2px}
 .doc-tag{font-size:11px;color:var(--faint);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:3px 9px}
+.badge.b-mod{background:rgba(6,182,212,.14);color:#22d3ee;border:1px solid rgba(34,211,238,.35)}
+:root[data-theme="light"] .badge.b-mod{background:rgba(14,116,144,.1);color:#0e7490;border-color:rgba(14,116,144,.3)}
+.doc-confirm{margin:10px 0;padding:10px 13px;border-radius:12px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:var(--text);font-size:13.5px;line-height:1.5}
+.doc-raw{margin:6px 0 0;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:12.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 #v2pTitle{margin-bottom:8px}
 #v2pText{margin-bottom:12px}
 .v2p-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
@@ -2328,7 +2332,11 @@ const TDICT_SRC = {
   'Für welchen Ort möchtest du Wetter und Pollen sehen?': { en: 'Which location would you like weather and pollen for?', fr: 'Pour quel lieu souhaitez-vous la météo et le pollen ?', es: '¿Para qué lugar quieres ver el tiempo y el polen?', it: 'Per quale luogo vuoi meteo e pollini?', pl: 'Dla jakiej lokalizacji chcesz pogodę i pyłki?' },
   '„Ich möchte nächste Woche in den Urlaub" – Effyra plant, erinnert und organisiert.': { en: '“I want to go on vacation next week” – Effyra plans, reminds and organizes.', fr: "« Je veux partir en vacances la semaine prochaine » – Effyra planifie, rappelle et organise.", es: '«Quiero irme de vacaciones la próxima semana»: Effyra planifica, recuerda y organiza.', it: '“Voglio andare in vacanza la prossima settimana” – Effyra pianifica, ricorda e organizza.', pl: '„Chcę w przyszłym tygodniu na urlop" – Effyra zaplanuje, przypomni i zorganizuje.' },
   'Local-first mit Cloud-Backup: Deine Daten liegen auf dem Gerät und werden – angemeldet – sicher in deinem Konto gesichert. Keine Werbung, kein Tracking.': { en: 'Local-first with cloud backup: your data stays on the device and – when signed in – is securely backed up to your account. No ads, no tracking.', fr: "Local d'abord, avec sauvegarde cloud : vos données restent sur l'appareil et – une fois connecté – sont sauvegardées en toute sécurité dans votre compte. Sans publicité, sans suivi.", es: 'Local primero, con copia en la nube: tus datos quedan en el dispositivo y —al iniciar sesión— se respaldan de forma segura en tu cuenta. Sin anuncios, sin rastreo.', it: 'Prima locale, con backup cloud: i tuoi dati restano sul dispositivo e – se hai eseguito l’accesso – vengono salvati in sicurezza nel tuo account. Nessuna pubblicità, nessun tracciamento.', pl: 'Najpierw lokalnie, z kopią w chmurze: Twoje dane pozostają na urządzeniu i – po zalogowaniu – są bezpiecznie zapisywane na Twoim koncie. Bez reklam, bez śledzenia.' },
-  'Local-first: lokal gespeichert, angemeldet zusätzlich sicher in deinem Konto (Backup & Sync).': { en: 'Local-first: stored locally, and when signed in also securely in your account (backup & sync).', fr: "Local d'abord : stocké localement et, une fois connecté, aussi en sécurité dans votre compte (sauvegarde et synchro).", es: 'Local primero: se guarda en local y, al iniciar sesión, también de forma segura en tu cuenta (copia y sincronización).', it: 'Prima locale: salvato in locale e, con l’accesso, anche in sicurezza nel tuo account (backup e sync).', pl: 'Najpierw lokalnie: zapisywane lokalnie, a po zalogowaniu także bezpiecznie na Twoim koncie (kopia i synchronizacja).' }
+  'Local-first: lokal gespeichert, angemeldet zusätzlich sicher in deinem Konto (Backup & Sync).': { en: 'Local-first: stored locally, and when signed in also securely in your account (backup & sync).', fr: "Local d'abord : stocké localement et, une fois connecté, aussi en sécurité dans votre compte (sauvegarde et synchro).", es: 'Local primero: se guarda en local y, al iniciar sesión, también de forma segura en tu cuenta (copia y sincronización).', it: 'Prima locale: salvato in locale e, con l’accesso, anche in sicurezza nel tuo account (backup e sync).', pl: 'Najpierw lokalnie: zapisywane lokalnie, a po zalogowaniu także bezpiecznie na Twoim koncie (kopia i synchronizacja).' },
+  /* ===== Dokumentenassistent – intelligentes Routing ===== */
+  '📋 Vollständige Extraktion': { en: '📋 Full extraction', fr: '📋 Extraction complète', es: '📋 Extracción completa', it: '📋 Estrazione completa', pl: '📋 Pełna ekstrakcja' },
+  '❓ Kurze Rückfrage:': { en: '❓ Quick question:', fr: '❓ Petite question :', es: '❓ Pregunta rápida:', it: '❓ Domanda veloce:', pl: '❓ Krótkie pytanie:' },
+  'Kinder · Plan': { en: 'Kids · Plan', fr: 'Enfants · Plan', es: 'Niños · Plan', it: 'Bambini · Piano', pl: 'Dzieci · Plan' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -5617,32 +5625,57 @@ function extractJSON(text) {
 async function aiAnalyze(dataUrl) {
   const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/s);
   if (!m) throw new Error('Bild konnte nicht gelesen werden.');
-  const prompt = 'Du bist Effyra, ein intelligenter Dokumentenassistent. Lies den GESAMTEN Text des fotografierten Dokuments (OCR) und verstehe ihn KONTEXTBEZOGEN – nicht nur Stichwörter. Heute ist der ' + todayISO() + '. ' +
-    'Erkenne Dokumenttyp, Beträge, Fristen, Termine, Personen, Orte, Fahrzeuge, Kategorien und Priorität und ordne alles konkreten App-Bereichen zu. ' +
-    'Beispiel: "Bitte zahlen Sie bis zum 14.08." = Ausgabe + Frist + Aufgabe + Kalendereintrag. ' +
-    'Antworte AUSSCHLIESSLICH mit einem JSON-Objekt (kein Markdown, kein Text drumherum) in exakt diesem Format:\n' +
-    '{"docType":"Rechnung|Mahnung|Vertrag|Behörde|Sonstiges","title":"kurzer Titel, max 6 Wörter","sender":"Absender",' +
-    '"explanation":"2-4 einfache Sätze, duze den Leser, kein Amtsdeutsch","summary":"1-2 Sätze Zusammenfassung",' +
+  const prompt = 'SYSTEM: Du bist die Analyse-Engine des Effyra-Dokumentenassistenten. Deine Aufgabe ist NICHT nur Texterkennung, sondern: das Dokument vollständig verstehen, korrekt EINEM Fachmodul zuordnen und nur einzelne, konkrete Aktionen ableiten. Heute ist der ' + todayISO() + '.\n\n' +
+    'ARBEITSWEISE (immer in dieser Reihenfolge):\n' +
+    '1) VOLLSTÄNDIG auslesen (OCR), formattreu – Tabellen bleiben Tabellen, Zeiten bleiben Zeiten, Zeilen/Spalten erhalten. Nichts weglassen, nichts vereinfachen, nichts erfinden.\n' +
+    '2) Dokumenttyp bestimmen (z. B. Stundenplan, Elternbrief, Dienstplan, Rechnung, Behördenbrief, Arzttermin, Vertrag, Kfz-Papier, Versicherung).\n' +
+    '3) Eigentümer/Subjekt bestimmen: welches Kind? welcher Elternteil? welches Fahrzeug? der Haushalt?\n' +
+    '4) PRIMÄRMODUL festlegen – dort "lebt" das Dokument dauerhaft.\n' +
+    '5) SEKUNDÄRE Aktionen ableiten: nur EINZELNE datumsfixe Termine bzw. Aufgaben mit Frist.\n' +
+    '6) Als EIN JSON-Objekt ausgeben.\n\n' +
+    'KERNREGEL: Ein Dokument lebt in GENAU EINEM Fachmodul. Kalender und Aufgaben bekommen NIEMALS das ganze Dokument, sondern nur einzelne ABGELEITETE Einträge mit Rückverweis.\n' +
+    'NEGATIVBEISPIEL (unbedingt vermeiden): Einen Stundenplan NICHT in einzelne Kalendertermine je Schulstunde zerlegen. Er wird als EIN zusammenhängender Plan dem Kind zugeordnet. Nur echte Sonderereignisse (Elternabend, Wandertag, Ferienbeginn) werden als einzelne Termine abgeleitet.\n\n' +
+    'ROUTING (primaryModule):\n' +
+    '- Stundenplan/Schulplan/Klassenliste → "Kinder" (als Plan beim Kind)\n' +
+    '- Elternbrief/Info aus Schule/Kita → "Kinder"\n' +
+    '- Dienstplan/Schichtplan/Arbeitsplan → "Arbeitszeit"\n' +
+    '- Urlaub/Krank/Fehlzeit (Arbeit) → "Arbeitszeit"\n' +
+    '- Kfz-Papiere/TÜV/HU/Werkstatt → "Auto & Motorrad"\n' +
+    '- Versicherung/Notfallinfo/Vollmacht → "Notfallbereich"\n' +
+    '- Behörden-/Amtsvorgang (Lebenslage) → "Lebenslagen"\n' +
+    '- Familienorganisation (mehrere Personen) → "Familienzentrale"\n' +
+    '- Rechnung/Vertrag/sonstiger Schriftverkehr → "Dokumente"\n' +
+    '- reine Termineinladung → "Kalender"; reine Handlungsaufforderung mit Frist → "Aufgaben"\n' +
+    'Kalender/Aufgaben sind nur dann Primärmodul, wenn das Dokument NUR aus einem einzelnen Termin bzw. einer einzelnen Aufgabe besteht. Sobald ein Fachmodul passt, ist dieses das Primärmodul.\n\n' +
+    'UNSICHERHEIT: Bei unklarem Eigentümer (z. B. zwei Kinder möglich) oder Modul NICHT raten → needsConfirmation:true + präzise clarifyingQuestion. Im Zweifel Fachmodul statt Kalender. Niemals Namen/Daten/Zuordnungen erfinden.\n\n' +
+    'Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt (kein Markdown, kein Text drumherum):\n' +
+    '{"docType":"Rechnung|Mahnung|Vertrag|Behörde|Sonstiges","title":"kurzer Titel","sender":"Absender oder leer",' +
+    '"subject":{"type":"kind|elternteil|fahrzeug|haushalt|unbekannt","name":"Name oder null"},' +
+    '"primaryModule":"Kinder|Arbeitszeit|Auto & Motorrad|Notfallbereich|Lebenslagen|Familienzentrale|Dokumente|Kalender|Aufgaben",' +
+    '"explanation":"2-4 einfache Sätze, duze den Leser, kein Amtsdeutsch","summary":"1-2 Sätze, sachlich",' +
+    '"rawStructured":"VOLLSTÄNDIGE, formattreue Extraktion (z. B. Wochenplan Wochentag × Stunde × Fach, oder Tabelle Zeile für Zeile)",' +
     '"keyPoints":["wichtigste Punkte"],"risks":["Risiken/Fallstricke"],"recommendations":["konkrete Handlungsempfehlungen"],' +
     '"keywords":["Schlagwörter"],"priority":"hoch|mittel|niedrig","deadline":"YYYY-MM-DD oder null",' +
-    '"replyDraft":"höflicher Antwortbrief falls sinnvoll, sonst null","findings":[erkannte übernehmbare Einträge]}\n' +
-    'Jedes findings-Element hat "type" und kurzen "title" plus passende Felder:\n' +
+    '"needsConfirmation":false,"clarifyingQuestion":"präzise Rückfrage oder null",' +
+    '"replyDraft":"höflicher Antwortbrief falls sinnvoll, sonst null","findings":[nur EINZELNE ableitbare Aktionen]}\n' +
+    'findings – ein zusammenhängender Plan ergibt KEINE Einzeltermine, sondern EINEN Plan-Eintrag:\n' +
+    '- schulplan (GANZER Stundenplan als EIN Eintrag, NICHT je Stunde ein event): {"type":"schulplan","title":"Stundenplan für <Kind>","childName":"Name","schedule":{"mon":["Fach1","Fach2",…],"tue":[…],"wed":[…],"thu":[…],"fri":[…]},"start":{"mon":"08:00","tue":"08:00","wed":"08:00","thu":"08:00","fri":"08:00"}}\n' +
     '- expense/income: {"type":"expense","title":"...","amount":Zahl,"category":"..."}\n' +
     '- task: {"type":"task","title":"...","date":"YYYY-MM-DD|null","priority":"hoch|mittel|niedrig"}\n' +
-    '- event: {"type":"event","title":"...","date":"YYYY-MM-DD","time":"HH:MM|null"}\n' +
+    '- event (NUR echtes Einzel-Sonderereignis, z. B. Elternabend): {"type":"event","title":"...","date":"YYYY-MM-DD","time":"HH:MM|null"}\n' +
     '- deadline: {"type":"deadline","title":"...","date":"YYYY-MM-DD"}\n' +
-    '- vehicle (TÜV/HU/AU/Service/Reifen/Ölwechsel/Versicherung/Kilometerstand): {"type":"vehicle","title":"...","subtype":"tuev|service|reifen|oel|versicherung|kilometer","vehicleName":"z. B. Yamaha Fazer","date":"YYYY-MM-DD|null","amount":Kosten,"km":Zahl}\n' +
-    '- work (Schicht/Dienst/Urlaub/Krank): {"type":"work","title":"...","category":"urlaub|krank|kinderkrank|dienst","from":"YYYY-MM-DD|null","to":"YYYY-MM-DD|null"}\n' +
-    '- child (Schule/Elternbrief/Klassenfahrt/Impfung/Arzt): {"type":"child","title":"...","childName":"Name des Kindes oder leer","apptKind":"arzt|impf|schule|sonst","date":"YYYY-MM-DD|null","time":"HH:MM|null"}\n' +
+    '- vehicle (TÜV/HU/AU/Service/Reifen/Öl/Versicherung/Kilometerstand): {"type":"vehicle","title":"...","subtype":"tuev|service|reifen|oel|versicherung|kilometer","vehicleName":"z. B. Yamaha Fazer","date":"YYYY-MM-DD|null","amount":Kosten,"km":Zahl}\n' +
+    '- work (Schicht/Dienst/Urlaub/Krank): {"type":"work","title":"...","category":"urlaub|krank|kinderkrank|dienst","from":"YYYY-MM-DD|null","to":"YYYY-MM-DD|null","date":"YYYY-MM-DD|null","time":"HH:MM|null"}\n' +
+    '- child (EINZELNER Kind-Termin, z. B. Arzt/Impfung/Elternabend): {"type":"child","title":"...","childName":"Name oder leer","apptKind":"arzt|impf|schule|sonst","date":"YYYY-MM-DD|null","time":"HH:MM|null"}\n' +
     '- family: {"type":"family","title":"...","date":"YYYY-MM-DD|null"}\n' +
-    '- life (Steuer/Versicherung/Rente/Behörde/Gesundheit/Verträge): {"type":"life","title":"...","category":"..."}\n' +
+    '- life: {"type":"life","title":"...","category":"..."}\n' +
     '- emergency (Blutgruppe/Allergien/Medikamente): {"type":"emergency","title":"...","category":"blutgruppe|allergien|medikamente|vorerkrankungen|notiz"}\n' +
     '- note: {"type":"note","title":"..."}\n' +
-    'Ein Dokument darf mehrere findings ergeben (Werkstattrechnung → expense + deadline + event + vehicle). Erfinde nichts – nur real Vorhandenes.';
+    'Erfinde nichts – nur real Vorhandenes. Fehlende Felder = null/leer.';
   const text = await aiCall({
     op: 'scan',
     model: store.settings.model,
-    max_tokens: 2000,
+    max_tokens: 3000,
     messages: [{
       role: 'user',
       content: [
@@ -5660,6 +5693,26 @@ async function aiAnalyze(dataUrl) {
 function demoAnalyses() {
   const T = todayISO();
   return [
+    {
+      docType: 'Sonstiges', title: 'Stundenplan', sender: 'Grundschule Am Ring',
+      primaryModule: 'Kinder', subject: { type: 'kind', name: 'Liam' },
+      explanation: 'Das ist der Wochenstundenplan von Liam. Ich lege ihn als Plan bei Liam ab – nicht als einzelne Kalendertermine. Nur der Elternabend wandert als echter Termin in den Kalender.',
+      summary: 'Wochenstundenplan (Mo–Fr) für Liam, als Plan im Bereich Kinder abgelegt.',
+      rawStructured: 'Montag:      Mathe, Deutsch, Sport, Englisch\nDienstag:    Deutsch, Sachkunde, Musik, Mathe\nMittwoch:    Mathe, Englisch, Kunst\nDonnerstag:  Deutsch, Mathe, Religion, Sport\nFreitag:     Englisch, Deutsch, Sachkunde\n\nUnterrichtsbeginn: 08:00 Uhr (Mittwoch 08:45)',
+      urgency: 'niedrig', priority: 'niedrig', deadline: null,
+      keyPoints: ['Gilt ab diesem Schuljahr', 'Unterrichtsbeginn 08:00 Uhr', 'Mittwoch später (08:45)'],
+      risks: [], recommendations: ['Sportzeug für Mittwoch & Donnerstag bereitlegen'],
+      keywords: ['Stundenplan', 'Schule', 'Liam'],
+      needsConfirmation: false, clarifyingQuestion: null, todos: [],
+      findings: [
+        { type: 'schulplan', title: 'Stundenplan für Liam (als Plan ablegen)', childName: 'Liam',
+          schedule: { mon: ['Mathe', 'Deutsch', 'Sport', 'Englisch'], tue: ['Deutsch', 'Sachkunde', 'Musik', 'Mathe'], wed: ['Mathe', 'Englisch', 'Kunst'], thu: ['Deutsch', 'Mathe', 'Religion', 'Sport'], fri: ['Englisch', 'Deutsch', 'Sachkunde'] },
+          start: { mon: '08:00', tue: '08:00', wed: '08:45', thu: '08:00', fri: '08:00' } },
+        { type: 'child', apptKind: 'schule', title: 'Elternabend', childName: 'Liam', date: addDays(T, 14), time: '19:00' },
+        { type: 'task', title: 'Sportzeug für Mittwoch bereitlegen', date: addDays(T, 2), priority: 'niedrig' }
+      ],
+      replyDraft: null
+    },
     {
       docType: 'Rechnung', title: 'Werkstattrechnung Inspektion', sender: 'Zweirad Meyer GmbH',
       explanation: 'Rechnung deiner Motorrad-Werkstatt über 89,99 € für die Inspektion deiner Yamaha Fazer. Fällig in gut fünf Wochen. Ein Folgetermin für den Reifenwechsel ist ebenfalls notiert.',
@@ -5797,6 +5850,12 @@ async function handleDocFile(file) {
       urgency: result.urgency || result.priority || 'mittel',
       todos: Array.isArray(result.todos) ? result.todos.filter(t => t && t.title).slice(0, 6) : [],
       replyDraft: result.replyDraft || null,
+      /* Intelligentes Routing */
+      primaryModule: typeof result.primaryModule === 'string' ? result.primaryModule : null,
+      subject: (result.subject && typeof result.subject === 'object') ? { type: result.subject.type || 'unbekannt', name: result.subject.name || null } : null,
+      rawStructured: typeof result.rawStructured === 'string' ? result.rawStructured.slice(0, 4000) : '',
+      needsConfirmation: !!result.needsConfirmation,
+      clarifyingQuestion: (result.needsConfirmation && result.clarifyingQuestion) ? String(result.clarifyingQuestion).slice(0, 300) : null,
       /* Intelligente Analyse */
       summary: result.summary || '',
       keyPoints: Array.isArray(result.keyPoints) ? result.keyPoints.slice(0, 6) : [],
@@ -5861,6 +5920,14 @@ const FINDING_TYPES = {
   } },
   work:      { icon: '🕒', group: 'Arbeitszeit', val: 'date', apply: f => { ensureWork(); if (f.from && f.to && /urlaub|krank|kinder/.test(f.category || '')) store.work.absences.push({ id: uid(), type: f.category, from: f.from, to: f.to, note: f.title }); else if (/dienst|schicht/.test(f.category || '') && f.date) store.work.shifts.push({ id: uid(), name: f.title, date: f.date, start: f.time || '', end: '' }); else addTask(f.title, f.date || null, 'med', 'doc'); } },
   child:     { icon: '🎒', group: 'Kinder', val: 'date', apply: f => { const kid = pickKid(f.childName); const kind = ['arzt', 'impf', 'schule', 'sonst'].indexOf(f.apptKind) >= 0 ? f.apptKind : 'schule'; if (kid) addEvent(APPT_KIND[kind].i + ' ' + f.title, f.date || todayISO(), f.time || null, kid.name, 'kind', { kidId: kid.id, apptKind: kind }); else addEvent('🎒 ' + f.title, f.date || todayISO(), f.time || null, 'Kinder', 'family'); } },
+  /* Stundenplan als GANZEN Plan beim Kind ablegen – erzeugt KEINE Kalendertermine je Schulstunde. */
+  schulplan: { icon: '📅', group: 'Kinder · Plan', val: 'text', apply: f => {
+    const kid = pickKid(f.childName); if (!kid) return;
+    const DMAP = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, mo: 1, di: 2, mi: 3, do: 4, fr: 5, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5 };
+    kid.sched = kid.sched || {}; [1, 2, 3, 4, 5].forEach(d => { kid.sched[d] = kid.sched[d] || { start: '08:00', subjects: [] }; });
+    const sc = f.schedule || {}, st = f.start || {};
+    Object.keys(sc).forEach(k => { const d = DMAP[String(k).toLowerCase().trim()]; if (d && Array.isArray(sc[k])) { kid.sched[d].subjects = sc[k].map(s => String(s).slice(0, 40)).filter(Boolean); if (st[k] && /^\d{1,2}:\d{2}$/.test(st[k])) kid.sched[d].start = st[k]; } });
+  } },
   family:    { icon: '👪', group: 'Familie', val: 'date', apply: f => addEvent(f.title, f.date || todayISO(), f.time || null, '', 'family') },
   life:      { icon: '📂', group: 'Lebenslagen', val: 'text', apply: f => addTask('Einsortieren: ' + f.title + (f.category ? ' (' + f.category + ')' : ''), null, 'low', 'doc') },
   emergency: { icon: '🚨', group: 'Notfall', val: 'text', consent: true, apply: f => { store.emergency = store.emergency || { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }; store.emergency.medical = store.emergency.medical || {}; const k = EM_MED_KEYS[(f.category || '').toLowerCase()] || 'notes'; store.emergency.medical[k] = (k === 'notes' && store.emergency.medical.notes ? store.emergency.medical.notes + '\n' : '') + f.title; } },
@@ -5878,6 +5945,7 @@ function normalizeFindings(arr, fallbackPrio) {
     date: (f.date && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) ? f.date : null,
     time: f.time || null, category: f.category || '', from: f.from || null, to: f.to || null,
     subtype: f.subtype || '', vehicleName: f.vehicleName || '', childName: f.childName || '', apptKind: f.apptKind || '', km: f.km != null ? +f.km : null,
+    schedule: (f.schedule && typeof f.schedule === 'object') ? f.schedule : null, start: (f.start && typeof f.start === 'object') ? f.start : null,
     recurring: !!f.recurring, priority: f.priority || fallbackPrio || 'mittel',
     consent: !!FINDING_TYPES[f.type].consent, selected: !FINDING_TYPES[f.type].consent, applied: false
   }));
@@ -5919,6 +5987,7 @@ RENDERERS.docs = function () {
       return '<div class="card doc-card rise" data-id="' + d.id + '">' +
         '<div class="doc-head">' +
         '<span class="badge ' + DOC_BADGE[d.docType] + '">' + esc(d.docType) + '</span>' +
+        (d.primaryModule ? '<span class="badge b-mod" title="Primärmodul">📂 <span>' + esc(d.primaryModule) + '</span>' + (d.subject && d.subject.name ? ' · ' + esc(d.subject.name) : '') + '</span>' : '') +
         (d.demo ? '<span class="badge b-demo">Demo</span>' : '') +
         '<span class="spacer"></span><time>' + new Date(d.createdAt).toLocaleDateString('de-DE') + '</time>' +
         '<button class="t-del" data-act="delDoc" title="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
@@ -5927,6 +5996,7 @@ RENDERERS.docs = function () {
         '<div class="doc-main"><h3>' + esc(d.title) + '</h3>' +
         (d.sender ? '<div class="doc-sender">' + t('doc.from', { s: esc(d.sender) }) + '</div>' : '') +
         '<div class="doc-explain"><b>💡 IN EINFACHEN WORTEN</b>' + esc(d.explanation) + '</div>' +
+        (d.needsConfirmation && d.clarifyingQuestion ? '<div class="doc-confirm"><b>❓ Kurze Rückfrage:</b> ' + esc(d.clarifyingQuestion) + '</div>' : '') +
         (d.deadline ? '<div class="deadline-row ' + dlClass + '"><svg viewBox="0 0 24 24" width="17" height="17"><use href="#icClock"/></svg>' +
           esc(t('doc.deadline', { date: fmtDate(d.deadline), rel: dl < 0 ? t('doc.expired') : relDay(d.deadline) })) + '</div>' : '') +
         (d.findings && d.findings.length ? '<div class="fnd-box"><div class="fnd-hd">🔎 Erkannt &amp; automatische Zuordnung</div>' +
@@ -5941,6 +6011,7 @@ RENDERERS.docs = function () {
             (d.risks && d.risks.length ? '<b>Risiken</b><ul>' + d.risks.map(x => '<li>⚠️ ' + esc(x) + '</li>').join('') + '</ul>' : '') +
             (d.recommendations && d.recommendations.length ? '<b>Handlungsempfehlungen</b><ul>' + d.recommendations.map(x => '<li>👉 ' + esc(x) + '</li>').join('') + '</ul>' : '') +
             '</div></details>' : '') +
+        (d.rawStructured ? '<details class="doc-ai"><summary>📋 Vollständige Extraktion</summary><pre class="doc-raw">' + esc(d.rawStructured) + '</pre></details>' : '') +
         (d.keywords && d.keywords.length ? '<div class="doc-tags">' + d.keywords.slice(0, 8).map(k => '<span class="doc-tag">#' + esc(k) + '</span>').join('') + '</div>' : '') +
         (d.replyDraft ? '<details class="doc-reply"><summary>✉️ Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div></details>' : '') +
         '<div class="doc-actions">' +
