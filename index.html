@@ -1350,6 +1350,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
+        <h3>🎙️ Live-Sprachtempo</h3>
+        <p class="sub">Wie schnell Effyra im Live-Gespräch antwortet, nachdem du aufgehört hast zu sprechen.</p>
+        <div class="seg" id="rtSilSeg" style="margin-bottom:0">
+          <button data-rtsil="450">⚡ Schnell</button>
+          <button data-rtsil="700">Normal</button>
+          <button data-rtsil="1200">🍵 Geduldig</button>
+        </div>
+        <div class="note-box" style="margin-top:10px">Schnell = zackige Antworten (unterbricht dich evtl. bei kurzen Denkpausen). Geduldig = wartet länger, gut wenn du in Ruhe sprichst.</div>
+      </div>
+
+      <div class="card set-card">
         <h3>Dein Name</h3>
         <p class="sub">So spricht Effyra dich an.</p>
         <div class="set-row">
@@ -1559,7 +1570,7 @@ const store = Object.assign({
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
-  settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light' }
+  settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light', rtSilenceMs: 700 }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
 })());
@@ -5982,6 +5993,7 @@ function rtToolSchemas() {
     return { type: 'function', name, description: t.desc, parameters: { type: 'object', properties: props, required: [] } };
   });
 }
+function rtSilenceMs() { const v = Number(store.settings && store.settings.rtSilenceMs); return v >= 200 && v <= 3000 ? v : 700; }   // Live-Reaktionszeit (Server-VAD)
 function rtSetStatus(txt, cls) { const st = $('#vaStatus'); if (st) { st.textContent = txt; st.className = 'va-status on live-on va-' + (cls || 'listening'); } }
 async function rtToggle() { if (RT && RT.active) { rtStop('Live-Gespräch beendet.'); return; } await rtStart(); }
 async function rtStart() {
@@ -6007,7 +6019,7 @@ async function rtStart() {
     rtSend({ type: 'session.update', session: {
       type: 'realtime',
       instructions: buildAgentPrompt() + '\n\nDu bist im LIVE-Sprachmodus. Antworte KURZ und natürlich auf Deutsch. Nutze für jede Alltags-Aktion die passende Funktion (Tool) und bestätige knapp, was du getan hast.',
-      audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'server_vad' } }, output: { voice: TTS_VOICE } },
+      audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'server_vad', silence_duration_ms: rtSilenceMs() } }, output: { voice: TTS_VOICE } },
       tools: rtToolSchemas(), tool_choice: 'auto'
     }});
   };
@@ -6720,6 +6732,7 @@ RENDERERS.settings = function () {
   refreshAIStatus();
   renderAccountCard();
   $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref()));
+  $$('#rtSilSeg button').forEach(b => b.classList.toggle('active', Number(b.dataset.rtsil) === rtSilenceMs()));
   syncEntitlements().then(() => { if (currentView === 'settings') renderAccountCard(); });
 };
 
@@ -6731,6 +6744,14 @@ $('#themeSeg').addEventListener('click', e => {
 $('#themeQuick').addEventListener('click', e => {
   const b = e.target.closest('[data-theme-set]'); if (!b) return;
   store.settings.theme = b.dataset.themeSet; save(); applyTheme();
+});
+$('#rtSilSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-rtsil]'); if (!b) return;
+  store.settings.rtSilenceMs = Number(b.dataset.rtsil); save();
+  $$('#rtSilSeg button').forEach(x => x.classList.toggle('active', x === b));
+  // Läuft gerade ein Live-Gespräch? Reaktionszeit sofort übernehmen.
+  if (typeof RT !== 'undefined' && RT && RT.active) rtSend({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: { type: 'server_vad', silence_duration_ms: rtSilenceMs() } } } } });
+  toast('Live-Sprachtempo: ' + b.textContent.trim());
 });
 
 function renderAccountCard() {
