@@ -4419,27 +4419,47 @@ function ensureFamily() {
   });
   if (!hasOwner && store.family.members[0]) store.family.members[0].role = 'owner';
   /* Owner-Mitglied mit den Konto-Stammdaten (Name/Geburtsdatum) synchron halten. */
-  const owner = store.family.members.find(m => m.role === 'owner');
-  if (owner && account) { if (!owner.birthday && account.birthday) owner.birthday = account.birthday; if (account.name) owner.name = account.name; }
-  /* Migration: Owner-Mitglied des Erstellers mit eigener authId versehen (nur wenn Name passt / einziges Mitglied). */
-  if (owner && !owner.authId && famSelfId()) {
-    const myName = ((account && account.name) || store.name || '').toLowerCase();
-    if (store.family.members.length === 1 || (myName && (owner.name || '').toLowerCase() === myName)) owner.authId = famSelfId();
-  }
+  /* WICHTIG: Account-Name/Geburtstag werden NICHT mehr auf das owner-Mitglied gezwungen.
+     Auf dem Gerät eines Beigetretenen ist der Owner eine ANDERE Person – das hätte sie
+     umbenannt (Duplikate/​falsche Namen). Die Zuordnung zum eigenen Konto läuft ausschließlich
+     über die authId in famEnsureSelfMember(). */
+  if (typeof famDedupeMembers === 'function') famDedupeMembers();   // Altlasten/Doppelte lokal sofort aufräumen
 }
 const famMember = (id) => store.family.members.find(m => m.id === id);
-/* Aktuellen Nutzer als Familienmitglied sicherstellen (beide Konten automatisch gelistet), auch nach dem Beitreten. */
+/* Doppelte Mitglieder aufräumen: pro authId nur EINES; authId-lose Mitglieder, deren Name
+   einem authId-Mitglied gleicht, entfernen (Altlasten aus dem alten Umbenennungs-Bug).
+   Manuell angelegte Personen (Kinder o. Ä.) ohne Namensdopplung bleiben unangetastet. */
+function famDedupeMembers() {
+  const ms = (store.family && store.family.members) || [];
+  const seen = {}, step1 = [];
+  ms.forEach(m => { if (m && m.authId) { if (seen[m.authId]) return; seen[m.authId] = 1; } step1.push(m); });
+  const authNames = step1.filter(m => m.authId).map(m => (m.name || '').trim().toLowerCase());
+  const cleaned = step1.filter(m => m.authId || authNames.indexOf((m.name || '').trim().toLowerCase()) < 0);
+  if (cleaned.length !== ms.length) { store.family.members = cleaned; save(); return true; }
+  return false;
+}
+/* Aktuellen Nutzer als Familienmitglied sicherstellen (beide Konten automatisch gelistet), auch nach dem Beitreten.
+   Identität ausschließlich über authId (Supabase-User-ID) – benennt NIE fremde Mitglieder um. */
 function famEnsureSelfMember() {
   if (!store.family || !store.family.code || !CLOUD) return false;
   const myId = famSelfId(); if (!myId) return false;
   ensureFamily();
+  let changed = famDedupeMembers();
   const ms = store.family.members;
-  const existing = ms.find(m => m.authId === myId);
-  if (existing) { if (account && account.name && existing.name !== account.name) { existing.name = account.name; save(); } return false; }
-  const myName = (account && account.name) || store.name || '';
-  const orphan = myName ? ms.find(m => !m.authId && (m.name || '').toLowerCase() === myName.toLowerCase()) : null;
-  if (orphan) { orphan.authId = myId; }
-  else ms.push({ id: uid(), authId: myId, name: myName || 'Ich', role: ms.some(m => m.role === 'owner') ? 'adult' : 'owner', color: KID_COLORS[ms.length % KID_COLORS.length], birthday: (account && account.birthday) || '', aiUsed: 0 });
+  const me = ms.find(m => m.authId === myId);
+  if (me) {   // bin schon dabei → nur meinen eigenen Namen/Geburtstag aktuell halten
+    if (account && account.name && me.name !== account.name) { me.name = account.name; changed = true; }
+    if (account && account.birthday && !me.birthday) { me.birthday = account.birthday; changed = true; }
+    if (changed) save();
+    return changed;
+  }
+  const myName = ((account && account.name) || store.name || '').trim().toLowerCase();
+  /* Ein authId-loses Mitglied übernehmen, aber NUR wenn der Name eindeutig ich bin
+     (oder generisches „Ich" beim frisch erstellten Owner) – niemals eine fremde Person. */
+  let claim = myName ? ms.find(m => !m.authId && (m.name || '').trim().toLowerCase() === myName) : null;
+  if (!claim) claim = ms.find(m => !m.authId && /^(ich|me)$/i.test((m.name || '').trim()));
+  if (claim) { claim.authId = myId; if (account && account.name) claim.name = account.name; }
+  else ms.push({ id: uid(), authId: myId, name: (account && account.name) || store.name || 'Ich', role: ms.some(m => m.role === 'owner') ? 'adult' : 'owner', color: KID_COLORS[ms.length % KID_COLORS.length], birthday: (account && account.birthday) || '', aiUsed: 0 });
   save();
   return true;   // etwas geändert → Aufrufer pusht
 }
