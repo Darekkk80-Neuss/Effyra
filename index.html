@@ -1529,7 +1529,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   </defs>
 </svg>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js" integrity="sha384-sgcvElP/LlNRtORGYFLO/9K/bENcpJK19HgvqslWXog6d8f/Va4TpltGiBlGntCM" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 (() => {
 'use strict';
@@ -1540,6 +1540,10 @@ const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+/* Aus (evtl. gesyncten) Familiendaten nur wohlgeformte Werte in HTML-Attribute lassen –
+   verhindert Attribut-Injection, falls jemand den geteilten Blob manipuliert. */
+const safeColor = (c) => /^#[0-9a-fA-F]{3,8}$/.test(String(c == null ? '' : c).trim()) ? String(c).trim() : '#64748b';
+const safePrio = (p) => (p === 'low' || p === 'high') ? p : 'med';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -3233,7 +3237,7 @@ RENDERERS.dashboard = function () {
   $('#statRow').innerHTML = stat(open, 'Offen', 'tasks', 0) + stat(evToday, 'Heute', 'calendar', 1) + stat(store.docs.length, 'Dokumente', 'docs', 2) + stat(attention, 'Fällig', 'tasks', 3);
 
   const dsec = (title, go, goLabel, body, attrs) => '<section class="dash-section"><div class="dsec-head"><span class="dsec-title">' + title + '</span>' + (go ? '<button data-go="' + go + '"' + (attrs || '') + '>' + (goLabel || 'Alle anzeigen') + '</button>' : '') + '</div><div class="dsec-body">' + body + '</div></section>';
-  const drow = o => { const tag = o.go ? 'button' : 'div'; const ic = o.svg ? '<svg viewBox="0 0 24 24"><use href="#' + o.svg + '"/></svg>' : (o.emoji || ''); return '<' + tag + ' class="drow"' + (o.go ? ' data-go="' + o.go + '"' + (o.attrs || '') : '') + '><span class="drow-ic"' + (o.iconColor ? ' style="color:' + o.iconColor + '"' : '') + '>' + ic + '</span><span class="drow-tx"><b>' + esc(o.title) + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</span>' + (o.chip ? '<span class="chip-status ' + o.chip.cls + '">' + esc(o.chip.text) + '</span>' : (o.meta ? '<span class="drow-meta">' + esc(o.meta) + '</span>' : '')) + '</' + tag + '>'; };
+  const drow = o => { const tag = o.go ? 'button' : 'div'; const ic = o.svg ? '<svg viewBox="0 0 24 24"><use href="#' + o.svg + '"/></svg>' : (o.emoji || ''); return '<' + tag + ' class="drow"' + (o.go ? ' data-go="' + o.go + '"' + (o.attrs || '') : '') + '><span class="drow-ic"' + (o.iconColor ? ' style="color:' + safeColor(o.iconColor) + '"' : '') + '>' + ic + '</span><span class="drow-tx"><b>' + esc(o.title) + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</span>' + (o.chip ? '<span class="chip-status ' + o.chip.cls + '">' + esc(o.chip.text) + '</span>' : (o.meta ? '<span class="drow-meta">' + esc(o.meta) + '</span>' : '')) + '</' + tag + '>'; };
 
   let html = '';
 
@@ -3279,7 +3283,7 @@ RENDERERS.dashboard = function () {
     const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
     return '<div class="drow drow-check">' +
       '<button class="tcheck" data-ftoggle="' + t.id + '" title="Als erledigt abhaken" aria-label="Als erledigt abhaken"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-      '<span class="drow-tx" data-go="family" data-tab="ftasks" role="button" tabindex="0" style="color:' + (m ? m.color : '#64748b') + '"><b style="color:var(--text)">' + esc(t.title) + '</b><span>➜ ' + esc(m ? m.name : TT('fmt.whole_family')) + (t.due ? ' · ' + esc(dueTxt(t.due)) : '') + '</span></span>' +
+      '<span class="drow-tx" data-go="family" data-tab="ftasks" role="button" tabindex="0" style="color:' + safeColor(m ? m.color : '#64748b') + '"><b style="color:var(--text)">' + esc(t.title) + '</b><span>➜ ' + esc(m ? m.name : TT('fmt.whole_family')) + (t.due ? ' · ' + esc(dueTxt(t.due)) : '') + '</span></span>' +
       chip + '</div>';
   }).join(''), ' data-tab="ftasks"');
 
@@ -3523,7 +3527,7 @@ function kidCard(kid) {
   const sec = kidSection[kid.id] || 'plan';
   const tabs = [['plan', '📅 Plan'], ['termine', '🩺 Termine'], ['hobbys', '⚽ Hobbys'], ['pack', '🎒 Packen']];
   let h = '<div class="card kid-card" data-kid="' + kid.id + '">' +
-    '<div class="kid-head"><span class="kid-dot" style="background:' + kid.color + '"></span><h3>' + esc(kid.name) + '</h3>' +
+    '<div class="kid-head"><span class="kid-dot" style="background:' + safeColor(kid.color) + '"></span><h3>' + esc(kid.name) + '</h3>' +
     '<button class="t-del" data-act="delKid" title="Kind entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
     '<div class="seg kid-tabs">' + tabs.map(x => '<button data-sec="' + x[0] + '" class="' + (sec === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
   h += sec === 'termine' ? kidTermine(kid) : sec === 'hobbys' ? kidHobbys(kid) : sec === 'pack' ? kidPack(kid) : kidPlan(kid);
@@ -4732,7 +4736,7 @@ function famAiPanel() {
   let h = '<div class="note-box" style="margin-bottom:14px"><b>🤖 Familien-KI-Kontingent</b>' +
     '<div class="quota-bar"><div class="quota-fill ' + (pct >= 100 ? 'full' : pct >= 90 ? 'warn' : '') + '" style="width:' + pct + '%"></div></div>' +
     '<span class="sub">' + used + ' / ' + limit + ' Credits · Reset ' + esc(reset) + '</span>';
-  adults.forEach(m => { h += '<div class="fam-ai-row"><span class="kid-dot" style="background:' + m.color + '"></span>' + esc(m.name) + (m.role === 'owner' ? ' 👑' : '') + '<b>' + (m.aiUsed || 0) + '</b></div>'; });
+  adults.forEach(m => { h += '<div class="fam-ai-row"><span class="kid-dot" style="background:' + safeColor(m.color) + '"></span>' + esc(m.name) + (m.role === 'owner' ? ' 👑' : '') + '<b>' + (m.aiUsed || 0) + '</b></div>'; });
   h += '<div class="sub" style="margin-top:6px">Nur Erwachsene verbrauchen KI – Kinder haben keinen KI-Zugriff.</div>' + creditTableHtml() + '</div>';
   return h;
 }
@@ -4758,7 +4762,7 @@ function famPersonen() {
     const meta = FAM_ROLE_META[m.role] || FAM_ROLE_META.adult;
     const age = ageFrom(m.birthday);
     const sub = meta.icon + ' ' + t('role.' + m.role) + (age != null && age >= 0 ? ' · ' + age + ' ' + t('fmt.years_short') : '') + ' · ' + (m.role === 'child' ? t('role.ai_off') : t('role.ai_on'));
-    h += '<div class="mem"><span class="kid-dot" style="background:' + m.color + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b><span>' + sub + '</span></div>' +
+    h += '<div class="mem"><span class="kid-dot" style="background:' + safeColor(m.color) + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b><span>' + sub + '</span></div>' +
       (m.role === 'owner'
         ? '<span class="badge b-premium" title="Administrator">👑 Admin</span>'
         : '<button class="t-del" data-fam="delMem" data-id="' + m.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button>') +
@@ -4799,7 +4803,7 @@ function famMeds() {
     if (times.length) tHtml = '<div class="med-times">' + times.map(t => isToday
       ? '<button class="med-chk' + (medIsTaken(md.id, t) ? ' on' : '') + '" data-fam="tglMed" data-id="' + md.id + '" data-t="' + t + '">' + (medIsTaken(md.id, t) ? '✓' : '○') + ' ' + t + '</button>'
       : '<span class="med-badge">' + t + '</span>').join('') + '</div>';
-    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>💊 ' + esc(md.name) + '</b><span>' + line + '</span>' + tHtml + '</div>' +
+    h += '<div class="mem"><span class="kid-dot" style="background:' + safeColor(m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>💊 ' + esc(md.name) + '</b><span>' + line + '</span>' + tHtml + '</div>' +
       '<button class="t-del" data-fam="delMed" data-id="' + md.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
@@ -4861,9 +4865,9 @@ function famTasks() {
     const iAmAssignee = m && myId && m.authId === myId, iRead = myId && readBy.indexOf(myId) >= 0;
     h += '<div class="task' + (t.done ? ' done' : '') + '">' +
       '<button class="tcheck" data-fam="toggleFTask" data-id="' + t.id + '" title="Erledigt" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-      '<span class="prio prio-' + (t.prio || 'med') + '"></span>' +
+      '<span class="prio prio-' + safePrio(t.prio) + '"></span>' +
       '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
-      '<div class="t-meta"><span class="fam-assignee"' + (m ? ' style="color:' + m.color + '"' : '') + '>' + (m ? esc(m.name) : '👪 Familie') + '</span>' +
+      '<div class="t-meta"><span class="fam-assignee"' + (m ? ' style="color:' + safeColor(m.color) + '"' : '') + '>' + (m ? esc(m.name) : '👪 Familie') + '</span>' +
       (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + (t.time ? ' ' + esc(oclock(t.time)) : '') + '</span>' : (t.time ? '<span>· ' + esc(oclock(t.time)) + '</span>' : '')) +
       (readByAssignee && !t.done ? '<span class="fam-read">👁 gelesen</span>' : '') + '</div></div>' +
       (iAmAssignee && !iRead && !t.done ? '<button class="fam-readbtn" data-fam="readFTask" data-id="' + t.id + '" title="Als gelesen bestätigen">👁 Gelesen</button>' : '') +
@@ -4880,7 +4884,7 @@ function famKalender() {
   if (!evs.length) h += '<div class="empty" style="padding:10px">Noch keine Familientermine.</div>';
   evs.forEach(e => {
     const m = famMember(e.famId);
-    h += '<div class="mem"><span class="kid-dot" style="background:' + (m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>' + esc(e.title) + '</b>' +
+    h += '<div class="mem"><span class="kid-dot" style="background:' + safeColor(m ? m.color : '#64748b') + '"></span><div class="mem-info"><b>' + esc(e.title) + '</b>' +
       '<span>' + esc(fmtDate(e.date)) + (e.time ? ' · ' + esc(e.time) + ' Uhr' : '') + (m ? ' · ' + esc(m.name) : '') + '</span></div>' +
       '<button class="t-del" data-fam="delEv" data-id="' + e.id + '"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
@@ -4893,7 +4897,7 @@ function famAnlaesse() {
   let h = '<div class="sec-title"><h2>🎂 Geburtstage</h2></div>';
   if (!bdays.length) h += '<div class="empty" style="padding:10px">Trage bei den Personen Geburtstage ein.</div>';
   bdays.forEach(b => {
-    h += '<div class="mem"><span class="kid-dot" style="background:' + b.color + '"></span><div class="mem-info"><b>' + esc(b.name) + '</b>' +
+    h += '<div class="mem"><span class="kid-dot" style="background:' + safeColor(b.color) + '"></span><div class="mem-info"><b>' + esc(b.name) + '</b>' +
       '<span>' + esc(fmtDate(b.next)) + ' · wird ' + b.age + '</span></div><div class="mini-when' + (dayDiff(b.next) <= 14 ? ' warn' : '') + '">' + relDay(b.next) + '</div></div>';
   });
   h += '<div class="sec-title" style="margin-top:16px"><h2>💍 Wichtige Ereignisse</h2></div>' +
