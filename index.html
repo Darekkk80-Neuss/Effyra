@@ -1516,6 +1516,9 @@ const relDay = (iso) => {
   if (n <= 14) return t('date.in_days', { n: n });
   return fmtDateShort(iso);
 };
+/* Lokalisierte Bausteine für zusammengesetzte Strings (Deutsch nur bei curLang='de') */
+const oclock = (tm) => tm ? t('fmt.oclock', { t: tm }) : '';                                   // „07:00 Uhr" / „07:00"
+const dueTxt = (iso) => dayDiff(iso) < 0 ? t('fmt.overdue') + ' · ' + relDay(iso) : t('fmt.due', { d: relDay(iso) });
 
 function toast(msg, ms) {
   const t = document.createElement('div');
@@ -1674,6 +1677,7 @@ const LANGS = [
 const I18N = {
   de: {
     'date.today': 'heute', 'date.tomorrow': 'morgen', 'date.yesterday': 'gestern', 'date.days_ago': 'vor {n} Tagen', 'date.in_days': 'in {n} Tagen',
+    'fmt.oclock': '{t} Uhr', 'fmt.allday': 'Ganztägig', 'fmt.due': 'fällig {d}', 'fmt.overdue': 'überfällig', 'fmt.nodate': 'ohne Datum', 'fmt.once_today': 'einmalig heute', 'fmt.daily': 'täglich', 'fmt.turns': 'wird {n}', 'fmt.whole_family': '👪 ganze Familie', 'fmt.deadline': 'Frist {d}',
     'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
     'tab.start': 'Start', 'tab.assistant': 'Assistent', 'tab.tasks': 'Aufgaben',
     'dash.morning': 'Guten Morgen', 'dash.day': 'Guten Tag', 'dash.evening': 'Guten Abend', 'dash.night': 'Gute Nacht',
@@ -1688,6 +1692,7 @@ const I18N = {
   },
   en: {
     'date.today': 'today', 'date.tomorrow': 'tomorrow', 'date.yesterday': 'yesterday', 'date.days_ago': '{n} days ago', 'date.in_days': 'in {n} days',
+    'fmt.oclock': '{t}', 'fmt.allday': 'All day', 'fmt.due': 'due {d}', 'fmt.overdue': 'overdue', 'fmt.nodate': 'no date', 'fmt.once_today': 'once today', 'fmt.daily': 'daily', 'fmt.turns': 'turns {n}', 'fmt.whole_family': '👪 whole family', 'fmt.deadline': 'deadline {d}',
     'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
     'tab.start': 'Home', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tasks',
     'dash.morning': 'Good morning', 'dash.day': 'Hello', 'dash.evening': 'Good evening', 'dash.night': 'Good night',
@@ -1702,6 +1707,7 @@ const I18N = {
   },
   fr: {
     'date.today': "aujourd'hui", 'date.tomorrow': 'demain', 'date.yesterday': 'hier', 'date.days_ago': 'il y a {n} jours', 'date.in_days': 'dans {n} jours',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Toute la journée', 'fmt.due': 'échéance {d}', 'fmt.overdue': 'en retard', 'fmt.nodate': 'sans date', 'fmt.once_today': "une fois aujourd'hui", 'fmt.daily': 'quotidien', 'fmt.turns': 'aura {n} ans', 'fmt.whole_family': '👪 toute la famille', 'fmt.deadline': 'échéance {d}',
     'nav.dashboard': 'Accueil', 'nav.work': 'Temps de travail', 'nav.docs': 'Scanner de documents', 'nav.docgen': 'Assistant de documents', 'nav.life': 'Situations de vie', 'nav.tasks': 'Tâches', 'nav.calendar': 'Calendrier', 'nav.school': 'Enfants', 'nav.family': 'Espace famille', 'nav.emergency': 'Urgences', 'nav.vehicles': 'Auto & Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Paramètres', 'nav.more': 'Plus',
     'tab.start': 'Accueil', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tâches',
     'dash.morning': 'Bonjour', 'dash.day': 'Bonjour', 'dash.evening': 'Bonsoir', 'dash.night': 'Bonne nuit',
@@ -1716,6 +1722,7 @@ const I18N = {
   },
   es: {
     'date.today': 'hoy', 'date.tomorrow': 'mañana', 'date.yesterday': 'ayer', 'date.days_ago': 'hace {n} días', 'date.in_days': 'en {n} días',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Todo el día', 'fmt.due': 'vence {d}', 'fmt.overdue': 'vencido', 'fmt.nodate': 'sin fecha', 'fmt.once_today': 'una vez hoy', 'fmt.daily': 'a diario', 'fmt.turns': 'cumple {n}', 'fmt.whole_family': '👪 toda la familia', 'fmt.deadline': 'plazo {d}',
     'nav.dashboard': 'Inicio', 'nav.work': 'Horario laboral', 'nav.docs': 'Escáner de documentos', 'nav.docgen': 'Asistente de documentos', 'nav.life': 'Situaciones de vida', 'nav.tasks': 'Tareas', 'nav.calendar': 'Calendario', 'nav.school': 'Niños', 'nav.family': 'Centro familiar', 'nav.emergency': 'Emergencia', 'nav.vehicles': 'Coche y Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ajustes', 'nav.more': 'Más',
     'tab.start': 'Inicio', 'tab.assistant': 'Asistente', 'tab.tasks': 'Tareas',
     'dash.morning': 'Buenos días', 'dash.day': 'Hola', 'dash.evening': 'Buenas tardes', 'dash.night': 'Buenas noches',
@@ -1730,6 +1737,7 @@ const I18N = {
   },
   it: {
     'date.today': 'oggi', 'date.tomorrow': 'domani', 'date.yesterday': 'ieri', 'date.days_ago': '{n} giorni fa', 'date.in_days': 'tra {n} giorni',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Tutto il giorno', 'fmt.due': 'scade {d}', 'fmt.overdue': 'in ritardo', 'fmt.nodate': 'senza data', 'fmt.once_today': 'una volta oggi', 'fmt.daily': 'ogni giorno', 'fmt.turns': 'compie {n}', 'fmt.whole_family': '👪 tutta la famiglia', 'fmt.deadline': 'scadenza {d}',
     'nav.dashboard': 'Home', 'nav.work': 'Orario di lavoro', 'nav.docs': 'Scanner documenti', 'nav.docgen': 'Assistente documenti', 'nav.life': 'Situazioni di vita', 'nav.tasks': 'Attività', 'nav.calendar': 'Calendario', 'nav.school': 'Bambini', 'nav.family': 'Area famiglia', 'nav.emergency': 'Emergenza', 'nav.vehicles': 'Auto & Moto', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Impostazioni', 'nav.more': 'Altro',
     'tab.start': 'Home', 'tab.assistant': 'Assistente', 'tab.tasks': 'Attività',
     'dash.morning': 'Buongiorno', 'dash.day': 'Ciao', 'dash.evening': 'Buonasera', 'dash.night': 'Buonanotte',
@@ -1744,6 +1752,7 @@ const I18N = {
   },
   pl: {
     'date.today': 'dziś', 'date.tomorrow': 'jutro', 'date.yesterday': 'wczoraj', 'date.days_ago': '{n} dni temu', 'date.in_days': 'za {n} dni',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Cały dzień', 'fmt.due': 'termin {d}', 'fmt.overdue': 'zaległe', 'fmt.nodate': 'bez daty', 'fmt.once_today': 'jednorazowo dziś', 'fmt.daily': 'codziennie', 'fmt.turns': 'kończy {n}', 'fmt.whole_family': '👪 cała rodzina', 'fmt.deadline': 'termin {d}',
     'nav.dashboard': 'Start', 'nav.work': 'Czas pracy', 'nav.docs': 'Skaner dokumentów', 'nav.docgen': 'Asystent dokumentów', 'nav.life': 'Sytuacje życiowe', 'nav.tasks': 'Zadania', 'nav.calendar': 'Kalendarz', 'nav.school': 'Dzieci', 'nav.family': 'Centrum rodziny', 'nav.emergency': 'Nagły wypadek', 'nav.vehicles': 'Auto i Motocykl', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ustawienia', 'nav.more': 'Więcej',
     'tab.start': 'Start', 'tab.assistant': 'Asystent', 'tab.tasks': 'Zadania',
     'dash.morning': 'Dzień dobry', 'dash.day': 'Cześć', 'dash.evening': 'Dobry wieczór', 'dash.night': 'Dobranoc',
@@ -1763,6 +1772,8 @@ function t(key, vars) {
   if (vars) Object.keys(vars).forEach(k => { s = s.split('{' + k + '}').join(vars[k]); });
   return s;
 }
+/* Alias der Übersetzungsfunktion für Stellen, an denen „t" als Schleifenvariable (Aufgabe) belegt ist. */
+const TT = (key, vars) => t(key, vars);
 const langMeta = (code) => LANGS.find(l => l.code === code) || LANGS[0];
 /* Sprachname in der aktuell verwendeten Sprache (via Intl.DisplayNames, Fallback native) */
 function langNameIn(code, inLocale) {
@@ -1976,7 +1987,49 @@ const TDICT_SRC = {
   'Über Effyra': { en: 'About Effyra', fr: 'À propos d’Effyra', es: 'Acerca de Effyra', it: 'Informazioni su Effyra', pl: 'O Effyra' },
   'Alles bleibt lokal auf deinem Gerät.': { en: 'Everything stays local on your device.', fr: 'Tout reste en local sur votre appareil.', es: 'Todo permanece local en tu dispositivo.', it: 'Tutto resta locale sul tuo dispositivo.', pl: 'Wszystko pozostaje lokalnie na Twoim urządzeniu.' },
   '🌐 Sprache & Region': { en: '🌐 Language & Region', fr: '🌐 Langue & Région', es: '🌐 Idioma y Región', it: '🌐 Lingua e Regione', pl: '🌐 Język i Region' },
-  'Sprache ändern': { en: 'Change language', fr: 'Changer de langue', es: 'Cambiar idioma', it: 'Cambia lingua', pl: 'Zmień język' }
+  'Sprache ändern': { en: 'Change language', fr: 'Changer de langue', es: 'Cambiar idioma', it: 'Cambia lingua', pl: 'Zmień język' },
+  /* Dashboard-Sektionen & Aktionslabels */
+  '☀️ Heute': { en: '☀️ Today', fr: "☀️ Aujourd'hui", es: '☀️ Hoy', it: '☀️ Oggi', pl: '☀️ Dziś' },
+  '💊 Medikamente heute': { en: '💊 Medication today', fr: '💊 Médicaments du jour', es: '💊 Medicación hoy', it: '💊 Farmaci di oggi', pl: '💊 Leki na dziś' },
+  '👪 Familienaufgaben': { en: '👪 Family tasks', fr: '👪 Tâches familiales', es: '👪 Tareas familiares', it: '👪 Attività di famiglia', pl: '👪 Zadania rodzinne' },
+  '💰 Finanzen': { en: '💰 Finances', fr: '💰 Finances', es: '💰 Finanzas', it: '💰 Finanze', pl: '💰 Finanse' },
+  '👪 Familie': { en: '👪 Family', fr: '👪 Famille', es: '👪 Familia', it: '👪 Famiglia', pl: '👪 Rodzina' },
+  '📄 Dokumente': { en: '📄 Documents', fr: '📄 Documents', es: '📄 Documentos', it: '📄 Documenti', pl: '📄 Dokumenty' },
+  'Verwalten': { en: 'Manage', fr: 'Gérer', es: 'Gestionar', it: 'Gestisci', pl: 'Zarządzaj' },
+  'Plan': { en: 'Plan', fr: 'Planning', es: 'Plan', it: 'Piano', pl: 'Plan' },
+  /* Dashboard-Statistik */
+  'Offen': { en: 'Open', fr: 'Ouvertes', es: 'Abiertas', it: 'Aperte', pl: 'Otwarte' },
+  'Heute': { en: 'Today', fr: "Aujourd'hui", es: 'Hoy', it: 'Oggi', pl: 'Dziś' },
+  'Fällig': { en: 'Due', fr: 'À échéance', es: 'Pendiente', it: 'In scadenza', pl: 'Pilne' },
+  /* Finanz-Kachel */
+  'verbleibend diesen Monat': { en: 'remaining this month', fr: 'restant ce mois-ci', es: 'restante este mes', it: 'rimanente questo mese', pl: 'pozostało w tym miesiącu' },
+  'Einnahmen': { en: 'Income', fr: 'Revenus', es: 'Ingresos', it: 'Entrate', pl: 'Przychody' },
+  'Ausgaben': { en: 'Expenses', fr: 'Dépenses', es: 'Gastos', it: 'Uscite', pl: 'Wydatki' },
+  /* Leerzustände */
+  'Für heute steht nichts Dringendes an. Genieß den Tag. 🌿': { en: 'Nothing urgent for today. Enjoy your day. 🌿', fr: "Rien d'urgent pour aujourd'hui. Profitez de votre journée. 🌿", es: 'Nada urgente para hoy. Disfruta el día. 🌿', it: 'Niente di urgente per oggi. Goditi la giornata. 🌿', pl: 'Nic pilnego na dziś. Miłego dnia. 🌿' },
+  'Noch nichts erledigt.': { en: 'Nothing done yet.', fr: 'Rien de fait pour l’instant.', es: 'Nada hecho todavía.', it: 'Ancora niente fatto.', pl: 'Jeszcze nic nie zrobiono.' },
+  'Alles erledigt – genieß den Tag!': { en: 'All done – enjoy your day!', fr: 'Tout est fait – profitez de votre journée !', es: '¡Todo hecho, disfruta el día!', it: 'Tutto fatto – goditi la giornata!', pl: 'Wszystko zrobione – miłego dnia!' },
+  /* Status-Chips */
+  'Überfällig': { en: 'Overdue', fr: 'En retard', es: 'Vencido', it: 'In ritardo', pl: 'Zaległe' },
+  'offen': { en: 'pending', fr: 'à prendre', es: 'pendiente', it: 'da prendere', pl: 'do zażycia' },
+  '✓ genommen': { en: '✓ taken', fr: '✓ pris', es: '✓ tomado', it: '✓ preso', pl: '✓ zażyte' },
+  /* Aufgaben-Herkunft (Badges) */
+  'aus Dokument': { en: 'from document', fr: 'du document', es: 'del documento', it: 'dal documento', pl: 'z dokumentu' },
+  'aus Chat': { en: 'from chat', fr: 'du chat', es: 'del chat', it: 'dalla chat', pl: 'z czatu' },
+  'aus Lebenslage': { en: 'from life situation', fr: 'de situation de vie', es: 'de situación de vida', it: 'da situazione di vita', pl: 'z sytuacji życiowej' },
+  'Familie': { en: 'Family', fr: 'Famille', es: 'Familia', it: 'Famiglia', pl: 'Rodzina' },
+  'Fahrzeug': { en: 'Vehicle', fr: 'Véhicule', es: 'Vehículo', it: 'Veicolo', pl: 'Pojazd' },
+  /* Aufgaben-Ansicht */
+  'Alles im Blick – manuell, aus Dokumenten oder aus dem Chat.': { en: 'Everything at a glance – manually, from documents or from chat.', fr: "Tout en un coup d'œil – manuellement, depuis des documents ou le chat.", es: 'Todo a la vista: manualmente, desde documentos o el chat.', it: 'Tutto a colpo d’occhio: manualmente, dai documenti o dalla chat.', pl: 'Wszystko na widoku – ręcznie, z dokumentów lub z czatu.' },
+  'Neue Aufgabe …': { en: 'New task …', fr: 'Nouvelle tâche …', es: 'Nueva tarea …', it: 'Nuova attività …', pl: 'Nowe zadanie …' },
+  'Fällig am': { en: 'Due date', fr: "Date d'échéance", es: 'Fecha de vencimiento', it: 'Scadenza', pl: 'Termin' },
+  'Priorität': { en: 'Priority', fr: 'Priorité', es: 'Prioridad', it: 'Priorità', pl: 'Priorytet' },
+  'Mittel': { en: 'Medium', fr: 'Moyenne', es: 'Media', it: 'Media', pl: 'Średni' },
+  'Hoch': { en: 'High', fr: 'Haute', es: 'Alta', it: 'Alta', pl: 'Wysoki' },
+  'Niedrig': { en: 'Low', fr: 'Basse', es: 'Baja', it: 'Bassa', pl: 'Niski' },
+  'Erledigt': { en: 'Done', fr: 'Terminé', es: 'Hecho', it: 'Fatto', pl: 'Zrobione' },
+  /* Untere Navigation */
+  'Vorlagen': { en: 'Templates', fr: 'Modèles', es: 'Plantillas', it: 'Modelli', pl: 'Szablony' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -1986,8 +2039,10 @@ const TDICT = {};
   Object.keys(TDICT_SRC).forEach(de => { const v = TDICT_SRC[de][L]; if (v) TDICT[L][de] = v; });
 });
 
-/* KI-Cache (dauerhaft) */
-const I18N_CACHE_KEY = 'effyra_i18n_cache';
+/* Kernsprachen mit vollständigem statischem Wörterbuch → KEIN KI-Übersetzen (deterministisch, keine Fehlübersetzungen wie „Mtsbh") */
+const CORE_LANGS = ['de', 'en', 'fr', 'es', 'it', 'pl'];
+/* KI-Cache (dauerhaft) – v2: alter Cache (mit möglichen Fehlübersetzungen) wird verworfen */
+const I18N_CACHE_KEY = 'effyra_i18n_cache_v2';
 let aiCache = (function () { try { return JSON.parse(localStorage.getItem(I18N_CACHE_KEY)) || {}; } catch (e) { return {}; } })();
 function saveAiCache() { try { localStorage.setItem(I18N_CACHE_KEY, JSON.stringify(aiCache)); } catch (e) {} }
 
@@ -1999,6 +2054,7 @@ let aiInFlight = false, sweepTimer = null, i18nObserver = null;
 
 function lookupTr(g) {
   const d = TDICT[curLang]; if (d && d[g] != null) return d[g];
+  if (CORE_LANGS.indexOf(curLang) > -1) return null;   // Kernsprachen: nur statisches Wörterbuch, kein KI-Cache
   const c = aiCache[curLang]; if (c && c[g] != null) return c[g];
   return null;
 }
@@ -2070,6 +2126,13 @@ function restoreGerman(root) {
   });
 }
 
+/* Sofortiges, synchrones Übersetzen (Observer kurz aus, damit keine Endlosschleife entsteht). */
+function sweepNow(root) {
+  if (curLang === 'de') return;
+  if (i18nObserver) i18nObserver.disconnect();
+  try { i18nSweep(root || document.body); } catch (e) {}
+  if (i18nObserver) { i18nObserver.takeRecords(); i18nObserver.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS }); }
+}
 function scheduleSweep() {
   if (curLang === 'de') return;
   clearTimeout(sweepTimer);
@@ -2089,6 +2152,7 @@ function stopI18nObserver() { if (i18nObserver) i18nObserver.disconnect(); }
 
 async function flushAI() {
   if (aiInFlight || curLang === 'de') return;
+  if (CORE_LANGS.indexOf(curLang) > -1) { pendingStrings.clear(); return; }   // Kernsprachen: vollständig statisch, kein KI-Übersetzen
   if (!hasKey()) { pendingStrings.clear(); return; }   // Demo-Modus: kein KI-Abruf, Rest bleibt Deutsch
   const batch = Array.from(pendingStrings).slice(0, 100);
   if (!batch.length) return;
@@ -2135,6 +2199,7 @@ function showView(name) {
   $('#moreTab').classList.toggle('active', MORE_VIEWS.includes(name));
   const bb = $('#backBtn'); if (bb) bb.style.display = (name === 'dashboard') ? 'none' : 'inline-flex';
   if (RENDERERS[name]) RENDERERS[name]();
+  if (curLang !== 'de') sweepNow($('#view-' + name));   // neu aktivierte (auch statische) Ansicht sofort übersetzen
   window.scrollTo(0, 0);
 }
 /* Eine Seite zurück (Verlauf); ohne Verlauf → Dashboard */
@@ -2785,7 +2850,7 @@ RENDERERS.dashboard = function () {
 
   /* HEUTE – Fokus: was heute/dringend zählt */
   const focus = [];
-  evTodayList.forEach(e => focus.push({ svg: 'icCal', title: e.title, sub: e.time ? e.time + ' Uhr' : 'Ganztägig', chip: { cls: 'chip-accent', text: 'Heute' }, go: 'calendar', k: '1' + (e.time || '00:00') }));
+  evTodayList.forEach(e => focus.push({ svg: 'icCal', title: e.title, sub: e.time ? oclock(e.time) : t('fmt.allday'), chip: { cls: 'chip-accent', text: 'Heute' }, go: 'calendar', k: '1' + (e.time || '00:00') }));
   store.tasks.filter(t => !t.done && t.due && dayDiff(t.due) <= 0).forEach(t => { const late = dayDiff(t.due) < 0; focus.push({ svg: 'icCheck2', title: t.title, sub: late ? 'überfällig' : 'heute fällig', chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? 'Überfällig' : 'Heute' }, go: 'tasks', k: late ? '0' : '2' }); });
   (store.vehicles || []).filter(v => v.tuev && dayDiff(v.tuev) <= 14).forEach(v => { const late = dayDiff(v.tuev) < 0; focus.push({ emoji: v.type === 'motorrad' ? '🏍️' : '🚗', title: 'HU/TÜV: ' + v.name, sub: fmtDate(v.tuev), chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? 'überfällig' : relDay(v.tuev) }, go: 'vehicles', k: '3' }); });
   focus.sort((a, b) => a.k < b.k ? -1 : 1);
@@ -2805,16 +2870,16 @@ RENDERERS.dashboard = function () {
   if (medRows.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
     emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b',
     title: (r.mm ? r.mm.name + ': ' : '') + r.md.name,
-    sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? r.t + ' Uhr' : (r.md.date ? 'einmalig heute' : 'täglich')),
+    sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : (r.md.date ? t('fmt.once_today') : t('fmt.daily'))),
     chip: r.t ? (r.taken ? { cls: 'chip-ok', text: '✓ genommen' } : { cls: 'chip-warn', text: 'offen' }) : null,
     go: 'family', attrs: ' data-tab="meds"'
   })).join(''), ' data-tab="meds"');
 
-  if (upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + e.time + ' Uhr' : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
+  if (upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + oclock(e.time) : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
 
   /* AUFGABEN – die 3 wichtigsten (ohne die bereits unter „Heute“) */
   const upTasks = openTasksSorted().filter(t => !(t.due && dayDiff(t.due) <= 0)).slice(0, 3);
-  if (upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? 'fällig ' + relDay(t.due) : 'ohne Datum', chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
+  if (upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
 
   /* FAMILIENAUFGABEN – an Mitglieder zugewiesen, hier zur Kontrolle (Überblick, wer was hat) */
   const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done)
@@ -2825,7 +2890,7 @@ RENDERERS.dashboard = function () {
     const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
     return '<div class="drow drow-check">' +
       '<button class="tcheck" data-ftoggle="' + t.id + '" title="Als erledigt abhaken" aria-label="Als erledigt abhaken"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-      '<span class="drow-tx" data-go="family" data-tab="ftasks" role="button" tabindex="0" style="color:' + (m ? m.color : '#64748b') + '"><b style="color:var(--text)">' + esc(t.title) + '</b><span>➜ ' + esc(m ? m.name : '👪 ganze Familie') + (t.due ? ' · ' + esc(late ? 'überfällig' : 'fällig ' + relDay(t.due)) : '') + '</span></span>' +
+      '<span class="drow-tx" data-go="family" data-tab="ftasks" role="button" tabindex="0" style="color:' + (m ? m.color : '#64748b') + '"><b style="color:var(--text)">' + esc(t.title) + '</b><span>➜ ' + esc(m ? m.name : TT('fmt.whole_family')) + (t.due ? ' · ' + esc(dueTxt(t.due)) : '') + '</span></span>' +
       chip + '</div>';
   }).join(''), ' data-tab="ftasks"');
 
@@ -2847,14 +2912,14 @@ RENDERERS.dashboard = function () {
     if (sd) { const sl = lessonSlots(kid, sd); famRows.push({ emoji: '🎒', iconColor: kid.color, title: kid.name + ' · ' + sl[0].start + '–' + sl[sl.length - 1].end, sub: sl.map(s => s.subject).join(', '), meta: lb, go: 'school', k: lb === 'heute' ? '0' : '1' }); }
   });
   store.events.filter(e => e.source === 'kind' && e.date >= today).sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 2).forEach(e => famRows.push({ emoji: '📌', title: e.title, sub: cap(fmtDate(e.date)), meta: relDay(e.date), go: 'school', k: '2' }));
-  ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' wird ' + b.age, sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
+  ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' ' + t('fmt.turns', { n: b.age }), sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
   /* Familienaufgaben haben eine eigene Dashboard-Sektion („👪 Familienaufgaben") – hier nicht doppelt zeigen. */
   famRows.sort((a, b) => a.k < b.k ? -1 : 1);
   if (famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
 
   /* DOKUMENTE – zuletzt analysiert */
   const rdocs = store.docs.slice(-3).reverse();
-  if (rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: 'Frist ' + relDay(d.deadline) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
+  if (rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
 
   $('#dashWidgets').innerHTML = html;
   $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
@@ -2902,7 +2967,7 @@ RENDERERS.tasks = function () {
       '<button class="tcheck" data-act="toggle" title="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
       '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
       '<div class="t-meta"><span class="prio prio-' + esc(t.prio) + '"></span>' +
-      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">' + (late ? 'überfällig · ' : 'fällig ') + esc(relDay(t.due)) + '</span>' : '<span>ohne Datum</span>') +
+      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">' + esc(dueTxt(t.due)) + '</span>' : '<span>' + TT('fmt.nodate') + '</span>') +
       (SOURCE_LABEL[t.source] ? '<span class="src-badge">' + SOURCE_LABEL[t.source] + '</span>' : '') +
       '</div></div>' +
       '<button class="t-del" data-act="del" title="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
