@@ -15,11 +15,12 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const ALLOWED_MODELS = ['gpt-5-mini'];   // im OpenAI-Projekt aktuell freigegeben (gpt-5-nano hat KEINEN Zugriff → nicht nutzen)
+// Im OpenAI-Projekt „Allowed models" freigegeben (exakte IDs). KEIN gpt-5-nano, KEIN whisper-1/tts-1.
+const ALLOWED_MODELS = ['gpt-5-mini', 'gpt-4o-mini-2024-07-18', 'gpt-4.1-mini-2025-04-14'];
 const DEFAULT_MODEL = 'gpt-5-mini';
+const TRANSCRIBE_MODEL = 'gpt-4o-mini-transcribe-2025-12-15';   // Sprache → Text (freigegeben)
+const TTS_MODEL = 'gpt-4o-mini-tts-2025-12-15';                 // Text → Sprache (freigegeben)
 // Modell je Operation – SERVERSEITIG bestimmt (Client kann kein anderes Modell erzwingen).
-// Hinweis: gpt-5-nano ist im Projekt nicht freigeschaltet → überall gpt-5-mini. Sobald nano freigegeben ist,
-// hier question/voice wieder auf 'gpt-5-nano' setzen (günstiger).
 const OP_MODEL: Record<string, string> = {
   question: 'gpt-5-mini',   // KI-Antworten
   voice: 'gpt-5-mini',      // Sprachassistent-Antwort
@@ -97,9 +98,8 @@ Deno.serve(async (req) => {
       form.append('response_format', 'json');
       return fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${OPENAI_API_KEY}` }, body: form });
     };
-    let tr = await doStt('gpt-4o-mini-transcribe');
-    let td: any = await tr.json().catch(() => ({}));
-    if (!tr.ok && isAccessErr(td)) { tr = await doStt('whisper-1'); td = await tr.json().catch(() => ({})); }   // Fallback: klassisches Whisper
+    const tr = await doStt(TRANSCRIBE_MODEL);
+    const td: any = await tr.json().catch(() => ({}));
     if (!tr.ok) return json({ error: 'ai_failed', detail: td?.error?.message || '' }, tr.status);
     return json({ text: td?.text || '', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
   }
@@ -114,13 +114,8 @@ Deno.serve(async (req) => {
       if (instr) b.instructions = 'Sprich auf Deutsch, warm, freundlich und natürlich – wie eine hilfsbereite Freundin, nicht wie eine Werbestimme.';
       return fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` }, body: JSON.stringify(b) });
     };
-    let sr = await doTts('gpt-4o-mini-tts', true);
-    if (!sr.ok) {
-      const se: any = await sr.json().catch(() => ({}));
-      if (isAccessErr(se)) sr = await doTts('tts-1', false);   // Fallback: klassisches tts-1 (ohne instructions)
-      else return json({ error: 'ai_failed', detail: se?.error?.message || '' }, sr.status);
-    }
-    if (!sr.ok) { const se2: any = await sr.json().catch(() => ({})); return json({ error: 'ai_failed', detail: se2?.error?.message || '' }, sr.status); }
+    const sr = await doTts(TTS_MODEL, true);
+    if (!sr.ok) { const se: any = await sr.json().catch(() => ({})); return json({ error: 'ai_failed', detail: se?.error?.message || '' }, sr.status); }
     const buf = new Uint8Array(await sr.arrayBuffer());
     let bin = ''; for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
     return json({ audio: btoa(bin), mime: 'audio/mpeg', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);

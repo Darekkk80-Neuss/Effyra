@@ -5738,9 +5738,7 @@ async function vaSpeak(text) {
   if (!clean) return;
   try { speechSynthesis.cancel(); } catch (e) {}
   if (vaAudioEl) { try { vaAudioEl.pause(); } catch (e) {} vaAudioEl = null; }
-  // Nutzer bevorzugt die Google-/Browser-Stimme → nimm sie, wenn eine gute deutsche Browser-Stimme verfügbar ist
-  if (hasGoodBrowserVoice()) { vaSpeakBrowser(clean); return; }
-  // sonst: echte OpenAI-Stimme (besser als eine robotische lokale Stimme)
+  // Echte OpenAI-Stimme (freigegebenes gpt-4o-mini-tts, warm) bevorzugt; sonst Browser-/Google-Stimme.
   if (AI_VOICE && aiTtsOk && canRealAI()) {
     try {
       const r = await callAudioHosted({ op: 'tts', text: clean, voice: TTS_VOICE });
@@ -5811,12 +5809,11 @@ async function vaRecordOpenAI() {
 }
 async function vaToggleMic() {
   if (vaListening) { vaStopMic(); return; }
-  /* Bevorzugt Browser-Spracherkennung (Google in Chrome/Edge: genau, kostenlos, KEINE OpenAI-Modell-Sperren).
-     Nur wenn der Browser keine Spracherkennung hat, wird die OpenAI-Transkription genutzt. */
-  if (!VASpeechRec) {
-    if (AI_VOICE && aiSttOk && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) return vaRecordOpenAI();
-    toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return;
+  /* Bevorzugt echte OpenAI-Transkription (freigegebenes gpt-4o-mini-transcribe); Browser-Spracherkennung als Fallback. */
+  if (AI_VOICE && aiSttOk && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    return vaRecordOpenAI();
   }
+  if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     vaSetStatus('listening', 'Mikrofon erlauben …');
     try { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach(tr => tr.stop()); }
