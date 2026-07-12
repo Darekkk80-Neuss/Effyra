@@ -780,6 +780,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .va-status.va-listening{color:#22d3ee}
 .va-status.va-processing{color:#a78bfa}
 .va-status.va-acting{color:#34d399}
+.va-status.va-done{color:#34d399}
 .va-row{display:flex;align-items:center;gap:10px}
 .va-row .chat-inputbar{flex:1;margin:0}
 .va-mic{flex:none;width:52px;height:52px;border-radius:50%;border:none;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(124,58,237,.42);cursor:pointer;transition:transform .15s}
@@ -787,6 +788,7 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .va-mic:hover{transform:translateY(-1px)}
 .va-mic:active{transform:scale(.96)}
 .va-mic.rec{background:linear-gradient(135deg,#dc2626,#f87171);animation:micPulse 1.3s ease-in-out infinite}
+.va-mic.vad{background:linear-gradient(135deg,#06b6d4,#3b82f6);animation:none;box-shadow:0 0 0 calc(4px + var(--lvl,0) * 20px) rgba(34,211,238,.30), 0 6px 22px rgba(6,182,212,.45);transition:box-shadow .08s linear}
 .v2p-status{font-size:13.5px;color:var(--muted);font-weight:600;text-align:center}
 .v2p-interim{min-height:20px;font-size:14px;color:var(--faint);font-style:italic;margin-bottom:10px;text-align:center}
 .v2p-hint{margin:0 auto 12px;max-width:520px;font-size:12.5px}
@@ -5833,15 +5835,20 @@ if ('speechSynthesis' in window) { pickBrowserVoice(); try { speechSynthesis.add
 /* --- Status-Anzeige mit Animation --- */
 function vaSetStatus(state, extra) {
   const el = $('#vaStatus'), mic = $('#vaMic');
-  const label = state === 'listening' ? (extra ? '🎧 ' + extra : '🎧 Effyra AI hört zu …')
-    : state === 'processing' ? '🧠 Effyra AI verarbeitet …'
-    : state === 'acting' ? '⚙️ Effyra AI führt aus …' : '';
+  const label = state === 'listening' ? (extra ? '🎧 ' + extra : '🎧 Ich höre zu …')
+    : state === 'processing' ? '🧠 Analysiere …'
+    : state === 'acting' ? '⚙️ Führe Aktion aus …'
+    : state === 'done' ? '✅ Fertig.' : '';
   if (el) { el.textContent = label; el.className = 'va-status' + (state && state !== 'idle' ? ' on va-' + state : ''); }
-  if (mic) mic.classList.toggle('rec', state === 'listening');
+  if (mic && !mic.classList.contains('vad')) mic.classList.toggle('rec', state === 'listening');
 }
 
-/* --- Mikrofon starten/stoppen --- */
-let vaMediaRec = null, vaChunks = [], vaStream = null, vaAutoStop = 0;
+/* --- Mikrofon + Voice Activity Detection (VAD) ---
+   Aufnahme läuft, solange gesprochen wird; nach VAD_SILENCE_MS Stille automatischer Stopp,
+   dann Pipeline: Transkription → Intent/Aktion (sendChat/Agent) → UI-Update → Bestätigung. */
+const VAD_SILENCE_MS = 3000;   // Standard: 3 s Stille → Aufnahme endet
+const VAD_MAX_MS = 25000;      // Sicherheits-Stopp
+let vaMediaRec = null, vaChunks = [], vaStream = null, vaAutoStop = 0, vaAC = null, vaRaf = 0;
 function vaBlobToB64(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -5854,11 +5861,11 @@ function vaPickMime() {
   for (let i = 0; i < cand.length; i++) { try { if (window.MediaRecorder && MediaRecorder.isTypeSupported(cand[i])) return cand[i]; } catch (e) {} }
   return '';
 }
-/* Echte OpenAI-Transkription: tippen = Aufnahme starten, erneut tippen = senden → Proxy → Text → Chat */
-async function vaRecordOpenAI() {
+/* Aufnahme mit VAD: hört automatisch auf, sobald 3 s Stille erkannt werden. */
+async function vaRecordVAD() {
   let stream;
   vaSetStatus('listening', 'Mikrofon erlauben …');
-  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
   catch (e) { toast('🎤 Kein Mikrofon-Zugriff. Bitte für diese Seite erlauben.'); vaSetStatus('idle'); return; }
   vaStream = stream;
   const mime = vaPickMime();
@@ -5866,29 +5873,59 @@ async function vaRecordOpenAI() {
   catch (e) { vaMediaRec = new MediaRecorder(stream); }
   vaChunks = [];
   vaMediaRec.ondataavailable = e => { if (e.data && e.data.size) vaChunks.push(e.data); };
-  vaMediaRec.onstop = async () => {
-    clearTimeout(vaAutoStop);
-    if (vaStream) { vaStream.getTracks().forEach(t => t.stop()); vaStream = null; }
-    const mic = $('#vaMic'); if (mic) mic.classList.remove('rec');
-    const blob = new Blob(vaChunks, { type: (vaMediaRec && vaMediaRec.mimeType) || 'audio/webm' });
-    if (!blob.size) { vaSetStatus('idle'); return; }
-    vaSetStatus('processing');
-    try {
-      const audio = await vaBlobToB64(blob);
-      const r = await callAudioHosted({ op: 'transcribe', audio, mime: blob.type });
-      const t = (r.text || '').trim();
-      if (t) sendChat(t, true); else { vaSetStatus('idle'); toast('Nichts verstanden – bitte nochmal.'); }
-    } catch (e) { aiSttOk = false; vaSetStatus('idle'); noteVoiceFallback(e); toast('🎤 Tippe erneut aufs Mikrofon und sprich – jetzt über die Browser-Erkennung.', 5000); }
-  };
-  try { vaMediaRec.start(); } catch (e) { vaSetStatus('idle'); toast('⚠️ Aufnahme nicht möglich.'); return; }
-  vaListening = true; vaSetStatus('listening', 'Sprich jetzt – tippe erneut zum Senden');
-  vaAutoStop = setTimeout(() => { if (vaListening) vaStopMic(); }, 20000);   // Sicherheits-Stopp nach 20 s
+  vaMediaRec.onstop = vaProcessRecording;
+  const mic = $('#vaMic');
+  try {
+    vaAC = new (window.AudioContext || window.webkitAudioContext)();
+    const src = vaAC.createMediaStreamSource(stream);
+    const an = vaAC.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0.6; src.connect(an);
+    const buf = new Uint8Array(an.fftSize);
+    let noiseFloor = 0.02, calN = 0, spoke = false, lastVoice = performance.now(), started = performance.now();
+    vaMediaRec.start();
+    vaListening = true; if (mic) mic.classList.add('vad'); vaSetStatus('listening', 'Ich höre zu …');
+    const loop = () => {
+      if (!vaListening) return;
+      an.getByteTimeDomainData(buf);
+      let sum = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+      const rms = Math.sqrt(sum / buf.length), now = performance.now(), elapsed = now - started;
+      if (elapsed < 350) { noiseFloor = (noiseFloor * calN + rms) / (calN + 1); calN++; }   // Grundrauschen kalibrieren
+      const thr = Math.max(0.02, noiseFloor * 2.2 + 0.01);
+      if (mic) mic.style.setProperty('--lvl', Math.min(1, Math.max(0, (rms - noiseFloor) * 6)).toFixed(2));   // Live-Pegel
+      if (rms > thr && elapsed > 250) { spoke = true; lastVoice = now; }                     // echte Sprache über Grundrauschen
+      if (spoke && (now - lastVoice) > VAD_SILENCE_MS) { vaStopMic(); return; }               // 3 s Stille → Stopp
+      if (!spoke && elapsed > 8000) { vaStopMic(); return; }                                  // niemand spricht → nach 8 s beenden
+      if (elapsed > VAD_MAX_MS) { vaStopMic(); return; }                                       // Sicherheits-Stopp
+      vaRaf = requestAnimationFrame(loop);
+    };
+    vaRaf = requestAnimationFrame(loop);
+  } catch (e) {   // kein AudioContext → einfacher Zeit-Fallback
+    try { vaMediaRec.start(); } catch (_) {}
+    vaListening = true; if (mic) mic.classList.add('vad'); vaSetStatus('listening', 'Ich höre zu …');
+    vaAutoStop = setTimeout(() => { if (vaListening) vaStopMic(); }, 8000);
+  }
+}
+/* Nach dem (Auto-)Stopp: Audio → Text → Aktion. */
+function vaProcessRecording() {
+  cancelAnimationFrame(vaRaf); clearTimeout(vaAutoStop);
+  if (vaAC) { try { vaAC.close(); } catch (e) {} vaAC = null; }
+  if (vaStream) { vaStream.getTracks().forEach(t => t.stop()); vaStream = null; }
+  const mic = $('#vaMic'); if (mic) { mic.classList.remove('vad', 'rec'); mic.style.removeProperty('--lvl'); }
+  const blob = new Blob(vaChunks, { type: (vaMediaRec && vaMediaRec.mimeType) || 'audio/webm' });
+  if (!blob.size || blob.size < 1400) { vaSetStatus('idle'); toast('Ich konnte nichts verstehen. Bitte versuche es erneut.'); return; }
+  vaSetStatus('processing');   // „Analysiere …"
+  (async () => {
+    let text;
+    try { const audio = await vaBlobToB64(blob); const r = await callAudioHosted({ op: 'transcribe', audio, mime: blob.type }); text = (r.text || '').trim(); }
+    catch (e) { aiSttOk = false; noteVoiceFallback(e); vaSetStatus('idle'); toast('Die Sprache konnte nicht verarbeitet werden.'); return; }
+    if (!text) { vaSetStatus('idle'); toast('Ich konnte nichts verstehen. Bitte versuche es erneut.'); return; }
+    sendChat(text, true);      // Intent-Erkennung → Aktion → Speichern → UI → Bestätigung (+ Sprachausgabe)
+  })();
 }
 async function vaToggleMic() {
-  if (vaListening) { vaStopMic(); return; }
-  /* Bevorzugt echte OpenAI-Transkription (freigegebenes gpt-4o-mini-transcribe); Browser-Spracherkennung als Fallback. */
+  if (vaListening) { vaStopMic(); return; }   // laufende Aufnahme sofort beenden & verarbeiten
+  /* Primär: OpenAI-Transkription mit VAD (freigegebenes gpt-4o-mini-transcribe); sonst Browser-Spracherkennung. */
   if (AI_VOICE && aiSttOk && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    return vaRecordOpenAI();
+    return vaRecordVAD();
   }
   if (!VASpeechRec) { toast('Sprachsteuerung braucht Chrome, Edge oder Safari'); return; }
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -5908,14 +5945,16 @@ async function vaToggleMic() {
   vaRec.onend = () => {
     vaListening = false; const mic = $('#vaMic'); if (mic) mic.classList.remove('rec');
     const t = finalTx.trim();
-    if (t) { vaSetStatus('processing'); sendChat(t, true); } else vaSetStatus('idle');
+    if (t) sendChat(t, true); else vaSetStatus('idle');
   };
-  vaListening = true; vaSetStatus('listening');
+  vaListening = true; vaSetStatus('listening', 'Ich höre zu …');
   try { vaRec.start(); } catch (e) {}
 }
 function vaStopMic() {
+  if (!vaListening && !(vaMediaRec && vaMediaRec.state && vaMediaRec.state !== 'inactive')) return;
   vaListening = false;
-  if (vaMediaRec && vaMediaRec.state !== 'inactive') { try { vaMediaRec.stop(); } catch (e) {} }
+  cancelAnimationFrame(vaRaf); clearTimeout(vaAutoStop);
+  if (vaMediaRec && vaMediaRec.state && vaMediaRec.state !== 'inactive') { try { vaMediaRec.stop(); } catch (e) {} }   // → onstop → vaProcessRecording
   else if (vaRec) { try { vaRec.stop(); } catch (e) {} }
 }
 
@@ -6521,7 +6560,7 @@ async function sendChat(text, spoken) {
   /* 3) Agent (KI erkennt Absicht → führt Aktionen aus) bzw. Demo */
   botTyping = true;
   RENDERERS.chat();
-  vaSetStatus('processing');
+  vaSetStatus(spoken ? 'acting' : 'processing');
   try {
     if (canRealAI()) {
       await agentReply(text);
@@ -6532,10 +6571,12 @@ async function sendChat(text, spoken) {
     if (vaLastSpoken) { const last = store.chat[store.chat.length - 1]; if (last && last.role === 'bot') vaSpeak(last.text); }
   } catch (e) {
     pushBot('⚠️ ' + e.message);
+    if (spoken) toast('Ich habe dich verstanden, konnte die Aktion aber nicht abschließen.');
   } finally {
     botTyping = false;
     if (currentView === 'chat') RENDERERS.chat();
-    vaSetStatus('idle');
+    if (spoken) { vaSetStatus('done'); setTimeout(() => { if (!vaListening) vaSetStatus('idle'); }, 1400); }
+    else vaSetStatus('idle');
   }
 }
 
