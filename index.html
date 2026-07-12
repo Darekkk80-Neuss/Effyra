@@ -732,6 +732,12 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .fam-alert-task span{font-size:12.5px;color:var(--muted)}
 .fam-alert-btns{display:flex;gap:10px}
 .fam-alert-btns .btn{flex:1;min-height:44px}
+.fam-alert-link{margin-top:12px;background:none;border:0;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline;min-height:34px}
+.fam-read{font-size:11.5px;font-weight:700;color:var(--ok, #34d399)}
+:root[data-theme="light"] .fam-read{color:#047857}
+.fam-readbtn{flex:none;align-self:center;border:1px solid var(--border2);background:var(--card2);color:var(--muted);
+  border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;min-height:36px;white-space:nowrap;transition:.15s}
+.fam-readbtn:hover{color:#fff;border-color:#7c3aed;background:rgba(124,58,237,.2)}
 .mem{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:13px;border:1px solid var(--border);background:var(--card);margin-bottom:8px}
 .mem-info{flex:1;min-width:0}
 .mem-info b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2406,7 +2412,10 @@ const TDICT_SRC = {
   'Deine aktuelle Verbindung wird dabei getrennt.': { en: 'Your current connection will be disconnected.', fr: 'Votre connexion actuelle sera interrompue.', es: 'Tu conexión actual se desconectará.', it: 'La tua connessione attuale verrà interrotta.', pl: 'Twoje obecne połączenie zostanie rozłączone.' },
   /* Familienaufgaben-Pop-up */
   'Neue Aufgabe für dich': { en: 'New task for you', fr: 'Nouvelle tâche pour vous', es: 'Nueva tarea para ti', it: 'Nuova attività per te', pl: 'Nowe zadanie dla Ciebie' },
-  'Zu den Aufgaben': { en: 'Go to tasks', fr: 'Voir les tâches', es: 'Ir a tareas', it: 'Vai alle attività', pl: 'Do zadań' }
+  'Zu den Aufgaben': { en: 'Go to tasks', fr: 'Voir les tâches', es: 'Ir a tareas', it: 'Vai alle attività', pl: 'Do zadań' },
+  'Später': { en: 'Later', fr: 'Plus tard', es: 'Más tarde', it: 'Più tardi', pl: 'Później' },
+  '👁 Gelesen': { en: '👁 Read', fr: '👁 Lu', es: '👁 Leído', it: '👁 Letto', pl: '👁 Przeczytane' },
+  '👁 gelesen': { en: '👁 read', fr: '👁 lu', es: '👁 leído', it: '👁 letto', pl: '👁 przeczytane' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -4369,8 +4378,21 @@ const SHARE_AREAS = [
 ];
 const isShared = (key) => !!(store.family && store.family.share && store.family.share[key]);
 let famTab = 'personen', famLastPull = 0;
-/* Stabile Identität des aktuellen Nutzers über Geräte hinweg (Supabase-User-ID). */
-const famSelfId = () => (account && account.uid) || null;
+/* Stabile Identität des aktuellen Nutzers über Geräte hinweg (Supabase-User-ID).
+   Fällt auf die persistierte Session zurück, falls `account` beim Boot-Pull noch nicht geladen ist. */
+function famSelfId() {
+  if (account && account.uid) return account.uid;
+  try {
+    for (const k in localStorage) {
+      if (/sb-.*-auth-token/.test(k)) {
+        const v = JSON.parse(localStorage[k]);
+        const u = (v && v.user && v.user.id) || (v && v.currentSession && v.currentSession.user && v.currentSession.user.id);
+        if (u) return u;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
 function ensureFamily() {
   if (!store.family) store.family = { members: [], occasions: [], code: null };
   if (!store.family.members) store.family.members = [];
@@ -4434,21 +4456,38 @@ function checkFamilyTaskAlerts() {
   try { localStorage.setItem('effyra_fam_seen', JSON.stringify(allIds)); } catch (e) {}
   if (newForMe.length) famTaskAlert(newForMe);
 }
+/* Audio bei erster Nutzer-Interaktion freischalten (sonst blockiert Mobile-Autoplay den Ton). */
+let _famAC = null;
+function famAudioUnlock() {
+  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!_famAC) _famAC = new AC(); if (_famAC.state === 'suspended') _famAC.resume(); } catch (e) {}
+}
+['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, famAudioUnlock, { passive: true }));
 function playAlertBeep() {
-  try { if (navigator.vibrate) navigator.vibrate([200, 90, 200]); } catch (e) {}
+  try { if (navigator.vibrate) navigator.vibrate([250, 100, 250, 100, 400]); } catch (e) {}
   try {
-    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    const ctx = new AC(), now = ctx.currentTime;
-    [[880, 0], [1320, 0.18]].forEach(pair => {
+    famAudioUnlock(); const ctx = _famAC; if (!ctx) return; if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    [[880, 0], [1320, 0.17], [880, 0.5], [1320, 0.67]].forEach(pair => {   // aufdringlicher Doppel-Doppelton
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = 'sine'; o.frequency.value = pair[0];
-      g.gain.setValueAtTime(0.0001, now + pair[1]); g.gain.exponentialRampToValueAtTime(0.28, now + pair[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + pair[1] + 0.16);
+      g.gain.setValueAtTime(0.0001, now + pair[1]); g.gain.exponentialRampToValueAtTime(0.32, now + pair[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + pair[1] + 0.16);
       o.connect(g); g.connect(ctx.destination); o.start(now + pair[1]); o.stop(now + pair[1] + 0.17);
     });
-    setTimeout(function () { try { ctx.close(); } catch (e) {} }, 700);
   } catch (e) {}
 }
 function askFamNotify() { try { if (typeof Notification !== 'undefined' && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {} }
+/* Lesebestätigung: aktuellen Nutzer als „gelesen" auf die Aufgabe(n) setzen (nicht erledigt!). */
+function markFamTaskRead(ids) {
+  ensureFamily();
+  const myId = famSelfId(); if (!myId) return false;
+  let changed = false;
+  (Array.isArray(ids) ? ids : [ids]).forEach(id => {
+    const t = (store.family.tasks || []).find(x => x.id === id);
+    if (t && !t.done) { t.readBy = Array.isArray(t.readBy) ? t.readBy : []; if (t.readBy.indexOf(myId) < 0) { t.readBy.push(myId); changed = true; } }
+  });
+  if (changed) { save(); if (typeof famPush === 'function') { try { famPush(); } catch (e) {} } if (currentView === 'family') RENDERERS.family(); }
+  return changed;
+}
 function famTaskAlert(tasks) {
   playAlertBeep();
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -4457,14 +4496,18 @@ function famTaskAlert(tasks) {
   let ov = document.getElementById('famAlertOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'famAlertOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
   const rows = tasks.map(t => '<div class="fam-alert-task"><b>' + esc(t.title) + '</b>' + ((t.due || t.time) ? '<span>' + (t.due ? esc(fmtDate(t.due)) : 'heute') + (t.time ? ' · ' + esc(t.time) + ' Uhr' : '') + '</span>' : '') + '</div>').join('');
+  const ids = tasks.map(t => t.id);
   ov.innerHTML = '<div class="fam-alert" role="alertdialog" aria-live="assertive"><div class="fam-alert-ic">🔔</div>' +
     '<h3>' + (tasks.length > 1 ? tasks.length + ' neue Aufgaben für dich' : 'Neue Aufgabe für dich') + '</h3>' +
     '<div class="fam-alert-list">' + rows + '</div>' +
-    '<div class="fam-alert-btns"><button class="btn btn-sm" id="famAlertClose">Schließen</button><button class="btn btn-sm btn-primary" id="famAlertGo">Zu den Aufgaben</button></div></div>';
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="famAlertClose">Später</button><button class="btn btn-sm btn-primary" id="famAlertRead">👁 Gelesen</button></div>' +
+    '<button class="fam-alert-link" id="famAlertGo">Zu den Aufgaben</button></div>';
   ov.classList.add('on');
-  document.getElementById('famAlertClose').onclick = function () { ov.classList.remove('on'); };
-  document.getElementById('famAlertGo').onclick = function () { ov.classList.remove('on'); famTab = 'ftasks'; showView('family'); };
-  ov.onclick = function (e) { if (e.target === ov) ov.classList.remove('on'); };
+  const close = function () { ov.classList.remove('on'); };
+  document.getElementById('famAlertClose').onclick = close;
+  document.getElementById('famAlertRead').onclick = function () { markFamTaskRead(ids); toast('👁 Als gelesen bestätigt'); close(); };
+  document.getElementById('famAlertGo').onclick = function () { markFamTaskRead(ids); close(); famTab = 'ftasks'; showView('family'); };
+  ov.onclick = function (e) { if (e.target === ov) close(); };
 }
 function nextOccur(iso) {
   const d = parseISO(iso), t = new Date();
@@ -4723,15 +4766,21 @@ function famTasks() {
     '<div class="kid-row" style="margin-bottom:14px"><input type="date" id="ftDue" title="Fällig am"><input type="time" id="ftTime" title="Uhrzeit (optional)"><button class="btn btn-primary" data-fam="addFTask">+ Zuweisen</button></div>';
   if (openN) h += '<div class="veh-stats" style="grid-template-columns:1fr;margin-bottom:12px"><div class="veh-stat"><b>' + openN + '</b><span>offene Familienaufgabe' + (openN === 1 ? '' : 'n') + '</span></div></div>';
   if (!list.length) h += '<div class="empty" style="padding:14px">Noch keine Familienaufgaben. Verteil die erste ✨</div>';
+  const myId = famSelfId();
   list.forEach(t => {
     const m = t.assignee ? famMember(t.assignee) : null;
     const late = t.due && !t.done && dayDiff(t.due) < 0, isToday = t.due && !t.done && dayDiff(t.due) === 0;
+    const aAuth = m && m.authId, readBy = Array.isArray(t.readBy) ? t.readBy : [];
+    const readByAssignee = aAuth && readBy.indexOf(aAuth) >= 0;   // Empfänger hat gelesen → Sender sieht das
+    const iAmAssignee = m && myId && m.authId === myId, iRead = myId && readBy.indexOf(myId) >= 0;
     h += '<div class="task' + (t.done ? ' done' : '') + '">' +
       '<button class="tcheck" data-fam="toggleFTask" data-id="' + t.id + '" title="Erledigt" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
       '<span class="prio prio-' + (t.prio || 'med') + '"></span>' +
       '<div class="t-main"><span class="t-title">' + esc(t.title) + '</span>' +
       '<div class="t-meta"><span class="fam-assignee"' + (m ? ' style="color:' + m.color + '"' : '') + '>' + (m ? esc(m.name) : '👪 Familie') + '</span>' +
-      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + (t.time ? ' ' + esc(oclock(t.time)) : '') + '</span>' : (t.time ? '<span>· ' + esc(oclock(t.time)) + '</span>' : '')) + '</div></div>' +
+      (t.due ? '<span class="' + (late ? 'late' : isToday ? 'today' : '') + '">· ' + (late ? 'überfällig' : esc(relDay(t.due))) + (t.time ? ' ' + esc(oclock(t.time)) : '') + '</span>' : (t.time ? '<span>· ' + esc(oclock(t.time)) + '</span>' : '')) +
+      (readByAssignee && !t.done ? '<span class="fam-read">👁 gelesen</span>' : '') + '</div></div>' +
+      (iAmAssignee && !iRead && !t.done ? '<button class="fam-readbtn" data-fam="readFTask" data-id="' + t.id + '" title="Als gelesen bestätigen">👁 Gelesen</button>' : '') +
       '<button class="t-del" data-fam="delFTask" data-id="' + t.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
   });
   return h;
@@ -4906,6 +4955,7 @@ $('#famRoot').addEventListener('click', e => {
     famChanged(); toast('Aufgabe zugewiesen ✓'); return;
   }
   if (a === 'toggleFTask') { ensureFamily(); const t = store.family.tasks.find(x => x.id === b.dataset.id); if (t) { t.done = !t.done; famChanged(); } return; }
+  if (a === 'readFTask') { if (markFamTaskRead(b.dataset.id)) toast('👁 Als gelesen bestätigt'); RENDERERS.family(); return; }
   if (a === 'delFTask') { ensureFamily(); store.family.tasks = store.family.tasks.filter(x => x.id !== b.dataset.id); famChanged(); return; }
   if (a === 'create') { famCreate(); return; }
   if (a === 'join') { const inp = q('#joinCode'); famJoin(inp ? inp.value : ''); return; }
