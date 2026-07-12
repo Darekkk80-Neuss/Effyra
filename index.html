@@ -4534,6 +4534,34 @@ function askFamNotify() {
     else if (Notification.permission === 'granted') subscribeFamilyPush();
   } catch (e) {}
 }
+/* Selbst-Test: sendet einen echten Push an das eigene Gerät → prüft die ganze Kette. */
+async function pushTestSelf() {
+  try {
+    if (typeof Notification === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) { toast('Dieses Gerät unterstützt keine Push-Benachrichtigungen.'); return; }
+    if (Notification.permission !== 'granted') { toast('Bitte zuerst „Benachrichtigungen aktivieren".'); return; }
+    await subscribeFamilyPush();   // Abo sicherstellen
+    const uid = famSelfId(); if (!uid) { toast('Nicht angemeldet.'); return; }
+    await famAuth();
+    const { data } = await sb.auth.getSession();
+    const tok = data && data.session && data.session.access_token; if (!tok) { toast('Nicht angemeldet.'); return; }
+    const r = await fetch(FN_URL('push-send'), { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + tok }, body: JSON.stringify({ toUserId: uid, test: true, title: '🔔 Effyra-Test', body: 'Push funktioniert ✅ – du wirst so über neue Aufgaben informiert.' }) });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.sent > 0) toast('✅ Test gesendet – die Benachrichtigung kommt gleich.');
+    else if (r.ok) toast('⚠️ Kein Push-Abo gefunden. Tippe „Erneut anmelden".');
+    else toast('Test fehlgeschlagen: ' + (j.error || ('HTTP ' + r.status)));
+  } catch (e) { toast('Test fehlgeschlagen.'); }
+}
+/* Karte im Sync-Tab: Status + Aktivieren + Test. */
+function famPushCard() {
+  const supported = (typeof Notification !== 'undefined') && ('serviceWorker' in navigator) && ('PushManager' in window);
+  let inner;
+  if (!supported) inner = '<p class="sub" style="color:var(--muted);font-size:13px">Dieses Gerät/dieser Browser unterstützt keine Push-Benachrichtigungen.</p>';
+  else if (Notification.permission === 'denied') inner = '<p class="sub" style="color:var(--muted);font-size:13px">🔕 Benachrichtigungen sind für Effyra <b>blockiert</b>. Bitte in den Browser-/Geräte-Einstellungen für diese Seite erlauben und die App neu laden.</p>';
+  else if (Notification.permission === 'granted') inner = '<p class="sub" style="color:var(--muted);font-size:13px">✅ Auf diesem Gerät aktiv. Du wirst bei neuen Aufgaben benachrichtigt – auch bei geschlossener App.</p><div class="kid-row"><button class="btn btn-sm" data-fam="pushResub">Erneut anmelden</button><button class="btn btn-sm btn-primary" data-fam="pushTest">🔔 Test an mich</button></div>';
+  else inner = '<p class="sub" style="color:var(--muted);font-size:13px">Erlaube Benachrichtigungen, damit du zugewiesene Aufgaben auch bei geschlossener App erhältst.</p><button class="btn btn-primary" data-fam="pushOn" style="width:100%">🔔 Benachrichtigungen aktivieren</button>';
+  return '<div class="card"><h3 style="margin-bottom:6px">🔔 Hintergrund-Benachrichtigungen</h3>' + inner +
+    '<div class="em-priv">📱 iPhone/iPad: nur wenn die App auf dem Home-Bildschirm installiert ist (Teilen → „Zum Home-Bildschirm").</div></div>';
+}
 /* Lesebestätigung: aktuellen Nutzer als „gelesen" auf die Aufgabe(n) setzen (nicht erledigt!). */
 function markFamTaskRead(ids) {
   ensureFamily();
@@ -4916,7 +4944,7 @@ function famSync() {
     '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>' +
     '<div class="card"><h3 style="margin-bottom:6px">Anderes Gerät verbinden?</h3><p class="sub" style="color:var(--muted);font-size:13px;margin-bottom:2px">Auf dem Gerät deines Partners denselben Code oben eingeben – oder hier den Code einer anderen Familie eintragen, um zu wechseln.</p>' +
     famJoinBlock('🔗 Anderer Familie beitreten', 'Deine aktuelle Verbindung wird dabei getrennt.') + '</div>';
-  return conn + famShareCard();
+  return conn + famPushCard() + famShareCard();
 }
 /* Familiencode-Feld: Auto-Uppercase, Filter, Live-Validierung des „Verbinden"-Buttons */
 $('#famRoot').addEventListener('input', e => {
@@ -4948,6 +4976,16 @@ $('#famRoot').addEventListener('click', e => {
   }
   if (a === 'bookAdult') { bookAddon('adult'); return; }
   if (a === 'bookChild') { bookAddon('child'); return; }
+  if (a === 'pushOn') {
+    if (typeof Notification === 'undefined') { toast('Benachrichtigungen werden hier nicht unterstützt.'); return; }
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') { subscribeFamilyPush().then(() => { RENDERERS.family(); toast('🔔 Aktiviert – tippe „Test an mich".'); }); }
+      else { RENDERERS.family(); toast('Bitte in den Einstellungen für diese Seite erlauben.'); }
+    });
+    return;
+  }
+  if (a === 'pushResub') { subscribeFamilyPush().then(() => toast('Angemeldet ✓')).catch(() => toast('Anmeldung fehlgeschlagen.')); return; }
+  if (a === 'pushTest') { toast('Test wird gesendet …'); pushTestSelf(); return; }
   if (a === 'medRemindOn') {
     if (typeof Notification === 'undefined') { toast('Benachrichtigungen werden hier nicht unterstützt.'); return; }
     Notification.requestPermission().then(p => { RENDERERS.family(); if (p === 'granted') { toast('🔔 Erinnerungen aktiviert'); checkMedReminders(); } });

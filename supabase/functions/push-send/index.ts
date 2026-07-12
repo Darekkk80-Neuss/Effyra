@@ -46,7 +46,8 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
   const toUserId = String(body?.toUserId || '');
   if (!/^[0-9a-f-]{36}$/i.test(toUserId)) return json({ error: 'bad_request' }, 400);
-  if (toUserId === sender) return json({ ok: true, skipped: 'self' }, 200);
+  const isTest = body?.test === true;
+  if (toUserId === sender && !isTest) return json({ ok: true, skipped: 'self' }, 200);   // Selbst-Push nur beim Test
   const title = String(body?.title || '👪 Neue Aufgabe für dich').slice(0, 80);
   const msg = String(body?.body || '').slice(0, 160);
   const tag = String(body?.tag || 'effyra-fam').slice(0, 60);
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
   const { data: mems } = await admin.from('family_members').select('user_id,family_id').in('user_id', [sender, toUserId]);
   const famOf = (uid: string) => (mems || []).filter((m: any) => m.user_id === uid).map((m: any) => m.family_id);
   const shared = famOf(sender).some((f: string) => famOf(toUserId).includes(f));
-  if (!shared) return json({ error: 'not_in_same_family' }, 403);
+  if (toUserId !== sender && !shared) return json({ error: 'not_in_same_family' }, 403);   // Selbst-Test braucht keine Familie
 
   const { data: subs } = await admin.from('push_subscriptions').select('endpoint,sub').eq('user_id', toUserId);
   if (!subs || !subs.length) return json({ ok: true, sent: 0 }, 200);
