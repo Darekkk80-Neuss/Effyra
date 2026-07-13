@@ -6349,9 +6349,10 @@ const DE_STATES = { BW: 'Baden-Württemberg', BY: 'Bayern', BE: 'Berlin', BB: 'B
 /* ===== Zentrale Dienstdefinition – Farben, Icons, Kalender, Legende & Statistik basieren AUSSCHLIESSLICH hierauf.
    Neue Dienste = einfach hier ergänzen. Frühdienst/Spätdienst/Nachtdienst sind bearbeitbar (store.work.shiftDefs). ===== */
 const WORK_SHIFTS = {
-  early:       { name: 'Frühdienst',  icon: '🌅', color: '#2563eb', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', defStart: '06:00', defEnd: '14:00', defBreak: 30, shift: true },
-  late:        { name: 'Spätdienst',  icon: '🌇', color: '#ea580c', grad: 'linear-gradient(135deg,#fb923c,#f59e0b)', defStart: '14:00', defEnd: '22:00', defBreak: 30, shift: true },
-  night:       { name: 'Nachtdienst', icon: '🌙', color: '#4f46e5', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', defStart: '21:00', defEnd: '06:00', defBreak: 30, shift: true },
+  // Zeiten/Pause bewusst LEER – der Nutzer legt Beginn/Ende/Pause je Dienst selbst fest (im Tab „Dienste" oder pro Tag).
+  early:       { name: 'Frühdienst',  icon: '🌅', color: '#2563eb', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', defStart: '', defEnd: '', defBreak: '', shift: true },
+  late:        { name: 'Spätdienst',  icon: '🌇', color: '#ea580c', grad: 'linear-gradient(135deg,#fb923c,#f59e0b)', defStart: '', defEnd: '', defBreak: '', shift: true },
+  night:       { name: 'Nachtdienst', icon: '🌙', color: '#4f46e5', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', defStart: '', defEnd: '', defBreak: '', shift: true },
   urlaub:      { name: 'Urlaub',      icon: '🏖️', color: '#0d9488' },
   krank:       { name: 'Krank',       icon: '🤒', color: '#ef4444' },
   kinderkrank: { name: 'Kinderkrank', icon: '🧒', color: '#eab308' },
@@ -6719,6 +6720,19 @@ function ensureWork() {
   /* Standard-Dienste (Früh/Spät/Nacht) – automatisch vorhanden, bearbeitbar, nicht löschbar */
   w.shiftDefs = w.shiftDefs || {};
   SHIFT_KEYS.forEach(k => { w.shiftDefs[k] = Object.assign({ name: WORK_SHIFTS[k].name, start: WORK_SHIFTS[k].defStart, end: WORK_SHIFTS[k].defEnd, breakMin: WORK_SHIFTS[k].defBreak }, w.shiftDefs[k] || {}); });
+  /* Einmalige Migration: früher hatten Früh/Spät/Nacht fest hinterlegte Default-Zeiten. Auf Wunsch
+     bleiben sie leer (Nutzer definiert selbst). Nur die UNveränderten alten Defaults werden geleert –
+     eigene Anpassungen bleiben erhalten. */
+  if (!w.shiftsBlank) {
+    const OLD = { early: ['06:00', '14:00', 30], late: ['14:00', '22:00', 30], night: ['21:00', '06:00', 30] };
+    SHIFT_KEYS.forEach(k => {
+      const d = w.shiftDefs[k], o = OLD[k];
+      if (d && o && d.start === o[0] && d.end === o[1] && (d.breakMin === o[2] || d.breakMin == null || d.breakMin === '')) {
+        d.start = ''; d.end = ''; d.breakMin = '';
+      }
+    });
+    w.shiftsBlank = true;
+  }
 }
 function tplNet(x) { return netMinutes({ start: x.start, end: x.end, breakMin: x.breakMin }); }
 function netMinutes(e) {
@@ -6771,7 +6785,7 @@ RENDERERS.work = function () {
     '<div><label class="fld">Urlaubstage/Jahr</label><input type="number" data-ws="vacationDays" value="' + s.vacationDays + '" inputmode="numeric"></div>' +
     '<div><label class="fld">Kinderkrank/Jahr</label><input type="number" data-ws="childSickMax" value="' + s.childSickMax + '" inputmode="numeric"></div>' +
     '<label class="veh-check span2"><input type="checkbox" data-ws="autoBreak"' + (s.autoBreak ? ' checked' : '') + '> Gesetzliche Pausen automatisch abziehen (30 Min ab 6 h, 45 Min ab 9 h)</label>' +
-    '<div class="span2 wsd-title">🗂️ Standard-Dienste <small>– Beginn, Ende, Pause &amp; Bezeichnung</small></div>' +
+    '<div class="span2 wsd-title">🗂️ Standard-Dienste <small>– Beginn, Ende &amp; Pause selbst festlegen (leer = frei wählbar)</small></div>' +
     SHIFT_KEYS.map(k => { const sd = shiftDef(k), c = WORK_SHIFTS[k]; return '<div class="span2 wsd-card" style="--c:' + c.color + '">' +
       '<div class="wsd-h">' + c.icon + '<input type="text" data-wsd="' + k + '.name" value="' + esc(sd.name) + '" maxlength="24" aria-label="Bezeichnung ' + esc(sd.name) + '"></div>' +
       '<div class="kid-row"><div style="flex:1"><label class="fld">Beginn</label><input type="time" data-wsd="' + k + '.start" value="' + sd.start + '"></div>' +
@@ -6793,7 +6807,7 @@ function workEntryForm(iso) {
 }
 function quickAssignChips(iso) {
   let h = '<div class="wq-chips">';
-  SHIFT_KEYS.forEach(k => { const s = shiftDef(k); h += '<button class="wq-chip wq-shift" data-wa="applyShift" data-shift="' + k + '" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS[k].color + '">' + WORK_SHIFTS[k].icon + ' ' + esc(s.name) + ' <span>' + s.start + '–' + s.end + '</span></button>'; });
+  SHIFT_KEYS.forEach(k => { const s = shiftDef(k); h += '<button class="wq-chip wq-shift" data-wa="applyShift" data-shift="' + k + '" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS[k].color + '">' + WORK_SHIFTS[k].icon + ' ' + esc(s.name) + (s.start && s.end ? ' <span>' + s.start + '–' + s.end + '</span>' : '') + '</button>'; });
   (store.work.shiftTemplates || []).forEach(x => { h += '<button class="wq-chip" data-wa="applyTpl" data-id="' + x.id + '" data-iso="' + iso + '">🗂️ ' + esc(x.name) + ' <span>' + (x.start || '') + '–' + (x.end || '') + '</span></button>'; });
   h += '<button class="wq-chip abs" data-wa="dayAbs" data-type="urlaub" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.urlaub.color + '">🏖️ Urlaub</button>' +
     '<button class="wq-chip abs" data-wa="dayAbs" data-type="krank" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.krank.color + '">🤒 Krank</button>' +
@@ -7069,7 +7083,7 @@ $('#workRoot').addEventListener('change', e => {
     ensureWork();
     const p = t.dataset.wsd.split('.'), key = p[0], field = p[1];
     store.work.shiftDefs[key] = store.work.shiftDefs[key] || {};
-    store.work.shiftDefs[key][field] = field === 'breakMin' ? Math.max(0, Math.round(+t.value || 0)) : t.value;
+    store.work.shiftDefs[key][field] = field === 'breakMin' ? (t.value === '' ? '' : Math.max(0, Math.round(+t.value || 0))) : t.value;
     save(); return;   // kein Re-Render → Einstellungen bleiben beim Bearbeiten offen
   }
   if (t.dataset.we) {
