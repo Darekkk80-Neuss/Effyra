@@ -5525,6 +5525,7 @@ async function famPull() {
     const selfAdded = famEnsureSelfMember();   // beide Konten automatisch als Mitglied führen
     if (selfAdded) { try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
     checkFamilyTaskAlerts();                    // neue, mir zugewiesene Aufgaben → Pop-up + Signal
+    checkShopDoneAlert();                        // erledigte zugewiesene Einkaufsliste → Popup beim Zuweiser
     return JSON.stringify(famPayload()) !== before || selfAdded;
   } catch (e) { return false; }
 }
@@ -6696,15 +6697,41 @@ function shopAssignNow() {
   }
   toast('🛒 ' + (m ? m.name : '') + ' zugewiesen ✓');
 }
-/* Vollständig erledigt → kleines Erfolgserlebnis für beide Seiten (kein Druck-Ton). */
+/* Vollständig erledigt → Toast beim Erledigenden + Erledigung im gesyncten Zustand festhalten,
+   damit die/der Zuweisende beim Öffnen ein freundliches Popup + Push bekommt. */
 function shopCelebrate() {
   toast(t('sh.celebrate'));
   const a = store.family && store.family.shopAssign;
-  if (a && a.by && typeof pushNotifyMember === 'function') {
-    const meMem = (store.family.members || []).find(x => x.authId === famSelfId());
-    const meName = (meMem && meMem.name) || store.name || '';
-    pushNotifyMember(a.by, '✅ Einkauf erledigt', (meName ? meName + ' hat ' : '') + 'den Einkauf erledigt.');
+  if (!a || !a.assignee) return;
+  const meMem = (store.family.members || []).find(x => x.authId === famSelfId());
+  const meName = (meMem && meMem.name) || store.name || 'Jemand';
+  a.doneAt = Date.now(); a.doneBy = famSelfId() || ''; a.doneName = meName;   // synct über famPayload
+  save(); if (typeof famPush === 'function') { try { famPush(); } catch (e) {} }
+  if (a.by && a.by !== famSelfId() && typeof pushNotifyMember === 'function') {
+    pushNotifyMember(a.by, '🎉 Gute Nachricht', meName + ' hat „Einkaufen" erledigt.');
   }
+}
+/* Beim Zuweisenden: hat die zuständige Person die Liste erledigt → einmaliges freundliches Popup. */
+function checkShopDoneAlert() {
+  const a = store.family && store.family.shopAssign;
+  if (!a || !a.doneAt || !a.by) return;
+  const myId = famSelfId(); if (!myId || a.by !== myId || a.doneBy === myId) return;   // nur Zuweiser, nicht Selbst-Erledigung
+  let seen = 0; try { seen = +localStorage.getItem('effyra_shopdone_seen') || 0; } catch (e) {}
+  if (a.doneAt <= seen) return;   // diese Erledigung schon gesehen
+  try { localStorage.setItem('effyra_shopdone_seen', String(a.doneAt)); } catch (e) {}
+  shopDoneAlert(a.doneName || 'Jemand');
+}
+function shopDoneAlert(name) {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { try { new Notification('🎉 Gute Nachricht', { body: name + ' hat „Einkaufen" erledigt.', tag: 'shop-done' }); } catch (e) {} }
+  let ov = document.getElementById('famAlertOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'famAlertOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="alertdialog" aria-live="assertive"><div class="fam-alert-ic">🎉</div>' +
+    '<h3>Gute Nachricht</h3><div class="fam-alert-list"><div class="fam-alert-task"><b>' + esc(name) + ' hat „Einkaufen" erledigt.</b></div></div>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm btn-primary" id="shopDoneOk">Schön 😊</button></div></div>';
+  ov.classList.add('on');
+  const close = function () { ov.classList.remove('on'); };
+  document.getElementById('shopDoneOk').onclick = close;
+  ov.onclick = function (e) { if (e.target === ov) close(); };
 }
 RENDERERS.shopping = function () {
   const box = $('#shoppingRoot'); if (!box) return;
