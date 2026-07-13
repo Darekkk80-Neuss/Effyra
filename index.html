@@ -1186,6 +1186,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Briefe Vorlagen</span></button>
       <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg><span data-i18n="nav.vehicles">Auto &amp; Motorrad</span></button>
       <button data-view="contracts"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.contracts">Verträge &amp; Abos</span></button>
+      <button data-view="vault"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.vault">Dokumenten-Tresor</span></button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
     <div class="foot">
@@ -1381,6 +1382,24 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div id="contractsRoot"></div>
     </section>
 
+    <!-- ============================== DOKUMENTEN-TRESOR ============================== -->
+    <section class="view" id="view-vault">
+      <div class="view-head">
+        <h1>Dokumenten-Tresor</h1>
+        <p>Wichtige Dokumente sicher &amp; durchsuchbar – bleibt ausschließlich auf deinem Gerät.</p>
+      </div>
+      <div class="card">
+        <div class="kid-row" style="margin-bottom:8px"><input type="text" id="vtTitle" placeholder="Titel (z. B. Reisepass Max)" maxlength="80"><select id="vtCat" style="flex:none;width:auto"><option value="ausweis">🪪 Ausweis/Pass</option><option value="versicherung">🛡️ Versicherung</option><option value="vertrag">📑 Vertrag</option><option value="finanzen">🏦 Finanzen</option><option value="gesundheit">🩺 Gesundheit</option><option value="garantie">🧾 Garantie/Kauf</option><option value="wohnung">🏠 Wohnung</option><option value="fahrzeug">🚗 Fahrzeug</option><option value="sonstiges" selected>📄 Sonstiges</option></select></div>
+        <input type="text" id="vtTags" placeholder="Schlagwörter, kommagetrennt (optional)" maxlength="120" style="width:100%;margin-bottom:8px">
+        <textarea id="vtNote" rows="2" placeholder="Notiz (z. B. „liegt im Ordner Schublade 2, gültig bis 2030")" style="width:100%;margin-bottom:8px"></textarea>
+        <input type="file" id="vtFile" accept="image/*" capture="environment" style="width:100%;margin-bottom:6px">
+        <div class="sub" style="color:var(--faint);font-size:12px;margin:0 2px 12px">Foto optional – ohne Foto wird ein reiner Text-Eintrag gespeichert. Bilder liegen lokal (IndexedDB), nichts wird hochgeladen.</div>
+        <button class="btn btn-primary" id="vtAddBtn" style="width:100%">+ Im Tresor speichern</button>
+      </div>
+      <input type="search" id="vtSearch" placeholder="🔍 Suchen (Titel, Schlagwort, Notiz)" style="width:100%;margin:14px 0 6px">
+      <div id="vaultRoot"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -1502,6 +1521,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="calendar"><span class="mi">📅</span><span data-i18n="nav.calendar">Kalender</span></button>
       <button data-view="vehicles"><span class="mi">🚗</span><span data-i18n="nav.vehicles">Fahrzeuge</span></button>
       <button data-view="contracts"><span class="mi">🧾</span><span data-i18n="nav.contracts">Verträge &amp; Abos</span></button>
+      <button data-view="vault"><span class="mi">🔐</span><span data-i18n="nav.vault">Dokumenten-Tresor</span></button>
       <button data-view="settings"><span class="mi">⚙️</span><span data-i18n="nav.settings">Einstellungen</span></button>
     </div>
   </div>
@@ -1651,6 +1671,7 @@ const store = Object.assign({
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
   contracts: [], // Verträge & Abos: {id,name,provider,cat,cost,interval,cancelBy,notice,done,createdAt}
+  vault: [], // Dokumenten-Tresor (lokal): {id,title,cat,tags,note,thumb,img,createdAt}; volle Bilder in IndexedDB
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
   settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light', rtSilenceMs: 700 }
 }, (() => {
@@ -2596,7 +2617,7 @@ async function flushAI() {
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'settings'];
+const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'settings'];
 let viewHistory = [], _navBack = false;
 function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
@@ -5715,6 +5736,102 @@ if ($('#contractsRoot')) $('#contractsRoot').addEventListener('click', e => {
   if (b.dataset.ct === 'toggle') { c.done = !c.done; save(); RENDERERS.contracts(); toast(c.done ? 'Als gekündigt markiert' : 'Wieder aktiv'); return; }
   if (b.dataset.ct === 'letter') { showView('docgen'); toast('Wähle die Vorlage „Kündigung" – Anbieter: ' + (c.provider || c.name)); return; }
 });
+
+/* ============================== DOKUMENTEN-TRESOR (lokal, IndexedDB) ============================== */
+const VAULT_CATS = {
+  ausweis: { i: '🪪', l: 'Ausweis/Pass' }, versicherung: { i: '🛡️', l: 'Versicherung' },
+  vertrag: { i: '📑', l: 'Vertrag' }, finanzen: { i: '🏦', l: 'Finanzen' },
+  gesundheit: { i: '🩺', l: 'Gesundheit' }, garantie: { i: '🧾', l: 'Garantie/Kauf' },
+  wohnung: { i: '🏠', l: 'Wohnung' }, fahrzeug: { i: '🚗', l: 'Fahrzeug' }, sonstiges: { i: '📄', l: 'Sonstiges' }
+};
+const vCat = (k) => VAULT_CATS[k] || VAULT_CATS.sonstiges;
+/* Volle Bilder liegen in IndexedDB (großes Kontingent) – nur ein Mini-Thumbnail steht in localStorage. */
+function vaultDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('effyra-vault', 1);
+    r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains('images')) r.result.createObjectStore('images'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+async function vaultPutImage(key, blob) { const db = await vaultDB(); return new Promise((res, rej) => { const tx = db.transaction('images', 'readwrite'); tx.objectStore('images').put(blob, key); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
+async function vaultGetImage(key) { try { const db = await vaultDB(); return await new Promise((res) => { const rq = db.transaction('images', 'readonly').objectStore('images').get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); } catch (e) { return null; } }
+async function vaultDelImage(key) { try { const db = await vaultDB(); db.transaction('images', 'readwrite').objectStore('images').delete(key); } catch (e) {} }
+/* Foto → volles JPEG (max 1400px) für IndexedDB + Mini-Thumbnail (180px, dataURL) für die Liste. */
+function vaultProcessImage(file) {
+  return new Promise((res) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const mk = (maxW, q, asBlob) => {
+        const s = Math.min(1, maxW / img.width), w = Math.max(1, Math.round(img.width * s)), h = Math.max(1, Math.round(img.height * s));
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        return asBlob ? new Promise(r => cv.toBlob(r, 'image/jpeg', q)) : cv.toDataURL('image/jpeg', q);
+      };
+      const thumb = mk(180, 0.5, false);
+      mk(1400, 0.72, true).then(blob => { URL.revokeObjectURL(url); res({ blob, thumb }); });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+async function vaultShowImage(id) {
+  const blob = await vaultGetImage(id); if (!blob) { toast('Kein Bild gespeichert.'); return; }
+  const url = URL.createObjectURL(blob);
+  let ov = document.getElementById('vaultOv');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'vaultOv';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out';
+    ov.addEventListener('click', () => { const im = ov.querySelector('img'); if (im && im.src) URL.revokeObjectURL(im.src); ov.style.display = 'none'; ov.innerHTML = ''; });
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = '<img alt="Dokument" style="max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5)">';
+  ov.querySelector('img').src = url; ov.style.display = 'flex';
+}
+RENDERERS.vault = function () {
+  const box = $('#vaultRoot'); if (!box) return;
+  const all = store.vault || [];
+  if (!all.length) { box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🔐</span>Dein Tresor ist leer.<br>Speichere oben dein erstes Dokument – ein Foto ist optional.</div>'; return; }
+  const q = (($('#vtSearch') && $('#vtSearch').value) || '').trim().toLowerCase();
+  let list = all.slice();
+  if (q) list = list.filter(v => (v.title + ' ' + (v.tags || []).join(' ') + ' ' + (v.note || '') + ' ' + vCat(v.cat).l).toLowerCase().indexOf(q) >= 0);
+  if (!list.length) { box.innerHTML = '<div class="empty" style="margin-top:16px">Nichts gefunden für „' + esc(q) + '".</div>'; return; }
+  let h = '<div class="sub" style="color:var(--faint);font-size:12.5px;margin:0 2px 10px">' + list.length + ' Dokument' + (list.length === 1 ? '' : 'e') + ' · nur auf diesem Gerät</div>';
+  list.forEach(v => {
+    const c = vCat(v.cat);
+    h += '<div class="task" style="align-items:flex-start">' +
+      (v.img && v.thumb ? '<img src="' + v.thumb + '" alt="" style="width:46px;height:46px;object-fit:cover;border-radius:8px;flex:none">' : '<span style="font-size:22px;width:46px;text-align:center;flex:none">' + c.i + '</span>') +
+      '<div class="t-main"><span class="t-title">' + esc(v.title) + '</span>' +
+      '<div class="t-meta">' + esc(c.l) + (v.tags && v.tags.length ? ' · ' + esc(v.tags.map(x => '#' + x).join(' ')) : '') + '</div>' +
+      (v.note ? '<div class="t-meta" style="margin-top:2px;white-space:normal">' + esc(v.note) + '</div>' : '') +
+      (v.img ? '<div class="kid-row" style="margin-top:8px;gap:6px"><button class="btn btn-sm" data-vlt="view" data-id="' + v.id + '">👁 Ansehen</button></div>' : '') +
+      '</div>' +
+      '<button class="t-del" data-vlt="del" data-id="' + v.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  box.innerHTML = h;
+};
+if ($('#vtAddBtn')) $('#vtAddBtn').addEventListener('click', async () => {
+  const title = $('#vtTitle').value.trim(); if (!title) { $('#vtTitle').focus(); return; }
+  const entry = { id: uid(), title, cat: $('#vtCat').value, tags: ($('#vtTags').value || '').split(',').map(s => s.trim()).filter(Boolean), note: $('#vtNote').value.trim(), thumb: '', img: false, createdAt: Date.now() };
+  const file = $('#vtFile').files && $('#vtFile').files[0];
+  const finish = () => {
+    store.vault = store.vault || []; store.vault.unshift(entry); save();
+    ['vtTitle', 'vtTags', 'vtNote'].forEach(id => { const el = $('#' + id); if (el) el.value = ''; });
+    if ($('#vtFile')) $('#vtFile').value = '';
+    RENDERERS.vault(); toast('Im Tresor gespeichert ✓');
+  };
+  if (file) {
+    toast('Dokument wird gespeichert …');
+    const p = await vaultProcessImage(file);
+    if (p && p.blob) { try { await vaultPutImage(entry.id, p.blob); entry.img = true; entry.thumb = p.thumb; } catch (e) { toast('Bild konnte nicht gespeichert werden – Eintrag ohne Bild.'); } }
+    finish();
+  } else finish();
+});
+if ($('#vaultRoot')) $('#vaultRoot').addEventListener('click', e => {
+  const b = e.target.closest('[data-vlt]'); if (!b) return;
+  const v = (store.vault || []).find(x => x.id === b.dataset.id); if (!v) return;
+  if (b.dataset.vlt === 'view') { vaultShowImage(v.id); return; }
+  if (b.dataset.vlt === 'del') { if (!confirm('„' + v.title + '" aus dem Tresor löschen?')) return; store.vault = store.vault.filter(x => x.id !== v.id); if (v.img) vaultDelImage(v.id); save(); RENDERERS.vault(); toast('Gelöscht'); return; }
+});
+if ($('#vtSearch')) $('#vtSearch').addEventListener('input', () => RENDERERS.vault());
 
 function ensureWork() {
   const w = store.work = store.work || {};
