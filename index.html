@@ -6727,6 +6727,7 @@ function shopDoneAlert(name) {
   if (!ov) { ov = document.createElement('div'); ov.id = 'famAlertOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
   ov.innerHTML = '<div class="fam-alert" role="alertdialog" aria-live="assertive"><div class="fam-alert-ic">🎉</div>' +
     '<h3>Gute Nachricht</h3><div class="fam-alert-list"><div class="fam-alert-task"><b>' + esc(name) + ' hat „Einkaufen" erledigt.</b></div></div>' +
+    '<div style="margin:2px auto 2px;max-width:260px;padding:9px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(34,211,238,.14));color:var(--text);font-size:13.5px;line-height:1.5;font-weight:600">🤝 Gemeinsam bleibt der Alltag im Griff.</div>' +
     '<div class="fam-alert-btns"><button class="btn btn-sm btn-primary" id="shopDoneOk">Schön 😊</button></div></div>';
   ov.classList.add('on');
   const close = function () { ov.classList.remove('on'); };
