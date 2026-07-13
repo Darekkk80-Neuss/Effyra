@@ -3264,6 +3264,35 @@ RENDERERS.dashboard = function () {
 
   let html = '';
 
+  /* ☀️ DEIN TAG HEUTE – konsolidiertes Briefing (Termine, Aufgaben, Medikamente, Vertragsfristen) */
+  const _bTasks = store.tasks.filter(t => !t.done && t.due && dayDiff(t.due) <= 0);
+  const _bOverdue = _bTasks.filter(t => dayDiff(t.due) < 0).length;
+  const _bMeds = ((store.family && store.family.meds) || []).reduce((n, m) => {
+    if (m.date && m.date !== today) return n;
+    return n + (m.times || []).filter(tm => !medIsTaken(m.id, tm, today)).length;
+  }, 0);
+  const _bCt = ctUpcoming(7).length;
+  const _bChips = [];
+  if (evToday) _bChips.push({ ic: '📅', n: evToday, l: 'Termine', go: 'calendar' });
+  if (_bTasks.length) _bChips.push({ ic: '✅', n: _bTasks.length, l: 'heute fällig', go: 'tasks' });
+  if (_bMeds) _bChips.push({ ic: '💊', n: _bMeds, l: 'Medikamente', go: 'family' });
+  if (_bCt) _bChips.push({ ic: '🧾', n: _bCt, l: 'Fristen', go: 'contracts' });
+  let _bLine;
+  if (_bChips.length) {
+    const bits = [];
+    if (evToday) bits.push(evToday + (evToday === 1 ? ' Termin' : ' Termine'));
+    if (_bTasks.length) bits.push(_bTasks.length + (_bTasks.length === 1 ? ' Aufgabe' : ' Aufgaben') + (_bOverdue ? ' (' + _bOverdue + ' überfällig)' : ''));
+    if (_bMeds) bits.push(_bMeds + (_bMeds === 1 ? ' Medikament' : ' Medikamente'));
+    if (_bCt) bits.push(_bCt + (_bCt === 1 ? ' Kündigungsfrist' : ' Kündigungsfristen'));
+    _bLine = 'Heute stehen an: ' + (bits.length > 1 ? bits.slice(0, -1).join(', ') + ' und ' + bits[bits.length - 1] : bits[0]) + '.';
+  } else _bLine = 'Heute ist nichts Dringendes – genieß den Tag. 🌿';
+  html += '<section class="dash-section" style="background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(6,182,212,.09));border:1px solid var(--border2)">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:22px">☀️</span>' +
+    '<div style="display:flex;flex-direction:column;line-height:1.25"><b style="font-size:15px">Dein Tag heute</b><span style="font-size:12px;color:var(--muted)">' + esc(dstr) + '</span></div></div>' +
+    '<p style="margin:0' + (_bChips.length ? ' 0 12px' : '') + ';font-size:14.5px">' + esc(_bLine) + '</p>' +
+    (_bChips.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px">' + _bChips.map(c => '<button data-go="' + c.go + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:7px 13px;font-size:13px;color:var(--text);cursor:pointer;min-height:38px"><span>' + c.ic + '</span><b>' + c.n + '</b> ' + esc(c.l) + '</button>').join('') + '</div>' : '') +
+    '</section>';
+
   /* HEUTE – Fokus: was heute/dringend zählt */
   const focus = [];
   evTodayList.forEach(e => focus.push({ svg: 'icCal', title: e.title, sub: e.time ? oclock(e.time) : t('fmt.allday'), chip: { cls: 'chip-accent', text: 'Heute' }, go: 'calendar', k: '1' + (e.time || '00:00') }));
