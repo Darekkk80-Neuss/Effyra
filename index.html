@@ -3369,6 +3369,106 @@ const upcomingEvents = (n) => store.events.filter(e => e.date >= todayISO())
 /* ============================== DASHBOARD ============================== */
 const SOURCE_LABEL = { doc: 'aus Dokument', chat: 'aus Chat', life: 'aus Lebenslage', family: 'Familie', veh: 'Fahrzeug' };
 
+/* Täglich wechselnde Achtsamkeitssprüche (max. 12 Wörter). Auswahl per Tag-des-Jahres mit
+   Schrittweite 7 → an zwei aufeinanderfolgenden Tagen nie derselbe; Jahres-Offset variiert die Reihenfolge jährlich. */
+const MINDFUL_QUOTES = [
+  'Atme tief ein – dieser Moment gehört ganz dir.',
+  'Ein Schritt nach dem anderen genügt völlig.',
+  'Du musst heute nicht alles schaffen.',
+  'Ruhe beginnt mit einem einzigen bewussten Atemzug.',
+  'Sei sanft zu dir – du gibst dein Bestes.',
+  'Das Jetzt ist der einzige Ort, an dem Leben geschieht.',
+  'Lass los, was du nicht ändern kannst.',
+  'Kleine Pausen schenken große Klarheit.',
+  'Dein Wert hängt nicht von deiner To-do-Liste ab.',
+  'Höre kurz in dich hinein – was brauchst du gerade?',
+  'Auch stille Tage tragen dich voran.',
+  'Dankbarkeit verwandelt das Gewöhnliche in Genug.',
+  'Du darfst langsam machen.',
+  'Zwischen Reiz und Reaktion liegt dein Frieden.',
+  'Ein freundlicher Gedanke an dich selbst wirkt Wunder.',
+  'Der Atem ist immer da, um dich zu erden.',
+  'Nicht jeder Sturm kommt, um dich zu stören.',
+  'Manche Wolken bringen nur Schatten, keinen Regen.',
+  'Sorge dich weniger, staune mehr.',
+  'Fühle den Boden unter deinen Füßen – du stehst sicher.',
+  'Perfekt sein musst du nirgends.',
+  'Ein Lächeln beginnt oft von innen.',
+  'Gib dem heutigen Tag Raum, sich zu entfalten.',
+  'Was du übst, wächst – also übe Freundlichkeit.',
+  'Du bist genug, genau so wie du bist.',
+  'Der ruhigste Ort ist dein eigener Atem.',
+  'Lass den Tag kommen, wie er möchte.',
+  'Kleine Freuden zählen doppelt.',
+  'Vertraue: Auch dies wird vorübergehen.',
+  'Ein tiefer Atemzug ist ein kleiner Neuanfang.',
+  'Sei heute dein eigener guter Freund.',
+  'Halte inne und spüre, dass du lebst.',
+  'Frieden ist keine Leistung, sondern eine Rückkehr.',
+  'Du darfst Dinge auch morgen erledigen.',
+  'Achte auf das Gute – es ist schon da.',
+  'Ruhe ist kein Luxus, sondern Nahrung.',
+  'Dein Atem trägt dich durch jeden Moment.',
+  'Weniger tun, mehr sein.',
+  'Sanftheit ist eine Form von Stärke.',
+  'Der Tag muss nicht perfekt sein, nur echt.',
+  'Lächle dem Augenblick zu.',
+  'Halte kurz inne – die Welt wartet.',
+  'Deine Ruhe darfst du niemandem überlassen.',
+  'Ein Moment der Stille ordnet den ganzen Tag.',
+  'Sei geduldig mit dem, was wächst.',
+  'Loslassen macht die Hände frei für Neues.',
+  'Du trägst deinen Frieden immer bei dir.',
+  'Atme, und alles darf ein bisschen leichter werden.',
+  'Heute reicht es, freundlich zu sein.',
+  'Das Leben passiert in den kleinen Augenblicken.',
+  'Gönn dir eine Pause, bevor du sie brauchst.',
+  'Vertraue deinem Tempo.',
+  'Ein dankbarer Blick verändert den ganzen Tag.',
+  'Du musst nicht alles wissen – nur den nächsten Schritt.',
+  'Ruhe dich aus, ohne dich schuldig zu fühlen.',
+  'Was zählt, ist da – atme es ein.',
+  'Sanft mit dir, mutig nach vorn.',
+  'Der Moment ist freundlicher, als die Sorge glaubt.',
+  'Halte an, spüre, atme, weiter.',
+  'Freundlichkeit beginnt bei dir selbst.',
+  'Nimm dir Zeit, du bist sie wert.',
+  'Auch kleine Schritte führen weit.',
+  'Lass die Gedanken ziehen wie Wolken.',
+  'Heute darfst du einfach nur da sein.',
+  'Ein ruhiger Atem ist ein Geschenk an dich.',
+  'Nichts muss – vieles darf.',
+  'Spüre die Dankbarkeit für diesen einen Tag.',
+  'Du hast schon so viel getragen – ruh dich aus.',
+  'Der Frieden im Inneren strahlt nach außen.',
+  'Beginne den Tag mit einem sanften Gedanken.',
+  'Alles zu seiner Zeit, auch du.',
+  'Ein tiefer Atemzug löst manchen Knoten.',
+  'Sei hier, sei jetzt, sei genug.',
+  'Dein Herz kennt den Weg – hör ihm zu.',
+  'Kleine Achtsamkeit, große Wirkung.',
+  'Lächle, atme und mach langsam weiter.',
+  'Der heutige Tag ist ein unbeschriebenes Blatt.',
+  'Sorgen wiegen leichter, wenn du atmest.',
+  'Vertraue dem Leben ein Stück mehr.',
+  'Halte inne und danke für diesen Atemzug.',
+  'Ruhe finden ist auch produktiv.',
+  'Sei stolz auf das, was du schon schaffst.',
+  'Ein Moment Stille ist nie verlorene Zeit.',
+  'Lass den Tag dich überraschen.',
+  'Du bewegst dich in deinem eigenen guten Tempo.',
+  'Frieden beginnt mit einem einzigen Atemzug.',
+  'Sei freundlich – vor allem zu dir.',
+  'Das Wichtigste ist oft das Leiseste.',
+  'Atme ein: Ruhe. Atme aus: Loslassen.',
+  'Heute genügt es, einfach zu beginnen.'
+];
+function dailyMindfulQuote() {
+  const d = new Date();
+  const doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+  const n = MINDFUL_QUOTES.length;
+  return MINDFUL_QUOTES[(((doy * 7 + d.getFullYear()) % n) + n) % n];
+}
 RENDERERS.dashboard = function () {
   const H = new Date().getHours();
   const g = H < 5 ? 'Gute Nacht' : H < 11 ? 'Guten Morgen' : H < 18 ? 'Guten Tag' : 'Guten Abend';
@@ -3381,12 +3481,7 @@ RENDERERS.dashboard = function () {
   const attention = store.tasks.filter(t => !t.done && t.due && dayDiff(t.due) <= 0).length;
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const dstr = cap(new Date().toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }));
-  if (evToday || open) {
-    const parts = [];
-    if (evToday) parts.push(t(evToday === 1 ? 'greet.event_1' : 'greet.event_n', { n: evToday }));
-    if (open) parts.push(t(open === 1 ? 'greet.task_1' : 'greet.task_n', { n: open }));
-    $('#greetSub').textContent = t('greet.today', { date: dstr, items: parts.join(' ' + t('greet.and') + ' ') });
-  } else $('#greetSub').textContent = t('greet.calm', { date: dstr });
+  $('#greetSub').textContent = dstr + ' — ' + dailyMindfulQuote();
 
   const slot = $('#trialSlot');
   if (account && isPremium()) slot.innerHTML = '<span class="trial-pill premium">💎 Premium – alles inklusive</span>';
