@@ -5799,6 +5799,16 @@ function ctUpcoming(maxDays) {
   return (store.contracts || []).filter(c => !c.done && c.cancelBy && dayDiff(c.cancelBy) <= lim)
     .sort((a, b) => a.cancelBy < b.cancelBy ? -1 : 1);
 }
+/* Kündigungsschreiben im Briefgenerator mit den Vertragsdaten vorbefüllen. */
+const CT_KUEND_TPL = { mobilfunk: 'handy-kuend', internet: 'internet-kuend', streaming: 'streaming-kuend', fitness: 'fitness-kuend', versicherung: 'versicherung-kuend', kfz: 'versicherung-kuend' };
+function ctOpenKuendigung(c) {
+  dgActiveId = CT_KUEND_TPL[c.cat] || 'mitgliedschaft-kuend';
+  dgOverrideBody = null; dgSign = true; dgProfileOpen = !profileComplete(); dgState = 'form';
+  dgValues = { empfName: c.provider || c.name || '' };
+  if (c.cancelBy) dgValues.datum = c.cancelBy;   // „Kündigung zum" als Startwert – editierbar
+  showView('docgen');
+  toast('Kündigung vorbereitet – Empfänger & Vorlage sind gesetzt.');
+}
 RENDERERS.contracts = function () {
   const box = $('#contractsRoot'); if (!box) return;
   const list = (store.contracts || []).slice().sort((a, b) => {
@@ -5848,7 +5858,7 @@ if ($('#contractsRoot')) $('#contractsRoot').addEventListener('click', e => {
   const c = (store.contracts || []).find(x => x.id === b.dataset.id); if (!c) return;
   if (b.dataset.ct === 'del') { if (!confirm('„' + c.name + '" wirklich löschen?')) return; store.contracts = store.contracts.filter(x => x.id !== c.id); save(); RENDERERS.contracts(); toast('Gelöscht'); return; }
   if (b.dataset.ct === 'toggle') { c.done = !c.done; save(); RENDERERS.contracts(); toast(c.done ? 'Als gekündigt markiert' : 'Wieder aktiv'); return; }
-  if (b.dataset.ct === 'letter') { showView('docgen'); toast('Wähle die Vorlage „Kündigung" – Anbieter: ' + (c.provider || c.name)); return; }
+  if (b.dataset.ct === 'letter') { ctOpenKuendigung(c); return; }
 });
 
 /* ============================== DOKUMENTEN-TRESOR (lokal, IndexedDB) ============================== */
