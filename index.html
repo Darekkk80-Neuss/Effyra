@@ -1728,7 +1728,7 @@ const store = Object.assign({
   waste: [], // Müllkalender (lokal): {id,type,weekday,freq}
   checkups: [], // Vorsorge-Erinnerungen (lokal): {id,title,intervalMonths,lastDate,note,createdAt}
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
-  settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light', rtSilenceMs: 700 }
+  settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light', rtSilenceMs: 700, morningPush: false }
 }, (() => {
   try { return JSON.parse(localStorage.getItem(DATA_KEY)) || {}; } catch (e) { return {}; }
 })());
@@ -4741,6 +4741,31 @@ async function subscribeFamilyPush() {
     await sb.from('push_subscriptions').upsert({ user_id: uid, endpoint: j.endpoint, sub: j, updated_at: new Date().toISOString() }, { onConflict: 'user_id,endpoint' });
   } catch (e) {}
 }
+/* Push-Abo sicherstellen – auch ohne Familie; optionale Zusatzfelder (z. B. { morning:true }). */
+async function ensurePushSub(extra) {
+  if (!CLOUD || !('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return null;
+  const uid = famSelfId(); if (!uid) return null;
+  const reg = await navigator.serviceWorker.ready;
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(VAPID_PUBLIC) });
+  const j = sub.toJSON();
+  await famAuth();
+  await sb.from('push_subscriptions').upsert(Object.assign({ user_id: uid, endpoint: j.endpoint, sub: j, updated_at: new Date().toISOString() }, extra || {}), { onConflict: 'user_id,endpoint' });
+  return j;
+}
+/* Morgen-Briefing-Push pro Gerät an-/abschalten (Opt-in-Flag im Push-Abo; Versand per Server-Cron). */
+async function setMorningPush(on) {
+  if (on && typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+    const p = await Notification.requestPermission();
+    if (p !== 'granted') { toast('Bitte Benachrichtigungen erlauben.'); RENDERERS.family(); return; }
+  }
+  const j = await ensurePushSub({ morning: !!on });
+  store.settings = store.settings || {}; store.settings.morningPush = !!on; save();
+  if (on && !j) toast('Konnte das Push-Abo nicht einrichten – bitte erneut versuchen.');
+  else toast(on ? '☀️ Morgen-Briefing aktiviert.' : 'Morgen-Briefing aus.');
+  RENDERERS.family();
+}
 async function pushNotifyMember(toUserId, title, bodyText) {
   try {
     if (!CLOUD || !toUserId || toUserId === famSelfId()) return;
@@ -4780,7 +4805,9 @@ function famPushCard() {
   let inner;
   if (!supported) inner = '<p class="sub" style="color:var(--muted);font-size:13px">Dieses Gerät/dieser Browser unterstützt keine Push-Benachrichtigungen.</p>';
   else if (Notification.permission === 'denied') inner = '<p class="sub" style="color:var(--muted);font-size:13px">🔕 Benachrichtigungen sind für Effyra <b>blockiert</b>. Bitte in den Browser-/Geräte-Einstellungen für diese Seite erlauben und die App neu laden.</p>';
-  else if (Notification.permission === 'granted') inner = '<p class="sub" style="color:var(--muted);font-size:13px">✅ Auf diesem Gerät aktiv. Du wirst bei neuen Aufgaben benachrichtigt – auch bei geschlossener App.</p><div class="kid-row"><button class="btn btn-sm" data-fam="pushResub">Erneut anmelden</button><button class="btn btn-sm btn-primary" data-fam="pushTest">🔔 Test an mich</button></div>';
+  else if (Notification.permission === 'granted') { const mOn = !!(store.settings && store.settings.morningPush); inner = '<p class="sub" style="color:var(--muted);font-size:13px">✅ Auf diesem Gerät aktiv. Du wirst bei neuen Aufgaben benachrichtigt – auch bei geschlossener App.</p>' +
+    '<div class="kid-row" style="align-items:center;margin-top:8px"><span class="sub" style="flex:1;font-size:13px">☀️ Tagesbriefing morgens als Push</span><button class="btn btn-sm' + (mOn ? ' btn-primary' : '') + '" data-fam="morningToggle">' + (mOn ? 'An ✓' : 'Aus') + '</button></div>' +
+    '<div class="kid-row" style="margin-top:8px"><button class="btn btn-sm" data-fam="pushResub">Erneut anmelden</button><button class="btn btn-sm btn-primary" data-fam="pushTest">🔔 Test an mich</button></div>'; }
   else inner = '<p class="sub" style="color:var(--muted);font-size:13px">Erlaube Benachrichtigungen, damit du zugewiesene Aufgaben auch bei geschlossener App erhältst.</p><button class="btn btn-primary" data-fam="pushOn" style="width:100%">🔔 Benachrichtigungen aktivieren</button>';
   return '<div class="card"><h3 style="margin-bottom:6px">🔔 Hintergrund-Benachrichtigungen</h3>' + inner +
     '<div class="em-priv">📱 iPhone/iPad: nur wenn die App auf dem Home-Bildschirm installiert ist (Teilen → „Zum Home-Bildschirm").</div></div>';
@@ -5211,6 +5238,7 @@ $('#famRoot').addEventListener('click', e => {
   }
   if (a === 'pushResub') { subscribeFamilyPush().then(() => toast('Angemeldet ✓')).catch(() => toast('Anmeldung fehlgeschlagen.')); return; }
   if (a === 'pushTest') { toast('Test wird gesendet …'); pushTestSelf(); return; }
+  if (a === 'morningToggle') { setMorningPush(!(store.settings && store.settings.morningPush)); return; }
   if (a === 'medRemindOn') {
     if (typeof Notification === 'undefined') { toast('Benachrichtigungen werden hier nicht unterstützt.'); return; }
     Notification.requestPermission().then(p => { RENDERERS.family(); if (p === 'granted') { toast('🔔 Erinnerungen aktiviert'); checkMedReminders(); } });
