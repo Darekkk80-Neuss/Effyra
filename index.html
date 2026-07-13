@@ -4760,9 +4760,16 @@ async function setMorningPush(on) {
     const p = await Notification.requestPermission();
     if (p !== 'granted') { toast('Bitte Benachrichtigungen erlauben.'); RENDERERS.family(); return; }
   }
-  const j = await ensurePushSub({ morning: !!on });
+  const j = await ensurePushSub();   // Push-Abo (Zeile) sicherstellen
+  let okFlag = false;                 // morning-Flag zuverlässig serverseitig setzen (umgeht Spaltenrechte)
+  try {
+    await famAuth();
+    const { data } = await sb.auth.getSession();
+    const tok = data && data.session && data.session.access_token;
+    if (tok) { const r = await fetch(FN_URL('push-send'), { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + tok }, body: JSON.stringify({ setMorning: !!on }) }); okFlag = r.ok; }
+  } catch (e) {}
   store.settings = store.settings || {}; store.settings.morningPush = !!on; save();
-  if (on && !j) toast('Konnte das Push-Abo nicht einrichten – bitte erneut versuchen.');
+  if (on && (!j || !okFlag)) toast('Fast geschafft – bitte kurz erneut versuchen (Verbindung?).');
   else toast(on ? '☀️ Morgen-Briefing aktiviert.' : 'Morgen-Briefing aus.');
   RENDERERS.family();
 }

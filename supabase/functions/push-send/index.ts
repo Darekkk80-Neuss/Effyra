@@ -44,6 +44,15 @@ Deno.serve(async (req) => {
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: 'bad_json' }, 400); }
+
+  // Morgen-Briefing-Opt-in des Senders setzen (Service-Role → zuverlässig, umgeht Spaltenrechte/RLS).
+  if (body && typeof body.setMorning !== 'undefined') {
+    const admin2 = createClient(SUPABASE_URL, SERVICE);
+    const { error: e2 } = await admin2.from('push_subscriptions').update({ morning: !!body.setMorning }).eq('user_id', sender);
+    if (e2) return json({ error: 'update_failed', detail: e2.message }, 500);
+    return json({ ok: true, morning: !!body.setMorning }, 200);
+  }
+
   const toUserId = String(body?.toUserId || '');
   if (!/^[0-9a-f-]{36}$/i.test(toUserId)) return json({ error: 'bad_request' }, 400);
   const isTest = body?.test === true;
