@@ -1410,9 +1410,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <h1>Einkaufsliste</h1>
         <p>Gemeinsame Liste – in der Familie automatisch geteilt.</p>
       </div>
-      <div class="task-add">
-        <input type="text" id="shInput" list="shSuggestList" autocomplete="off" placeholder="Artikel hinzufügen (z. B. Milch)" maxlength="60">
-        <input type="date" id="shDue" title="brauche bis" style="flex:0 0 auto;width:132px">
+      <div class="task-add" style="flex-wrap:wrap">
+        <input type="text" id="shInput" list="shSuggestList" autocomplete="off" placeholder="Artikel (z. B. Milch)" maxlength="60" style="flex:1 1 150px">
+        <input type="text" id="shQty" placeholder="Menge" title="Menge (z. B. 2, 500 g, 1 Pck)" maxlength="12" style="flex:0 1 84px">
+        <input type="date" id="shDue" title="brauche bis" style="flex:0 1 132px">
         <button class="btn btn-primary" id="shAddBtn"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button>
         <datalist id="shSuggestList"></datalist>
       </div>
@@ -3934,6 +3935,7 @@ function dailyMindfulQuote() {
   const n = pool.length;
   return pool[(((doy * 7 + d.getFullYear()) % n) + n) % n];
 }
+let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (Default) / aufgeklappt
 RENDERERS.dashboard = function () {
   const H = new Date().getHours();
   const g = H < 5 ? 'Gute Nacht' : H < 11 ? 'Guten Morgen' : H < 18 ? 'Guten Tag' : 'Guten Abend';
@@ -4035,19 +4037,26 @@ RENDERERS.dashboard = function () {
       chip + '</div>';
   }).join(''), ' data-tab="ftasks"');
 
-  /* EINKAUF – dir zugewiesene Einkaufsliste mit offenen Artikeln (verschwindet, wenn alles erledigt) */
-  const _sa = (store.family && store.family.shopAssign && store.family.shopAssign.assignee) ? store.family.shopAssign : null;
-  if (_sa) {
-    const _self = (typeof famSelfId === 'function') ? famSelfId() : null;
-    const _meM = _self ? (store.family.members || []).find(m => m.authId === _self) : null;
-    if (_meM && _sa.assignee === _meM.id) {
-      const _items = store.family.shopping || [], _open = _items.filter(x => !x.done).length;
-      if (_open) {
-        const _byM = (store.family.members || []).find(m => m.authId === _sa.by);
-        const _sub = [_byM ? t('sh.by', { name: _byM.name }) : '', t('sh.open', { n: _open }), _sa.due ? t('sh.due', { d: relDay(_sa.due) }) : ''].filter(Boolean).join(' · ');
-        html += dsec('🛒 ' + t('sh.forFamily'), 'shopping', 'Öffnen', drow({ svg: 'icCheck2', title: t('sh.forFamily'), sub: _sub, meta: (_items.length - _open) + '/' + _items.length, go: 'shopping' }));
-      }
+  /* EINKAUFSLISTE – aufklappbare Sektion (oberhalb Finanzen). Erscheint, wenn die Liste ≥2 Artikel
+     hat und ≥1 offener Artikel fällig in ≤5 Tagen (oder ohne Datum) ist. Direkt abhakbar; verschwindet,
+     wenn alle erledigt sind. Eingeklappt als Default, damit es nicht abschreckt. */
+  const _shAll = (store.family && store.family.shopping) ? store.family.shopping : [];
+  const _shOpen = _shAll.filter(i => !i.done && (!i.due || dayDiff(i.due) <= 5))
+    .sort((x, y) => { const xd = x.due || '9999-99-99', yd = y.due || '9999-99-99'; return xd !== yd ? (xd < yd ? -1 : 1) : ((x.createdAt || 0) - (y.createdAt || 0)); });
+  if (_shAll.length >= 2 && _shOpen.length >= 1) {
+    const _saN = (store.family.shopAssign && store.family.shopAssign.assignee) ? store.family.shopAssign : null;
+    let _shInner = '';
+    if (dashShopOpen) {
+      _shInner = '<div class="dsec-body">' + _shOpen.map(i => {
+        const c = shopCat(i.name);
+        const ch = i.due ? '<span class="chip-status ' + (dayDiff(i.due) < 0 ? 'chip-danger' : dayDiff(i.due) === 0 ? 'chip-warn' : 'chip-ok') + '">' + esc(relDay(i.due)) + '</span>' : '';
+        return '<div class="drow drow-check"><button class="tcheck" data-shtoggle="' + i.id + '" title="Gekauft" aria-label="Gekauft"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+          '<span class="drow-tx"><b>' + c.icon + ' ' + (i.qty ? esc(i.qty) + ' ' : '') + esc(i.name) + '</b></span>' + ch + '</div>';
+      }).join('');
+      if (_saN) { const am = (store.family.members || []).find(m => m.id === _saN.assignee); if (am) _shInner += '<div class="drow"><span class="drow-tx" style="color:var(--faint)">➜ ' + esc(am.name) + '</span></div>'; }
+      _shInner += '<button class="btn btn-ghost btn-sm" data-go="shopping" style="width:100%;margin-top:6px">Zur Einkaufsliste →</button></div>';
     }
+    html += '<section class="dash-section"><div class="dsec-head" data-shexpand="1" role="button" tabindex="0" style="cursor:pointer"><span class="dsec-title">🛒 Einkaufsliste <span style="color:var(--faint);font-weight:600">· ' + _shOpen.length + '</span></span><span style="color:var(--faint);font-size:16px" aria-hidden="true">' + (dashShopOpen ? '▾' : '▸') + '</span></div>' + _shInner + '</section>';
   }
 
   /* FINANZEN – Monatsbudget auf einen Blick */
@@ -4108,6 +4117,19 @@ RENDERERS.dashboard = function () {
     tk.done = true; save();
     if (typeof famPush === 'function') { try { famPush(); } catch (err) {} }
     toast('✅ „' + tk.title + '" erledigt.');
+    RENDERERS.dashboard();
+  }));
+  /* Einkaufs-Sektion auf-/zuklappen */
+  $$('#dashWidgets [data-shexpand]').forEach(b => b.addEventListener('click', () => { dashShopOpen = !dashShopOpen; RENDERERS.dashboard(); }));
+  /* Artikel direkt vom Dashboard als gekauft abhaken (verschwindet, wenn alle erledigt) */
+  $$('#dashWidgets [data-shtoggle]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const it = (store.family.shopping || []).find(x => x.id === b.dataset.shtoggle);
+    if (!it) return;
+    it.done = true; save();
+    if (typeof famPush === 'function') { try { famPush(); } catch (err) {} }
+    const arr = store.family.shopping || [];
+    if (arr.length && arr.every(x => x.done) && typeof shopCelebrate === 'function') shopCelebrate();
     RENDERERS.dashboard();
   }));
   $$('#statRow [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
@@ -6617,11 +6639,11 @@ function shopCat(name) {
 /* Häufige Artikel für Schnell-Hinzufügen + Autovervollständigung (deutscher Markt). */
 const SHOP_COMMON = ['Milch', 'Brot', 'Eier', 'Butter', 'Käse', 'Joghurt', 'Bananen', 'Äpfel', 'Tomaten', 'Gurke', 'Kartoffeln', 'Zwiebeln', 'Salat', 'Hähnchen', 'Hackfleisch', 'Aufschnitt', 'Nudeln', 'Reis', 'Kaffee', 'Wasser', 'Saft', 'Klopapier', 'Küchenrolle', 'Spülmittel', 'Zahnpasta', 'Windeln', 'Schokolade', 'Müsli', 'Mehl', 'Zucker'];
 /* Zentrales Hinzufügen mit Dedupe (offener Artikel gleichen Namens wird nicht doppelt angelegt). */
-function shopAddItem(name, due) {
+function shopAddItem(name, due, qty) {
   name = String(name || '').trim(); if (!name) return false;
   store.family.shopping = store.family.shopping || [];
   if (store.family.shopping.some(i => !i.done && (i.name || '').toLowerCase() === name.toLowerCase())) { toast('Schon auf der Liste'); return false; }
-  store.family.shopping.push({ id: uid(), name: name, due: due || '', done: false, by: (typeof famSelfId === 'function' ? famSelfId() : ''), createdAt: Date.now() });
+  store.family.shopping.push({ id: uid(), name: name, qty: String(qty || '').trim(), due: due || '', done: false, by: (typeof famSelfId === 'function' ? famSelfId() : ''), createdAt: Date.now() });
   shopChanged(); return true;
 }
 function shopChanged() { save(); if (typeof famPush === 'function') famPush(); RENDERERS.shopping(); }
@@ -6691,6 +6713,9 @@ RENDERERS.shopping = function () {
       members.map(m => '<option value="' + m.id + '">' + esc(m.name) + '</option>').join('') + '</select>' +
       '<input type="date" id="shAssignDue" title="fällig">' +
       '<button class="btn btn-sm btn-primary" data-sh="assign">' + t('sh.assign') + '</button></div></div>';
+  } else if (!inFamily && items.length) {
+    // Zuweisung braucht Familien-Sync – dezenter Hinweis + Direktlink
+    bar = '<div class="card shop-assign" style="display:flex;align-items:center;gap:10px"><div class="t-main" style="flex:1"><span class="t-title" style="font-size:14px">🔗 Liste zuweisen</span><div class="t-meta">Verbinde deine Familie (Sync), um die Liste jemandem zuzuweisen.</div></div><button class="btn btn-sm btn-primary" data-sh="connectfam">Verbinden</button></div>';
   }
   if (!items.length) { box.innerHTML = bar + shopQuick + '<div class="empty" style="margin-top:16px"><span class="big">🛒</span>Die Einkaufsliste ist leer.<br>Trage oben den ersten Artikel ein.</div>'; if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box); return; }
   const open = items.filter(i => !i.done).sort((x, y) => { const xd = x.due || '9999-99-99', yd = y.due || '9999-99-99'; return xd !== yd ? (xd < yd ? -1 : 1) : ((x.createdAt || 0) - (y.createdAt || 0)); });
@@ -6698,7 +6723,7 @@ RENDERERS.shopping = function () {
   const row = i => { const c = shopCat(i.name); const chip = (i.due && !i.done) ? '<span class="chip-status ' + (dayDiff(i.due) < 0 ? 'chip-danger' : dayDiff(i.due) === 0 ? 'chip-warn' : 'chip-ok') + '">' + esc(relDay(i.due)) + '</span>' : '';
     return '<div class="task' + (i.done ? ' done' : '') + '">' +
       '<button class="tcheck" data-sh="toggle" data-id="' + i.id + '" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-      '<div class="t-main"><span class="t-title">' + c.icon + ' ' + esc(i.name) + '</span></div>' + chip +
+      '<div class="t-main"><span class="t-title">' + c.icon + ' ' + (i.qty ? '<span style="color:var(--muted);font-weight:700">' + esc(i.qty) + '</span> ' : '') + esc(i.name) + '</span></div>' + chip +
       '<button class="t-del" data-sh="del" data-id="' + i.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>'; };
   let h = bar + shopQuick + (open.map(row).join('') || '<div class="empty" style="padding:12px">Alles erledigt – nichts mehr offen. ✓</div>');
   if (done.length) h += '<div class="kid-row" style="justify-content:space-between;align-items:center;margin:14px 2px 6px"><span class="sub" style="color:var(--faint);font-size:12.5px">' + t('sh.done') + ' (' + done.length + ')</span><button class="btn btn-sm" data-sh="clear">Erledigte entfernen</button></div>' + done.map(row).join('');
@@ -6706,8 +6731,8 @@ RENDERERS.shopping = function () {
   if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box);
 };
 if ($('#shAddBtn')) $('#shAddBtn').addEventListener('click', () => {
-  const inp = $('#shInput'), dueEl = $('#shDue');
-  if (shopAddItem(inp.value, dueEl ? dueEl.value : '')) { inp.value = ''; if (dueEl) dueEl.value = ''; }
+  const inp = $('#shInput'), dueEl = $('#shDue'), qtyEl = $('#shQty');
+  if (shopAddItem(inp.value, dueEl ? dueEl.value : '', qtyEl ? qtyEl.value : '')) { inp.value = ''; if (dueEl) dueEl.value = ''; if (qtyEl) qtyEl.value = ''; }
   inp.focus();
 });
 if ($('#shInput')) $('#shInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#shAddBtn').click(); } });
@@ -6716,6 +6741,7 @@ if ($('#shoppingRoot')) $('#shoppingRoot').addEventListener('click', e => {
   const act = b.dataset.sh;
   store.family.shopping = store.family.shopping || [];
   if (act === 'clear') { store.family.shopping = store.family.shopping.filter(i => !i.done); shopChanged(); return; }
+  if (act === 'connectfam') { if (typeof famTab !== 'undefined') famTab = 'sync'; showView('family'); return; }
   if (act === 'quick') { shopAddItem(b.dataset.name, ''); return; }
   if (act === 'assign') { shopAssignNow(); return; }
   if (act === 'unassign') { store.family.shopAssign = null; shopChanged(); toast('Zuweisung aufgehoben'); return; }
