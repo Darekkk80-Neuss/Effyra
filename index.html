@@ -1411,8 +1411,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <p>Gemeinsame Liste – in der Familie automatisch geteilt.</p>
       </div>
       <div class="task-add">
-        <input type="text" id="shInput" placeholder="Artikel hinzufügen (z. B. Milch)" maxlength="60">
+        <input type="text" id="shInput" list="shSuggestList" autocomplete="off" placeholder="Artikel hinzufügen (z. B. Milch)" maxlength="60">
+        <input type="date" id="shDue" title="brauche bis" style="flex:0 0 auto;width:132px">
         <button class="btn btn-primary" id="shAddBtn"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button>
+        <datalist id="shSuggestList"></datalist>
       </div>
       <div id="shoppingRoot"></div>
     </section>
@@ -1819,7 +1821,7 @@ const SUPPORTED_LANGS = ['de', 'en', 'fr', 'es', 'it', 'pl'];
 const I18N = {
   de: {
     'date.today': 'heute', 'date.tomorrow': 'morgen', 'date.yesterday': 'gestern', 'date.days_ago': 'vor {n} Tagen', 'date.in_days': 'in {n} Tagen',
-    'fmt.oclock': '{t} Uhr', 'fmt.allday': 'Ganztägig', 'fmt.due': 'fällig {d}', 'fmt.overdue': 'überfällig', 'fmt.nodate': 'ohne Datum', 'fmt.once_today': 'einmalig heute', 'fmt.daily': 'täglich', 'fmt.turns': 'wird {n}', 'fmt.whole_family': '👪 ganze Familie', 'fmt.deadline': 'Frist {d}', 'ct.deadline_passed': 'Frist abgelaufen', 'ct.cancellable': 'kündbar {d}', 'ct.per_month': '/ Monat', 'ct.per_year': '/ Jahr', 'cu.every_months': 'alle {n} Monate', 'cu.last': 'zuletzt {d}', 'wt.weekly': 'wöchentlich', 'wt.evenweek': 'gerade KW', 'wt.oddweek': 'ungerade KW', 'vault.only_device': 'Nur auf diesem Gerät', 'sh.done': 'Erledigt', 'sh.assignTo': '🛒 Zuweisen an …', 'sh.assign': 'Zuweisen', 'sh.unassign': 'Aufheben', 'sh.forFamily': 'Einkauf für die Familie', 'sh.forYou': 'Für dich', 'sh.assignedTo': 'Zugewiesen an {name}', 'sh.by': 'von {name}', 'sh.due': 'fällig {d}', 'sh.progress': '{done}/{total} erledigt', 'sh.celebrate': 'Einkauf erledigt – super! ✓', 'sh.open': '{n} offen',
+    'fmt.oclock': '{t} Uhr', 'fmt.allday': 'Ganztägig', 'fmt.due': 'fällig {d}', 'fmt.overdue': 'überfällig', 'fmt.nodate': 'ohne Datum', 'fmt.once_today': 'einmalig heute', 'fmt.daily': 'täglich', 'fmt.turns': 'wird {n}', 'fmt.whole_family': '👪 ganze Familie', 'fmt.deadline': 'Frist {d}', 'ct.deadline_passed': 'Frist abgelaufen', 'ct.cancellable': 'kündbar {d}', 'ct.per_month': '/ Monat', 'ct.per_year': '/ Jahr', 'cu.every_months': 'alle {n} Monate', 'cu.last': 'zuletzt {d}', 'wt.weekly': 'wöchentlich', 'wt.evenweek': 'gerade KW', 'wt.oddweek': 'ungerade KW', 'vault.only_device': 'Nur auf diesem Gerät', 'sh.done': 'Erledigt', 'sh.assignTo': '🛒 Zuweisen an …', 'sh.assign': 'Zuweisen', 'sh.unassign': 'Aufheben', 'sh.forFamily': 'Einkauf für die Familie', 'sh.forYou': 'Für dich', 'sh.assignedTo': 'Zugewiesen an {name}', 'sh.by': 'von {name}', 'sh.due': 'fällig {d}', 'sh.progress': '{done}/{total} erledigt', 'sh.celebrate': 'Einkauf erledigt – super! ✓', 'sh.open': '{n} offen', 'sh.suggest': 'Vorschläge:', 'sh.needBy': 'brauche bis',
     'greet.event_1': '{n} Termin', 'greet.event_n': '{n} Termine', 'greet.task_1': '{n} offene Aufgabe', 'greet.task_n': '{n} offene Aufgaben', 'greet.and': 'und', 'greet.today': '{date} — heute {items}.', 'greet.calm': '{date} — alles im Griff, nichts Dringendes. 🌿', 'day.events_on': 'Termine am {date}',
     'fmt.years_short': 'J.', 'role.owner': 'Administrator', 'role.adult': 'Erwachsen', 'role.child': 'Kind', 'role.ai_on': 'KI aktiv', 'role.ai_off': '🔒 keine KI', 'doc.from': 'von {s}', 'doc.deadline': 'Frist: {date} ({rel})', 'doc.expired': 'abgelaufen', 'school.no_subjects': 'Noch keine Fächer am {day}.',
     'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.contracts': 'Verträge & Abos', 'nav.vault': 'Dokumenten-Tresor', 'nav.shopping': 'Einkaufsliste', 'nav.waste': 'Müllkalender', 'nav.checkup': 'Vorsorge & Erinnerungen', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
@@ -1836,7 +1838,7 @@ const I18N = {
   },
   en: {
     'date.today': 'today', 'date.tomorrow': 'tomorrow', 'date.yesterday': 'yesterday', 'date.days_ago': '{n} days ago', 'date.in_days': 'in {n} days',
-    'fmt.oclock': '{t}', 'fmt.allday': 'All day', 'fmt.due': 'due {d}', 'fmt.overdue': 'overdue', 'fmt.nodate': 'no date', 'fmt.once_today': 'once today', 'fmt.daily': 'daily', 'fmt.turns': 'turns {n}', 'fmt.whole_family': '👪 whole family', 'fmt.deadline': 'deadline {d}', 'ct.deadline_passed': 'Deadline passed', 'ct.cancellable': 'cancellable {d}', 'ct.per_month': '/ month', 'ct.per_year': '/ year', 'cu.every_months': 'every {n} months', 'cu.last': 'last {d}', 'wt.weekly': 'weekly', 'wt.evenweek': 'even week', 'wt.oddweek': 'odd week', 'vault.only_device': 'Only on this device', 'sh.done': 'Done', 'sh.assignTo': '🛒 Assign to …', 'sh.assign': 'Assign', 'sh.unassign': 'Unassign', 'sh.forFamily': 'Shopping for the family', 'sh.forYou': 'For you', 'sh.assignedTo': 'Assigned to {name}', 'sh.by': 'from {name}', 'sh.due': 'due {d}', 'sh.progress': '{done}/{total} done', 'sh.celebrate': 'Shopping done – great! ✓', 'sh.open': '{n} open',
+    'fmt.oclock': '{t}', 'fmt.allday': 'All day', 'fmt.due': 'due {d}', 'fmt.overdue': 'overdue', 'fmt.nodate': 'no date', 'fmt.once_today': 'once today', 'fmt.daily': 'daily', 'fmt.turns': 'turns {n}', 'fmt.whole_family': '👪 whole family', 'fmt.deadline': 'deadline {d}', 'ct.deadline_passed': 'Deadline passed', 'ct.cancellable': 'cancellable {d}', 'ct.per_month': '/ month', 'ct.per_year': '/ year', 'cu.every_months': 'every {n} months', 'cu.last': 'last {d}', 'wt.weekly': 'weekly', 'wt.evenweek': 'even week', 'wt.oddweek': 'odd week', 'vault.only_device': 'Only on this device', 'sh.done': 'Done', 'sh.assignTo': '🛒 Assign to …', 'sh.assign': 'Assign', 'sh.unassign': 'Unassign', 'sh.forFamily': 'Shopping for the family', 'sh.forYou': 'For you', 'sh.assignedTo': 'Assigned to {name}', 'sh.by': 'from {name}', 'sh.due': 'due {d}', 'sh.progress': '{done}/{total} done', 'sh.celebrate': 'Shopping done – great! ✓', 'sh.open': '{n} open', 'sh.suggest': 'Suggestions:', 'sh.needBy': 'need by',
     'greet.event_1': '{n} event', 'greet.event_n': '{n} events', 'greet.task_1': '{n} open task', 'greet.task_n': '{n} open tasks', 'greet.and': 'and', 'greet.today': '{date} — today {items}.', 'greet.calm': '{date} — all under control, nothing urgent. 🌿', 'day.events_on': 'Events on {date}',
     'fmt.years_short': 'yrs', 'role.owner': 'Administrator', 'role.adult': 'Adult', 'role.child': 'Child', 'role.ai_on': 'AI on', 'role.ai_off': '🔒 no AI', 'doc.from': 'from {s}', 'doc.deadline': 'Deadline: {date} ({rel})', 'doc.expired': 'expired', 'school.no_subjects': 'No subjects on {day} yet.',
     'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.contracts': 'Contracts & subscriptions', 'nav.vault': 'Document vault', 'nav.shopping': 'Shopping list', 'nav.waste': 'Waste calendar', 'nav.checkup': 'Check-ups & reminders', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
@@ -1853,7 +1855,7 @@ const I18N = {
   },
   fr: {
     'date.today': "aujourd'hui", 'date.tomorrow': 'demain', 'date.yesterday': 'hier', 'date.days_ago': 'il y a {n} jours', 'date.in_days': 'dans {n} jours',
-    'fmt.oclock': '{t}', 'fmt.allday': 'Toute la journée', 'fmt.due': 'échéance {d}', 'fmt.overdue': 'en retard', 'fmt.nodate': 'sans date', 'fmt.once_today': "une fois aujourd'hui", 'fmt.daily': 'quotidien', 'fmt.turns': 'aura {n} ans', 'fmt.whole_family': '👪 toute la famille', 'fmt.deadline': 'échéance {d}', 'ct.deadline_passed': 'Délai dépassé', 'ct.cancellable': 'résiliable {d}', 'ct.per_month': '/ mois', 'ct.per_year': '/ an', 'cu.every_months': 'tous les {n} mois', 'cu.last': 'dernière fois {d}', 'wt.weekly': 'hebdomadaire', 'wt.evenweek': 'semaine paire', 'wt.oddweek': 'semaine impaire', 'vault.only_device': 'Uniquement sur cet appareil', 'sh.done': 'Terminé', 'sh.assignTo': '🛒 Attribuer à …', 'sh.assign': 'Attribuer', 'sh.unassign': 'Annuler', 'sh.forFamily': 'Courses pour la famille', 'sh.forYou': 'Pour toi', 'sh.assignedTo': 'Attribué à {name}', 'sh.by': 'de {name}', 'sh.due': 'pour {d}', 'sh.progress': '{done}/{total} faits', 'sh.celebrate': 'Courses terminées – super ! ✓', 'sh.open': '{n} à faire',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Toute la journée', 'fmt.due': 'échéance {d}', 'fmt.overdue': 'en retard', 'fmt.nodate': 'sans date', 'fmt.once_today': "une fois aujourd'hui", 'fmt.daily': 'quotidien', 'fmt.turns': 'aura {n} ans', 'fmt.whole_family': '👪 toute la famille', 'fmt.deadline': 'échéance {d}', 'ct.deadline_passed': 'Délai dépassé', 'ct.cancellable': 'résiliable {d}', 'ct.per_month': '/ mois', 'ct.per_year': '/ an', 'cu.every_months': 'tous les {n} mois', 'cu.last': 'dernière fois {d}', 'wt.weekly': 'hebdomadaire', 'wt.evenweek': 'semaine paire', 'wt.oddweek': 'semaine impaire', 'vault.only_device': 'Uniquement sur cet appareil', 'sh.done': 'Terminé', 'sh.assignTo': '🛒 Attribuer à …', 'sh.assign': 'Attribuer', 'sh.unassign': 'Annuler', 'sh.forFamily': 'Courses pour la famille', 'sh.forYou': 'Pour toi', 'sh.assignedTo': 'Attribué à {name}', 'sh.by': 'de {name}', 'sh.due': 'pour {d}', 'sh.progress': '{done}/{total} faits', 'sh.celebrate': 'Courses terminées – super ! ✓', 'sh.open': '{n} à faire', 'sh.suggest': 'Suggestions :', 'sh.needBy': 'besoin pour',
     'greet.event_1': '{n} événement', 'greet.event_n': '{n} événements', 'greet.task_1': '{n} tâche ouverte', 'greet.task_n': '{n} tâches ouvertes', 'greet.and': 'et', 'greet.today': "{date} — aujourd'hui {items}.", 'greet.calm': '{date} — tout est sous contrôle, rien d’urgent. 🌿', 'day.events_on': 'Événements le {date}',
     'fmt.years_short': 'ans', 'role.owner': 'Administrateur', 'role.adult': 'Adulte', 'role.child': 'Enfant', 'role.ai_on': 'IA active', 'role.ai_off': '🔒 pas d’IA', 'doc.from': 'de {s}', 'doc.deadline': 'Échéance : {date} ({rel})', 'doc.expired': 'expiré', 'school.no_subjects': 'Aucune matière le {day}.',
     'nav.dashboard': 'Accueil', 'nav.work': 'Temps de travail', 'nav.docs': 'Scanner de documents', 'nav.docgen': 'Assistant de documents', 'nav.life': 'Situations de vie', 'nav.tasks': 'Tâches', 'nav.calendar': 'Calendrier', 'nav.school': 'Enfants', 'nav.family': 'Espace famille', 'nav.emergency': 'Urgences', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contrats & abonnements', 'nav.vault': 'Coffre à documents', 'nav.shopping': 'Liste de courses', 'nav.waste': 'Calendrier des déchets', 'nav.checkup': 'Prévention & rappels', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Paramètres', 'nav.more': 'Plus',
@@ -1870,7 +1872,7 @@ const I18N = {
   },
   es: {
     'date.today': 'hoy', 'date.tomorrow': 'mañana', 'date.yesterday': 'ayer', 'date.days_ago': 'hace {n} días', 'date.in_days': 'en {n} días',
-    'fmt.oclock': '{t}', 'fmt.allday': 'Todo el día', 'fmt.due': 'vence {d}', 'fmt.overdue': 'vencido', 'fmt.nodate': 'sin fecha', 'fmt.once_today': 'una vez hoy', 'fmt.daily': 'a diario', 'fmt.turns': 'cumple {n}', 'fmt.whole_family': '👪 toda la familia', 'fmt.deadline': 'plazo {d}', 'ct.deadline_passed': 'Plazo vencido', 'ct.cancellable': 'cancelable {d}', 'ct.per_month': '/ mes', 'ct.per_year': '/ año', 'cu.every_months': 'cada {n} meses', 'cu.last': 'última vez {d}', 'wt.weekly': 'semanal', 'wt.evenweek': 'semana par', 'wt.oddweek': 'semana impar', 'vault.only_device': 'Solo en este dispositivo', 'sh.done': 'Hecho', 'sh.assignTo': '🛒 Asignar a …', 'sh.assign': 'Asignar', 'sh.unassign': 'Quitar', 'sh.forFamily': 'Compra para la familia', 'sh.forYou': 'Para ti', 'sh.assignedTo': 'Asignado a {name}', 'sh.by': 'de {name}', 'sh.due': 'para {d}', 'sh.progress': '{done}/{total} hechos', 'sh.celebrate': '¡Compra hecha – genial! ✓', 'sh.open': '{n} pendientes',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Todo el día', 'fmt.due': 'vence {d}', 'fmt.overdue': 'vencido', 'fmt.nodate': 'sin fecha', 'fmt.once_today': 'una vez hoy', 'fmt.daily': 'a diario', 'fmt.turns': 'cumple {n}', 'fmt.whole_family': '👪 toda la familia', 'fmt.deadline': 'plazo {d}', 'ct.deadline_passed': 'Plazo vencido', 'ct.cancellable': 'cancelable {d}', 'ct.per_month': '/ mes', 'ct.per_year': '/ año', 'cu.every_months': 'cada {n} meses', 'cu.last': 'última vez {d}', 'wt.weekly': 'semanal', 'wt.evenweek': 'semana par', 'wt.oddweek': 'semana impar', 'vault.only_device': 'Solo en este dispositivo', 'sh.done': 'Hecho', 'sh.assignTo': '🛒 Asignar a …', 'sh.assign': 'Asignar', 'sh.unassign': 'Quitar', 'sh.forFamily': 'Compra para la familia', 'sh.forYou': 'Para ti', 'sh.assignedTo': 'Asignado a {name}', 'sh.by': 'de {name}', 'sh.due': 'para {d}', 'sh.progress': '{done}/{total} hechos', 'sh.celebrate': '¡Compra hecha – genial! ✓', 'sh.open': '{n} pendientes', 'sh.suggest': 'Sugerencias:', 'sh.needBy': 'necesito para',
     'greet.event_1': '{n} evento', 'greet.event_n': '{n} eventos', 'greet.task_1': '{n} tarea abierta', 'greet.task_n': '{n} tareas abiertas', 'greet.and': 'y', 'greet.today': '{date} — hoy {items}.', 'greet.calm': '{date} — todo bajo control, nada urgente. 🌿', 'day.events_on': 'Eventos el {date}',
     'fmt.years_short': 'años', 'role.owner': 'Administrador', 'role.adult': 'Adulto', 'role.child': 'Niño', 'role.ai_on': 'IA activa', 'role.ai_off': '🔒 sin IA', 'doc.from': 'de {s}', 'doc.deadline': 'Plazo: {date} ({rel})', 'doc.expired': 'vencido', 'school.no_subjects': 'Aún no hay asignaturas el {day}.',
     'nav.dashboard': 'Inicio', 'nav.work': 'Horario laboral', 'nav.docs': 'Escáner de documentos', 'nav.docgen': 'Asistente de documentos', 'nav.life': 'Situaciones de vida', 'nav.tasks': 'Tareas', 'nav.calendar': 'Calendario', 'nav.school': 'Niños', 'nav.family': 'Centro familiar', 'nav.emergency': 'Emergencia', 'nav.vehicles': 'Coche y Moto', 'nav.contracts': 'Contratos y suscripciones', 'nav.vault': 'Caja fuerte de documentos', 'nav.shopping': 'Lista de la compra', 'nav.waste': 'Calendario de basura', 'nav.checkup': 'Revisiones y recordatorios', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ajustes', 'nav.more': 'Más',
@@ -1887,7 +1889,7 @@ const I18N = {
   },
   it: {
     'date.today': 'oggi', 'date.tomorrow': 'domani', 'date.yesterday': 'ieri', 'date.days_ago': '{n} giorni fa', 'date.in_days': 'tra {n} giorni',
-    'fmt.oclock': '{t}', 'fmt.allday': 'Tutto il giorno', 'fmt.due': 'scade {d}', 'fmt.overdue': 'in ritardo', 'fmt.nodate': 'senza data', 'fmt.once_today': 'una volta oggi', 'fmt.daily': 'ogni giorno', 'fmt.turns': 'compie {n}', 'fmt.whole_family': '👪 tutta la famiglia', 'fmt.deadline': 'scadenza {d}', 'ct.deadline_passed': 'Termine scaduto', 'ct.cancellable': 'disdicibile {d}', 'ct.per_month': '/ mese', 'ct.per_year': '/ anno', 'cu.every_months': 'ogni {n} mesi', 'cu.last': 'ultima volta {d}', 'wt.weekly': 'settimanale', 'wt.evenweek': 'settimana pari', 'wt.oddweek': 'settimana dispari', 'vault.only_device': 'Solo su questo dispositivo', 'sh.done': 'Completato', 'sh.assignTo': '🛒 Assegna a …', 'sh.assign': 'Assegna', 'sh.unassign': 'Rimuovi', 'sh.forFamily': 'Spesa per la famiglia', 'sh.forYou': 'Per te', 'sh.assignedTo': 'Assegnato a {name}', 'sh.by': 'da {name}', 'sh.due': 'entro {d}', 'sh.progress': '{done}/{total} fatti', 'sh.celebrate': 'Spesa fatta – ottimo! ✓', 'sh.open': '{n} da fare',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Tutto il giorno', 'fmt.due': 'scade {d}', 'fmt.overdue': 'in ritardo', 'fmt.nodate': 'senza data', 'fmt.once_today': 'una volta oggi', 'fmt.daily': 'ogni giorno', 'fmt.turns': 'compie {n}', 'fmt.whole_family': '👪 tutta la famiglia', 'fmt.deadline': 'scadenza {d}', 'ct.deadline_passed': 'Termine scaduto', 'ct.cancellable': 'disdicibile {d}', 'ct.per_month': '/ mese', 'ct.per_year': '/ anno', 'cu.every_months': 'ogni {n} mesi', 'cu.last': 'ultima volta {d}', 'wt.weekly': 'settimanale', 'wt.evenweek': 'settimana pari', 'wt.oddweek': 'settimana dispari', 'vault.only_device': 'Solo su questo dispositivo', 'sh.done': 'Completato', 'sh.assignTo': '🛒 Assegna a …', 'sh.assign': 'Assegna', 'sh.unassign': 'Rimuovi', 'sh.forFamily': 'Spesa per la famiglia', 'sh.forYou': 'Per te', 'sh.assignedTo': 'Assegnato a {name}', 'sh.by': 'da {name}', 'sh.due': 'entro {d}', 'sh.progress': '{done}/{total} fatti', 'sh.celebrate': 'Spesa fatta – ottimo! ✓', 'sh.open': '{n} da fare', 'sh.suggest': 'Suggerimenti:', 'sh.needBy': 'serve entro',
     'greet.event_1': '{n} evento', 'greet.event_n': '{n} eventi', 'greet.task_1': '{n} attività aperta', 'greet.task_n': '{n} attività aperte', 'greet.and': 'e', 'greet.today': '{date} — oggi {items}.', 'greet.calm': '{date} — tutto sotto controllo, niente di urgente. 🌿', 'day.events_on': 'Eventi il {date}',
     'fmt.years_short': 'anni', 'role.owner': 'Amministratore', 'role.adult': 'Adulto', 'role.child': 'Bambino', 'role.ai_on': 'IA attiva', 'role.ai_off': '🔒 niente IA', 'doc.from': 'da {s}', 'doc.deadline': 'Scadenza: {date} ({rel})', 'doc.expired': 'scaduto', 'school.no_subjects': 'Nessuna materia il {day}.',
     'nav.dashboard': 'Home', 'nav.work': 'Orario di lavoro', 'nav.docs': 'Scanner documenti', 'nav.docgen': 'Assistente documenti', 'nav.life': 'Situazioni di vita', 'nav.tasks': 'Attività', 'nav.calendar': 'Calendario', 'nav.school': 'Bambini', 'nav.family': 'Area famiglia', 'nav.emergency': 'Emergenza', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contratti e abbonamenti', 'nav.vault': 'Cassaforte documenti', 'nav.shopping': 'Lista della spesa', 'nav.waste': 'Calendario rifiuti', 'nav.checkup': 'Prevenzione e promemoria', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Impostazioni', 'nav.more': 'Altro',
@@ -1904,7 +1906,7 @@ const I18N = {
   },
   pl: {
     'date.today': 'dziś', 'date.tomorrow': 'jutro', 'date.yesterday': 'wczoraj', 'date.days_ago': '{n} dni temu', 'date.in_days': 'za {n} dni',
-    'fmt.oclock': '{t}', 'fmt.allday': 'Cały dzień', 'fmt.due': 'termin {d}', 'fmt.overdue': 'zaległe', 'fmt.nodate': 'bez daty', 'fmt.once_today': 'jednorazowo dziś', 'fmt.daily': 'codziennie', 'fmt.turns': 'kończy {n}', 'fmt.whole_family': '👪 cała rodzina', 'fmt.deadline': 'termin {d}', 'ct.deadline_passed': 'Termin minął', 'ct.cancellable': 'można wypowiedzieć {d}', 'ct.per_month': '/ mies.', 'ct.per_year': '/ rok', 'cu.every_months': 'co {n} mies.', 'cu.last': 'ostatnio {d}', 'wt.weekly': 'co tydzień', 'wt.evenweek': 'tydzień parzysty', 'wt.oddweek': 'tydzień nieparzysty', 'vault.only_device': 'Tylko na tym urządzeniu', 'sh.done': 'Ukończone', 'sh.assignTo': '🛒 Przypisz do …', 'sh.assign': 'Przypisz', 'sh.unassign': 'Cofnij', 'sh.forFamily': 'Zakupy dla rodziny', 'sh.forYou': 'Dla Ciebie', 'sh.assignedTo': 'Przypisane: {name}', 'sh.by': 'od {name}', 'sh.due': 'na {d}', 'sh.progress': '{done}/{total} gotowe', 'sh.celebrate': 'Zakupy zrobione – super! ✓', 'sh.open': '{n} do zrobienia',
+    'fmt.oclock': '{t}', 'fmt.allday': 'Cały dzień', 'fmt.due': 'termin {d}', 'fmt.overdue': 'zaległe', 'fmt.nodate': 'bez daty', 'fmt.once_today': 'jednorazowo dziś', 'fmt.daily': 'codziennie', 'fmt.turns': 'kończy {n}', 'fmt.whole_family': '👪 cała rodzina', 'fmt.deadline': 'termin {d}', 'ct.deadline_passed': 'Termin minął', 'ct.cancellable': 'można wypowiedzieć {d}', 'ct.per_month': '/ mies.', 'ct.per_year': '/ rok', 'cu.every_months': 'co {n} mies.', 'cu.last': 'ostatnio {d}', 'wt.weekly': 'co tydzień', 'wt.evenweek': 'tydzień parzysty', 'wt.oddweek': 'tydzień nieparzysty', 'vault.only_device': 'Tylko na tym urządzeniu', 'sh.done': 'Ukończone', 'sh.assignTo': '🛒 Przypisz do …', 'sh.assign': 'Przypisz', 'sh.unassign': 'Cofnij', 'sh.forFamily': 'Zakupy dla rodziny', 'sh.forYou': 'Dla Ciebie', 'sh.assignedTo': 'Przypisane: {name}', 'sh.by': 'od {name}', 'sh.due': 'na {d}', 'sh.progress': '{done}/{total} gotowe', 'sh.celebrate': 'Zakupy zrobione – super! ✓', 'sh.open': '{n} do zrobienia', 'sh.suggest': 'Propozycje:', 'sh.needBy': 'potrzebne na',
     'greet.event_1': '{n} wydarzenie', 'greet.event_n': '{n} wydarzenia', 'greet.task_1': '{n} otwarte zadanie', 'greet.task_n': '{n} otwartych zadań', 'greet.and': 'i', 'greet.today': '{date} — dziś {items}.', 'greet.calm': '{date} — wszystko pod kontrolą, nic pilnego. 🌿', 'day.events_on': 'Wydarzenia dnia {date}',
     'fmt.years_short': 'l.', 'role.owner': 'Administrator', 'role.adult': 'Dorosły', 'role.child': 'Dziecko', 'role.ai_on': 'AI aktywna', 'role.ai_off': '🔒 bez AI', 'doc.from': 'od {s}', 'doc.deadline': 'Termin: {date} ({rel})', 'doc.expired': 'minął', 'school.no_subjects': 'Brak przedmiotów w {day}.',
     'nav.dashboard': 'Start', 'nav.work': 'Czas pracy', 'nav.docs': 'Skaner dokumentów', 'nav.docgen': 'Asystent dokumentów', 'nav.life': 'Sytuacje życiowe', 'nav.tasks': 'Zadania', 'nav.calendar': 'Kalendarz', 'nav.school': 'Dzieci', 'nav.family': 'Centrum rodziny', 'nav.emergency': 'Nagły wypadek', 'nav.vehicles': 'Auto i Motocykl', 'nav.contracts': 'Umowy i subskrypcje', 'nav.vault': 'Sejf na dokumenty', 'nav.shopping': 'Lista zakupów', 'nav.waste': 'Kalendarz wywozu śmieci', 'nav.checkup': 'Profilaktyka i przypomnienia', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ustawienia', 'nav.more': 'Więcej',
@@ -6592,6 +6594,36 @@ if ($('#vaultRoot')) $('#vaultRoot').addEventListener('click', e => {
 if ($('#vtSearch')) $('#vtSearch').addEventListener('input', () => RENDERERS.vault());
 
 /* ============================== EINKAUFSLISTE (Familie, synchronisiert) ============================== */
+/* Warenkategorien → Emoji (Icons + Vorschlags-Emojis). Schlüsselwörter greifen als Teilstring;
+   Reihenfolge = Priorität (Obst/Back/Milch/Fleisch vor Vorrat, um Kollisionen zu vermeiden). */
+const SHOP_CATS = [
+  { key: 'obst', icon: '🥦', kw: ['apfel', 'äpfel', 'banane', 'tomate', 'gurke', 'salat', 'zwiebel', 'kartoffel', 'möhre', 'karotte', 'paprika', 'zitrone', 'orange', 'birne', 'traube', 'beere', 'avocado', 'brokkoli', 'spinat', 'knoblauch', 'obst', 'gemüse', 'zucchini', 'mango', 'ananas', 'kiwi'] },
+  { key: 'backwaren', icon: '🍞', kw: ['brot', 'brötchen', 'semmel', 'toast', 'baguette', 'croissant', 'brezel', 'kuchen', 'mehl', 'hefe'] },
+  { key: 'milch', icon: '🥛', kw: ['milch', 'käse', 'joghurt', 'quark', 'butter', 'sahne', 'frischkäse', ' ei ', 'eier', 'mozzarella', 'feta', 'pudding', 'margarine'] },
+  { key: 'fleisch', icon: '🥩', kw: ['fleisch', 'hähnchen', 'hühnchen', 'hack', 'wurst', 'schinken', 'salami', 'speck', 'steak', 'schnitzel', 'aufschnitt', 'fisch', 'lachs', 'thunfisch', 'garnele', 'frikadelle'] },
+  { key: 'tiefkuehl', icon: '🧊', kw: ['tiefkühl', 'pizza', ' eis', 'pommes', 'fischstäbchen'] },
+  { key: 'vorrat', icon: '🥫', kw: ['nudel', 'pasta', 'spaghetti', 'reis', 'zucker', 'salz', 'pfeffer', 'gewürz', 'öl', 'essig', 'soße', 'sauce', 'ketchup', 'senf', 'konserve', 'bohnen', 'linsen', 'mais', 'müsli', 'haferflocken', 'honig', 'marmelade', 'nutella', 'brühe', 'kaffee', 'tee'] },
+  { key: 'getraenke', icon: '🥤', kw: ['wasser', 'saft', 'cola', 'limo', 'limonade', 'bier', 'wein', 'sekt', 'sprudel', 'getränk', 'schorle', 'eistee'] },
+  { key: 'suess', icon: '🍫', kw: ['schokolade', 'schoko', 'keks', 'chips', 'süßigkeit', 'bonbon', 'gummibär', 'riegel', 'waffel', 'snack', 'nüsse'] },
+  { key: 'haushalt', icon: '🧻', kw: ['klopapier', 'toilettenpapier', 'küchenrolle', 'spülmittel', 'waschmittel', 'weichspüler', 'reiniger', 'müllbeutel', 'alufolie', 'frischhalte', 'backpapier', 'serviette', 'kerze', 'batterie'] },
+  { key: 'hygiene', icon: '🧴', kw: ['shampoo', 'duschgel', 'zahnpasta', 'zahnbürste', 'seife', 'deo', 'creme', 'rasier', 'tampon', 'taschentücher', 'sonnencreme'] },
+  { key: 'baby', icon: '🍼', kw: ['windel', 'feuchttücher', 'babybrei', 'babynahrung', 'schnuller'] }
+];
+function shopCat(name) {
+  const s = ' ' + String(name || '').toLowerCase() + ' ';
+  for (let i = 0; i < SHOP_CATS.length; i++) { const c = SHOP_CATS[i]; for (let j = 0; j < c.kw.length; j++) { if (s.indexOf(c.kw[j]) >= 0) return c; } }
+  return { key: 'sonstiges', icon: '🛒', kw: [] };
+}
+/* Häufige Artikel für Schnell-Hinzufügen + Autovervollständigung (deutscher Markt). */
+const SHOP_COMMON = ['Milch', 'Brot', 'Eier', 'Butter', 'Käse', 'Joghurt', 'Bananen', 'Äpfel', 'Tomaten', 'Gurke', 'Kartoffeln', 'Zwiebeln', 'Salat', 'Hähnchen', 'Hackfleisch', 'Aufschnitt', 'Nudeln', 'Reis', 'Kaffee', 'Wasser', 'Saft', 'Klopapier', 'Küchenrolle', 'Spülmittel', 'Zahnpasta', 'Windeln', 'Schokolade', 'Müsli', 'Mehl', 'Zucker'];
+/* Zentrales Hinzufügen mit Dedupe (offener Artikel gleichen Namens wird nicht doppelt angelegt). */
+function shopAddItem(name, due) {
+  name = String(name || '').trim(); if (!name) return false;
+  store.family.shopping = store.family.shopping || [];
+  if (store.family.shopping.some(i => !i.done && (i.name || '').toLowerCase() === name.toLowerCase())) { toast('Schon auf der Liste'); return false; }
+  store.family.shopping.push({ id: uid(), name: name, due: due || '', done: false, by: (typeof famSelfId === 'function' ? famSelfId() : ''), createdAt: Date.now() });
+  shopChanged(); return true;
+}
 function shopChanged() { save(); if (typeof famPush === 'function') famPush(); RENDERERS.shopping(); }
 /* Ganze Einkaufsliste einem Familienmitglied zuweisen (Option A). Dieselbe geteilte Liste –
    beim/bei der Zuständigen als „für dich" markiert. Push an die Person (falls eigenes Konto). */
@@ -6629,6 +6661,12 @@ RENDERERS.shopping = function () {
   const a = (store.family && store.family.shopAssign && store.family.shopAssign.assignee) ? store.family.shopAssign : null;
   const myId = (typeof famSelfId === 'function') ? famSelfId() : null;
   const meMem = myId ? members.find(m => m.authId === myId) : null;
+  // Autovervollständigung (datalist) + Schnell-Vorschläge (häufige Artikel, die noch nicht auf der Liste sind)
+  const dl = $('#shSuggestList'); if (dl && !dl.children.length) dl.innerHTML = SHOP_COMMON.map(n => '<option value="' + esc(n) + '"></option>').join('');
+  const dueEl = $('#shDue'); if (dueEl) dueEl.title = t('sh.needBy');
+  const have = new Set(items.map(i => (i.name || '').toLowerCase()));
+  const quicks = SHOP_COMMON.filter(n => !have.has(n.toLowerCase())).slice(0, 14);
+  const shopQuick = quicks.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px"><span class="sub" style="color:var(--faint);font-size:12px;font-weight:600;margin-right:2px">' + t('sh.suggest') + '</span>' + quicks.map(n => '<button class="btn btn-ghost btn-sm" style="background:var(--card2)" data-sh="quick" data-name="' + esc(n) + '">' + shopCat(n).icon + ' ' + esc(n) + '</button>').join('') + '</div>' : '';
   // Zuweisungs-Leiste (unzugewiesen) bzw. Kontext-Banner (zugewiesen)
   let bar = '';
   if (a) {
@@ -6654,22 +6692,23 @@ RENDERERS.shopping = function () {
       '<input type="date" id="shAssignDue" title="fällig">' +
       '<button class="btn btn-sm btn-primary" data-sh="assign">' + t('sh.assign') + '</button></div></div>';
   }
-  if (!items.length) { box.innerHTML = bar + '<div class="empty" style="margin-top:16px"><span class="big">🛒</span>Die Einkaufsliste ist leer.<br>Trage oben den ersten Artikel ein.</div>'; if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box); return; }
-  const open = items.filter(i => !i.done), done = items.filter(i => i.done);
-  const row = i => '<div class="task' + (i.done ? ' done' : '') + '">' +
-    '<button class="tcheck" data-sh="toggle" data-id="' + i.id + '" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-    '<div class="t-main"><span class="t-title">' + esc(i.name) + '</span></div>' +
-    '<button class="t-del" data-sh="del" data-id="' + i.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
-  let h = bar + (open.map(row).join('') || '<div class="empty" style="padding:12px">Alles erledigt – nichts mehr offen. ✓</div>');
+  if (!items.length) { box.innerHTML = bar + shopQuick + '<div class="empty" style="margin-top:16px"><span class="big">🛒</span>Die Einkaufsliste ist leer.<br>Trage oben den ersten Artikel ein.</div>'; if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box); return; }
+  const open = items.filter(i => !i.done).sort((x, y) => { const xd = x.due || '9999-99-99', yd = y.due || '9999-99-99'; return xd !== yd ? (xd < yd ? -1 : 1) : ((x.createdAt || 0) - (y.createdAt || 0)); });
+  const done = items.filter(i => i.done);
+  const row = i => { const c = shopCat(i.name); const chip = (i.due && !i.done) ? '<span class="chip-status ' + (dayDiff(i.due) < 0 ? 'chip-danger' : dayDiff(i.due) === 0 ? 'chip-warn' : 'chip-ok') + '">' + esc(relDay(i.due)) + '</span>' : '';
+    return '<div class="task' + (i.done ? ' done' : '') + '">' +
+      '<button class="tcheck" data-sh="toggle" data-id="' + i.id + '" aria-label="Erledigt"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+      '<div class="t-main"><span class="t-title">' + c.icon + ' ' + esc(i.name) + '</span></div>' + chip +
+      '<button class="t-del" data-sh="del" data-id="' + i.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>'; };
+  let h = bar + shopQuick + (open.map(row).join('') || '<div class="empty" style="padding:12px">Alles erledigt – nichts mehr offen. ✓</div>');
   if (done.length) h += '<div class="kid-row" style="justify-content:space-between;align-items:center;margin:14px 2px 6px"><span class="sub" style="color:var(--faint);font-size:12.5px">' + t('sh.done') + ' (' + done.length + ')</span><button class="btn btn-sm" data-sh="clear">Erledigte entfernen</button></div>' + done.map(row).join('');
   box.innerHTML = h;
   if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box);
 };
 if ($('#shAddBtn')) $('#shAddBtn').addEventListener('click', () => {
-  const inp = $('#shInput'), name = inp.value.trim(); if (!name) { inp.focus(); return; }
-  store.family.shopping = store.family.shopping || [];
-  store.family.shopping.push({ id: uid(), name, done: false, by: (typeof famSelfId === 'function' ? famSelfId() : ''), createdAt: Date.now() });
-  inp.value = ''; inp.focus(); shopChanged();
+  const inp = $('#shInput'), dueEl = $('#shDue');
+  if (shopAddItem(inp.value, dueEl ? dueEl.value : '')) { inp.value = ''; if (dueEl) dueEl.value = ''; }
+  inp.focus();
 });
 if ($('#shInput')) $('#shInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#shAddBtn').click(); } });
 if ($('#shoppingRoot')) $('#shoppingRoot').addEventListener('click', e => {
@@ -6677,6 +6716,7 @@ if ($('#shoppingRoot')) $('#shoppingRoot').addEventListener('click', e => {
   const act = b.dataset.sh;
   store.family.shopping = store.family.shopping || [];
   if (act === 'clear') { store.family.shopping = store.family.shopping.filter(i => !i.done); shopChanged(); return; }
+  if (act === 'quick') { shopAddItem(b.dataset.name, ''); return; }
   if (act === 'assign') { shopAssignNow(); return; }
   if (act === 'unassign') { store.family.shopAssign = null; shopChanged(); toast('Zuweisung aufgehoben'); return; }
   const i = store.family.shopping.find(x => x.id === b.dataset.id); if (!i) return;
