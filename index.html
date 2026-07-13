@@ -1185,6 +1185,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span data-i18n="nav.calendar">Kalender</span></button>
       <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Briefe Vorlagen</span></button>
       <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg><span data-i18n="nav.vehicles">Auto &amp; Motorrad</span></button>
+      <button data-view="contracts"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.contracts">Verträge &amp; Abos</span></button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
     <div class="foot">
@@ -1360,6 +1361,26 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div id="vehList"></div>
     </section>
 
+    <!-- ============================== VERTRÄGE & ABOS ============================== -->
+    <section class="view" id="view-contracts">
+      <div class="view-head">
+        <h1>Verträge &amp; Abos</h1>
+        <p>Kosten und Kündigungsfristen im Blick – nie wieder eine Frist verpassen.</p>
+      </div>
+      <div class="card">
+        <div class="kid-row" style="margin-bottom:8px"><input type="text" id="ctName" placeholder="Name (z. B. Fitnessstudio)" maxlength="60"><input type="text" id="ctProvider" placeholder="Anbieter (optional)" maxlength="60"></div>
+        <div class="kid-row" style="margin-bottom:8px">
+          <select id="ctCat" style="flex:1"><option value="versicherung">🛡️ Versicherung</option><option value="mobilfunk">📱 Mobilfunk</option><option value="internet">🌐 Internet/TV</option><option value="streaming">🎬 Streaming</option><option value="fitness">🏋️ Fitness</option><option value="energie">⚡ Strom/Gas</option><option value="kfz">🚗 Kfz</option><option value="sonstiges" selected>📄 Sonstiges</option></select>
+          <input type="number" id="ctCost" placeholder="€" inputmode="decimal" step="0.01" style="flex:none;width:84px">
+          <select id="ctInterval" style="flex:none;width:auto"><option value="monat">/ Monat</option><option value="jahr">/ Jahr</option></select>
+        </div>
+        <div class="kid-row" style="margin-bottom:6px"><input type="date" id="ctCancelBy" title="Spätestes Kündigungsdatum" style="flex:1"><input type="text" id="ctNotice" placeholder="Kündigungsfrist (z. B. 3 Monate)" maxlength="30" style="flex:1"></div>
+        <div class="sub" style="color:var(--faint);font-size:12px;margin:0 2px 12px">„Kündbar bis" = das Datum, bis zu dem du spätestens kündigen musst.</div>
+        <button class="btn btn-primary" id="ctAddBtn" style="width:100%">+ Vertrag hinzufügen</button>
+      </div>
+      <div id="contractsRoot"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -1480,6 +1501,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="life"><span class="mi">🧭</span><span data-i18n="nav.life">Lebenslagen</span></button>
       <button data-view="calendar"><span class="mi">📅</span><span data-i18n="nav.calendar">Kalender</span></button>
       <button data-view="vehicles"><span class="mi">🚗</span><span data-i18n="nav.vehicles">Fahrzeuge</span></button>
+      <button data-view="contracts"><span class="mi">🧾</span><span data-i18n="nav.contracts">Verträge &amp; Abos</span></button>
       <button data-view="settings"><span class="mi">⚙️</span><span data-i18n="nav.settings">Einstellungen</span></button>
     </div>
   </div>
@@ -1628,6 +1650,7 @@ const store = Object.assign({
   budget: { entries: [] }, // Haushaltsbudget (lokal): {id,kind:'income'|'expense',label,amount,recurring,date}
   emergency: { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }, // Notfallbereich (nur lokal)
   vehicles: [], // Auto & Motorrad
+  contracts: [], // Verträge & Abos: {id,name,provider,cat,cost,interval,cancelBy,notice,done,createdAt}
   work: { settings: { weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, entries: {}, shifts: [], absences: [] }, // Arbeitszeit
   settings: { model: 'gpt-5-mini', demoIdx: 0, theme: 'light', rtSilenceMs: 700 }
 }, (() => {
@@ -2573,7 +2596,7 @@ async function flushAI() {
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'settings'];
+const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'settings'];
 let viewHistory = [], _navBack = false;
 function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
@@ -3313,6 +3336,13 @@ RENDERERS.dashboard = function () {
   /* DOKUMENTE – zuletzt analysiert */
   const rdocs = store.docs.slice(-3).reverse();
   if (rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
+
+  /* VERTRÄGE – anstehende Kündigungsfristen (Fristen-Radar) */
+  const ctSoon = ctUpcoming(60);
+  if (ctSoon.length) html += dsec('🧾 Verträge & Fristen', 'contracts', 'Alle', ctSoon.slice(0, 4).map(c => {
+    const d = dayDiff(c.cancelBy);
+    return drow({ emoji: ctCat(c.cat).i, title: c.name, sub: c.provider || ctCat(c.cat).l, chip: { cls: d < 0 ? 'chip-danger' : d <= 14 ? 'chip-warn' : 'chip-accent', text: d < 0 ? 'Frist abgelaufen' : d === 0 ? 'heute kündbar' : 'in ' + d + ' Tg.' }, go: 'contracts' });
+  }).join(''));
 
   $('#dashWidgets').innerHTML = html;
   $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
@@ -5581,6 +5611,82 @@ function holidaysDE(y, st) {
 function holMap(iso) { const y = iso.slice(0, 4), st = store.work.settings.state || '', key = y + '_' + st; if (!holCache[key]) holCache[key] = holidaysDE(+y, st); return holCache[key]; }
 const isHoliday = (iso) => !!holMap(iso)[iso];
 const holidayName = (iso) => holMap(iso)[iso] || '';
+/* ============================== VERTRÄGE & ABOS ============================== */
+const CONTRACT_CATS = {
+  versicherung: { l: 'Versicherung', i: '🛡️' }, mobilfunk: { l: 'Mobilfunk', i: '📱' },
+  internet: { l: 'Internet/TV', i: '🌐' }, streaming: { l: 'Streaming', i: '🎬' },
+  fitness: { l: 'Fitness', i: '🏋️' }, energie: { l: 'Strom/Gas', i: '⚡' },
+  kfz: { l: 'Kfz', i: '🚗' }, sonstiges: { l: 'Sonstiges', i: '📄' }
+};
+const ctCat = (k) => CONTRACT_CATS[k] || CONTRACT_CATS.sonstiges;
+const ctMonthly = (c) => (c.interval === 'jahr' ? (Number(c.cost) || 0) / 12 : (Number(c.cost) || 0));
+/* Kündigungsfrist-Status oder null */
+function ctDeadline(c) {
+  if (!c.cancelBy) return null;
+  const days = dayDiff(c.cancelBy);
+  if (days < 0) return { days, cls: 'chip-danger', txt: 'Frist abgelaufen' };
+  if (days === 0) return { days, cls: 'chip-danger', txt: 'Heute kündbar' };
+  if (days <= 30) return { days, cls: 'chip-warn', txt: 'in ' + days + ' Tg. kündbar' };
+  return { days, cls: '', txt: 'kündbar bis ' + fmtDateShort(c.cancelBy) };
+}
+/* Fristen-Radar: offene Verträge mit Kündigungsfrist innerhalb von maxDays, aufsteigend. */
+function ctUpcoming(maxDays) {
+  const lim = (maxDays == null ? 60 : maxDays);
+  return (store.contracts || []).filter(c => !c.done && c.cancelBy && dayDiff(c.cancelBy) <= lim)
+    .sort((a, b) => a.cancelBy < b.cancelBy ? -1 : 1);
+}
+RENDERERS.contracts = function () {
+  const box = $('#contractsRoot'); if (!box) return;
+  const list = (store.contracts || []).slice().sort((a, b) => {
+    if (!a.cancelBy && !b.cancelBy) return a.createdAt - b.createdAt;
+    if (!a.cancelBy) return 1; if (!b.cancelBy) return -1;
+    return a.cancelBy < b.cancelBy ? -1 : 1;
+  });
+  if (!list.length) { box.innerHTML = '<div class="empty" style="margin-top:16px"><span class="big">🧾</span>Noch keine Verträge erfasst.<br>Trage oben deinen ersten Vertrag oder dein erstes Abo ein.</div>'; return; }
+  const active = list.filter(c => !c.done);
+  const perMonth = active.reduce((s, c) => s + ctMonthly(c), 0);
+  const next = ctUpcoming(3650)[0];
+  let h = '<div class="veh-stats">' +
+    '<div class="veh-stat"><b>' + deNum(perMonth, 2) + ' €</b><span>pro Monat</span></div>' +
+    '<div class="veh-stat"><b>' + deNum(perMonth * 12, 0) + ' €</b><span>pro Jahr</span></div>' +
+    '<div class="veh-stat"><b>' + active.length + '</b><span>aktive Verträge</span></div>' +
+    '<div class="veh-stat"><b>' + (next ? fmtDateShort(next.cancelBy) : '–') + '</b><span>nächste Frist</span></div></div>';
+  list.forEach(c => {
+    const cat = ctCat(c.cat), dl = ctDeadline(c);
+    const chip = c.done ? '<span class="chip-status">✓ gekündigt</span>'
+      : (dl ? '<span class="chip-status ' + dl.cls + '">' + esc(dl.txt) + '</span>' : '');
+    h += '<div class="task' + (c.done ? ' done' : '') + '" style="align-items:flex-start">' +
+      '<span style="font-size:20px;line-height:1.15">' + cat.i + '</span>' +
+      '<div class="t-main"><span class="t-title">' + esc(c.name) + '</span>' +
+      '<div class="t-meta">' + esc(cat.l) + (c.provider ? ' · ' + esc(c.provider) : '') +
+        ' · <b>' + deNum(Number(c.cost) || 0, 2) + ' € / ' + (c.interval === 'jahr' ? 'Jahr' : 'Monat') + '</b>' +
+        (c.notice ? ' · Frist: ' + esc(c.notice) : '') + '</div>' +
+      (chip ? '<div style="margin-top:6px">' + chip + '</div>' : '') +
+      '<div class="kid-row" style="margin-top:8px;gap:6px">' +
+        (c.done ? '' : '<button class="btn btn-sm" data-ct="letter" data-id="' + c.id + '">✍️ Kündigung</button>') +
+        '<button class="btn btn-sm" data-ct="toggle" data-id="' + c.id + '">' + (c.done ? '↩︎ Aktiv' : '✓ Gekündigt') + '</button>' +
+      '</div></div>' +
+      '<button class="t-del" data-ct="del" data-id="' + c.id + '" aria-label="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>';
+  });
+  box.innerHTML = h;
+};
+if ($('#ctAddBtn')) $('#ctAddBtn').addEventListener('click', () => {
+  const name = $('#ctName').value.trim(); if (!name) { $('#ctName').focus(); return; }
+  const c = { id: uid(), name, provider: $('#ctProvider').value.trim(), cat: $('#ctCat').value,
+    cost: parseFloat(($('#ctCost').value || '').replace(',', '.')) || 0, interval: $('#ctInterval').value,
+    cancelBy: $('#ctCancelBy').value || '', notice: $('#ctNotice').value.trim(), done: false, createdAt: Date.now() };
+  store.contracts = store.contracts || []; store.contracts.push(c); save();
+  ['ctName', 'ctProvider', 'ctCost', 'ctCancelBy', 'ctNotice'].forEach(id => { const el = $('#' + id); if (el) el.value = ''; });
+  RENDERERS.contracts(); toast('Vertrag gespeichert ✓');
+});
+if ($('#contractsRoot')) $('#contractsRoot').addEventListener('click', e => {
+  const b = e.target.closest('[data-ct]'); if (!b) return;
+  const c = (store.contracts || []).find(x => x.id === b.dataset.id); if (!c) return;
+  if (b.dataset.ct === 'del') { if (!confirm('„' + c.name + '" wirklich löschen?')) return; store.contracts = store.contracts.filter(x => x.id !== c.id); save(); RENDERERS.contracts(); toast('Gelöscht'); return; }
+  if (b.dataset.ct === 'toggle') { c.done = !c.done; save(); RENDERERS.contracts(); toast(c.done ? 'Als gekündigt markiert' : 'Wieder aktiv'); return; }
+  if (b.dataset.ct === 'letter') { showView('docgen'); toast('Wähle die Vorlage „Kündigung" – Anbieter: ' + (c.provider || c.name)); return; }
+});
+
 function ensureWork() {
   const w = store.work = store.work || {};
   w.settings = Object.assign({ weeklyHours: 40, hoursPerDay: 8, vacationDays: 30, childSickMax: 10, state: 'NW', autoBreak: true }, w.settings || {});
