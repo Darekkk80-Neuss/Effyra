@@ -3440,8 +3440,9 @@ RENDERERS.dashboard = function () {
   const focusTop = focus.slice(0, 3);
   html += dsec('☀️ Heute', focusTop.length ? 'calendar' : null, 'Kalender', focusTop.length ? focusTop.map(drow).join('') : '<div class="dsec-empty">Für heute steht nichts Dringendes an. Genieß den Tag. 🌿</div>');
 
-  /* NÄCHSTE TERMINE – ab morgen, die nächsten 3 */
-  const upcoming = store.events.filter(e => e.date > today).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, 3);
+  /* NÄCHSTE TERMINE – ab morgen, die nächsten 3, höchstens 2 Monate voraus */
+  const horizon2M = addMonths(today, 2);
+  const upcoming = store.events.filter(e => e.date > today && e.date <= horizon2M).sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, 3);
   const medRows = [];
   ((store.family && store.family.meds) || []).forEach(md => {
     if (md.date && md.date !== today) return;   // nur heute oder täglich
@@ -4075,7 +4076,7 @@ function dgResultHTML() {
   h += '<button class="btn btn-primary btn-sm" data-dg="print">🖨️ PDF / Drucken</button>';
   h += '<button class="btn btn-sm" data-dg="copy">📋 Kopieren</button>';
   h += '<button class="btn btn-sm" data-dg="mail">✉️ Als E-Mail</button>';
-  if (t.deadline && dgValues.datum) h += '<button class="btn btn-sm" data-dg="frist">⏰ Frist merken</button>';
+  if (t.deadline && dgValues.datum) h += '<span class="btn btn-sm" style="cursor:default;opacity:.8" title="Automatisch in Aufgaben & Kalender übernommen" data-noi18n>⏰ Frist gemerkt</span>';
   if (t.type !== 'checklist') h += '<button class="btn btn-sm" data-dg="ai">✨ Mit KI verbessern</button>';
   h += '</div><div id="dgLetter">' + letterHTML(t, dgValues, store.profile) + '</div>';
   return h;
@@ -4130,6 +4131,7 @@ function dgGenerate() {
     else inp.classList.remove('invalid');
   });
   if (miss) { toast('Bitte die markierten Felder ausfüllen'); miss.focus(); return; }
+  dgFristAuto();   // Frist (bei Vorlagen mit Deadline) automatisch übernehmen – nicht optional
   dgOverrideBody = null; dgState = 'result'; RENDERERS.docgen();
 }
 function dgPrint() {
@@ -4141,12 +4143,18 @@ function dgMail() {
   const to = v.empfEmail ? encodeURIComponent(v.empfEmail) : '';
   window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(t.betreff(v)) + '&body=' + encodeURIComponent(plainLetter(t, v, store.profile));
 }
-function dgFrist() {
-  const t = curTpl(), v = dgValues;
-  if (!v.datum) { toast('Kein Datum angegeben'); return; }
-  addTask(t.title + ' – Bestätigung prüfen', v.datum, 'high', 'doc');
-  addEvent('⏰ ' + t.title, v.datum, null, v.empfName ? 'an ' + v.empfName : '', 'doc');
-  save(); toast('Frist in Aufgaben & Kalender ✓');
+function dgFristExists() {
+  const t = curTpl();
+  return !!dgValues.datum && store.events.some(e => e.date === dgValues.datum && e.title === '⏰ ' + t.title);
+}
+/* Frist automatisch in Aufgaben & Kalender übernehmen – idempotent (keine Doppelten). */
+function dgFristAuto() {
+  const t = curTpl();
+  if (!t.deadline || !dgValues.datum || dgFristExists()) return false;
+  addTask(t.title + ' – Bestätigung prüfen', dgValues.datum, 'high', 'doc');
+  addEvent('⏰ ' + t.title, dgValues.datum, null, dgValues.empfName ? 'an ' + dgValues.empfName : '', 'doc');
+  save(); toast('⏰ Frist automatisch gemerkt: ' + fmtDate(dgValues.datum));
+  return true;
 }
 async function dgAI() {
   if (!requireAI()) return;
@@ -7997,8 +8005,9 @@ function vaEventTitle(raw) {
   let s = ' ' + String(raw || '').toLowerCase() + ' ';
   s = s.replace(/\b(alle\s+\S+\s+wochen?|alle\s+\S+\s+monate?|jede\s+woche|wöchentlich|jede[nrs]?\s+\S+|monatlich|jeden\s+monat|täglich|jeden\s+tag|jährlich|jedes\s+jahr)\b/g, ' ');
   s = s.replace(/\b(stelle|erstelle|erstell|leg|lege|trag|trage|mach|mache|plane|setze|bitte|einen|eine|ein|neuen|neuer|neue|mir|mich|den|die|das|im|kalender(?:eintrag)?|termin|treffen|meeting|verabredung|ist|um|am|von|bis|uhr|für)\b/g, ' ');
-  s = s.replace(/\b(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonnabend|sonntag|heute|morgen|übermorgen|vorgestern|gestern|nächsten|naechsten|kommenden|ersten|zweiten|dritten|vierten|letzten|woche|wochen|monat|monate|tag|tage|jahr)\b/g, ' ');
-  s = s.replace(/\d{1,2}\.\d{1,2}\.?(?:\d{2,4})?/g, ' ').replace(/\d{1,2}(?:[:.]\d{2})?/g, ' ');
+  s = s.replace(/\bin\s+\d{1,3}\s+(?:tag|tage|tagen|woche|wochen|monat|monate|monaten)\b/g, ' ');   // „in 30 Tagen" als Einheit entfernen
+  s = s.replace(/\b(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonnabend|sonntag|heute|morgen|übermorgen|vorgestern|gestern|nächsten|naechsten|kommenden|ersten|zweiten|dritten|vierten|letzten|woche|wochen|monat|monate|monaten|tag|tage|tagen|jahr)\b/g, ' ');
+  s = s.replace(/\d{1,2}\.\d{1,2}\.?(?:\d{2,4})?/g, ' ').replace(/\d{1,3}(?:[:.]\d{2})?/g, ' ');
   s = s.replace(/[.,;]/g, ' ').replace(/\s+/g, ' ').trim();
   return s ? vaCap(s) : 'Termin';
 }
