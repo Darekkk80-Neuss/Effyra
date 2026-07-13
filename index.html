@@ -286,6 +286,35 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .wx-setup .row input{flex:1}
 .wx-loading{opacity:.75}
 
+/* ---- Gericht des Tages (Apple-Look: Foto-Hero + aufklappbares Rezept) ---- */
+.meal-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:22px;box-shadow:0 10px 34px rgba(0,0,0,.16)}
+.meal-hero{position:relative;width:100%;aspect-ratio:16/10;background:var(--card2)}
+.meal-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.meal-loading{min-height:180px;background:linear-gradient(100deg,var(--card2),var(--surface-3,#28304a),var(--card2));background-size:200% 100%;animation:mealShimmer 1.3s linear infinite}
+@keyframes mealShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.meal-hero-scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.80),rgba(0,0,0,.12) 48%,rgba(0,0,0,0) 72%)}
+.meal-hero-txt{position:absolute;left:16px;right:16px;bottom:14px;color:#fff}
+.meal-kicker{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.92;margin-bottom:3px}
+.meal-title{font-size:22px;font-weight:800;line-height:1.15;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+.meal-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.42);color:#fff;font-size:19px;line-height:1;cursor:pointer;backdrop-filter:blur(4px)}
+.meal-body{padding:14px 16px 16px}
+.meal-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.meal-chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--card2);color:var(--muted)}
+.meal-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.meal-ppl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);font-weight:600}
+.meal-ppl b{color:var(--text);min-width:16px;text-align:center}
+.meal-step{width:30px;height:30px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:17px;font-weight:700;cursor:pointer}
+.meal-toggle{background:none;border:none;color:#8b5cf6;font-weight:700;font-size:13.5px;cursor:pointer;padding:6px 2px}
+.meal-drop{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.meal-sec-t{font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px}
+.meal-ing{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.meal-ing-q{color:var(--muted);font-weight:600;white-space:nowrap;text-align:right}
+.meal-instr{font-size:13.5px;line-height:1.6;color:var(--muted);margin-top:4px}
+.meal-note{font-size:12px;color:var(--faint);margin-top:10px}
+.meal-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.meal-assign{display:flex;gap:6px;align-items:center}
+.meal-assign select{max-width:132px}
+
 /* ============================== DASHBOARD ============================== */
 /* ---- Dashboard (Leuchtturm: 8er-Raster, klare Typo-Rollen, saubere States) ---- */
 .greet{margin-bottom:24px}
@@ -1225,6 +1254,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </header>
       <div id="briefWidget"></div>
       <div id="weatherWidget"></div>
+      <div id="mealWidget"></div>
       <div class="qa-row">
         <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
           <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span><span data-i18n="dash.qa_photo">Foto analysieren</span></button>
@@ -4141,6 +4171,7 @@ RENDERERS.dashboard = function () {
   }));
   $$('#statRow [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
   renderWeather();
+  renderMeal();
 };
 
 $('#qaDoc').addEventListener('click', () => { showView('docs'); setTimeout(() => $('#docInput').click(), 250); });
@@ -5179,6 +5210,208 @@ $('#weatherWidget').addEventListener('click', e => {
 });
 $('#weatherWidget').addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.id === 'wxCity') { const c = e.target.value.trim(); if (c) weatherSearch(c); }
+});
+
+/* ============================== GERICHT DES TAGES ============================== */
+/* Quelle: TheMealDB (gratis, echte Fotos+Rezepte, CORS-ok). Wetter-abhängig, kein Gericht doppelt
+   im Monat, Zutaten 1-Klick auf die Einkaufsliste (skaliert nach Personen) + optional zuweisen.
+   Rezepte sind englisch → Zutaten/Titel per lokalem Wörterbuch ins Deutsche (gratis, offline);
+   die Zubereitung übersetzt die KI auf Wunsch (Button, gecacht). Nährwerte hat TheMealDB nicht. */
+const MEAL_DE = {
+  // Phrasen zuerst (mehrwortig)
+  'olive oil': 'Olivenöl', 'vegetable oil': 'Pflanzenöl', 'sunflower oil': 'Sonnenblumenöl', 'chicken breast': 'Hähnchenbrust',
+  'chicken breasts': 'Hähnchenbrust', 'chicken thighs': 'Hähnchenschenkel', 'ground beef': 'Rinderhack', 'minced beef': 'Rinderhack',
+  'beef mince': 'Rinderhack', 'lamb mince': 'Lammhack', 'pork mince': 'Schweinehack', 'spring onion': 'Frühlingszwiebel',
+  'spring onions': 'Frühlingszwiebeln', 'bell pepper': 'Paprika', 'red pepper': 'Paprika', 'green pepper': 'Paprika',
+  'red peppers': 'Paprika', 'black pepper': 'schwarzer Pfeffer', 'red onion': 'rote Zwiebel', 'sweet potato': 'Süßkartoffel',
+  'soy sauce': 'Sojasoße', 'tomato paste': 'Tomatenmark', 'tomato puree': 'passierte Tomaten', 'coconut milk': 'Kokosmilch',
+  'double cream': 'Schlagsahne', 'sour cream': 'saure Sahne', 'greek yogurt': 'griechischer Joghurt', 'baking powder': 'Backpulver',
+  'bay leaf': 'Lorbeerblatt', 'bay leaves': 'Lorbeerblätter', 'chilli powder': 'Chilipulver', 'curry powder': 'Currypulver',
+  'garam masala': 'Garam Masala', 'to taste': 'nach Geschmack', 'plain flour': 'Mehl', 'self-raising flour': 'Mehl mit Backpulver',
+  'green beans': 'grüne Bohnen', 'kidney beans': 'Kidneybohnen', 'chicken stock': 'Hühnerbrühe', 'vegetable stock': 'Gemüsebrühe',
+  'beef stock': 'Rinderbrühe', 'white wine': 'Weißwein', 'red wine': 'Rotwein', 'lemon juice': 'Zitronensaft', 'garlic clove': 'Knoblauchzehe',
+  'garlic cloves': 'Knoblauchzehen',
+  // Proteine
+  chicken: 'Hähnchen', beef: 'Rind', pork: 'Schwein', lamb: 'Lamm', mince: 'Hackfleisch', bacon: 'Speck', ham: 'Schinken',
+  sausage: 'Wurst', sausages: 'Würstchen', turkey: 'Pute', duck: 'Ente', fish: 'Fisch', salmon: 'Lachs', tuna: 'Thunfisch',
+  cod: 'Kabeljau', prawns: 'Garnelen', shrimp: 'Garnelen', egg: 'Ei', eggs: 'Eier', tofu: 'Tofu', steak: 'Steak',
+  // Molkerei
+  milk: 'Milch', butter: 'Butter', cheese: 'Käse', cream: 'Sahne', yogurt: 'Joghurt', yoghurt: 'Joghurt', parmesan: 'Parmesan',
+  cheddar: 'Cheddar', mozzarella: 'Mozzarella', feta: 'Feta',
+  // Gemüse
+  onion: 'Zwiebel', onions: 'Zwiebeln', garlic: 'Knoblauch', tomato: 'Tomate', tomatoes: 'Tomaten', potato: 'Kartoffel',
+  potatoes: 'Kartoffeln', carrot: 'Karotte', carrots: 'Karotten', peppers: 'Paprika', spinach: 'Spinat', mushroom: 'Pilz',
+  mushrooms: 'Pilze', cucumber: 'Gurke', lettuce: 'Salat', cabbage: 'Kohl', broccoli: 'Brokkoli', cauliflower: 'Blumenkohl',
+  zucchini: 'Zucchini', courgette: 'Zucchini', aubergine: 'Aubergine', eggplant: 'Aubergine', peas: 'Erbsen', beans: 'Bohnen',
+  corn: 'Mais', celery: 'Sellerie', leek: 'Lauch', ginger: 'Ingwer', chilli: 'Chili', chili: 'Chili', avocado: 'Avocado',
+  pumpkin: 'Kürbis', beetroot: 'Rote Bete', peppers2: 'Paprika',
+  // Obst
+  apple: 'Apfel', banana: 'Banane', lemon: 'Zitrone', lime: 'Limette', orange: 'Orange', grapes: 'Trauben', coconut: 'Kokosnuss',
+  raisins: 'Rosinen', pineapple: 'Ananas', mango: 'Mango', strawberries: 'Erdbeeren', berries: 'Beeren',
+  // Vorrat / Grundzutaten
+  rice: 'Reis', pasta: 'Nudeln', spaghetti: 'Spaghetti', noodles: 'Nudeln', bread: 'Brot', flour: 'Mehl', sugar: 'Zucker',
+  salt: 'Salz', pepper: 'Pfeffer', oil: 'Öl', vinegar: 'Essig', honey: 'Honig', mustard: 'Senf', ketchup: 'Ketchup',
+  stock: 'Brühe', broth: 'Brühe', water: 'Wasser', wine: 'Wein', beer: 'Bier', breadcrumbs: 'Semmelbrösel', oats: 'Haferflocken',
+  cornflour: 'Speisestärke', cornstarch: 'Speisestärke', yeast: 'Hefe', vanilla: 'Vanille', cocoa: 'Kakao', chocolate: 'Schokolade',
+  nuts: 'Nüsse', almonds: 'Mandeln', walnuts: 'Walnüsse', cashews: 'Cashews', lentils: 'Linsen', chickpeas: 'Kichererbsen',
+  sesame: 'Sesam', butterbeans: 'Butterbohnen',
+  // Kräuter & Gewürze
+  parsley: 'Petersilie', basil: 'Basilikum', coriander: 'Koriander', cilantro: 'Koriander', thyme: 'Thymian', rosemary: 'Rosmarin',
+  oregano: 'Oregano', mint: 'Minze', dill: 'Dill', sage: 'Salbei', cinnamon: 'Zimt', nutmeg: 'Muskat', paprika: 'Paprikapulver',
+  cumin: 'Kreuzkümmel', turmeric: 'Kurkuma', curry: 'Curry', cayenne: 'Cayennepfeffer', cloves: 'Nelken', cardamom: 'Kardamom',
+  saffron: 'Safran', nutbrown: 'Nussbraun',
+  // Mengen / Einheiten / Beschreibung
+  cup: 'Tasse', cups: 'Tassen', tbsp: 'EL', tablespoon: 'EL', tablespoons: 'EL', tsp: 'TL', teaspoon: 'TL', teaspoons: 'TL',
+  gram: 'g', grams: 'g', litre: 'Liter', liter: 'Liter', pinch: 'Prise', handful: 'Handvoll', clove: 'Zehe', slice: 'Scheibe',
+  slices: 'Scheiben', bunch: 'Bund', can: 'Dose', tin: 'Dose', packet: 'Packung', pack: 'Packung', large: 'große', small: 'kleine',
+  medium: 'mittlere', fresh: 'frische', chopped: 'gehackt', sliced: 'geschnitten', diced: 'gewürfelt', minced: 'gehackt',
+  grated: 'gerieben', whole: 'ganze', boneless: 'ohne Knochen', skinless: 'ohne Haut', dried: 'getrocknet', ground: 'gemahlen',
+  // Gericht-Wörter
+  soup: 'Suppe', stew: 'Eintopf', salad: 'Salat', cake: 'Kuchen', roast: 'Braten', grilled: 'gegrillt', fried: 'gebraten',
+  baked: 'gebacken', sauce: 'Soße', casserole: 'Auflauf', pancakes: 'Pfannkuchen', omelette: 'Omelett', burger: 'Burger',
+  sandwich: 'Sandwich', wrap: 'Wrap', bowl: 'Bowl', risotto: 'Risotto', pie: 'Pastete', with: 'mit', and: 'und', 'in': 'in',
+  // Kategorien
+  vegetarian: 'Vegetarisch', vegan: 'Vegan', seafood: 'Meeresfrüchte', side: 'Beilage', starter: 'Vorspeise', miscellaneous: 'Verschiedenes', dessert: 'Dessert', breakfast: 'Frühstück', goat: 'Ziege',
+  // Farben & Zubereitungswörter + TheMealDB-Einheiten
+  red: 'rote', yellow: 'gelbe', green: 'grüne', white: 'weiße', zest: 'Abrieb', juice: 'Saft', peeled: 'geschält', crushed: 'zerdrückt', thinly: 'dünn', finely: 'fein', 'of': 'von', 'or': 'oder', 'for': 'für', tblsp: 'EL', tbs: 'EL',
+  'yellow pepper': 'gelbe Paprika', 'green onions': 'Frühlingszwiebeln', 'red lentils': 'rote Linsen',
+  courgette: 'Zucchini', courgettes: 'Zucchini', rapeseed: 'Raps', summer: 'Sommer', winter: 'Winter', roasted: 'geröstet', boiled: 'gekocht', cooked: 'gekocht', smoked: 'geräuchert', frozen: 'gefroren', tinned: 'aus der Dose', crushed2: 'zerdrückt'
+};
+function mealTranslate(text) {
+  const raw = String(text || '').trim(); if (!raw) return '';
+  const low = raw.toLowerCase();
+  if (MEAL_DE[low]) return MEAL_DE[low];                     // ganze Phrase
+  return raw.replace(/[A-Za-zÀ-ÿ]+/g, w => MEAL_DE[w.toLowerCase()] || w);   // wortweise
+}
+/* Menge skalieren (führende Zahl × Faktor) + Einheit/Rest übersetzen. Fuzzy, aber brauchbar. */
+function mealScaleQty(meas, factor) {
+  meas = String(meas || '').trim(); if (!meas) return '';
+  const m = meas.match(/^(\d+\s*\/\s*\d+|\d+[.,]?\d*)/);
+  if (!m) return mealTranslate(meas);
+  const numStr = m[1], rest = meas.slice(m[0].length).trim();
+  let val;
+  if (numStr.indexOf('/') >= 0) { const p = numStr.split('/'); val = (+p[0]) / (+p[1] || 1); }
+  else val = parseFloat(numStr.replace(',', '.'));
+  let s = val * (factor || 1);
+  s = s >= 10 ? Math.round(s) : Math.round(s * 4) / 4;       // hübsch runden
+  const out = Number.isInteger(s) ? String(s) : String(s).replace('.', ',');
+  return out + (rest ? ' ' + mealTranslate(rest) : '');
+}
+/* Wetter → passende Kategorien + Tagline (heiß=leicht, kalt=herzhaft). */
+function mealTemp() { return (store.weather && typeof store.weather.temp === 'number') ? store.weather.temp : 16; }
+function mealWeatherCats() {
+  const t = mealTemp();
+  if (t >= 24) return ['Vegetarian', 'Seafood', 'Chicken', 'Vegan', 'Side', 'Starter'];
+  if (t <= 8) return ['Beef', 'Pork', 'Lamb', 'Pasta', 'Miscellaneous'];
+  return ['Chicken', 'Pasta', 'Seafood', 'Vegetarian', 'Beef', 'Miscellaneous'];
+}
+function mealWeatherTag() { const t = mealTemp(); return t >= 24 ? '🥗 leicht & frisch' : t <= 8 ? '🍲 herzhaft & wärmend' : '🍽️ frisch & ausgewogen'; }
+function mealBuild(m, cat) {
+  const ing = [];
+  for (let i = 1; i <= 20; i++) { const n = m['strIngredient' + i], q = m['strMeasure' + i]; if (n && String(n).trim()) ing.push({ en: String(n).trim(), de: mealTranslate(String(n).trim()), measure: String(q || '').trim() }); }
+  return { date: todayISO(), id: m.idMeal, name_en: m.strMeal, name_de: mealTranslate(m.strMeal), thumb: m.strMealThumb, category: m.strCategory, area: m.strArea, ingredients: ing, instr_en: String(m.strInstructions || '').trim(), instr_de: null, tag: mealWeatherTag() };
+}
+async function mealPickToday() {
+  const M = store.meal; const month = todayISO().slice(0, 7);
+  if (M.shownMonth !== month) { M.shownMonth = month; M.shownIds = []; }
+  const cats = mealWeatherCats();
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const cat = cats[Math.floor(Math.random() * cats.length)];
+    let list;
+    try { const r = await fetch('https://www.themealdb.com/api/json/v1/1/filter.php?c=' + encodeURIComponent(cat)).then(x => x.json()); list = (r && r.meals) || []; } catch (e) { throw e; }
+    if (!list.length) continue;
+    const fresh = list.filter(x => (M.shownIds || []).indexOf(x.idMeal) < 0);
+    const pool = fresh.length ? fresh : list;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    let full;
+    try { const r2 = await fetch('https://www.themealdb.com/api/json/v1/1/lookup.php?i=' + pick.idMeal).then(x => x.json()); full = r2 && r2.meals && r2.meals[0]; } catch (e) { throw e; }
+    if (!full) continue;
+    M.today = mealBuild(full, cat);
+    M.shownIds = (M.shownIds || []); M.shownIds.push(full.idMeal); if (M.shownIds.length > 250) M.shownIds = M.shownIds.slice(-250);
+    if (M.servings == null) M.servings = 2;
+    save(); return true;
+  }
+  throw new Error('no meal');
+}
+function mealLoadingHTML() { return '<div class="meal-card"><div class="meal-hero meal-loading"></div><div class="meal-body"><div class="meal-kicker" style="color:var(--muted)">🍽️ Gericht des Tages wird ausgewählt …</div></div></div>'; }
+function mealCardHTML(m) {
+  const M = store.meal, open = !!M.open, ppl = M.servings || 2, factor = ppl / 2;
+  const members = (store.family && store.family.members) || [];
+  const title = m.name_de || m.name_en;
+  let h = '<div class="meal-card"><div class="meal-hero"><img src="' + esc(m.thumb) + '" alt="' + esc(title) + '" loading="lazy">' +
+    '<div class="meal-hero-scrim"></div><button class="meal-x" data-meal="hide" title="Heute ausblenden" aria-label="Heute ausblenden">×</button>' +
+    '<div class="meal-hero-txt"><div class="meal-kicker">🍽️ Gericht des Tages · ' + esc(m.tag) + '</div><div class="meal-title">' + esc(title) + '</div></div></div>';
+  h += '<div class="meal-body">';
+  h += '<div class="meal-chips"><span class="meal-chip">🍴 ' + esc(mealTranslate(m.category)) + '</span>' + (m.area ? '<span class="meal-chip">🌍 ' + esc(m.area) + '</span>' : '') + '<span class="meal-chip">🥗 gesund &amp; frisch</span></div>';
+  h += '<div class="meal-row"><div class="meal-ppl"><span>👥 Portionen</span><button class="meal-step" data-meal="pminus" aria-label="weniger">−</button><b>' + ppl + '</b><button class="meal-step" data-meal="pplus" aria-label="mehr">+</button></div>' +
+    '<button class="meal-toggle" data-meal="toggle">' + (open ? 'Weniger ▲' : 'Rezept ansehen ▼') + '</button></div>';
+  if (open) {
+    h += '<div class="meal-drop"><div class="meal-sec-t">🧺 Zutaten</div>' +
+      m.ingredients.map(i => '<div class="meal-ing"><span>' + esc(i.de || i.en) + '</span><span class="meal-ing-q">' + esc(mealScaleQty(i.measure, factor)) + '</span></div>').join('') +
+      '<div class="meal-sec-t" style="margin-top:14px">👩‍🍳 Zubereitung</div><p class="meal-instr">' + esc(m.instr_de || m.instr_en).replace(/\r?\n/g, '<br>') + '</p>' +
+      (m.instr_de ? '' : '<button class="btn btn-sm btn-ghost" data-meal="translate" style="margin-top:4px">🌐 Auf Deutsch übersetzen</button>') +
+      '<div class="meal-note">ℹ️ Nährwerte sind bei dieser Rezeptquelle (noch) nicht enthalten.</div></div>';
+  }
+  h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">🛒 Zutaten auf die Liste</button>';
+  if (members.length >= 2) h += '<div class="meal-assign"><select id="mealAssignSel">' + members.map(x => '<option value="' + x.id + '">' + esc(x.name) + '</option>').join('') + '</select><button class="btn btn-sm" data-meal="assign">+ zuweisen</button></div>';
+  h += '</div></div></div>';
+  return h;
+}
+function renderMeal() {
+  const box = $('#mealWidget'); if (!box) return;
+  store.meal = store.meal || {}; const M = store.meal, today = todayISO();
+  if (M.hiddenDate === today) { box.innerHTML = ''; return; }         // heute ausgeblendet
+  if (M.today && M.today.date === today) { box.innerHTML = mealCardHTML(M.today); return; }
+  box.innerHTML = mealLoadingHTML();
+  if (M._loading) return;
+  M._loading = true;
+  mealPickToday().then(() => { M._loading = false; if (currentView === 'dashboard') renderMeal(); })
+    .catch(() => { M._loading = false; box.innerHTML = ''; });         // offline/Fehler → dezent ausblenden
+}
+function mealAddToList() {
+  const m = store.meal && store.meal.today; if (!m) return 0;
+  const factor = (store.meal.servings || 2) / 2;
+  store.family = store.family || {}; store.family.shopping = store.family.shopping || [];
+  let added = 0;
+  m.ingredients.forEach(ing => {
+    const name = (ing.de || ing.en || '').trim(); if (!name) return;
+    if (store.family.shopping.some(i => !i.done && (i.name || '').toLowerCase() === name.toLowerCase())) return;
+    store.family.shopping.push({ id: uid(), name: name, qty: mealScaleQty(ing.measure, factor), due: '', done: false, by: (typeof famSelfId === 'function' ? famSelfId() : ''), createdAt: Date.now() });
+    added++;
+  });
+  return added;
+}
+async function mealTranslateInstr() {
+  const m = store.meal && store.meal.today; if (!m || m.instr_de) return;
+  if (typeof canRealAI === 'function' && !canRealAI()) { toast('Die Übersetzung nutzt die KI-Funktion (Premium).'); return; }
+  toast('Übersetze die Zubereitung …');
+  try {
+    const out = await aiCall({ op: 'text', model: (store.settings && store.settings.model) || 'gpt-5-mini', max_tokens: 700,
+      messages: [{ role: 'user', content: 'Übersetze diese Koch-Zubereitung ins Deutsche. Gib NUR die übersetzte Anleitung zurück – gleiche Absätze/Schritte, keine Einleitung, keine Anführungszeichen.\n\n' + m.instr_en }] });
+    m.instr_de = (out || '').trim() || m.instr_en; save(); renderMeal();
+  } catch (e) { toast('Übersetzung fehlgeschlagen.'); }
+}
+if ($('#mealWidget')) $('#mealWidget').addEventListener('click', e => {
+  const b = e.target.closest('[data-meal]'); if (!b) return;
+  store.meal = store.meal || {}; const M = store.meal, a = b.dataset.meal;
+  if (a === 'toggle') { M.open = !M.open; save(); renderMeal(); return; }
+  if (a === 'pplus') { M.servings = Math.min(12, (M.servings || 2) + 1); save(); renderMeal(); return; }
+  if (a === 'pminus') { M.servings = Math.max(1, (M.servings || 2) - 1); save(); renderMeal(); return; }
+  if (a === 'hide') { M.hiddenDate = todayISO(); M.open = false; save(); renderMeal(); toast('Für heute ausgeblendet – morgen gibt es einen neuen Vorschlag 🍽️'); return; }
+  if (a === 'translate') { mealTranslateInstr(); return; }
+  if (a === 'addlist') { const n = mealAddToList(); if (n) { shopChanged(); toast('🛒 ' + n + ' Zutaten auf der Einkaufsliste ✓'); } else toast('Zutaten sind schon auf der Liste'); return; }
+  if (a === 'assign') {
+    const sel = $('#mealAssignSel'), mid = sel ? sel.value : '';
+    mealAddToList();
+    if (mid) {
+      const mem = (typeof famMember === 'function') ? famMember(mid) : null;
+      store.family.shopAssign = { assignee: mid, by: (typeof famSelfId === 'function' ? famSelfId() : ''), due: '', createdAt: Date.now() };
+      if (mem && mem.authId && typeof pushNotifyMember === 'function') pushNotifyMember(mem.authId, '🛒 Einkaufsliste für dich', 'Zutaten für „' + (M.today ? (M.today.name_de || M.today.name_en) : 'das Gericht') + '"');
+    }
+    shopChanged();
+    toast(mid ? ('🛒 Liste zugewiesen ✓') : ('🛒 Zutaten auf der Liste ✓'));
+    return;
+  }
 });
 
 /* ============================== FAMILIENZENTRALE ============================== */
