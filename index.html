@@ -493,6 +493,16 @@ body.store-safe [data-buy]{display:none!important}
 .dash-drag{flex:none;cursor:grab;color:var(--faint);font-size:17px;line-height:1;padding:6px 4px;margin:-6px 0;touch-action:none;user-select:none;-webkit-user-select:none}
 .dash-drag:active{cursor:grabbing}
 .dash-row.dragging{opacity:.7;background:var(--card2);border-radius:12px;box-shadow:var(--shadow-2)}
+/* Selbstfürsorge-Popup (ruhige Karte im App-Design) */
+.sc-card{position:relative;text-align:center;max-width:420px}
+.sc-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border:none;background:var(--card2);color:var(--muted);border-radius:999px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.sc-x:hover{color:var(--text);background:var(--surface-3)}
+.sc-ic{font-size:38px;line-height:1;margin:6px 0 10px}
+.sc-topic{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-bottom:8px}
+.sc-q{font-size:18px;line-height:1.45;font-weight:600;color:var(--text);margin:0 4px 18px}
+.sc-card .fam-alert-btns .btn{flex:1;min-height:46px}
+.sc-note{margin-top:12px;font-size:11.5px;color:var(--faint);line-height:1.4}
+@media (prefers-reduced-motion:reduce){ .fam-alert,.fam-alert-ic,.sc-ic{animation:none!important} }
 .dash-sub{color:var(--muted);font-size:15px;line-height:1.45;margin-top:7px;max-width:46ch}
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
 .dash-stats .stat{padding:13px 6px}
@@ -1811,6 +1821,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <button class="btn" id="btnResetHelp"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg>Hilfe &amp; Tour zurücksetzen</button>
           <button class="btn" id="btnOpenHelp">📖 Alle Funktionen ansehen</button>
         </div>
+      </div>
+
+      <div class="card set-card">
+        <h3>🌿 Selbstfürsorge-Impuls</h3>
+        <p class="sub">Einmal am Tag – zu einer zufälligen Zeit zwischen 11 und 18 Uhr – eine sanfte Frage, um kurz an dich zu denken. Reine Reflexion, du markierst sie als gelesen oder schließt sie einfach.</p>
+        <div class="set-row" style="align-items:center">
+          <span style="flex:1;font-weight:600" id="scStatusLbl">Täglicher Impuls</span>
+          <button class="btn" id="scToggle" role="switch" aria-checked="true">An&nbsp;✓</button>
+        </div>
+        <div style="margin-top:10px"><button class="btn btn-sm" id="scTest">Beispiel ansehen</button></div>
+        <div class="note-box">🔒 Es werden nur Anzeige-Datum und Reihenfolge gespeichert – <b>keine Antworten, keine Gesundheitsdaten</b>. Kein Ersatz für professionelle Hilfe.</div>
       </div>
 
       <div class="card set-card">
@@ -4395,6 +4416,90 @@ function dailyMindfulQuote() {
   const n = pool.length;
   return pool[(((doy * 7 + d.getFullYear()) % n) + n) % n];
 }
+/* ============================== SELBSTFÜRSORGE-IMPULS ==============================
+   Einmal täglich ein sanftes Popup mit wechselnder Selbstfürsorge-Frage. REINE ANZEIGE –
+   keine Antworten/Gesundheitsdaten gespeichert (kein Art.-9-DSGVO-Thema). Gespeichert nur:
+   on, lastDate, targetDate/targetMin (Zufallszeit des Tages), queue (Rotation), rein LOKAL.
+   Ehrliche Grenze: Erscheinen bei GESCHLOSSENER App zur exakten Zufallszeit bräuchte Push –
+   hier reine In-App-Logik (zeigt beim Öffnen ab Zielzeit; nach 18 Uhr kein Nachholen). */
+let _scData = null, _scTimer = null;
+function selfcarePrefs() {
+  if (!store.selfcare) store.selfcare = {};
+  if (typeof store.selfcare.on !== 'boolean') store.selfcare.on = true;   // Standard: aktiviert
+  return store.selfcare;
+}
+async function selfcareLoad() {
+  if (_scData) return _scData;
+  try { const r = await fetch('selbstfuersorge.json', { cache: 'force-cache' }); const d = await r.json(); _scData = (d && d.fragen) || []; }
+  catch (e) { _scData = []; }
+  return _scData;
+}
+/* Rotation: gemischte Warteschlange, keine Wiederholung bis alle gezeigt – dann neu mischen. */
+function selfcareNextQuestion() {
+  const sc = selfcarePrefs();
+  if (!Array.isArray(sc.queue) || !sc.queue.length) {
+    sc.queue = _scData.map(q => q.id);
+    for (let i = sc.queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = sc.queue[i]; sc.queue[i] = sc.queue[j]; sc.queue[j] = t; }
+  }
+  const id = sc.queue.shift();
+  return _scData.find(q => q.id === id) || _scData[0] || null;
+}
+async function selfcareShow(force) {
+  const sc = selfcarePrefs(), today = todayISO();
+  if (!force) {
+    if (!sc.on || sc.lastDate === today) return;
+    if (($('#auth') && $('#auth').classList.contains('on')) || ($('#paywall') && $('#paywall').classList.contains('on')) || ($('#onboarding') && $('#onboarding').classList.contains('on'))) return;
+    const ex = document.getElementById('scOv'); if (ex && ex.classList.contains('on')) return;   // schon offen
+  }
+  await selfcareLoad();
+  if (!_scData.length) { if (force) toast('Fragen konnten nicht geladen werden.'); return; }
+  let q;
+  if (force) q = _scData[Math.floor(Math.random() * _scData.length)];               // Test: verbraucht die Rotation NICHT
+  else { q = selfcareNextQuestion(); sc.lastDate = today; save(); }                 // echt: Tag als gezeigt markieren
+  if (q) selfcareRender(q);
+}
+function selfcareRender(q) {
+  let ov = document.getElementById('scOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'scOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert sc-card" role="dialog" aria-modal="true" aria-label="Selbstfürsorge-Impuls">' +
+    '<button class="sc-x" id="scClose" aria-label="Schließen">✕</button>' +
+    '<div class="sc-ic" aria-hidden="true">🌿</div>' +
+    '<div class="sc-topic">' + esc(q.thema) + '</div>' +
+    '<p class="sc-q">' + esc(q.frage) + '</p>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm btn-primary" id="scRead">Als gelesen markieren</button></div>' +
+    '<div class="sc-note">Ein sanfter Anstoß – kein Ersatz für professionelle Hilfe.</div></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  document.getElementById('scClose').onclick = close;
+  document.getElementById('scRead').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  const kh = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', kh); } };
+  document.addEventListener('keydown', kh);
+  setTimeout(() => { const b = document.getElementById('scRead'); if (b) b.focus(); }, 60);
+}
+/* Zeitsteuerung: Zielzeit 11:00–17:59 (lokal). Öffnen ab Zielzeit → zeigen; nach 18 Uhr kein Nachholen;
+   bleibt die App bis zur Zielzeit offen → Timer. Genau EINMAL pro Tag (lastDate). */
+function selfcareCheck() {
+  const sc = selfcarePrefs();
+  if (!sc.on) return;
+  const today = todayISO();
+  if (sc.lastDate === today) return;
+  if (sc.targetDate !== today) { sc.targetDate = today; sc.targetMin = 11 * 60 + Math.floor(Math.random() * (7 * 60)); save(); }
+  const now = new Date(), nowMin = now.getHours() * 60 + now.getMinutes();
+  if (nowMin >= 18 * 60) return;                                   // nach 18 Uhr nicht nachholen
+  if (nowMin >= sc.targetMin) { selfcareShow(); return; }          // Öffnen ab Zielzeit → jetzt
+  clearTimeout(_scTimer);
+  _scTimer = setTimeout(() => { selfcareShow(); }, (sc.targetMin - nowMin) * 60000 + 500);
+}
+/* Settings-Schalter (An/Aus) + „Beispiel ansehen". */
+function scSyncToggle() {
+  const on = selfcarePrefs().on, b = $('#scToggle');
+  if (b) { b.textContent = on ? 'An ✓' : 'Aus'; b.classList.toggle('btn-primary', on); b.setAttribute('aria-checked', on ? 'true' : 'false'); }
+}
+if ($('#scToggle')) $('#scToggle').addEventListener('click', () => { const sc = selfcarePrefs(); sc.on = !sc.on; save(); scSyncToggle(); toast(sc.on ? '🌿 Selbstfürsorge-Impuls aktiviert' : 'Selbstfürsorge-Impuls deaktiviert'); if (sc.on) selfcareCheck(); });
+if ($('#scTest')) $('#scTest').addEventListener('click', () => selfcareShow(true));
+scSyncToggle();
+
 let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (Default) / aufgeklappt
 /* ===== Dashboard-Personalisierung: der Nutzer wählt, welche Blöcke erscheinen =====
    Blöcke sind standardmäßig AN; ausgeblendete stehen in store.dashHidden (id→1).
@@ -10620,6 +10725,10 @@ setTimeout(() => { try { subscribeFamilyPush(); } catch (e) {} }, 2500);
 /* Tippt der Empfänger auf die System-Benachrichtigung → App fokussiert → Familienaufgaben zeigen. */
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.type === 'fam-open') { famTab = 'ftasks'; showView('family'); } });
 try { if (new URLSearchParams(location.search).get('fam')) { famTab = 'ftasks'; setTimeout(() => showView('family'), 900); } } catch (e) {}
+
+/* Selbstfürsorge-Impuls: nach dem Boot prüfen + beim Zurückkehren in den Vordergrund erneut. */
+setTimeout(() => { try { selfcareCheck(); } catch (e) {} }, 1200);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { try { selfcareCheck(); } catch (e) {} } });
 
 })();
 </script>

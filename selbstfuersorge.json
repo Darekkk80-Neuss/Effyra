@@ -1,0 +1,759 @@
+{
+  "version": 1,
+  "sprache": "de",
+  "encoding": "UTF-8",
+  "anzahl": 150,
+  "hinweis": "Taeglich eine Frage, rotierend ohne Wiederholung bis alle gezeigt wurden, dann neu mischen. Reine Anzeige, keine Antworten speichern.",
+  "fragen": [
+    {
+      "id": 1,
+      "thema": "Körperwahrnehmung",
+      "frage": "Wie fühlt sich dein Körper gerade in diesem Moment an?"
+    },
+    {
+      "id": 2,
+      "thema": "Körperwahrnehmung",
+      "frage": "Wo in deinem Körper spürst du Anspannung – und darf sie ein wenig weicher werden?"
+    },
+    {
+      "id": 3,
+      "thema": "Körperwahrnehmung",
+      "frage": "Wann hast du zuletzt bewusst deine Schultern sinken lassen?"
+    },
+    {
+      "id": 4,
+      "thema": "Körperwahrnehmung",
+      "frage": "Sitzt oder stehst du gerade bequem, oder möchtest du deine Haltung verändern?"
+    },
+    {
+      "id": 5,
+      "thema": "Körperwahrnehmung",
+      "frage": "Welchen Teil deines Körpers dürftest du heute etwas liebevoller behandeln?"
+    },
+    {
+      "id": 6,
+      "thema": "Körperwahrnehmung",
+      "frage": "Spürst du gerade eher Müdigkeit oder Energie – und was sagt dir das?"
+    },
+    {
+      "id": 7,
+      "thema": "Körperwahrnehmung",
+      "frage": "Wann hast du dich heute zuletzt bewusst gestreckt?"
+    },
+    {
+      "id": 8,
+      "thema": "Körperwahrnehmung",
+      "frage": "Ist dir gerade warm genug, oder brauchst du es etwas gemütlicher?"
+    },
+    {
+      "id": 9,
+      "thema": "Körperwahrnehmung",
+      "frage": "Was würde deinem Körper in den nächsten Minuten guttun?"
+    },
+    {
+      "id": 10,
+      "thema": "Körperwahrnehmung",
+      "frage": "Wie tief atmest du gerade – eher flach oder ruhig und voll?"
+    },
+    {
+      "id": 11,
+      "thema": "Atem & Ruhe",
+      "frage": "Magst du für drei Atemzüge einfach nur atmen und sonst nichts?"
+    },
+    {
+      "id": 12,
+      "thema": "Atem & Ruhe",
+      "frage": "Wie würde sich ein langsamer, tiefer Atemzug gerade anfühlen?"
+    },
+    {
+      "id": 13,
+      "thema": "Atem & Ruhe",
+      "frage": "Was passiert, wenn du beim nächsten Ausatmen ein wenig loslässt?"
+    },
+    {
+      "id": 14,
+      "thema": "Atem & Ruhe",
+      "frage": "Wo findest du heute einen kurzen Moment der Stille?"
+    },
+    {
+      "id": 15,
+      "thema": "Atem & Ruhe",
+      "frage": "Was beruhigt dich, wenn gerade alles viel ist?"
+    },
+    {
+      "id": 16,
+      "thema": "Atem & Ruhe",
+      "frage": "Wann hattest du heute einen Moment, in dem nichts von dir verlangt wurde?"
+    },
+    {
+      "id": 17,
+      "thema": "Atem & Ruhe",
+      "frage": "Darf es gerade auch mal ruhig und langsam sein?"
+    },
+    {
+      "id": 18,
+      "thema": "Atem & Ruhe",
+      "frage": "Wie klingt Stille für dich – eher angenehm oder ungewohnt?"
+    },
+    {
+      "id": 19,
+      "thema": "Atem & Ruhe",
+      "frage": "Was hilft dir, innerlich zur Ruhe zu kommen?"
+    },
+    {
+      "id": 20,
+      "thema": "Atem & Ruhe",
+      "frage": "Möchtest du kurz die Augen schließen und einfach da sein?"
+    },
+    {
+      "id": 21,
+      "thema": "Pausen & Energie",
+      "frage": "Wann hast du dir heute die letzte richtige Pause gegönnt?"
+    },
+    {
+      "id": 22,
+      "thema": "Pausen & Energie",
+      "frage": "Was gibt dir gerade Energie – und was zieht sie dir?"
+    },
+    {
+      "id": 23,
+      "thema": "Pausen & Energie",
+      "frage": "Brauchst du jetzt eher eine Pause oder einen kleinen Antrieb?"
+    },
+    {
+      "id": 24,
+      "thema": "Pausen & Energie",
+      "frage": "Wie voll fühlt sich dein Akku heute an?"
+    },
+    {
+      "id": 25,
+      "thema": "Pausen & Energie",
+      "frage": "Welche kleine Pause könntest du dir in der nächsten Stunde gönnen?"
+    },
+    {
+      "id": 26,
+      "thema": "Pausen & Energie",
+      "frage": "Machst du gerade zu viel auf einmal?"
+    },
+    {
+      "id": 27,
+      "thema": "Pausen & Energie",
+      "frage": "Was könntest du heute guten Gewissens weglassen?"
+    },
+    {
+      "id": 28,
+      "thema": "Pausen & Energie",
+      "frage": "Wann hast du dir zuletzt erlaubt, einfach nichts zu tun?"
+    },
+    {
+      "id": 29,
+      "thema": "Pausen & Energie",
+      "frage": "Was tut dir gut, wenn du erschöpft bist?"
+    },
+    {
+      "id": 30,
+      "thema": "Pausen & Energie",
+      "frage": "Wie fühlt es sich an, kurz durchzuatmen, bevor es weitergeht?"
+    },
+    {
+      "id": 31,
+      "thema": "Dankbarkeit",
+      "frage": "Wofür bist du heute – auch für etwas ganz Kleines – dankbar?"
+    },
+    {
+      "id": 32,
+      "thema": "Dankbarkeit",
+      "frage": "Was hat dich heute zum Lächeln gebracht?"
+    },
+    {
+      "id": 33,
+      "thema": "Dankbarkeit",
+      "frage": "Wer hat dir in letzter Zeit gutgetan?"
+    },
+    {
+      "id": 34,
+      "thema": "Dankbarkeit",
+      "frage": "Welche Kleinigkeit heute war schöner, als du erwartet hast?"
+    },
+    {
+      "id": 35,
+      "thema": "Dankbarkeit",
+      "frage": "Was an deinem heutigen Tag würdest du gern festhalten?"
+    },
+    {
+      "id": 36,
+      "thema": "Dankbarkeit",
+      "frage": "Wofür bist du an dir selbst gerade dankbar?"
+    },
+    {
+      "id": 37,
+      "thema": "Dankbarkeit",
+      "frage": "Welcher Moment heute war ruhig und angenehm?"
+    },
+    {
+      "id": 38,
+      "thema": "Dankbarkeit",
+      "frage": "Was in deinem Leben ist gerade gut, so wie es ist?"
+    },
+    {
+      "id": 39,
+      "thema": "Dankbarkeit",
+      "frage": "Wem möchtest du vielleicht heute noch Danke sagen?"
+    },
+    {
+      "id": 40,
+      "thema": "Dankbarkeit",
+      "frage": "Was Selbstverständliches ist eigentlich ein kleines Geschenk?"
+    },
+    {
+      "id": 41,
+      "thema": "Emotionen",
+      "frage": "Wie geht es dir gerade wirklich – nicht nur „okay“?"
+    },
+    {
+      "id": 42,
+      "thema": "Emotionen",
+      "frage": "Welches Gefühl begleitet dich heute am meisten?"
+    },
+    {
+      "id": 43,
+      "thema": "Emotionen",
+      "frage": "Darf gerade sein, was du fühlst, ohne dass du es wegschiebst?"
+    },
+    {
+      "id": 44,
+      "thema": "Emotionen",
+      "frage": "Was würdest du deinem Gefühl gerade gern sagen?"
+    },
+    {
+      "id": 45,
+      "thema": "Emotionen",
+      "frage": "Was brauchst du gerade emotional am meisten?"
+    },
+    {
+      "id": 46,
+      "thema": "Emotionen",
+      "frage": "Gibt es etwas, das dich heute beschäftigt und Raum bräuchte?"
+    },
+    {
+      "id": 47,
+      "thema": "Emotionen",
+      "frage": "Wann hast du dich heute zuletzt richtig wohlgefühlt?"
+    },
+    {
+      "id": 48,
+      "thema": "Emotionen",
+      "frage": "Was würde dir helfen, dich gerade ein bisschen leichter zu fühlen?"
+    },
+    {
+      "id": 49,
+      "thema": "Emotionen",
+      "frage": "Bist du heute eher streng oder freundlich mit dir?"
+    },
+    {
+      "id": 50,
+      "thema": "Emotionen",
+      "frage": "Welche Stimmung möchtest du in den Rest des Tages mitnehmen?"
+    },
+    {
+      "id": 51,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Was brauchst du gerade am dringendsten?"
+    },
+    {
+      "id": 52,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Gibt es heute ein „Nein“, das eigentlich guttun würde?"
+    },
+    {
+      "id": 53,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Nimmst du dir genug Zeit für dich selbst?"
+    },
+    {
+      "id": 54,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Was tust du für andere, das du auch dir selbst gönnen dürftest?"
+    },
+    {
+      "id": 55,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Wo darfst du heute eine Grenze setzen?"
+    },
+    {
+      "id": 56,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Was möchtest du heute nicht mehr mit dir machen lassen?"
+    },
+    {
+      "id": 57,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Hörst du gerade auf das, was dein Körper dir sagt?"
+    },
+    {
+      "id": 58,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Welches deiner Bedürfnisse kommt in letzter Zeit zu kurz?"
+    },
+    {
+      "id": 59,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Was würdest du dir wünschen, wenn du dich trauen würdest, es auszusprechen?"
+    },
+    {
+      "id": 60,
+      "thema": "Bedürfnisse & Grenzen",
+      "frage": "Ist es okay, heute auch mal an dich zuerst zu denken?"
+    },
+    {
+      "id": 61,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Was würde dir heute – ganz ohne Grund – Freude machen?"
+    },
+    {
+      "id": 62,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Welche Kleinigkeit könntest du dir heute gönnen?"
+    },
+    {
+      "id": 63,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Wann hast du zuletzt so richtig herzlich gelacht?"
+    },
+    {
+      "id": 64,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Was macht dir gerade in deinem Alltag Freude?"
+    },
+    {
+      "id": 65,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Welches kleine Ritual tut dir gut?"
+    },
+    {
+      "id": 66,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Was würdest du tun, wenn du dir heute 15 Minuten nur für dich schenkst?"
+    },
+    {
+      "id": 67,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Welche Musik würde gerade zu deiner Stimmung passen?"
+    },
+    {
+      "id": 68,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Was ist dein liebster kleiner Moment an einem gewöhnlichen Tag?"
+    },
+    {
+      "id": 69,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Was hebt deine Laune fast immer?"
+    },
+    {
+      "id": 70,
+      "thema": "Freude & Kleinigkeiten",
+      "frage": "Wovon möchtest du heute mehr in deinen Tag holen?"
+    },
+    {
+      "id": 71,
+      "thema": "Verbundenheit",
+      "frage": "Mit wem würde ein kurzer Kontakt dir heute guttun?"
+    },
+    {
+      "id": 72,
+      "thema": "Verbundenheit",
+      "frage": "Wann hast du dich zuletzt jemandem wirklich nah gefühlt?"
+    },
+    {
+      "id": 73,
+      "thema": "Verbundenheit",
+      "frage": "Wem könntest du heute eine kleine Freude machen?"
+    },
+    {
+      "id": 74,
+      "thema": "Verbundenheit",
+      "frage": "Wer gibt dir das Gefühl, so sein zu dürfen, wie du bist?"
+    },
+    {
+      "id": 75,
+      "thema": "Verbundenheit",
+      "frage": "Fehlt dir gerade jemand, dem du schreiben könntest?"
+    },
+    {
+      "id": 76,
+      "thema": "Verbundenheit",
+      "frage": "Wann hast du dich zuletzt verstanden gefühlt?"
+    },
+    {
+      "id": 77,
+      "thema": "Verbundenheit",
+      "frage": "Wer in deinem Leben verdient heute ein Dankeschön?"
+    },
+    {
+      "id": 78,
+      "thema": "Verbundenheit",
+      "frage": "Möchtest du dich heute eher zeigen oder eher zurückziehen?"
+    },
+    {
+      "id": 79,
+      "thema": "Verbundenheit",
+      "frage": "Was verbindet dich mit den Menschen, die dir wichtig sind?"
+    },
+    {
+      "id": 80,
+      "thema": "Verbundenheit",
+      "frage": "Wann hast du dich zuletzt getraut, um Hilfe zu bitten?"
+    },
+    {
+      "id": 81,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was nimmst du gerade wahr, wenn du kurz innehältst?"
+    },
+    {
+      "id": 82,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Welche drei Dinge kannst du in diesem Moment sehen, hören und fühlen?"
+    },
+    {
+      "id": 83,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was riechst oder schmeckst du gerade – ganz bewusst?"
+    },
+    {
+      "id": 84,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Wie fühlt sich der Boden unter deinen Füßen an?"
+    },
+    {
+      "id": 85,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was ist gerade in diesem Augenblick eigentlich in Ordnung?"
+    },
+    {
+      "id": 86,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Kannst du diesen Moment für ein paar Sekunden einfach nur da sein lassen?"
+    },
+    {
+      "id": 87,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was würdest du bemerken, wenn du langsamer machst?"
+    },
+    {
+      "id": 88,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Wo ist deine Aufmerksamkeit gerade – hier oder ganz woanders?"
+    },
+    {
+      "id": 89,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was verändert sich, wenn du dem jetzigen Moment volle Aufmerksamkeit schenkst?"
+    },
+    {
+      "id": 90,
+      "thema": "Achtsamkeit im Moment",
+      "frage": "Was ist das Schönste, das du gerade in deiner Umgebung sehen kannst?"
+    },
+    {
+      "id": 91,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Würdest du mit einem guten Freund so sprechen, wie du gerade mit dir sprichst?"
+    },
+    {
+      "id": 92,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Was würdest du dir sagen, wenn du dein bester Freund wärst?"
+    },
+    {
+      "id": 93,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Wofür darfst du heute stolz auf dich sein?"
+    },
+    {
+      "id": 94,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Was hast du heute schon geschafft – auch wenn es klein war?"
+    },
+    {
+      "id": 95,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Darfst du heute auch mal nicht perfekt sein?"
+    },
+    {
+      "id": 96,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Was würdest du dir gern verzeihen?"
+    },
+    {
+      "id": 97,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Wie könntest du heute etwas sanfter mit dir umgehen?"
+    },
+    {
+      "id": 98,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Welchen freundlichen Satz möchtest du dir heute schenken?"
+    },
+    {
+      "id": 99,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Was an dir magst du – auch wenn es dir schwerfällt, es zuzugeben?"
+    },
+    {
+      "id": 100,
+      "thema": "Selbstfreundlichkeit",
+      "frage": "Erkennst du an, wie viel du gerade eigentlich trägst?"
+    },
+    {
+      "id": 101,
+      "thema": "Schlaf & Erholung",
+      "frage": "Hast du letzte Nacht genug Ruhe bekommen?"
+    },
+    {
+      "id": 102,
+      "thema": "Schlaf & Erholung",
+      "frage": "Was würde dir heute Abend beim Abschalten helfen?"
+    },
+    {
+      "id": 103,
+      "thema": "Schlaf & Erholung",
+      "frage": "Wann gehst du heute idealerweise zur Ruhe?"
+    },
+    {
+      "id": 104,
+      "thema": "Schlaf & Erholung",
+      "frage": "Was hält dich manchmal davon ab, gut zu schlafen?"
+    },
+    {
+      "id": 105,
+      "thema": "Schlaf & Erholung",
+      "frage": "Wie könntest du deinen Abend heute etwas ruhiger ausklingen lassen?"
+    },
+    {
+      "id": 106,
+      "thema": "Schlaf & Erholung",
+      "frage": "Fühlst du dich gerade ausgeruht oder eher müde?"
+    },
+    {
+      "id": 107,
+      "thema": "Schlaf & Erholung",
+      "frage": "Was tut dir vor dem Schlafengehen gut?"
+    },
+    {
+      "id": 108,
+      "thema": "Schlaf & Erholung",
+      "frage": "Gönnst du dir genug echte Erholung – nicht nur Ablenkung?"
+    },
+    {
+      "id": 109,
+      "thema": "Schlaf & Erholung",
+      "frage": "Was würde einen erholsamen Abend für dich ausmachen?"
+    },
+    {
+      "id": 110,
+      "thema": "Schlaf & Erholung",
+      "frage": "Wann hast du dir zuletzt einen richtig faulen Moment gegönnt?"
+    },
+    {
+      "id": 111,
+      "thema": "Bewegung & Draußen",
+      "frage": "Warst du heute schon draußen an der frischen Luft?"
+    },
+    {
+      "id": 112,
+      "thema": "Bewegung & Draußen",
+      "frage": "Wie würde sich ein kurzer Spaziergang gerade anfühlen?"
+    },
+    {
+      "id": 113,
+      "thema": "Bewegung & Draußen",
+      "frage": "Möchte dein Körper sich heute vielleicht ein wenig bewegen?"
+    },
+    {
+      "id": 114,
+      "thema": "Bewegung & Draußen",
+      "frage": "Wann hast du zuletzt bewusst den Himmel angeschaut?"
+    },
+    {
+      "id": 115,
+      "thema": "Bewegung & Draußen",
+      "frage": "Was würde dir ein paar Minuten in der Natur geben?"
+    },
+    {
+      "id": 116,
+      "thema": "Bewegung & Draußen",
+      "frage": "Magst du kurz aufstehen und dich einmal recken?"
+    },
+    {
+      "id": 117,
+      "thema": "Bewegung & Draußen",
+      "frage": "Wie fühlt sich frische Luft oder Sonnenlicht auf deiner Haut an?"
+    },
+    {
+      "id": 118,
+      "thema": "Bewegung & Draußen",
+      "frage": "Welche Bewegung würde dir heute Freude machen, ganz ohne Druck?"
+    },
+    {
+      "id": 119,
+      "thema": "Bewegung & Draußen",
+      "frage": "Wann warst du zuletzt einfach nur draußen, ohne Ziel?"
+    },
+    {
+      "id": 120,
+      "thema": "Bewegung & Draußen",
+      "frage": "Was würde deinem Körper an Bewegung heute guttun?"
+    },
+    {
+      "id": 121,
+      "thema": "Gedanken & Fokus",
+      "frage": "Welcher Gedanke geht dir gerade immer wieder durch den Kopf?"
+    },
+    {
+      "id": 122,
+      "thema": "Gedanken & Fokus",
+      "frage": "Was von dem, worüber du dir Sorgen machst, kannst du gerade wirklich beeinflussen?"
+    },
+    {
+      "id": 123,
+      "thema": "Gedanken & Fokus",
+      "frage": "Was könntest du heute bewusst loslassen?"
+    },
+    {
+      "id": 124,
+      "thema": "Gedanken & Fokus",
+      "frage": "Worauf möchtest du deine Aufmerksamkeit heute weniger richten?"
+    },
+    {
+      "id": 125,
+      "thema": "Gedanken & Fokus",
+      "frage": "Was ist gerade wirklich wichtig – und was nur laut?"
+    },
+    {
+      "id": 126,
+      "thema": "Gedanken & Fokus",
+      "frage": "Welcher Gedanke würde dir guttun, wenn du ihn öfter denkst?"
+    },
+    {
+      "id": 127,
+      "thema": "Gedanken & Fokus",
+      "frage": "Was würdest du dir raten, wenn du kurz Abstand nimmst?"
+    },
+    {
+      "id": 128,
+      "thema": "Gedanken & Fokus",
+      "frage": "Machst du dir gerade mehr Druck, als nötig ist?"
+    },
+    {
+      "id": 129,
+      "thema": "Gedanken & Fokus",
+      "frage": "Was wäre, wenn heute genug ist, so wie es ist?"
+    },
+    {
+      "id": 130,
+      "thema": "Gedanken & Fokus",
+      "frage": "Welche Sorge darfst du für den Moment beiseitelegen?"
+    },
+    {
+      "id": 131,
+      "thema": "Sinn & Werte",
+      "frage": "Was ist dir heute wirklich wichtig?"
+    },
+    {
+      "id": 132,
+      "thema": "Sinn & Werte",
+      "frage": "Wann hast du dich zuletzt lebendig gefühlt?"
+    },
+    {
+      "id": 133,
+      "thema": "Sinn & Werte",
+      "frage": "Was gibt deinem Tag gerade Bedeutung?"
+    },
+    {
+      "id": 134,
+      "thema": "Sinn & Werte",
+      "frage": "Wofür stehst du gerne morgens auf?"
+    },
+    {
+      "id": 135,
+      "thema": "Sinn & Werte",
+      "frage": "Welcher Wert soll deinen heutigen Tag leiten?"
+    },
+    {
+      "id": 136,
+      "thema": "Sinn & Werte",
+      "frage": "Was möchtest du am Ende des Tages über dich sagen können?"
+    },
+    {
+      "id": 137,
+      "thema": "Sinn & Werte",
+      "frage": "Was würde dein Leben gerade ein Stück reicher machen?"
+    },
+    {
+      "id": 138,
+      "thema": "Sinn & Werte",
+      "frage": "Wovon möchtest du in deinem Leben mehr, wovon weniger?"
+    },
+    {
+      "id": 139,
+      "thema": "Sinn & Werte",
+      "frage": "Was tut dir langfristig gut, auch wenn es kurzfristig Mühe macht?"
+    },
+    {
+      "id": 140,
+      "thema": "Sinn & Werte",
+      "frage": "Wann fühlst du dich am meisten wie du selbst?"
+    },
+    {
+      "id": 141,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Hast du heute schon genug getrunken?"
+    },
+    {
+      "id": 142,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Wann hast du dir zuletzt in Ruhe etwas Gutes gegönnt?"
+    },
+    {
+      "id": 143,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Was würde dir gerade Kraft geben?"
+    },
+    {
+      "id": 144,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Gönnst du dir heute etwas, das nur für dein Wohlbefinden da ist?"
+    },
+    {
+      "id": 145,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Was tut deinem Wohlbefinden gerade am meisten gut?"
+    },
+    {
+      "id": 146,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Wie kannst du heute freundlich für dich sorgen?"
+    },
+    {
+      "id": 147,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Was brauchst du, um dich sicher und geborgen zu fühlen?"
+    },
+    {
+      "id": 148,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Welche kleine Fürsorge kannst du dir in den nächsten Minuten schenken?"
+    },
+    {
+      "id": 149,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Was würde ein liebevoller Mensch dir jetzt raten?"
+    },
+    {
+      "id": 150,
+      "thema": "Fürsorge im Alltag",
+      "frage": "Wenn du heute nur eine Sache für dich tust – was wäre es?"
+    }
+  ]
+}
