@@ -314,6 +314,9 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .meal-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
 .meal-assign{display:flex;gap:6px;align-items:center}
 .meal-assign select{max-width:132px}
+.meal-nutri{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.meal-nutri span{font-size:12.5px;color:var(--muted);background:var(--card2);border-radius:10px;padding:6px 10px}
+.meal-nutri b{color:var(--text)}
 
 /* ============================== DASHBOARD ============================== */
 /* ---- Dashboard (Leuchtturm: 8er-Raster, klare Typo-Rollen, saubere States) ---- */
@@ -5337,6 +5340,26 @@ function mealLoadingHTML() { return '<div class="meal-card"><div class="meal-her
 /* Rezept in die eingestellte App-Sprache (curLang) bringen: Cache pro Gericht+Sprache; Platzhalter
    sofort (Deutsch=Wörterbuch, sonst Englisch), dann KI-Übersetzung (gecacht) beim ersten Anzeigen. */
 const _mealTr = {};   // "id|lang" → 'busy'|'done'|'fail' (nur Session, nicht persistiert)
+const _mealNutri = {};   // id → 'busy'|'done'|'fail' (Nährwert-Abruf, nur Session)
+/* Nährwerte je Portion via Spoonacular-Proxy (Key serverseitig). Lazy beim Aufklappen, gecacht in m.nutri. */
+async function mealFetchNutrition(m) {
+  if (!m || m.nutri) return;
+  if (typeof CLOUD === 'undefined' || !CLOUD || typeof sb === 'undefined' || !sb) return;   // braucht Cloud-Proxy
+  if (_mealNutri[m.id]) return;
+  _mealNutri[m.id] = 'busy';
+  try {
+    const { data } = await sb.auth.getSession();
+    const s = data && data.session;
+    if (!s) { _mealNutri[m.id] = 'fail'; }
+    else {
+      const r = await fetch(FN_URL('nutrition-proxy'), { method: 'POST', headers: { 'content-type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + s.access_token }, body: JSON.stringify({ title: m.name_en }) });
+      const j = await r.json().catch(() => ({}));
+      if (j && j.ok && j.kcal != null) { m.nutri = { kcal: j.kcal, protein: j.protein, carbs: j.carbs, fat: j.fat }; _mealNutri[m.id] = 'done'; save(); }
+      else { _mealNutri[m.id] = 'fail'; }   // z. B. not_configured (Secret fehlt) → stiller Fallback
+    }
+  } catch (_e) { _mealNutri[m.id] = 'fail'; }
+  if (currentView === 'dashboard') renderMeal();
+}
 function mealLocalize(m) {
   const lang = curLang;
   if (lang === 'en') return { ready: true, title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
@@ -5385,8 +5408,11 @@ function mealCardHTML(m) {
   if (open) {
     h += '<div class="meal-drop"><div class="meal-sec-t">🧺 Zutaten' + (L.ready ? '' : ' <span style="font-weight:500;color:var(--faint)">· wird übersetzt …</span>') + '</div>' +
       m.ingredients.map((i, idx) => '<div class="meal-ing"><span>' + esc(L.names[idx] || i.en) + '</span><span class="meal-ing-q">' + esc(mealScaleQty(i.measure, factor)) + '</span></div>').join('') +
-      '<div class="meal-sec-t" style="margin-top:14px">👩‍🍳 Zubereitung</div><p class="meal-instr">' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p>' +
-      '<div class="meal-note">ℹ️ Nährwerte sind bei dieser Rezeptquelle (noch) nicht enthalten.</div></div>';
+      '<div class="meal-sec-t" style="margin-top:14px">🥗 Nährwerte je Portion</div>' +
+      (m.nutri
+        ? '<div class="meal-nutri"><span>🔥 <b>' + (m.nutri.kcal != null ? m.nutri.kcal : '–') + '</b> kcal</span><span>💪 <b>' + (m.nutri.protein != null ? m.nutri.protein : '–') + '</b> g Eiweiß</span><span>🍞 <b>' + (m.nutri.carbs != null ? m.nutri.carbs : '–') + '</b> g KH</span><span>🧈 <b>' + (m.nutri.fat != null ? m.nutri.fat : '–') + '</b> g Fett</span></div><div class="meal-note">Schätzung (Spoonacular)</div>'
+        : ((typeof CLOUD === 'undefined' || !CLOUD || _mealNutri[m.id] === 'fail') ? '<div class="meal-note">ℹ️ Nährwerte gerade nicht verfügbar.</div>' : '<div class="meal-note">Nährwerte werden geladen …</div>')) +
+      '<div class="meal-sec-t" style="margin-top:14px">👩‍🍳 Zubereitung</div><p class="meal-instr">' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>';
   }
   h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">🛒 Zutaten auf die Liste</button>';
   if (members.length >= 2) h += '<div class="meal-assign"><select id="mealAssignSel">' + members.map(x => '<option value="' + x.id + '">' + esc(x.name) + '</option>').join('') + '</select><button class="btn btn-sm" data-meal="assign">+ zuweisen</button></div>';
@@ -5397,7 +5423,7 @@ function renderMeal() {
   const box = $('#mealWidget'); if (!box) return;
   store.meal = store.meal || {}; const M = store.meal, today = todayISO();
   if (M.hiddenDate === today) { box.innerHTML = ''; return; }         // heute ausgeblendet
-  if (M.today && M.today.date === today) { box.innerHTML = mealCardHTML(M.today); return; }
+  if (M.today && M.today.date === today) { box.innerHTML = mealCardHTML(M.today); if (M.open) mealFetchNutrition(M.today); return; }
   box.innerHTML = mealLoadingHTML();
   if (M._loading) return;
   M._loading = true;
