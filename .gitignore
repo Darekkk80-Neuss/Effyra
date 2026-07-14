@@ -1,2 +1,5 @@
 .claude/
 .commitmsg.tmp
+
+# Rechtstexte bleiben bewusst lokal (nicht ins öffentliche Repo)
+legal/
