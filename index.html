@@ -4972,9 +4972,9 @@ RENDERERS.dashboard = function () {
   if (dashOn('tasks') && upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; secHTML.tasks = dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
 
   /* FAMILIENAUFGABEN – an Mitglieder zugewiesen, hier zur Kontrolle (Überblick, wer was hat) */
-  const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done)
+  const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done && (!isKidMode() || !t.assignee || (account && t.assignee === account.memberId)))   // Kindermodus: nur eigene + Familien-Aufgaben
     .sort((a, b) => { if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; if (a.due) return -1; if (b.due) return 1; return 0; });
-  if (dashOn('famtasks') && fTasks.length) secHTML.famtasks = dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
+  if (dashOn('famtasks') && fTasks.length) secHTML.famtasks = dsec(isKidMode() ? '✅ Deine Aufgaben' : '👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
     const m = t.assignee ? famMember(t.assignee) : null;
     const late = t.due && dayDiff(t.due) < 0, isTodayD = t.due && dayDiff(t.due) === 0;
     const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
