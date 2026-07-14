@@ -480,6 +480,11 @@ body.store-safe [data-buy]{display:none!important}
 .share-lbl{font-size:14px;color:var(--text);font-weight:600}
 .share-toggle{flex:none;border:1px solid var(--border);background:var(--card2);color:var(--muted);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;min-height:34px;transition:.15s}
 .share-toggle.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+/* Dashboard-Anpassen-Panel */
+.dash-cust{max-width:440px;width:100%;text-align:left}
+.dash-cust h3{text-align:left}
+.dash-cust-list{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dash-cust-list .share-row:last-child{border-bottom:none}
 .dash-sub{color:var(--muted);font-size:15px;line-height:1.45;margin-top:7px;max-width:46ch}
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
 .dash-stats .stat{padding:13px 6px}
@@ -1446,6 +1451,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <div id="trialSlot"></div>
         </div>
         <div class="dash-hero-actions">
+          <button class="icon-btn" id="dashCustomize" title="Dashboard anpassen" aria-label="Dashboard anpassen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.4" fill="var(--card)"/><circle cx="15" cy="12" r="2.4" fill="var(--card)"/><circle cx="8" cy="17" r="2.4" fill="var(--card)"/></svg></button>
           <div class="theme-toggle" id="themeQuick" role="group" aria-label="Erscheinungsbild">
             <button type="button" data-theme-set="auto" title="Automatisch (System)" aria-label="Automatisch">A</button>
             <button type="button" data-theme-set="light" title="Heller Modus" aria-label="Hell">☀️</button>
@@ -4376,6 +4382,54 @@ function dailyMindfulQuote() {
   return pool[(((doy * 7 + d.getFullYear()) % n) + n) % n];
 }
 let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (Default) / aufgeklappt
+/* ===== Dashboard-Personalisierung: der Nutzer wählt, welche Blöcke erscheinen =====
+   Blöcke sind standardmäßig AN; ausgeblendete stehen in store.dashHidden (id→1).
+   Inhaltslose Blöcke bleiben ohnehin unsichtbar (Bedingungen im Render). */
+const DASH_BLOCKS = [
+  { id: 'brief', name: 'Dein Tag heute', icon: '☀️' },
+  { id: 'weather', name: 'Wetter', icon: '🌤️' },
+  { id: 'meal', name: 'Gericht des Tages', icon: '🍽️' },
+  { id: 'quickactions', name: 'Schnellzugriff', icon: '⚡' },
+  { id: 'capture', name: 'Schnell erfassen', icon: '✍️' },
+  { id: 'firststeps', name: 'Erste Schritte', icon: '🚀' },
+  { id: 'today', name: 'Heute (Fokus)', icon: '📌' },
+  { id: 'meds', name: 'Medikamente', icon: '💊' },
+  { id: 'events', name: 'Nächste Termine', icon: '📅' },
+  { id: 'tasks', name: 'Wichtige Aufgaben', icon: '✅' },
+  { id: 'famtasks', name: 'Familienaufgaben', icon: '👪' },
+  { id: 'shopping', name: 'Einkaufsliste', icon: '🛒' },
+  { id: 'finance', name: 'Finanzen', icon: '💰' },
+  { id: 'family', name: 'Familie', icon: '🏡' },
+  { id: 'docs', name: 'Dokumente', icon: '📄' },
+  { id: 'contracts', name: 'Verträge & Fristen', icon: '🧾' },
+  { id: 'waste', name: 'Müllabholung', icon: '🗑️' },
+  { id: 'checkup', name: 'Vorsorge', icon: '🩺' }
+];
+function dashOn(id) { return !(store.dashHidden && store.dashHidden[id]); }
+function dashSetVisible(id, on) { store.dashHidden = store.dashHidden || {}; if (on) delete store.dashHidden[id]; else store.dashHidden[id] = 1; save(); }
+function dashCustomizeOpen() {
+  let ov = document.getElementById('dashCustOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'dashCustOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  const row = b => '<div class="share-row"><span class="share-lbl">' + b.icon + ' ' + esc(b.name) + '</span>' +
+    '<button class="share-toggle' + (dashOn(b.id) ? ' on' : '') + '" data-dashtog="' + b.id + '" role="switch" aria-checked="' + dashOn(b.id) + '">' + (dashOn(b.id) ? 'An' : 'Aus') + '</button></div>';
+  ov.innerHTML = '<div class="fam-alert dash-cust" role="dialog" aria-modal="true" aria-label="Dashboard anpassen">' +
+    '<h3 style="margin-bottom:4px">🧩 Dashboard anpassen</h3>' +
+    '<p style="color:var(--muted);font-size:13.5px;margin-bottom:6px">Wähle, was auf deiner Startseite erscheint. Blöcke ohne Inhalt bleiben ohnehin ausgeblendet.</p>' +
+    '<div class="dash-cust-list">' + DASH_BLOCKS.map(row).join('') + '</div>' +
+    '<div class="fam-alert-btns" style="margin-top:14px"><button class="btn btn-sm" id="dashCustReset">Alles anzeigen</button><button class="btn btn-sm btn-primary" id="dashCustDone">Fertig</button></div></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  ov.querySelector('#dashCustDone').onclick = close;
+  ov.querySelector('#dashCustReset').onclick = () => { store.dashHidden = {}; save(); RENDERERS.dashboard(); dashCustomizeOpen(); };
+  ov.querySelectorAll('[data-dashtog]').forEach(btn => btn.onclick = () => {
+    const id = btn.dataset.dashtog; dashSetVisible(id, !dashOn(id));
+    const on = dashOn(id); btn.classList.toggle('on', on); btn.textContent = on ? 'An' : 'Aus'; btn.setAttribute('aria-checked', on);
+    RENDERERS.dashboard();
+  });
+  ov.onclick = e => { if (e.target === ov) close(); };
+  const kh = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', kh); } };
+  document.addEventListener('keydown', kh);
+}
 RENDERERS.dashboard = function () {
   const H = new Date().getHours();
   const g = H < 5 ? 'Gute Nacht' : H < 11 ? 'Guten Morgen' : H < 18 ? 'Guten Tag' : 'Guten Abend';
@@ -4389,6 +4443,10 @@ RENDERERS.dashboard = function () {
   const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
   const dstr = cap(new Date().toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }));
   $('#greetSub').textContent = dstr + ' — ' + dailyMindfulQuote();
+
+  /* Personalisierung: statische Blöcke (Schnellzugriff, Schnell erfassen) ein-/ausblenden */
+  const _qr = document.querySelector('#view-dashboard .qa-row'); if (_qr) _qr.style.display = dashOn('quickactions') ? '' : 'none';
+  const _ta = document.querySelector('#view-dashboard .task-add'); if (_ta) _ta.style.display = dashOn('capture') ? '' : 'none';
 
   const slot = $('#trialSlot');
   if (account && isPremium()) slot.innerHTML = '<span class="trial-pill premium">💎 Premium – alles inklusive</span>';
@@ -4429,6 +4487,7 @@ RENDERERS.dashboard = function () {
     '<p style="margin:0' + (_bChips.length ? ' 0 12px' : '') + ';font-size:14.5px">' + esc(_bLine) + '</p>' +
     (_bChips.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px">' + _bChips.map(c => '<button data-go="' + c.go + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:7px 13px;font-size:13px;color:var(--text);cursor:pointer;min-height:38px"><span>' + c.ic + '</span><b>' + c.n + '</b> ' + esc(c.l) + '</button>').join('') + '</div>' : '') +
     '</section>';
+  if (!dashOn('brief')) $('#briefWidget').innerHTML = '';
 
   /* HEUTE – Fokus: was heute/dringend zählt */
   const focus = [];
@@ -4437,7 +4496,7 @@ RENDERERS.dashboard = function () {
   (store.vehicles || []).filter(v => v.tuev && dayDiff(v.tuev) <= 14).forEach(v => { const late = dayDiff(v.tuev) < 0; focus.push({ emoji: v.type === 'motorrad' ? '🏍️' : '🚗', title: 'HU/TÜV: ' + v.name, sub: fmtDate(v.tuev), chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? 'überfällig' : relDay(v.tuev) }, go: 'vehicles', k: '3' }); });
   focus.sort((a, b) => a.k < b.k ? -1 : 1);
   const focusTop = focus.slice(0, 3);
-  html += dsec('☀️ Heute', focusTop.length ? 'calendar' : null, 'Kalender', focusTop.length ? focusTop.map(drow).join('') : '<div class="dsec-empty">Für heute steht nichts Dringendes an. Genieß den Tag. 🌿</div>');
+  if (dashOn('today')) html += dsec('☀️ Heute', focusTop.length ? 'calendar' : null, 'Kalender', focusTop.length ? focusTop.map(drow).join('') : '<div class="dsec-empty">Für heute steht nichts Dringendes an. Genieß den Tag. 🌿</div>');
 
   /* NÄCHSTE TERMINE – ab morgen, die nächsten 3, höchstens 2 Monate voraus */
   const horizon2M = addMonths(today, 2);
@@ -4450,7 +4509,7 @@ RENDERERS.dashboard = function () {
     else ts.forEach(t => medRows.push({ md, mm, t, taken: medIsTaken(md.id, t), sortT: t }));
   });
   medRows.sort((a, b) => a.sortT < b.sortT ? -1 : a.sortT > b.sortT ? 1 : 0);
-  if (medRows.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
+  if (dashOn('meds') && medRows.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
     emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b',
     title: (r.mm ? r.mm.name + ': ' : '') + r.md.name,
     sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : (r.md.date ? t('fmt.once_today') : t('fmt.daily'))),
@@ -4458,16 +4517,16 @@ RENDERERS.dashboard = function () {
     go: 'family', attrs: ' data-tab="meds"'
   })).join(''), ' data-tab="meds"');
 
-  if (upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + oclock(e.time) : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
+  if (dashOn('events') && upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + oclock(e.time) : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
 
   /* AUFGABEN – die 3 wichtigsten (ohne die bereits unter „Heute“) */
   const upTasks = openTasksSorted().filter(t => !(t.due && dayDiff(t.due) <= 0)).slice(0, 3);
-  if (upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
+  if (dashOn('tasks') && upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
 
   /* FAMILIENAUFGABEN – an Mitglieder zugewiesen, hier zur Kontrolle (Überblick, wer was hat) */
   const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done)
     .sort((a, b) => { if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; if (a.due) return -1; if (b.due) return 1; return 0; });
-  if (fTasks.length) html += dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
+  if (dashOn('famtasks') && fTasks.length) html += dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
     const m = t.assignee ? famMember(t.assignee) : null;
     const late = t.due && dayDiff(t.due) < 0, isTodayD = t.due && dayDiff(t.due) === 0;
     const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
@@ -4483,7 +4542,7 @@ RENDERERS.dashboard = function () {
   const _shAll = (store.family && store.family.shopping) ? store.family.shopping : [];
   const _shOpen = _shAll.filter(i => !i.done && (!i.due || dayDiff(i.due) <= 5))
     .sort((x, y) => { const xd = x.due || '9999-99-99', yd = y.due || '9999-99-99'; return xd !== yd ? (xd < yd ? -1 : 1) : ((x.createdAt || 0) - (y.createdAt || 0)); });
-  if (_shAll.length >= 2 && _shOpen.length >= 1) {
+  if (dashOn('shopping') && _shAll.length >= 2 && _shOpen.length >= 1) {
     const _saN = (store.family.shopAssign && store.family.shopAssign.assignee) ? store.family.shopAssign : null;
     let _shInner = '';
     if (dashShopOpen) {
@@ -4501,7 +4560,7 @@ RENDERERS.dashboard = function () {
 
   /* FINANZEN – Monatsbudget auf einen Blick */
   ensureBudget();
-  if (store.budget.entries.length) {
+  if (dashOn('finance') && store.budget.entries.length) {
     const bt = budTotals(), mx = Math.max(bt.income, bt.expense, 1);
     const fin = '<div class="dfin"><div class="dfin-rest"><b class="' + (bt.rest >= 0 ? 'bud-pos' : 'bud-neg') + '">' + eur(bt.rest) + '</b><span>verbleibend diesen Monat</span></div><div class="dfin-bars">' +
       '<div class="dfin-bar"><span class="lbl">Einnahmen</span><div class="dfin-track"><div class="dfin-fill inc" style="width:' + (bt.income / mx * 100) + '%"></div></div><span class="val">' + eur(bt.income) + '</span></div>' +
@@ -4520,22 +4579,22 @@ RENDERERS.dashboard = function () {
   ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' ' + t('fmt.turns', { n: b.age }), sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
   /* Familienaufgaben haben eine eigene Dashboard-Sektion („👪 Familienaufgaben") – hier nicht doppelt zeigen. */
   famRows.sort((a, b) => a.k < b.k ? -1 : 1);
-  if (famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
+  if (dashOn('family') && famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
 
   /* DOKUMENTE – zuletzt analysiert */
   const rdocs = store.docs.slice(-3).reverse();
-  if (rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
+  if (dashOn('docs') && rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
 
   /* VERTRÄGE – anstehende Kündigungsfristen (Fristen-Radar) */
   const ctSoon = ctUpcoming(60);
-  if (ctSoon.length) html += dsec('🧾 Verträge & Fristen', 'contracts', 'Alle', ctSoon.slice(0, 4).map(c => {
+  if (dashOn('contracts') && ctSoon.length) html += dsec('🧾 Verträge & Fristen', 'contracts', 'Alle', ctSoon.slice(0, 4).map(c => {
     const d = dayDiff(c.cancelBy);
     return drow({ emoji: ctCat(c.cat).i, title: c.name, sub: c.provider || ctCat(c.cat).l, chip: { cls: d < 0 ? 'chip-danger' : d <= 14 ? 'chip-warn' : 'chip-accent', text: d < 0 ? t('ct.deadline_passed') : t('ct.cancellable', { d: relDay(c.cancelBy) }) }, go: 'contracts' });
   }).join(''));
 
   /* MÜLL – Abholung in den nächsten 2 Tagen */
   const wSoon = wasteUpcoming(2);
-  if (wSoon.length) html += dsec('🗑️ Abholung', 'waste', 'Alle', wSoon.map(x => {
+  if (dashOn('waste') && wSoon.length) html += dsec('🗑️ Abholung', 'waste', 'Alle', wSoon.map(x => {
     const d = dayDiff(x.next);
     return drow({ emoji: wType(x.w.type).i, title: wType(x.w.type).l, sub: fmtDateShort(x.next), chip: { cls: d <= 0 ? 'chip-danger' : 'chip-warn', text: relDay(x.next) }, go: 'waste' });
   }).join(''));
@@ -4548,12 +4607,12 @@ RENDERERS.dashboard = function () {
     setTimeout(() => toast('🩺 Vorsorge fällig: ' + _cuDue.slice(0, 2).map(c => c.title).join(', ') + (_cuDue.length > 2 ? ' …' : '')), 900);
   }
   const cuSoon = cuUpcoming(14);
-  if (cuSoon.length) html += dsec('🩺 Vorsorge', 'checkup', 'Alle', cuSoon.slice(0, 4).map(x => {
+  if (dashOn('checkup') && cuSoon.length) html += dsec('🩺 Vorsorge', 'checkup', 'Alle', cuSoon.slice(0, 4).map(x => {
     const d = dayDiff(x.next), pend = !x.c.lastDate;
     return drow({ emoji: '🩺', title: x.c.title, sub: t('cu.every_months', { n: x.c.intervalMonths }), chip: { cls: (pend || d < 0) ? 'chip-danger' : 'chip-warn', text: pend ? 'steht aus' : d < 0 ? 'überfällig' : relDay(x.next) }, go: 'checkup' });
   }).join(''));
 
-  html = fsChecklistHTML() + html;   // „Erste Schritte"-Checkliste ganz oben (Welle 2)
+  html = (dashOn('firststeps') ? fsChecklistHTML() : '') + html;   // „Erste Schritte"-Checkliste ganz oben (Welle 2)
   $('#dashWidgets').innerHTML = html;
   fsMaybeCelebrate();
   $$('#dashWidgets [data-fs-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.fsGo)));
@@ -4583,13 +4642,14 @@ RENDERERS.dashboard = function () {
     RENDERERS.dashboard();
   }));
   $$('#statRow [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
-  renderWeather();
-  renderMeal();
+  if (dashOn('weather')) renderWeather(); else $('#weatherWidget').innerHTML = '';
+  if (dashOn('meal')) renderMeal(); else $('#mealWidget').innerHTML = '';
 };
 
 $('#qaDoc').addEventListener('click', () => { showView('docs'); setTimeout(() => $('#docInput').click(), 250); });
 $('#qaChat').addEventListener('click', () => showView('chat'));
 $('#qaTask').addEventListener('click', () => { showView('tasks'); setTimeout(() => $('#taskTitle').focus(), 250); });
+if ($('#dashCustomize')) $('#dashCustomize').addEventListener('click', dashCustomizeOpen);
 
 /* ============================== AUFGABEN (View) ============================== */
 let taskFilter = 'open';
