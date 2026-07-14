@@ -485,6 +485,14 @@ body.store-safe [data-buy]{display:none!important}
 .dash-cust h3{text-align:left}
 .dash-cust-list{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .dash-cust-list .share-row:last-child{border-bottom:none}
+/* Block-Wrapper: keine eigene Marge (Inhalt trägt Abstände; leer = unsichtbar) */
+.dash-block{margin:0}
+/* Anpassen-Liste: Drag-Griff + Zieh-Zustand */
+.dash-row{gap:10px}
+.dash-row .share-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash-drag{flex:none;cursor:grab;color:var(--faint);font-size:17px;line-height:1;padding:6px 4px;margin:-6px 0;touch-action:none;user-select:none;-webkit-user-select:none}
+.dash-drag:active{cursor:grabbing}
+.dash-row.dragging{opacity:.7;background:var(--card2);border-radius:12px;box-shadow:var(--shadow-2)}
 .dash-sub{color:var(--muted);font-size:15px;line-height:1.45;margin-top:7px;max-width:46ch}
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
 .dash-stats .stat{padding:13px 6px}
@@ -1460,20 +1468,26 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <button class="icon-btn" id="dashLogout" title="Abmelden" aria-label="Abmelden"><svg viewBox="0 0 24 24"><path d="M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2M9 12h12m0 0l-3.5-3.5M21 12l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </div>
       </header>
-      <div id="briefWidget"></div>
-      <div id="weatherWidget"></div>
-      <div id="mealWidget"></div>
-      <div class="qa-row">
-        <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span><span data-i18n="dash.qa_photo">Foto analysieren</span></button>
-        <button class="qa qa-2 rise" style="--i:1" id="qaChat">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span data-i18n="dash.qa_ask">Frag Effyra</span></button>
-        <button class="qa qa-3 rise" style="--i:2" id="qaTask">
-          <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></span><span data-i18n="dash.qa_task">Neue Aufgabe</span></button>
+      <div id="dashBlocks">
+        <div class="dash-block" data-block="firststeps" id="fsWidget"></div>
+        <div class="dash-block" data-block="brief" id="briefWidget"></div>
+        <div class="dash-block" data-block="weather" id="weatherWidget"></div>
+        <div class="dash-block" data-block="meal" id="mealWidget"></div>
+        <div class="dash-block" data-block="quickactions">
+          <div class="qa-row">
+            <button class="qa qa-1 rise" style="--i:0" id="qaDoc">
+              <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></span><span data-i18n="dash.qa_photo">Foto analysieren</span></button>
+            <button class="qa qa-2 rise" style="--i:1" id="qaChat">
+              <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span data-i18n="dash.qa_ask">Frag Effyra</span></button>
+            <button class="qa qa-3 rise" style="--i:2" id="qaTask">
+              <span class="qa-ic"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></span><span data-i18n="dash.qa_task">Neue Aufgabe</span></button>
+          </div>
+        </div>
+        <div class="dash-block" data-block="capture">
+          <div class="task-add" style="margin-bottom:14px"><input type="text" id="captureInput" placeholder="⚡ Schnell erfassen – tipp einfach los, ich sortiere es ein …" maxlength="300"><button class="btn btn-primary" id="captureBtn" aria-label="Erfassen"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></button></div>
+        </div>
       </div>
-      <div class="task-add" style="margin-bottom:14px"><input type="text" id="captureInput" placeholder="⚡ Schnell erfassen – tipp einfach los, ich sortiere es ein …" maxlength="300"><button class="btn btn-primary" id="captureBtn" aria-label="Erfassen"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></button></div>
       <div id="budgetWidget" hidden></div>
-      <div id="dashWidgets"></div>
     </section>
 
     <!-- ============================== DOKUMENTE ============================== -->
@@ -4407,28 +4421,83 @@ const DASH_BLOCKS = [
 ];
 function dashOn(id) { return !(store.dashHidden && store.dashHidden[id]); }
 function dashSetVisible(id, on) { store.dashHidden = store.dashHidden || {}; if (on) delete store.dashHidden[id]; else store.dashHidden[id] = 1; save(); }
+/* Dynamische Inhalts-Sektionen (bekommen einen sortierbaren Wrapper in #dashBlocks). */
+const DASH_SECTION_IDS = ['today', 'meds', 'events', 'tasks', 'famtasks', 'shopping', 'finance', 'family', 'docs', 'contracts', 'waste', 'checkup'];
+/* Vom Nutzer gewählte Reihenfolge (store.dashOrder); unbekannte/neue Blöcke hinten anhängen. */
+function dashOrderList() {
+  const all = DASH_BLOCKS.map(b => b.id);
+  const saved = Array.isArray(store.dashOrder) ? store.dashOrder.filter(id => all.indexOf(id) >= 0) : [];
+  all.forEach(id => { if (saved.indexOf(id) < 0) saved.push(id); });
+  return saved;
+}
+/* Füllt die Sektions-Wrapper, blendet feste Blöcke per Auswahl aus und wendet die Reihenfolge an.
+   Persistente Knoten werden nur VERSCHOBEN (Handler von Schnellzugriff/Erfassen bleiben erhalten). */
+function renderDashBlocks(secHTML) {
+  const cont = $('#dashBlocks'); if (!cont) return;
+  DASH_SECTION_IDS.forEach(id => {
+    let w = cont.querySelector('.dash-block[data-block="' + id + '"]');
+    if (!w) { w = document.createElement('div'); w.className = 'dash-block'; w.setAttribute('data-block', id); cont.appendChild(w); }
+    w.innerHTML = (secHTML && secHTML[id]) || '';   // leer = unsichtbar (kein Rand/Marge am Wrapper)
+  });
+  ['quickactions', 'capture'].forEach(id => {   // feste Inhalte → per Auswahl ein-/ausblenden
+    const w = cont.querySelector('.dash-block[data-block="' + id + '"]'); if (w) w.style.display = dashOn(id) ? '' : 'none';
+  });
+  /* Reihenfolge nur anwenden, wenn sie sich geändert hat (verhindert unnötiges Neu-Animieren). */
+  const desired = dashOrderList();
+  const current = Array.prototype.map.call(cont.children, c => c.getAttribute('data-block'));
+  if (desired.join(',') !== current.join(',')) desired.forEach(id => { const w = cont.querySelector('.dash-block[data-block="' + id + '"]'); if (w) cont.appendChild(w); });
+}
 function dashCustomizeOpen() {
   let ov = document.getElementById('dashCustOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'dashCustOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
-  const row = b => '<div class="share-row"><span class="share-lbl">' + b.icon + ' ' + esc(b.name) + '</span>' +
-    '<button class="share-toggle' + (dashOn(b.id) ? ' on' : '') + '" data-dashtog="' + b.id + '" role="switch" aria-checked="' + dashOn(b.id) + '">' + (dashOn(b.id) ? 'An' : 'Aus') + '</button></div>';
+  const row = id => { const b = DASH_BLOCKS.find(x => x.id === id) || { id: id, name: id, icon: '•' };
+    return '<div class="share-row dash-row" data-block="' + id + '">' +
+      '<span class="dash-drag" title="Zum Sortieren ziehen" aria-hidden="true">⠿</span>' +
+      '<span class="share-lbl">' + b.icon + ' ' + esc(b.name) + '</span>' +
+      '<button class="share-toggle' + (dashOn(id) ? ' on' : '') + '" data-dashtog="' + id + '" role="switch" aria-checked="' + dashOn(id) + '">' + (dashOn(id) ? 'An' : 'Aus') + '</button></div>'; };
   ov.innerHTML = '<div class="fam-alert dash-cust" role="dialog" aria-modal="true" aria-label="Dashboard anpassen">' +
     '<h3 style="margin-bottom:4px">🧩 Dashboard anpassen</h3>' +
-    '<p style="color:var(--muted);font-size:13.5px;margin-bottom:6px">Wähle, was auf deiner Startseite erscheint. Blöcke ohne Inhalt bleiben ohnehin ausgeblendet.</p>' +
-    '<div class="dash-cust-list">' + DASH_BLOCKS.map(row).join('') + '</div>' +
-    '<div class="fam-alert-btns" style="margin-top:14px"><button class="btn btn-sm" id="dashCustReset">Alles anzeigen</button><button class="btn btn-sm btn-primary" id="dashCustDone">Fertig</button></div></div>';
+    '<p style="color:var(--muted);font-size:13.5px;margin-bottom:6px">Wähle, was erscheint – und ziehe am ⠿, um die Reihenfolge zu ändern. Blöcke ohne Inhalt bleiben ohnehin aus.</p>' +
+    '<div class="dash-cust-list" id="dashCustList">' + dashOrderList().map(row).join('') + '</div>' +
+    '<div class="fam-alert-btns" style="margin-top:14px"><button class="btn btn-sm" id="dashCustReset">Zurücksetzen</button><button class="btn btn-sm btn-primary" id="dashCustDone">Fertig</button></div></div>';
   ov.classList.add('on');
   const close = () => ov.classList.remove('on');
   ov.querySelector('#dashCustDone').onclick = close;
-  ov.querySelector('#dashCustReset').onclick = () => { store.dashHidden = {}; save(); RENDERERS.dashboard(); dashCustomizeOpen(); };
+  ov.querySelector('#dashCustReset').onclick = () => { store.dashHidden = {}; store.dashOrder = null; save(); RENDERERS.dashboard(); dashCustomizeOpen(); };
   ov.querySelectorAll('[data-dashtog]').forEach(btn => btn.onclick = () => {
     const id = btn.dataset.dashtog; dashSetVisible(id, !dashOn(id));
     const on = dashOn(id); btn.classList.toggle('on', on); btn.textContent = on ? 'An' : 'Aus'; btn.setAttribute('aria-checked', on);
     RENDERERS.dashboard();
   });
+  enableDashReorder(ov.querySelector('#dashCustList'));
   ov.onclick = e => { if (e.target === ov) close(); };
   const kh = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', kh); } };
   document.addEventListener('keydown', kh);
+}
+/* Pointer-basiertes Umsortieren der Liste (Maus + Touch); am ⠿-Griff ziehen. Setzt store.dashOrder. */
+function enableDashReorder(list) {
+  if (!list) return;
+  list.querySelectorAll('.dash-row').forEach(row => {
+    const handle = row.querySelector('.dash-drag'); if (!handle) return;
+    handle.addEventListener('pointerdown', e => {
+      e.preventDefault(); row.classList.add('dragging');
+      try { handle.setPointerCapture(e.pointerId); } catch (_e) {}
+      const move = ev => {
+        const others = Array.prototype.filter.call(list.querySelectorAll('.dash-row'), r => r !== row);
+        let placed = false;
+        for (let i = 0; i < others.length; i++) { const b = others[i].getBoundingClientRect(); if (ev.clientY < b.top + b.height / 2) { list.insertBefore(row, others[i]); placed = true; break; } }
+        if (!placed) list.appendChild(row);
+      };
+      const up = () => {
+        row.classList.remove('dragging');
+        try { handle.releasePointerCapture(e.pointerId); } catch (_e) {}
+        document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up);
+        store.dashOrder = Array.prototype.map.call(list.querySelectorAll('.dash-row'), r => r.dataset.block);
+        save(); RENDERERS.dashboard();
+      };
+      document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+    });
+  });
 }
 RENDERERS.dashboard = function () {
   const H = new Date().getHours();
@@ -4444,9 +4513,6 @@ RENDERERS.dashboard = function () {
   const dstr = cap(new Date().toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }));
   $('#greetSub').textContent = dstr + ' — ' + dailyMindfulQuote();
 
-  /* Personalisierung: statische Blöcke (Schnellzugriff, Schnell erfassen) ein-/ausblenden */
-  const _qr = document.querySelector('#view-dashboard .qa-row'); if (_qr) _qr.style.display = dashOn('quickactions') ? '' : 'none';
-  const _ta = document.querySelector('#view-dashboard .task-add'); if (_ta) _ta.style.display = dashOn('capture') ? '' : 'none';
 
   const slot = $('#trialSlot');
   if (account && isPremium()) slot.innerHTML = '<span class="trial-pill premium">💎 Premium – alles inklusive</span>';
@@ -4457,7 +4523,7 @@ RENDERERS.dashboard = function () {
   const dsec = (title, go, goLabel, body, attrs) => '<section class="dash-section"><div class="dsec-head"><span class="dsec-title">' + title + '</span>' + (go ? '<button data-go="' + go + '"' + (attrs || '') + '>' + (goLabel || 'Alle anzeigen') + '</button>' : '') + '</div><div class="dsec-body">' + body + '</div></section>';
   const drow = o => { const tag = o.go ? 'button' : 'div'; const ic = o.svg ? '<svg viewBox="0 0 24 24"><use href="#' + o.svg + '"/></svg>' : (o.emoji || ''); return '<' + tag + ' class="drow"' + (o.go ? ' data-go="' + o.go + '"' + (o.attrs || '') : '') + '><span class="drow-ic"' + (o.iconColor ? ' style="color:' + safeColor(o.iconColor) + '"' : '') + '>' + ic + '</span><span class="drow-tx"><b>' + esc(o.title) + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</span>' + (o.chip ? '<span class="chip-status ' + o.chip.cls + '">' + esc(o.chip.text) + '</span>' : (o.meta ? '<span class="drow-meta">' + esc(o.meta) + '</span>' : '')) + '</' + tag + '>'; };
 
-  let html = '';
+  const secHTML = {};   // Sektions-Inhalte je Block-Id (werden in ihre sortierbaren Wrapper gerendert)
 
   /* ☀️ DEIN TAG HEUTE – konsolidiertes Briefing (Termine, Aufgaben, Medikamente, Vertragsfristen) */
   const _bTasks = store.tasks.filter(t => !t.done && t.due && dayDiff(t.due) <= 0);
@@ -4496,7 +4562,7 @@ RENDERERS.dashboard = function () {
   (store.vehicles || []).filter(v => v.tuev && dayDiff(v.tuev) <= 14).forEach(v => { const late = dayDiff(v.tuev) < 0; focus.push({ emoji: v.type === 'motorrad' ? '🏍️' : '🚗', title: 'HU/TÜV: ' + v.name, sub: fmtDate(v.tuev), chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? 'überfällig' : relDay(v.tuev) }, go: 'vehicles', k: '3' }); });
   focus.sort((a, b) => a.k < b.k ? -1 : 1);
   const focusTop = focus.slice(0, 3);
-  if (dashOn('today')) html += dsec('☀️ Heute', focusTop.length ? 'calendar' : null, 'Kalender', focusTop.length ? focusTop.map(drow).join('') : '<div class="dsec-empty">Für heute steht nichts Dringendes an. Genieß den Tag. 🌿</div>');
+  if (dashOn('today')) secHTML.today = dsec('☀️ Heute', focusTop.length ? 'calendar' : null, 'Kalender', focusTop.length ? focusTop.map(drow).join('') : '<div class="dsec-empty">Für heute steht nichts Dringendes an. Genieß den Tag. 🌿</div>');
 
   /* NÄCHSTE TERMINE – ab morgen, die nächsten 3, höchstens 2 Monate voraus */
   const horizon2M = addMonths(today, 2);
@@ -4509,7 +4575,7 @@ RENDERERS.dashboard = function () {
     else ts.forEach(t => medRows.push({ md, mm, t, taken: medIsTaken(md.id, t), sortT: t }));
   });
   medRows.sort((a, b) => a.sortT < b.sortT ? -1 : a.sortT > b.sortT ? 1 : 0);
-  if (dashOn('meds') && medRows.length) html += dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
+  if (dashOn('meds') && medRows.length) secHTML.meds = dsec('💊 Medikamente heute', 'family', 'Plan', medRows.slice(0, 6).map(r => drow({
     emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b',
     title: (r.mm ? r.mm.name + ': ' : '') + r.md.name,
     sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : (r.md.date ? t('fmt.once_today') : t('fmt.daily'))),
@@ -4517,16 +4583,16 @@ RENDERERS.dashboard = function () {
     go: 'family', attrs: ' data-tab="meds"'
   })).join(''), ' data-tab="meds"');
 
-  if (dashOn('events') && upcoming.length) html += dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + oclock(e.time) : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
+  if (dashOn('events') && upcoming.length) secHTML.events = dsec('📅 Nächste Termine', 'calendar', 'Alle', upcoming.map(e => drow({ svg: 'icCal', title: e.title, sub: cap(fmtDate(e.date)) + (e.time ? ' · ' + oclock(e.time) : ''), meta: relDay(e.date), go: 'calendar' })).join(''));
 
   /* AUFGABEN – die 3 wichtigsten (ohne die bereits unter „Heute“) */
   const upTasks = openTasksSorted().filter(t => !(t.due && dayDiff(t.due) <= 0)).slice(0, 3);
-  if (dashOn('tasks') && upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; html += dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
+  if (dashOn('tasks') && upTasks.length) { const pc = { high: 'chip-danger', med: 'chip-warn', low: 'chip-ok' }, pl = { high: 'Hoch', med: 'Mittel', low: 'Niedrig' }; secHTML.tasks = dsec('✅ Wichtige Aufgaben', 'tasks', 'Alle', upTasks.map(t => drow({ svg: 'icCheck2', title: t.title, sub: t.due ? dueTxt(t.due) : TT('fmt.nodate'), chip: { cls: pc[t.prio] || 'chip-warn', text: pl[t.prio] || 'Mittel' }, go: 'tasks' })).join('')); }
 
   /* FAMILIENAUFGABEN – an Mitglieder zugewiesen, hier zur Kontrolle (Überblick, wer was hat) */
   const fTasks = ((store.family && store.family.tasks) ? store.family.tasks : []).filter(t => !t.done)
     .sort((a, b) => { if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; if (a.due) return -1; if (b.due) return 1; return 0; });
-  if (dashOn('famtasks') && fTasks.length) html += dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
+  if (dashOn('famtasks') && fTasks.length) secHTML.famtasks = dsec('👪 Familienaufgaben', 'family', 'Verwalten', fTasks.slice(0, 6).map(t => {
     const m = t.assignee ? famMember(t.assignee) : null;
     const late = t.due && dayDiff(t.due) < 0, isTodayD = t.due && dayDiff(t.due) === 0;
     const chip = t.due ? '<span class="chip-status ' + (late ? 'chip-danger' : isTodayD ? 'chip-warn' : 'chip-ok') + '">' + esc(late ? 'Überfällig' : relDay(t.due)) + '</span>' : '';
@@ -4555,7 +4621,7 @@ RENDERERS.dashboard = function () {
       if (_saN) { const am = (store.family.members || []).find(m => m.id === _saN.assignee); if (am) _shInner += '<div class="drow"><span class="drow-tx" style="color:var(--faint)">➜ ' + esc(am.name) + '</span></div>'; }
       _shInner += '<button class="btn btn-ghost btn-sm" data-go="shopping" style="width:100%;margin-top:6px">Zur Einkaufsliste →</button></div>';
     }
-    html += '<section class="dash-section"><div class="dsec-head" data-shexpand="1" role="button" tabindex="0" style="cursor:pointer"><span class="dsec-title">🛒 Einkaufsliste <span style="color:var(--faint);font-weight:600">· ' + _shOpen.length + '</span></span><span style="color:var(--faint);font-size:16px" aria-hidden="true">' + (dashShopOpen ? '▾' : '▸') + '</span></div>' + _shInner + '</section>';
+    secHTML.shopping = '<section class="dash-section"><div class="dsec-head" data-shexpand="1" role="button" tabindex="0" style="cursor:pointer"><span class="dsec-title">🛒 Einkaufsliste <span style="color:var(--faint);font-weight:600">· ' + _shOpen.length + '</span></span><span style="color:var(--faint);font-size:16px" aria-hidden="true">' + (dashShopOpen ? '▾' : '▸') + '</span></div>' + _shInner + '</section>';
   }
 
   /* FINANZEN – Monatsbudget auf einen Blick */
@@ -4565,7 +4631,7 @@ RENDERERS.dashboard = function () {
     const fin = '<div class="dfin"><div class="dfin-rest"><b class="' + (bt.rest >= 0 ? 'bud-pos' : 'bud-neg') + '">' + eur(bt.rest) + '</b><span>verbleibend diesen Monat</span></div><div class="dfin-bars">' +
       '<div class="dfin-bar"><span class="lbl">Einnahmen</span><div class="dfin-track"><div class="dfin-fill inc" style="width:' + (bt.income / mx * 100) + '%"></div></div><span class="val">' + eur(bt.income) + '</span></div>' +
       '<div class="dfin-bar"><span class="lbl">Ausgaben</span><div class="dfin-track"><div class="dfin-fill exp" style="width:' + (bt.expense / mx * 100) + '%"></div></div><span class="val">' + eur(bt.expense) + '</span></div></div></div>';
-    html += dsec('💰 Finanzen', 'family', 'Verwalten', fin, ' data-tab="budget"');
+    secHTML.finance = dsec('💰 Finanzen', 'family', 'Verwalten', fin, ' data-tab="budget"');
   }
 
   /* FAMILIE – Kinder, Schule, Termine, Geburtstage zusammengefasst */
@@ -4579,22 +4645,22 @@ RENDERERS.dashboard = function () {
   ((store.family && store.family.members) ? store.family.members : []).filter(m => m.birthday).map(m => ({ name: m.name, color: m.color, next: nextOccur(m.birthday), age: ageOn(m.birthday) })).filter(b => dayDiff(b.next) <= 30).forEach(b => famRows.push({ emoji: '🎂', iconColor: b.color, title: b.name + ' ' + t('fmt.turns', { n: b.age }), sub: cap(fmtDate(b.next)), meta: relDay(b.next), go: 'family', k: '3' }));
   /* Familienaufgaben haben eine eigene Dashboard-Sektion („👪 Familienaufgaben") – hier nicht doppelt zeigen. */
   famRows.sort((a, b) => a.k < b.k ? -1 : 1);
-  if (dashOn('family') && famRows.length) html += dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
+  if (dashOn('family') && famRows.length) secHTML.family = dsec('👪 Familie', 'school', 'Alle', famRows.slice(0, 3).map(drow).join(''));
 
   /* DOKUMENTE – zuletzt analysiert */
   const rdocs = store.docs.slice(-3).reverse();
-  if (dashOn('docs') && rdocs.length) html += dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
+  if (dashOn('docs') && rdocs.length) secHTML.docs = dsec('📄 Dokumente', 'docs', 'Alle', rdocs.map(d => drow({ svg: 'icDoc', title: d.title, sub: d.sender || d.docType, chip: d.deadline ? { cls: dayDiff(d.deadline) < 0 ? 'chip-danger' : 'chip-warn', text: t('fmt.deadline', { d: relDay(d.deadline) }) } : null, meta: d.deadline ? null : cap(new Date(d.createdAt).toLocaleDateString(curLocale, { day: 'numeric', month: 'short' })), go: 'docs' })).join(''));
 
   /* VERTRÄGE – anstehende Kündigungsfristen (Fristen-Radar) */
   const ctSoon = ctUpcoming(60);
-  if (dashOn('contracts') && ctSoon.length) html += dsec('🧾 Verträge & Fristen', 'contracts', 'Alle', ctSoon.slice(0, 4).map(c => {
+  if (dashOn('contracts') && ctSoon.length) secHTML.contracts = dsec('🧾 Verträge & Fristen', 'contracts', 'Alle', ctSoon.slice(0, 4).map(c => {
     const d = dayDiff(c.cancelBy);
     return drow({ emoji: ctCat(c.cat).i, title: c.name, sub: c.provider || ctCat(c.cat).l, chip: { cls: d < 0 ? 'chip-danger' : d <= 14 ? 'chip-warn' : 'chip-accent', text: d < 0 ? t('ct.deadline_passed') : t('ct.cancellable', { d: relDay(c.cancelBy) }) }, go: 'contracts' });
   }).join(''));
 
   /* MÜLL – Abholung in den nächsten 2 Tagen */
   const wSoon = wasteUpcoming(2);
-  if (dashOn('waste') && wSoon.length) html += dsec('🗑️ Abholung', 'waste', 'Alle', wSoon.map(x => {
+  if (dashOn('waste') && wSoon.length) secHTML.waste = dsec('🗑️ Abholung', 'waste', 'Alle', wSoon.map(x => {
     const d = dayDiff(x.next);
     return drow({ emoji: wType(x.w.type).i, title: wType(x.w.type).l, sub: fmtDateShort(x.next), chip: { cls: d <= 0 ? 'chip-danger' : 'chip-warn', text: relDay(x.next) }, go: 'waste' });
   }).join(''));
@@ -4607,19 +4673,19 @@ RENDERERS.dashboard = function () {
     setTimeout(() => toast('🩺 Vorsorge fällig: ' + _cuDue.slice(0, 2).map(c => c.title).join(', ') + (_cuDue.length > 2 ? ' …' : '')), 900);
   }
   const cuSoon = cuUpcoming(14);
-  if (dashOn('checkup') && cuSoon.length) html += dsec('🩺 Vorsorge', 'checkup', 'Alle', cuSoon.slice(0, 4).map(x => {
+  if (dashOn('checkup') && cuSoon.length) secHTML.checkup = dsec('🩺 Vorsorge', 'checkup', 'Alle', cuSoon.slice(0, 4).map(x => {
     const d = dayDiff(x.next), pend = !x.c.lastDate;
     return drow({ emoji: '🩺', title: x.c.title, sub: t('cu.every_months', { n: x.c.intervalMonths }), chip: { cls: (pend || d < 0) ? 'chip-danger' : 'chip-warn', text: pend ? 'steht aus' : d < 0 ? 'überfällig' : relDay(x.next) }, go: 'checkup' });
   }).join(''));
 
-  html = (dashOn('firststeps') ? fsChecklistHTML() : '') + html;   // „Erste Schritte"-Checkliste ganz oben (Welle 2)
-  $('#dashWidgets').innerHTML = html;
+  $('#fsWidget').innerHTML = dashOn('firststeps') ? fsChecklistHTML() : '';   // „Erste Schritte"-Checkliste (Welle 2)
+  renderDashBlocks(secHTML);   // Sektionen in ihre sortierbaren Wrapper füllen + Reihenfolge anwenden
   fsMaybeCelebrate();
-  $$('#dashWidgets [data-fs-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.fsGo)));
-  $$('#dashWidgets [data-fs="hide"]').forEach(b => b.addEventListener('click', () => { store.firstStepsHidden = true; save(); RENDERERS.dashboard(); }));
-  $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
+  $$('#dashBlocks [data-fs-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.fsGo)));
+  $$('#dashBlocks [data-fs="hide"]').forEach(b => b.addEventListener('click', () => { store.firstStepsHidden = true; save(); RENDERERS.dashboard(); }));
+  $$('#dashBlocks [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
   /* Familienaufgabe direkt vom Dashboard abhaken (ohne in die Familienzentrale zu springen) */
-  $$('#dashWidgets [data-ftoggle]').forEach(b => b.addEventListener('click', e => {
+  $$('#dashBlocks [data-ftoggle]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation(); ensureFamily();
     const tk = (store.family.tasks || []).find(x => x.id === b.dataset.ftoggle);
     if (!tk) return;
@@ -4629,9 +4695,9 @@ RENDERERS.dashboard = function () {
     RENDERERS.dashboard();
   }));
   /* Einkaufs-Sektion auf-/zuklappen */
-  $$('#dashWidgets [data-shexpand]').forEach(b => b.addEventListener('click', () => { dashShopOpen = !dashShopOpen; RENDERERS.dashboard(); }));
+  $$('#dashBlocks [data-shexpand]').forEach(b => b.addEventListener('click', () => { dashShopOpen = !dashShopOpen; RENDERERS.dashboard(); }));
   /* Artikel direkt vom Dashboard als gekauft abhaken (verschwindet, wenn alle erledigt) */
-  $$('#dashWidgets [data-shtoggle]').forEach(b => b.addEventListener('click', e => {
+  $$('#dashBlocks [data-shtoggle]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
     const it = (store.family.shopping || []).find(x => x.id === b.dataset.shtoggle);
     if (!it) return;
