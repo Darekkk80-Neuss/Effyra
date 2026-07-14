@@ -372,6 +372,25 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .help-steps{margin:0 0 12px;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
 .help-modal{text-align:center;max-height:82vh;overflow-y:auto}
 .help-modal .help-steps,.help-modal .help-steps-t{text-align:left}
+/* Coach-Marks */
+.coach-bar{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(34,211,238,.12));border:1px solid var(--border);border-radius:14px;padding:11px 12px;margin-bottom:14px;animation:viewIn .35s ease both}
+.coach-ic{font-size:18px;flex:none;line-height:1.4}
+.coach-tx{flex:1;font-size:13px;color:var(--text);line-height:1.5}
+.coach-x{flex:none;background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 6px}
+/* Onboarding-Personalisierung */
+.ob-choices{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.ob-choices button{padding:14px 16px;border-radius:14px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-size:15px;font-weight:600;cursor:pointer;text-align:left;transition:.2s}
+.ob-choices button:hover{border-color:#a78bfa;transform:translateY(-1px)}
+/* Erste-Schritte-Checkliste */
+.fs-card .dsec-head{margin-bottom:6px}
+.fs-bar{height:6px;border-radius:6px;background:var(--card2);overflow:hidden;margin:0 0 8px}
+.fs-fill{height:100%;background:var(--grad);transition:width .4s ease}
+.fs-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 2px;font-size:13.5px;color:var(--text);cursor:pointer}
+.fs-item:last-child{border-bottom:none}
+.fs-item.done{color:var(--muted);cursor:default}
+.fs-item.done>span:last-child{text-decoration:line-through}
+.fs-check{flex:none;width:22px;height:22px;border-radius:50%;border:1.6px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800}
+.fs-item.done .fs-check{background:var(--grad);border-color:transparent}
 
 /* ============================== DASHBOARD ============================== */
 /* ---- Dashboard (Leuchtturm: 8er-Raster, klare Typo-Rollen, saubere States) ---- */
@@ -1247,9 +1266,19 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     </div>
     <p style="font-size:12.5px">Local-first mit Cloud-Backup: Deine Daten liegen auf dem Gerät und werden – angemeldet – sicher in deinem Konto gesichert. Keine Werbung, kein Tracking.</p>
   </div>
+  <div class="ob-slide" data-slide="3">
+    <h2>Was möchtest du zuerst nutzen?</h2>
+    <p>Wir bringen dich direkt hin – alles andere findest du jederzeit im Menü.</p>
+    <div class="ob-choices">
+      <button data-obchoice="docs">📄 Brief verstehen &amp; Fristen erkennen</button>
+      <button data-obchoice="tasks">✅ Aufgaben &amp; Termine ordnen</button>
+      <button data-obchoice="family">👪 Familie &amp; Alltag organisieren</button>
+      <button data-obchoice="fit">💪 In Bewegung kommen</button>
+    </div>
+  </div>
   <div class="ob-ctrl">
     <button class="btn btn-primary" id="obNext">Weiter</button>
-    <div class="ob-dots"><i class="on"></i><i></i><i></i></div>
+    <div class="ob-dots"><i class="on"></i><i></i><i></i><i></i></div>
     <button class="ob-skip" id="obSkip">Überspringen</button>
   </div>
 </div>
@@ -2866,6 +2895,60 @@ const MODULES = [
   { id: 'vehicles', name: 'Auto & Motorrad', cat: 'finanzen', icon: '🚗', help: 'Verwalte deine Fahrzeuge: TÜV/HU, Tankvorgänge und Kosten – die App erinnert rechtzeitig an fällige Termine.', steps: ['Lege ein Fahrzeug an.', 'Trage den TÜV-Termin ein.'], keys: ['auto', 'motorrad', 'tüv', 'tanken', 'kosten', 'fahrzeug'] }
 ];
 function moduleMeta(id) { for (let i = 0; i < MODULES.length; i++) if (MODULES[i].id === id) return MODULES[i]; return null; }
+/* Coach-Marks (Welle 2): 1 kurzer Tipp beim ERSTEN Öffnen eines Moduls – nicht-blockierend,
+   wegklickbar, „gesehen"-Flag lokal. In der Registry via coachMarks[]. */
+const COACH = {
+  chat: ['Du kannst auch sprechen – tippe aufs Mikro und sag einfach, was ansteht.'],
+  docs: ['Fotografiere einen Brief – Fristen und Aufgaben werden automatisch erkannt.'],
+  docgen: ['Deine Absenderdaten sind schon hinterlegt – du ergänzt nur die Details.'],
+  vault: ['Fotos bleiben verschlüsselt auf deinem Gerät – nutze die Suche zum Wiederfinden.'],
+  tasks: ['Setze eine Fälligkeit – überfällige Aufgaben werden rot markiert.'],
+  calendar: ['Termine aus Briefen, Kindern und Fahrzeugen erscheinen hier automatisch.'],
+  shopping: ['Tippe einen Vorschlag an oder weise die Liste jemandem in der Familie zu.'],
+  waste: ['Tonnen einmal eintragen – das Dashboard erinnert dich dann rechtzeitig.'],
+  life: ['Wähle eine Lebenslage und hake die Schritte ab – nichts wird vergessen.'],
+  family: ['Verbinde dich per Sync mit dem Partner – dann teilt ihr Kalender, Aufgaben & Liste.'],
+  school: ['Kind anlegen – Termine landen automatisch im Kalender.'],
+  fit: ['Trage zuerst Gewicht & Größe ein, dann starte eine Einheit oder trag manuell nach.'],
+  checkup: ['Wähle eine Vorlage – der nächste Termin wird automatisch berechnet.'],
+  emergency: ['Diese Daten bleiben rein lokal auf deinem Gerät.'],
+  work: ['Lege deine Dienste einmal mit Zeiten an – dann genügt ein Tipp pro Tag.'],
+  contracts: ['Kündigungsfristen erscheinen rechtzeitig im Dashboard-Radar.'],
+  vehicles: ['Trag den TÜV-Termin ein – du wirst 14 Tage vorher erinnert.']
+};
+MODULES.forEach(m => { if (COACH[m.id]) m.coachMarks = COACH[m.id]; });
+function maybeShowCoach(id) {
+  const m = moduleMeta(id); if (!m || !m.coachMarks || !m.coachMarks.length) return;
+  let seen = {}; try { seen = JSON.parse(localStorage.getItem('effyra_coach') || '{}'); } catch (e) {}
+  if (seen[id]) return;
+  const sec = document.getElementById('view-' + id); if (!sec || sec.querySelector('.coach-bar')) return;
+  seen[id] = 1; try { localStorage.setItem('effyra_coach', JSON.stringify(seen)); } catch (e) {}   // nur allererstes Öffnen
+  const bar = document.createElement('div'); bar.className = 'coach-bar';
+  bar.innerHTML = '<span class="coach-ic">💡</span><div class="coach-tx">' + m.coachMarks.map(t => '<div>' + esc(t) + '</div>').join('') + '</div><button class="coach-x" aria-label="Verstanden">✕</button>';
+  sec.insertBefore(bar, sec.firstChild);
+  bar.querySelector('.coach-x').onclick = () => bar.remove();
+}
+/* „Erste Schritte"-Checkliste (Welle 2): app-weite Startaufgaben, dynamisch geprüft, ausblendbar,
+   mit kleinem Erfolgsgefühl (wie EffyraFit). Aufgaben modul-übergreifend – bewusst kurz gehalten. */
+const FIRST_STEPS = [
+  { id: 'name', label: 'Deinen Namen hinterlegen', view: 'settings', done: () => !!store.name },
+  { id: 'task', label: 'Erste Aufgabe anlegen', view: 'tasks', done: () => (store.tasks || []).length > 0 },
+  { id: 'cal', label: 'Einen Termin eintragen', view: 'calendar', done: () => (store.events || []).length > 0 },
+  { id: 'shop', label: 'Einkaufsliste starten', view: 'shopping', done: () => ((store.family && store.family.shopping) || []).length > 0 },
+  { id: 'doc', label: 'Ein Dokument analysieren', view: 'docs', done: () => (store.docs || []).length > 0 }
+];
+function fsDone(s) { try { return !!s.done(); } catch (e) { return false; } }
+function fsAllDone() { return FIRST_STEPS.every(fsDone); }
+function fsChecklistHTML() {
+  if (store.firstStepsHidden || fsAllDone()) return '';
+  const items = FIRST_STEPS.map(s => ({ s, d: fsDone(s) })), doneN = items.filter(x => x.d).length;
+  return '<section class="dash-section fs-card"><div class="dsec-head"><span class="dsec-title">🚀 Erste Schritte <span style="color:var(--faint);font-weight:600">· ' + doneN + '/' + items.length + '</span></span><button data-fs="hide">Ausblenden</button></div>' +
+    '<div class="fs-bar"><div class="fs-fill" style="width:' + Math.round(doneN / items.length * 100) + '%"></div></div>' +
+    '<div class="dsec-body">' + items.map(x => '<button class="fs-item' + (x.d ? ' done' : '') + '"' + (x.d ? ' disabled' : ' data-fs-go="' + x.s.view + '"') + '><span class="fs-check">' + (x.d ? '✓' : '') + '</span><span>' + esc(x.s.label) + '</span></button>').join('') + '</div></section>';
+}
+function fsMaybeCelebrate() {
+  if (fsAllDone() && !store.firstStepsDone && !store.firstStepsHidden) { store.firstStepsDone = true; save(); setTimeout(() => toast('🎉 Erste Schritte geschafft – du kennst dich jetzt aus!'), 700); }
+}
 /* Kontextuelle Hilfe: „?"-Button oben zeigt Hilfe zum aktuellen Bereich; ohne Registry-Eintrag → Hilfe-Center. */
 function helpOpen(viewId) {
   const m = moduleMeta(viewId);
@@ -2921,6 +3004,8 @@ function showView(name) {
   const bb = $('#backBtn'); if (bb) bb.style.display = (name === 'dashboard') ? 'none' : 'inline-flex';
   if (name === 'fit') { fitTab = 'overview'; fitHeroPick = null; }   // frisches Hero-Bild + Übersicht bei jedem Öffnen
   if (RENDERERS[name]) RENDERERS[name]();
+  if (typeof maybeShowCoach === 'function') maybeShowCoach(name);   // Coach-Mark beim ersten Öffnen
+
   if (curLang !== 'de') sweepNow($('#view-' + name));   // neu aktivierte (auch statische) Ansicht sofort übersetzen
   window.scrollTo(0, 0);
 }
@@ -2988,25 +3073,28 @@ function refreshAIStatus() {
 
 /* ============================== ONBOARDING ============================== */
 let obIdx = 0;
+const OB_LAST = 3;   // Slides: 0 Brand · 1 Nutzen · 2 Name · 3 Personalisierung („Was zuerst?")
 function obShow(i) {
   obIdx = i;
   $$('.ob-slide').forEach(s => s.classList.toggle('active', +s.dataset.slide === i));
   $$('.ob-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
-  $('#obNext').textContent = i === 2 ? 'Los geht’s 🚀' : 'Weiter';
-  $('#obSkip').style.visibility = i === 2 ? 'hidden' : 'visible';
+  $('#obNext').style.display = i === OB_LAST ? 'none' : '';   // letzte Slide: die Auswahl-Buttons sind die Aktion
+  $('#obNext').textContent = 'Weiter';
+  $('#obSkip').style.visibility = 'visible';
 }
-function obFinish() {
+function obFinish(target) {
   const n = $('#obName').value.trim();
   if (n) store.name = n;
   store.onboarded = true;
   save();
   $('#onboarding').classList.remove('on');
-  showView('dashboard');
+  showView((typeof target === 'string' && target) ? target : 'dashboard');
   toast('Willkommen bei Effyra' + (store.name ? ', ' + store.name : '') + ' ✨');
 }
-$('#obNext').addEventListener('click', () => { obIdx < 2 ? obShow(obIdx + 1) : obFinish(); });
-$('#obSkip').addEventListener('click', obFinish);
-$('#obName').addEventListener('keydown', e => { if (e.key === 'Enter') obFinish(); });
+$('#obNext').addEventListener('click', () => { obIdx < OB_LAST ? obShow(obIdx + 1) : obFinish(); });
+$('#obSkip').addEventListener('click', () => obFinish());
+$('#obName').addEventListener('keydown', e => { if (e.key === 'Enter') obShow(3); });
+$$('[data-obchoice]').forEach(b => b.addEventListener('click', () => obFinish(b.dataset.obchoice)));
 
 /* ============================== CLOUD-BACKEND (Supabase) ============================== */
 /* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus.              */
@@ -4290,7 +4378,11 @@ RENDERERS.dashboard = function () {
     return drow({ emoji: '🩺', title: x.c.title, sub: t('cu.every_months', { n: x.c.intervalMonths }), chip: { cls: (pend || d < 0) ? 'chip-danger' : 'chip-warn', text: pend ? 'steht aus' : d < 0 ? 'überfällig' : relDay(x.next) }, go: 'checkup' });
   }).join(''));
 
+  html = fsChecklistHTML() + html;   // „Erste Schritte"-Checkliste ganz oben (Welle 2)
   $('#dashWidgets').innerHTML = html;
+  fsMaybeCelebrate();
+  $$('#dashWidgets [data-fs-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.fsGo)));
+  $$('#dashWidgets [data-fs="hide"]').forEach(b => b.addEventListener('click', () => { store.firstStepsHidden = true; save(); RENDERERS.dashboard(); }));
   $$('#dashWidgets [data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tab && b.dataset.go === 'family') famTab = b.dataset.tab; showView(b.dataset.go); }));
   /* Familienaufgabe direkt vom Dashboard abhaken (ohne in die Familienzentrale zu springen) */
   $$('#dashWidgets [data-ftoggle]').forEach(b => b.addEventListener('click', e => {
