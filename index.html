@@ -503,6 +503,37 @@ body.store-safe [data-buy]{display:none!important}
 .sc-card .fam-alert-btns .btn{flex:1;min-height:46px}
 .sc-note{margin-top:12px;font-size:11.5px;color:var(--faint);line-height:1.4}
 @media (prefers-reduced-motion:reduce){ .fam-alert,.fam-alert-ic,.sc-ic{animation:none!important} }
+/* Behörden-Wegweiser */
+.beh-search{position:relative;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:0 12px;margin-bottom:12px}
+.beh-search span{opacity:.7}
+.beh-search input{flex:1;border:none;background:none;color:var(--text);font-size:15px;padding:12px 0}
+.beh-search input:focus{outline:none}
+.beh-note{font-size:12.5px;line-height:1.5;color:var(--muted);background:rgba(245,197,66,.1);border:1px solid rgba(245,197,66,.32);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.beh-lage{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--faint);margin:16px 2px 8px}
+.beh-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);margin-bottom:8px;transition:transform .16s ease,border-color .16s,box-shadow .18s}
+.beh-item:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.beh-item:active{transform:scale(.99)}
+.beh-ic{width:40px;height:40px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--card2);font-size:20px}
+.beh-it{flex:1;min-width:0}
+.beh-it b{display:block;font-size:14.5px;font-weight:600}
+.beh-it span{display:block;font-size:12.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beh-go{flex:none;color:var(--faint);font-size:20px;font-weight:700}
+.beh-bundle{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(6,182,212,.08));border-color:var(--border2)}
+.beh-list,.beh-steps{margin:0;padding-left:20px;color:var(--text);font-size:14px;line-height:1.7}
+.beh-list li,.beh-steps li{margin-bottom:2px}
+#view-behoerden .card h3{font-size:15px;margin-bottom:10px}
+.beh-loc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.beh-loc input{flex:1;min-width:130px}
+.beh-off-status{font-size:13px;color:var(--muted);padding:8px 0;line-height:1.5}
+.beh-off-src{font-size:11.5px;color:var(--faint);margin:10px 0 8px;line-height:1.4}
+.beh-off{border:1px solid var(--border);background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.beh-off-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.beh-off-h b{font-size:14px}
+.beh-off-h span{font-size:12px;color:var(--faint);font-weight:700;flex:none}
+.beh-off-l{font-size:12.5px;color:var(--muted);margin-top:3px}
+.beh-off-a{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.beh-off-a a{font-size:12.5px;font-weight:700;color:var(--navy-ink,#7c3aed);text-decoration:none}
+.beh-off-a a:hover{text-decoration:underline}
 .dash-sub{color:var(--muted);font-size:15px;line-height:1.45;margin-top:7px;max-width:46ch}
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px}
 .dash-stats .stat{padding:13px 6px}
@@ -1437,6 +1468,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="work"><svg viewBox="0 0 24 24"><use href="#icWork"/></svg><span data-i18n="nav.work">Arbeitszeit</span></button>
       <button data-view="tasks"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="nav.tasks">Aufgaben</span></button>
       <button data-view="life"><svg viewBox="0 0 24 24"><use href="#icLife"/></svg><span data-i18n="nav.life">Lebenslagen</span></button>
+      <button data-view="behoerden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10 12 3l10 7M4 10v11m16-11v11M9 21v-7h6v7M3 21h18"/></svg><span data-i18n="nav.behoerden">Behörden</span></button>
       <button data-view="calendar"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span data-i18n="nav.calendar">Kalender</span></button>
       <button data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="nav.docgen">Briefe Vorlagen</span></button>
       <button data-view="vehicles"><svg viewBox="0 0 24 24"><use href="#icCar"/></svg><span data-i18n="nav.vehicles">Auto &amp; Motorrad</span></button>
@@ -1599,6 +1631,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <!-- ============================== LEBENSLAGEN ============================== -->
     <section class="view" id="view-life">
       <div id="lifeRoot"></div>
+    </section>
+
+    <!-- ============================== BEHÖRDEN-WEGWEISER ============================== -->
+    <section class="view" id="view-behoerden">
+      <div id="behRoot"></div>
     </section>
 
     <!-- ============================== FAMILIENZENTRALE ============================== -->
@@ -2109,7 +2146,7 @@ const I18N = {
     'fmt.oclock': '{t} Uhr', 'fmt.allday': 'Ganztägig', 'fmt.due': 'fällig {d}', 'fmt.overdue': 'überfällig', 'fmt.nodate': 'ohne Datum', 'fmt.once_today': 'einmalig heute', 'fmt.daily': 'täglich', 'fmt.turns': 'wird {n}', 'fmt.whole_family': '👪 ganze Familie', 'fmt.deadline': 'Frist {d}', 'ct.deadline_passed': 'Frist abgelaufen', 'ct.cancellable': 'kündbar {d}', 'ct.per_month': '/ Monat', 'ct.per_year': '/ Jahr', 'cu.every_months': 'alle {n} Monate', 'cu.last': 'zuletzt {d}', 'cu.next': 'nächste {d}', 'wt.weekly': 'wöchentlich', 'wt.evenweek': 'gerade KW', 'wt.oddweek': 'ungerade KW', 'vault.only_device': 'Nur auf diesem Gerät', 'sh.done': 'Erledigt', 'sh.assignTo': '🛒 Zuweisen an …', 'sh.assign': 'Zuweisen', 'sh.unassign': 'Aufheben', 'sh.forFamily': 'Einkauf für die Familie', 'sh.forYou': 'Für dich', 'sh.assignedTo': 'Zugewiesen an {name}', 'sh.by': 'von {name}', 'sh.due': 'fällig {d}', 'sh.progress': '{done}/{total} erledigt', 'sh.celebrate': 'Einkauf erledigt – super! ✓', 'sh.open': '{n} offen', 'sh.suggest': 'Vorschläge:', 'sh.needBy': 'brauche bis',
     'greet.event_1': '{n} Termin', 'greet.event_n': '{n} Termine', 'greet.task_1': '{n} offene Aufgabe', 'greet.task_n': '{n} offene Aufgaben', 'greet.and': 'und', 'greet.today': '{date} — heute {items}.', 'greet.calm': '{date} — alles im Griff, nichts Dringendes. 🌿', 'day.events_on': 'Termine am {date}',
     'fmt.years_short': 'J.', 'role.owner': 'Administrator', 'role.adult': 'Erwachsen', 'role.child': 'Kind', 'role.ai_on': 'KI aktiv', 'role.ai_off': '🔒 keine KI', 'doc.from': 'von {s}', 'doc.deadline': 'Frist: {date} ({rel})', 'doc.expired': 'abgelaufen', 'school.no_subjects': 'Noch keine Fächer am {day}.',
-    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.contracts': 'Verträge & Abos', 'nav.vault': 'Dokumenten-Tresor', 'nav.shopping': 'Einkaufsliste', 'nav.waste': 'Müllkalender', 'nav.checkup': 'Vorsorge & Erinnerungen', 'nav.fit': 'EffyraFit', 'nav.help': 'Hilfe & Anleitung', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
+    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.behoerden': 'Behörden', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.contracts': 'Verträge & Abos', 'nav.vault': 'Dokumenten-Tresor', 'nav.shopping': 'Einkaufsliste', 'nav.waste': 'Müllkalender', 'nav.checkup': 'Vorsorge & Erinnerungen', 'nav.fit': 'EffyraFit', 'nav.help': 'Hilfe & Anleitung', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
     'tab.start': 'Start', 'tab.assistant': 'Assistent', 'tab.tasks': 'Aufgaben',
     'dash.morning': 'Guten Morgen', 'dash.day': 'Guten Tag', 'dash.evening': 'Guten Abend', 'dash.night': 'Gute Nacht',
     'dash.stat_open': 'Offene Aufgaben', 'dash.stat_today': 'Termine heute', 'dash.stat_docs': 'Dokumente',
@@ -2126,7 +2163,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'All day', 'fmt.due': 'due {d}', 'fmt.overdue': 'overdue', 'fmt.nodate': 'no date', 'fmt.once_today': 'once today', 'fmt.daily': 'daily', 'fmt.turns': 'turns {n}', 'fmt.whole_family': '👪 whole family', 'fmt.deadline': 'deadline {d}', 'ct.deadline_passed': 'Deadline passed', 'ct.cancellable': 'cancellable {d}', 'ct.per_month': '/ month', 'ct.per_year': '/ year', 'cu.every_months': 'every {n} months', 'cu.last': 'last {d}', 'cu.next': 'next {d}', 'wt.weekly': 'weekly', 'wt.evenweek': 'even week', 'wt.oddweek': 'odd week', 'vault.only_device': 'Only on this device', 'sh.done': 'Done', 'sh.assignTo': '🛒 Assign to …', 'sh.assign': 'Assign', 'sh.unassign': 'Unassign', 'sh.forFamily': 'Shopping for the family', 'sh.forYou': 'For you', 'sh.assignedTo': 'Assigned to {name}', 'sh.by': 'from {name}', 'sh.due': 'due {d}', 'sh.progress': '{done}/{total} done', 'sh.celebrate': 'Shopping done – great! ✓', 'sh.open': '{n} open', 'sh.suggest': 'Suggestions:', 'sh.needBy': 'need by',
     'greet.event_1': '{n} event', 'greet.event_n': '{n} events', 'greet.task_1': '{n} open task', 'greet.task_n': '{n} open tasks', 'greet.and': 'and', 'greet.today': '{date} — today {items}.', 'greet.calm': '{date} — all under control, nothing urgent. 🌿', 'day.events_on': 'Events on {date}',
     'fmt.years_short': 'yrs', 'role.owner': 'Administrator', 'role.adult': 'Adult', 'role.child': 'Child', 'role.ai_on': 'AI on', 'role.ai_off': '🔒 no AI', 'doc.from': 'from {s}', 'doc.deadline': 'Deadline: {date} ({rel})', 'doc.expired': 'expired', 'school.no_subjects': 'No subjects on {day} yet.',
-    'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.contracts': 'Contracts & subscriptions', 'nav.vault': 'Document vault', 'nav.shopping': 'Shopping list', 'nav.waste': 'Waste calendar', 'nav.checkup': 'Check-ups & reminders', 'nav.fit': 'EffyraFit', 'nav.help': 'Help & guide', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
+    'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.behoerden': 'Government offices', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.contracts': 'Contracts & subscriptions', 'nav.vault': 'Document vault', 'nav.shopping': 'Shopping list', 'nav.waste': 'Waste calendar', 'nav.checkup': 'Check-ups & reminders', 'nav.fit': 'EffyraFit', 'nav.help': 'Help & guide', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
     'tab.start': 'Home', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tasks',
     'dash.morning': 'Good morning', 'dash.day': 'Hello', 'dash.evening': 'Good evening', 'dash.night': 'Good night',
     'dash.stat_open': 'Open tasks', 'dash.stat_today': 'Today’s events', 'dash.stat_docs': 'Documents',
@@ -3036,6 +3073,7 @@ const MODULES = [
   { id: 'shopping', name: 'Einkaufsliste', cat: 'alltag', icon: '🛒', help: 'Gemeinsame Einkaufsliste für die Familie – mit Mengen, Kategorie-Icons und Zuweisung; Zutaten aus „Gericht des Tages" direkt übernehmbar.', steps: ['Füge den ersten Artikel hinzu.', 'Weise die Liste einem Familienmitglied zu (wenn verbunden).'], keys: ['einkaufen', 'liste', 'supermarkt', 'besorgen', 'zutaten'] },
   { id: 'waste', name: 'Müllkalender', cat: 'alltag', icon: '🗑️', help: 'Nie wieder die Tonne verpassen – trage deine Abholtage ein, das Dashboard erinnert dich rechtzeitig.', steps: ['Trage deine erste Tonne mit Wochentag ein.', 'Prüfe den Hinweis auf dem Dashboard.'], keys: ['müll', 'tonne', 'abholung', 'biotonne', 'restmüll'] },
   { id: 'life', name: 'Lebenslagen', cat: 'alltag', icon: '🧭', help: 'Schritt-für-Schritt-Hilfe für große Lebensereignisse (Umzug, Nachwuchs u. a.) – mit Checklisten, damit nichts vergessen wird.', steps: ['Wähle eine Lebenslage aus.', 'Hake die ersten Schritte ab.'], keys: ['umzug', 'geburt', 'checkliste', 'behörde', 'lebenslage'] },
+  { id: 'behoerden', name: 'Behörden-Wegweiser', cat: 'alltag', icon: '🏛️', help: 'Was du für einen Behördengang brauchst (Unterlagen, Schritte), welches Amt zuständig ist und wo das nächste in deiner Nähe liegt – mit Link zur offiziellen Servicesuche.', steps: ['Wähle ein Anliegen (z. B. „Auto anmelden").', 'PLZ eingeben → nächstes Amt + offizieller Link.'], keys: ['behörde', 'amt', 'ummelden', 'anmelden', 'ausweis', 'zulassung', 'standesamt', 'gewerbe', 'wegweiser'] },
   { id: 'family', name: 'Familienzentrale', cat: 'familie', icon: '👪', help: 'Alles Gemeinsame an einem Ort: geteilter Kalender, Aufgaben, Budget, Medikamente & Anlässe – synchron mit dem Partner.', steps: ['Füge Familienmitglieder hinzu.', 'Verbinde dich per Sync mit deinem Partner.'], keys: ['familie', 'partner', 'sync', 'budget', 'medikamente', 'geteilt'] },
   { id: 'school', name: 'Kinder', cat: 'familie', icon: '🧒', help: 'Organisiere deine Kinder: Stundenplan, Arzt-/Impftermine, Hobbys und Packlisten – Termine erscheinen automatisch im Kalender.', steps: ['Lege ein Kind an.', 'Trage einen Stundenplan oder Termin ein.'], keys: ['kinder', 'schule', 'stundenplan', 'impfung', 'hobby', 'packen'] },
   { id: 'fit', name: 'EffyraFit', cat: 'gesundheit', icon: '💪', help: 'Bewegung mit Erfolgserlebnis: starte bewusst eine Einheit (Schritte, km, Kalorien) oder trage manuell nach – mit Tagesziel und Belohnungen.', steps: ['Trage in ⚙️ Einstellungen Gewicht & Größe ein.', 'Starte eine Einheit oder trage eine Aktivität nach.'], keys: ['sport', 'bewegung', 'schritte', 'kalorien', 'fitness', 'ziel'] },
@@ -3186,7 +3224,7 @@ if ($('#btnResetHelp')) $('#btnResetHelp').addEventListener('click', () => {
 });
 if ($('#btnOpenHelp')) $('#btnOpenHelp').addEventListener('click', () => showView('help'));
 
-const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
+const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'behoerden', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
 let viewHistory = [], _navBack = false;
 function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
@@ -4501,6 +4539,134 @@ function scSyncToggle() {
 if ($('#scToggle')) $('#scToggle').addEventListener('click', () => { const sc = selfcarePrefs(); sc.on = !sc.on; save(); scSyncToggle(); toast(sc.on ? '🌿 Selbstfürsorge-Impuls aktiviert' : 'Selbstfürsorge-Impuls deaktiviert'); if (sc.on) selfcareCheck(); });
 if ($('#scTest')) $('#scTest').addEventListener('click', () => selfcareShow(true));
 scSyncToggle();
+
+/* ============================== BEHÖRDEN-WEGWEISER ==============================
+   3 Ebenen: (1) kuratierte Anliegen-Registry (Asset behoerden.json, wartbar);
+   (2) AuthorityLookup „nächstes Amt" – SCHLÜSSELFREI über OpenStreetMap (gekapselt/austauschbar)
+       + Karten-Deep-Links (Route/Suche, ohne Key); (3) offizielle Servicesuche als Deep-Link.
+   Standort nur mit Consent, transient (NICHT gespeichert). Orientierung, keine Rechtsauskunft. */
+let _behData = null, _behLoad = null;
+const behState = { q: '', sel: null, plz: '', offices: null, oStatus: '' };
+function behLoad() {
+  if (_behData) return Promise.resolve(_behData);
+  if (_behLoad) return _behLoad;
+  _behLoad = fetch('behoerden.json', { cache: 'force-cache' }).then(r => r.json()).then(d => { _behData = d || { anliegen: [] }; return _behData; }).catch(() => { _behData = { anliegen: [] }; return _behData; });
+  return _behLoad;
+}
+const behAnliegen = () => (_behData && _behData.anliegen) || [];
+const behById = (id) => behAnliegen().find(x => x.id === id);
+const BEH_GEWAEHR = 'Orientierung, keine rechtsverbindliche Auskunft – ohne Gewähr. Zuständigkeiten, Unterlagen, Fristen und Gebühren können je nach Bundesland/Kommune abweichen und sich ändern. Für Verbindliches die offizielle Servicesuche bzw. die Behörde prüfen.';
+const BEH_LAGE_ICON = { 'Umzug': '📦', 'Ausweise & Dokumente': '🪪', 'Fahrzeug & Mobilität': '🚗', 'Gewerbe & Selbstständigkeit': '💼', 'Familie & Partnerschaft': '👪', 'Trauerfall': '🕯️' };
+function behMapsSearch(amtstyp) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(amtstyp + ' ' + (behState.plz || 'in der Nähe')); }
+function behOfficialLink(a) { const base = a.offizielleSuche || (_behData && _behData.offizielleSucheBasis) || 'https://servicesuche.bund.de'; return base + '?query=' + encodeURIComponent(a.titel + (behState.plz ? ' ' + behState.plz : '')); }
+/* --- Ebene 2: AuthorityLookup (gekapselt, austauschbar). Quelle: OpenStreetMap (keine Keys). --- */
+async function osmGeocodePLZ(plz) {
+  const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=de&limit=1&postalcode=' + encodeURIComponent(plz), { headers: { 'Accept-Language': 'de' } });
+  const d = await r.json(); if (!d || !d.length) return null; return { lat: +d[0].lat, lon: +d[0].lon };
+}
+function haversine(a, b, c, e) { const R = 6371, dLat = (c - a) * Math.PI / 180, dLon = (e - b) * Math.PI / 180, s = Math.sin(dLat / 2) ** 2 + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dLon / 2) ** 2; return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s)); }
+const OVERPASS_EP = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+async function overpassQuery(q) {   // mehrere Mirror – bei Rate-Limit/Timeout des einen den nächsten
+  let lastErr;
+  for (let i = 0; i < OVERPASS_EP.length; i++) {
+    try { const r = await fetch(OVERPASS_EP[i], { method: 'POST', body: 'data=' + encodeURIComponent(q) }); if (!r.ok) { lastErr = new Error('http ' + r.status); continue; } return await r.json(); }
+    catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('overpass');
+}
+async function osmNearbyAuthorities(lat, lon) {
+  const q = '[out:json][timeout:25];(node["amenity"="townhall"](around:9000,' + lat + ',' + lon + ');way["amenity"="townhall"](around:9000,' + lat + ',' + lon + ');node["office"="government"](around:9000,' + lat + ',' + lon + ');way["office"="government"](around:9000,' + lat + ',' + lon + '););out center tags 25;';
+  const d = await overpassQuery(q);
+  return ((d && d.elements) || []).map(el => {
+    const t = el.tags || {}, la = el.lat || (el.center && el.center.lat), lo = el.lon || (el.center && el.center.lon);
+    const adr = [t['addr:street'] ? (t['addr:street'] + (t['addr:housenumber'] ? ' ' + t['addr:housenumber'] : '')) : '', [t['addr:postcode'], t['addr:city']].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    return { name: t.name || t.operator || 'Behörde / Amt', adresse: adr, phone: t['contact:phone'] || t.phone || '', website: t['contact:website'] || t.website || '', hours: t.opening_hours || '', lat: la, lon: lo, dist: (la && lo) ? haversine(lat, lon, la, lo) : 999 };
+  }).filter(x => x.lat && x.lon).sort((a, b) => a.dist - b.dist).slice(0, 5);
+}
+const authorityLookup = { source: 'OpenStreetMap', async findNearest(amtstyp, plz) { const geo = await osmGeocodePLZ(plz); if (!geo) throw new Error('plz'); return osmNearbyAuthorities(geo.lat, geo.lon); } };
+async function behFindOffices(useGeo, amtstyp) {
+  behState.offices = null; behState.oStatus = 'loading';
+  const upd = () => { const c = $('#behOffices'), a = behById(behState.sel); if (c && a) c.innerHTML = behOfficesHTML(a); };
+  upd();
+  try {
+    if (useGeo) {
+      const pos = await new Promise((res, rej) => navigator.geolocation ? navigator.geolocation.getCurrentPosition(res, rej, { timeout: 10000, maximumAge: 60000 }) : rej(new Error('nogeo')));
+      behState.offices = await osmNearbyAuthorities(pos.coords.latitude, pos.coords.longitude); behState.oStatus = '';
+    } else {
+      if (!/^\d{5}$/.test(behState.plz)) { toast('Bitte eine 5-stellige PLZ eingeben.'); behState.oStatus = ''; upd(); return; }
+      behState.offices = await authorityLookup.findNearest(amtstyp, behState.plz); behState.oStatus = '';
+    }
+  } catch (e) { behState.oStatus = 'error'; }
+  upd();
+}
+function behToTasks(id) { const a = behById(id); if (!a) return; let n = 0; (a.unterlagen || []).forEach(u => { if (addTask('📋 ' + a.titel + ': ' + u, null, 'med', 'behoerde')) n++; }); toast('✅ ' + n + ' Unterlage' + (n === 1 ? '' : 'n') + ' als Aufgaben übernommen'); }
+function behToCal(id) { const a = behById(id); if (!a) return; const d = ($('#behDate') || {}).value; if (!d) { toast('Bitte ein Datum wählen.'); return; } addEvent('🏛️ ' + a.titel, d, null, 'Zuständig: ' + a.amtstyp, 'behoerde'); addTask('🏛️ ' + a.titel + ' – erledigen', d, 'high', 'behoerde'); toast('📅 Termin + Erinnerung im Kalender ✓'); }
+function behBundleUmzug() { let n = 0; behAnliegen().filter(a => a.lebenslage === 'Umzug').forEach(a => { if (addTask('📦 Umzug: ' + a.titel + ' (' + a.amtstyp + ')', null, 'med', 'behoerde')) n++; }); toast('📦 Umzug-Bündel: ' + n + ' Behördengänge als Aufgaben ✓'); }
+function behOfficesHTML(a) {
+  if (behState.oStatus === 'loading') return '<div class="beh-off-status">Suche Ämter in deiner Nähe …</div>';
+  if (behState.oStatus === 'error') return '<div class="beh-off-status">⚠️ Automatische Suche gerade nicht möglich. Nutze „In Karten suchen" oder die offizielle Servicesuche unten.</div>';
+  if (!behState.offices) return '';
+  if (!behState.offices.length) return '<div class="beh-off-status">Keine Ämter im Umkreis gefunden. Nutze „In Karten suchen" oder die offizielle Servicesuche.</div>';
+  let h = '<div class="beh-off-src">Behörden in deiner Nähe · Quelle: OpenStreetMap · ohne Gewähr – bitte Zuständigkeit für „' + esc(a.amtstyp) + '" prüfen.</div>';
+  return h + behState.offices.map(o => '<div class="beh-off"><div class="beh-off-h"><b>' + esc(o.name) + '</b>' + (o.dist < 900 ? '<span>' + o.dist.toFixed(1) + ' km</span>' : '') + '</div>' +
+    (o.adresse ? '<div class="beh-off-l">📍 ' + esc(o.adresse) + '</div>' : '') + (o.hours ? '<div class="beh-off-l">🕒 ' + esc(o.hours) + '</div>' : '') +
+    '<div class="beh-off-a">' + (o.phone ? '<a href="tel:' + esc(o.phone.replace(/\s+/g, '')) + '">📞 Anrufen</a>' : '') + (o.website ? '<a href="' + esc(o.website) + '" target="_blank" rel="noopener">🌐 Web</a>' : '') +
+    '<a href="https://www.google.com/maps/dir/?api=1&destination=' + o.lat + ',' + o.lon + '" target="_blank" rel="noopener">🧭 Route</a></div></div>').join('');
+}
+function behBrowseHTML() {
+  const q = behState.q.trim().toLowerCase();
+  const hits = q ? behAnliegen().filter(a => (a.titel + ' ' + a.amtstyp + ' ' + a.lebenslage).toLowerCase().indexOf(q) >= 0) : behAnliegen();
+  let h = '<div class="view-head"><h1>🏛️ Behörden-Wegweiser</h1><p>Was du brauchst, welches Amt zuständig ist und wo das nächste in deiner Nähe liegt.</p></div>';
+  h += '<div class="beh-search"><span aria-hidden="true">🔍</span><input type="search" id="behSearch" placeholder="Anliegen suchen (z. B. „Auto anmelden") …" value="' + esc(behState.q) + '" autocomplete="off" aria-label="Anliegen suchen"></div>';
+  h += '<div class="beh-note">ℹ️ ' + esc(BEH_GEWAEHR) + '</div>';
+  if (!hits.length) { h += '<div class="dsec-empty">Nichts gefunden. Tipp: „Ausweis", „Umzug", „Gewerbe".</div>'; return h; }
+  const lagen = []; hits.forEach(a => { if (lagen.indexOf(a.lebenslage) < 0) lagen.push(a.lebenslage); });
+  lagen.forEach(lage => {
+    h += '<div class="beh-lage">' + (BEH_LAGE_ICON[lage] || '📌') + ' ' + esc(lage) + '</div>';
+    if (lage === 'Umzug' && !q) h += '<button class="beh-item beh-bundle" data-beh="bundle"><span class="beh-ic">🧳</span><span class="beh-it"><b>Umzug – alles auf einmal</b><span>Alle Melde-Schritte als Aufgaben übernehmen</span></span><span class="beh-go" aria-hidden="true">›</span></button>';
+    hits.filter(a => a.lebenslage === lage).forEach(a => { h += '<button class="beh-item" data-beh="open" data-id="' + a.id + '"><span class="beh-ic">' + (BEH_LAGE_ICON[lage] || '📌') + '</span><span class="beh-it"><b>' + esc(a.titel) + '</b><span>' + esc(a.amtstyp) + '</span></span><span class="beh-go" aria-hidden="true">›</span></button>'; });
+  });
+  return h;
+}
+function behDetailHTML() {
+  const a = behById(behState.sel); if (!a) { behState.sel = null; return behBrowseHTML(); }
+  let h = '<button class="btn btn-ghost btn-sm" data-beh="back">‹ Zurück zur Übersicht</button>';
+  h += '<div class="view-head" style="margin-top:10px"><h1>' + esc(a.titel) + '</h1><p>Zuständig: <b>' + esc(a.amtstyp) + '</b> · ' + esc(a.lebenslage) + '</p></div>';
+  h += '<div class="beh-note">⚖️ ' + esc(BEH_GEWAEHR) + '</div>';
+  h += '<div class="card"><h3>📋 Benötigte Unterlagen</h3><ul class="beh-list">' + (a.unterlagen || []).map(u => '<li>' + esc(u) + '</li>').join('') + '</ul><button class="btn btn-sm" data-beh="toTasks" data-id="' + a.id + '">✅ Unterlagen in Aufgaben übernehmen</button></div>';
+  h += '<div class="card"><h3>🪜 Schritte</h3><ol class="beh-steps">' + (a.schritte || []).map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></div>';
+  if (a.hinweise && a.hinweise.length) h += '<div class="card"><h3>💡 Gut zu wissen</h3><ul class="beh-list">' + a.hinweise.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
+  h += '<div class="card"><h3>📍 Nächstes Amt (' + esc(a.amtstyp) + ')</h3><p class="sub">PLZ eingeben oder deinen Standort verwenden (nur mit deiner Erlaubnis, wird nicht gespeichert).</p>' +
+    '<div class="beh-loc"><input type="text" id="behPlz" inputmode="numeric" maxlength="5" placeholder="PLZ (z. B. 50667)" value="' + esc(behState.plz) + '" aria-label="Postleitzahl">' +
+    '<button class="btn btn-sm" data-beh="findPlz" data-amt="' + esc(a.amtstyp) + '">Amt finden</button>' +
+    '<button class="btn btn-sm" data-beh="geo" data-amt="' + esc(a.amtstyp) + '" title="Standort verwenden" aria-label="Standort verwenden">📍</button></div>' +
+    '<div id="behOffices">' + behOfficesHTML(a) + '</div>' +
+    '<a class="btn btn-sm" href="' + esc(behMapsSearch(a.amtstyp)) + '" target="_blank" rel="noopener" style="margin-top:8px">🗺️ In Karten suchen</a></div>';
+  h += '<div class="card"><h3>🏛️ Offiziell prüfen &amp; erledigen</h3><p class="sub">Der rechtlich maßgebliche Weg – zuständiges Amt &amp; aktuelle Details über die offizielle Servicesuche des Bundes.</p><a class="btn btn-primary" href="' + esc(behOfficialLink(a)) + '" target="_blank" rel="noopener">Beim offiziellen Amtsportal öffnen →</a></div>';
+  h += '<div class="card"><h3>📅 Termin merken</h3><p class="sub">Erinnerungstermin für diesen Behördengang in den Kalender.</p><div class="beh-loc"><input type="date" id="behDate" aria-label="Termindatum"><button class="btn btn-sm" data-beh="toCal" data-id="' + a.id + '">In Kalender</button></div></div>';
+  return h;
+}
+RENDERERS.behoerden = function () {
+  const box = $('#behRoot'); if (!box) return;
+  if (!_behData) { box.innerHTML = '<div class="dsec-empty">Lädt …</div>'; behLoad().then(() => RENDERERS.behoerden()); return; }
+  box.innerHTML = behState.sel ? behDetailHTML() : behBrowseHTML();
+  if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box);
+};
+if ($('#behRoot')) {
+  $('#behRoot').addEventListener('click', e => {
+    const b = e.target.closest('[data-beh]'); if (!b) return; const act = b.dataset.beh;
+    if (act === 'open') { behState.sel = b.dataset.id; behState.offices = null; behState.oStatus = ''; RENDERERS.behoerden(); window.scrollTo(0, 0); }
+    else if (act === 'back') { behState.sel = null; RENDERERS.behoerden(); window.scrollTo(0, 0); }
+    else if (act === 'findPlz' || act === 'geo') behFindOffices(act === 'geo', b.dataset.amt);
+    else if (act === 'toTasks') behToTasks(b.dataset.id);
+    else if (act === 'toCal') behToCal(b.dataset.id);
+    else if (act === 'bundle') behBundleUmzug();
+  });
+  $('#behRoot').addEventListener('input', e => {
+    if (e.target.id === 'behSearch') { behState.q = e.target.value; RENDERERS.behoerden(); const s = $('#behSearch'); if (s) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); } }
+    else if (e.target.id === 'behPlz') { behState.plz = e.target.value.replace(/\D/g, '').slice(0, 5); }
+  });
+}
 
 let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (Default) / aufgeklappt
 /* ===== Dashboard-Personalisierung: der Nutzer wählt, welche Blöcke erscheinen =====

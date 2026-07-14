@@ -1,0 +1,464 @@
+{
+  "version": 1,
+  "sprache": "de",
+  "encoding": "UTF-8",
+  "stand": "Juli 2026",
+  "anzahl": 20,
+  "gewaehr": "Orientierung, keine rechtsverbindliche Auskunft, ohne Gewaehr. Zustaendigkeiten, Unterlagen, Fristen und Gebuehren koennen je nach Bundesland und Kommune abweichen und sich aendern. Fuer Verbindliches stets die offizielle Servicesuche bzw. die zustaendige Behoerde pruefen.",
+  "offizielleSucheBasis": "https://servicesuche.bund.de",
+  "hinweisDeepLink": "Die App sollte beim Aufruf der offiziellen Suche PLZ/Standort und Anliegen an die Basis-URL anhaengen.",
+  "anliegen": [
+    {
+      "id": "wohnsitz-anmelden",
+      "titel": "Wohnsitz anmelden (Zuzug)",
+      "lebenslage": "Umzug",
+      "amtstyp": "Bürgeramt / Einwohnermeldeamt",
+      "unterlagen": [
+        "Personalausweis oder Reisepass aller anzumeldenden Personen",
+        "Ausgefülltes Anmeldeformular",
+        "Wohnungsgeberbestätigung des Vermieters",
+        "ggf. Heirats-/Geburtsurkunden bei Familien"
+      ],
+      "schritte": [
+        "Termin beim Bürgeramt vereinbaren",
+        "Wohnungsgeberbestätigung vom Vermieter einholen",
+        "Innerhalb der Frist nach Einzug anmelden",
+        "Formular abgeben und Ausweise vorlegen"
+      ],
+      "hinweise": [
+        "In der Regel gebührenfrei",
+        "Frist meist innerhalb von 2 Wochen nach Einzug",
+        "Bei Verspätung kann ein Bußgeld drohen"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "wohnsitz-ummelden",
+      "titel": "Wohnsitz ummelden (Umzug innerhalb Deutschlands)",
+      "lebenslage": "Umzug",
+      "amtstyp": "Bürgeramt / Einwohnermeldeamt",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Anmeldeformular",
+        "Wohnungsgeberbestätigung des neuen Vermieters"
+      ],
+      "schritte": [
+        "Termin am neuen Wohnort vereinbaren",
+        "Wohnungsgeberbestätigung einholen",
+        "Innerhalb der Frist am neuen Wohnort anmelden",
+        "Ausweisadresse wird aktualisiert"
+      ],
+      "hinweise": [
+        "Separate Abmeldung am alten Wohnort ist bei Umzug innerhalb Deutschlands meist nicht nötig",
+        "Frist meist 2 Wochen",
+        "In der Regel gebührenfrei"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "wohnsitz-abmelden",
+      "titel": "Wohnsitz abmelden (Wegzug ins Ausland / Nebenwohnung)",
+      "lebenslage": "Umzug",
+      "amtstyp": "Bürgeramt / Einwohnermeldeamt",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Abmeldeformular"
+      ],
+      "schritte": [
+        "Abmeldung frühestens kurz vor Auszug möglich",
+        "Formular ausfüllen",
+        "Beim Bürgeramt einreichen (oft auch schriftlich/online)"
+      ],
+      "hinweise": [
+        "Nötig bei Wegzug ins Ausland oder Aufgabe einer Nebenwohnung",
+        "Bei Umzug innerhalb Deutschlands keine Abmeldung nötig",
+        "In der Regel gebührenfrei"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "personalausweis",
+      "titel": "Personalausweis beantragen / verlängern",
+      "lebenslage": "Ausweise & Dokumente",
+      "amtstyp": "Bürgeramt",
+      "unterlagen": [
+        "Bisheriger Personalausweis oder Reisepass",
+        "Digitales biometrisches Passfoto (seit Mai 2025 Pflicht)",
+        "bei Erstbeantragung ggf. Geburts-/Heiratsurkunde",
+        "Gebühr"
+      ],
+      "schritte": [
+        "Termin vereinbaren",
+        "Digitales biometrisches Foto erstellen (im Amt am Terminal oder beim angebundenen Fotografen)",
+        "Persönlich vorsprechen, Fingerabdrücke werden aufgenommen",
+        "Ausweis abholen oder gegen Gebühr nach Hause senden lassen"
+      ],
+      "hinweise": [
+        "Seit 1. Mai 2025 nur noch digitale biometrische Passbilder – Papierfotos werden nicht mehr akzeptiert",
+        "Direktversand nach Hause gegen Gebühr möglich",
+        "Persönliches Erscheinen erforderlich"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "reisepass",
+      "titel": "Reisepass beantragen",
+      "lebenslage": "Ausweise & Dokumente",
+      "amtstyp": "Bürgeramt / Passbehörde",
+      "unterlagen": [
+        "Personalausweis oder alter Reisepass",
+        "Digitales biometrisches Passfoto (seit Mai 2025 Pflicht)",
+        "ggf. Geburts-/Heiratsurkunde",
+        "Gebühr"
+      ],
+      "schritte": [
+        "Termin vereinbaren",
+        "Digitales biometrisches Foto erstellen lassen",
+        "Persönlich vorsprechen",
+        "Pass abholen oder nach Hause senden lassen"
+      ],
+      "hinweise": [
+        "Digitales Passbild Pflicht seit Mai 2025",
+        "Express-Pass gegen Aufpreis möglich",
+        "Persönliches Erscheinen erforderlich"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-anmelden",
+      "titel": "Auto anmelden (Neuzulassung)",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "KFZ-Zulassungsstelle",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Zulassungsbescheinigung Teil I und Teil II",
+        "eVB-Nummer (elektronische Versicherungsbestätigung)",
+        "SEPA-Lastschriftmandat für die Kfz-Steuer",
+        "bei Gebrauchtfahrzeug gültige HU-/AU-Bescheinigung",
+        "Kennzeichen (Prägung meist vor Ort)"
+      ],
+      "schritte": [
+        "eVB-Nummer bei der Kfz-Versicherung besorgen",
+        "Termin bei der Zulassungsstelle vereinbaren",
+        "Unterlagen vorlegen",
+        "Kennzeichen prägen und zulassen",
+        "Plaketten anbringen"
+      ],
+      "hinweise": [
+        "Viele Zulassungen sind online möglich (i-Kfz)",
+        "Gebühren fallen an"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-ummelden",
+      "titel": "Auto ummelden",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "KFZ-Zulassungsstelle",
+      "unterlagen": [
+        "Personalausweis",
+        "Zulassungsbescheinigung Teil I und Teil II",
+        "eVB-Nummer (bei Halterwechsel)",
+        "SEPA-Lastschriftmandat",
+        "bisherige Kennzeichen",
+        "HU-Nachweis"
+      ],
+      "schritte": [
+        "eVB besorgen (bei Halterwechsel)",
+        "Termin vereinbaren",
+        "Unterlagen vorlegen",
+        "ggf. neue Kennzeichen"
+      ],
+      "hinweise": [
+        "Bei Umzug innerhalb Deutschlands können Kennzeichen meist mitgenommen werden",
+        "i-Kfz teils online möglich"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-abmelden",
+      "titel": "Auto abmelden (außer Betrieb setzen)",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "KFZ-Zulassungsstelle",
+      "unterlagen": [
+        "Personalausweis",
+        "Zulassungsbescheinigung Teil I",
+        "Kennzeichen mit Siegel"
+      ],
+      "schritte": [
+        "Termin vereinbaren oder online über i-Kfz",
+        "Kennzeichen und Schein vorlegen/abgeben",
+        "Außerbetriebsetzung bestätigen lassen"
+      ],
+      "hinweise": [
+        "Online-Abmeldung (i-Kfz) meist möglich",
+        "Geringe Gebühr"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrerschein-ersterteilung",
+      "titel": "Führerschein beantragen (Ersterteilung)",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "Führerscheinstelle / Fahrerlaubnisbehörde",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Biometrisches Passfoto (Papierfoto zulässig)",
+        "Sehtest-Bescheinigung",
+        "Nachweis Erste-Hilfe-Kurs",
+        "Bescheinigung der Fahrschule",
+        "Antrag"
+      ],
+      "schritte": [
+        "Sehtest und Erste-Hilfe-Kurs absolvieren",
+        "Antrag bei der Führerscheinstelle stellen (oft über die Fahrschule)",
+        "Theorie- und Praxisprüfung ablegen",
+        "Führerschein abholen"
+      ],
+      "hinweise": [
+        "Für den Führerschein sind weiterhin Papier-Passfotos zulässig (anders als bei Perso/Pass)",
+        "Antrag einige Wochen vor der Prüfung stellen"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrerschein-umtausch",
+      "titel": "Führerschein umtauschen (Pflichtumtausch)",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "Führerscheinstelle",
+      "unterlagen": [
+        "Alter Führerschein",
+        "Personalausweis",
+        "Biometrisches Passfoto (Papierfoto zulässig)",
+        "Antrag"
+      ],
+      "schritte": [
+        "Umtauschfrist des eigenen Jahrgangs prüfen",
+        "Antrag bei der Führerscheinstelle stellen",
+        "Neuen Kartenführerschein abholen"
+      ],
+      "hinweise": [
+        "Gestaffelte Umtauschfristen nach Geburts- bzw. Ausstellungsjahr",
+        "Papier-Passfoto zulässig"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "gewerbe-anmelden",
+      "titel": "Gewerbe anmelden",
+      "lebenslage": "Gewerbe & Selbstständigkeit",
+      "amtstyp": "Gewerbeamt / Ordnungsamt",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Gewerbeanmeldeformular (GewA 1)",
+        "je nach Tätigkeit erforderliche Erlaubnisse/Genehmigungen",
+        "ggf. Handelsregisterauszug"
+      ],
+      "schritte": [
+        "Formular ausfüllen",
+        "Beim Gewerbeamt anmelden (oft online möglich)",
+        "Gebühr zahlen",
+        "Das Finanzamt meldet sich anschließend zur steuerlichen Erfassung"
+      ],
+      "hinweise": [
+        "Die Anmeldung löst automatisch Meldungen an Finanzamt und IHK/HWK aus",
+        "Gebühr je nach Kommune"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "gewerbe-abmelden",
+      "titel": "Gewerbe abmelden",
+      "lebenslage": "Gewerbe & Selbstständigkeit",
+      "amtstyp": "Gewerbeamt",
+      "unterlagen": [
+        "Personalausweis",
+        "Gewerbeabmeldeformular (GewA 3)"
+      ],
+      "schritte": [
+        "Formular ausfüllen",
+        "Beim Gewerbeamt einreichen (oft online möglich)"
+      ],
+      "hinweise": [
+        "Oft gebührenfrei oder geringe Gebühr",
+        "Auch das Finanzamt informieren"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "eheschliessung",
+      "titel": "Eheschließung anmelden",
+      "lebenslage": "Familie & Partnerschaft",
+      "amtstyp": "Standesamt",
+      "unterlagen": [
+        "Personalausweis oder Reisepass beider Partner",
+        "Aktuelle beglaubigte Abschrift aus dem Geburtenregister",
+        "Erweiterte Meldebescheinigung",
+        "ggf. Nachweise über frühere Ehen (Scheidungsurteil, Sterbeurkunde)"
+      ],
+      "schritte": [
+        "Beim Standesamt des Wohnorts einen Termin zur Anmeldung vereinbaren",
+        "Unterlagen zusammenstellen",
+        "Gemeinsam persönlich anmelden",
+        "Trautermin vereinbaren"
+      ],
+      "hinweise": [
+        "Unterlagen früh besorgen (Bearbeitungszeiten)",
+        "Konkrete Anforderungen können individuell variieren"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "geburtsurkunde",
+      "titel": "Geburtsurkunde beantragen",
+      "lebenslage": "Familie & Partnerschaft",
+      "amtstyp": "Standesamt (des Geburtsorts)",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "Angaben zur Person (Name, Geburtsdatum, -ort)",
+        "ggf. Nachweis der Berechtigung"
+      ],
+      "schritte": [
+        "Zuständiges Standesamt (Geburtsort) ermitteln",
+        "Antrag stellen (oft online/schriftlich möglich)",
+        "Gebühr zahlen",
+        "Urkunde per Post erhalten oder abholen"
+      ],
+      "hinweise": [
+        "Nur bestimmte Personen sind bezugsberechtigt",
+        "Gebühr pro Urkunde"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "sterbeurkunde",
+      "titel": "Sterbefall beurkunden / Sterbeurkunde",
+      "lebenslage": "Trauerfall",
+      "amtstyp": "Standesamt (des Sterbeorts)",
+      "unterlagen": [
+        "Personalausweis der anzeigenden Person",
+        "Todesbescheinigung des Arztes",
+        "Personaldokumente der verstorbenen Person",
+        "Geburts-/Heiratsurkunde der verstorbenen Person"
+      ],
+      "schritte": [
+        "Sterbefall zeitnah beim Standesamt anzeigen (häufig über den Bestatter)",
+        "Unterlagen einreichen",
+        "Sterbeurkunden in der benötigten Anzahl beantragen"
+      ],
+      "hinweise": [
+        "Der Bestatter übernimmt häufig die Formalitäten",
+        "Mehrere Urkunden für Versicherungen/Renten sinnvoll"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kindergeld",
+      "titel": "Kindergeld beantragen",
+      "lebenslage": "Familie & Partnerschaft",
+      "amtstyp": "Familienkasse (Bundesagentur für Arbeit)",
+      "unterlagen": [
+        "Steuer-Identifikationsnummer des Kindes und des Antragstellers",
+        "Geburtsurkunde des Kindes",
+        "Antrag auf Kindergeld"
+      ],
+      "schritte": [
+        "Antrag online oder schriftlich bei der Familienkasse stellen",
+        "Geburtsurkunde und Steuer-IDs beifügen",
+        "Bescheid abwarten"
+      ],
+      "hinweise": [
+        "Kindergeld wird nur begrenzt rückwirkend gezahlt – zeitnah beantragen"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "elterngeld",
+      "titel": "Elterngeld beantragen",
+      "lebenslage": "Familie & Partnerschaft",
+      "amtstyp": "Elterngeldstelle",
+      "unterlagen": [
+        "Geburtsurkunde des Kindes (mit Verwendungszweck Elterngeld)",
+        "Einkommensnachweise",
+        "Bescheinigung der Krankenkasse zu Mutterschaftsleistungen",
+        "Personalausweis",
+        "Antrag"
+      ],
+      "schritte": [
+        "Antrag bei der zuständigen Elterngeldstelle stellen",
+        "Nachweise beifügen",
+        "Bearbeitung abwarten"
+      ],
+      "hinweise": [
+        "Rückwirkend nur für die letzten Lebensmonate zahlbar – zeitnah beantragen",
+        "Zuständigkeit je nach Bundesland unterschiedlich"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "finanzamt-erfassung",
+      "titel": "Steuerliche Erfassung / Steuernummer (Finanzamt)",
+      "lebenslage": "Gewerbe & Selbstständigkeit",
+      "amtstyp": "Finanzamt",
+      "unterlagen": [
+        "Personalausweis",
+        "ggf. Gewerbeanmeldung",
+        "Angaben zu Tätigkeit und voraussichtlichen Einkünften"
+      ],
+      "schritte": [
+        "Bei Aufnahme einer selbstständigen Tätigkeit den Fragebogen zur steuerlichen Erfassung über ELSTER ausfüllen",
+        "An das zuständige Finanzamt übermitteln",
+        "Steuernummer abwarten"
+      ],
+      "hinweise": [
+        "Die Steuer-Identifikationsnummer wird automatisch vergeben und per Post zugesandt",
+        "Für Selbstständige: Fragebogen über ELSTER"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrungszeugnis",
+      "titel": "Führungszeugnis beantragen",
+      "lebenslage": "Ausweise & Dokumente",
+      "amtstyp": "Bürgeramt (Ausstellung: Bundesamt für Justiz)",
+      "unterlagen": [
+        "Personalausweis oder Reisepass",
+        "ggf. Angabe des Verwendungszwecks",
+        "Gebühr"
+      ],
+      "schritte": [
+        "Beim Bürgeramt oder online beim Bundesamt für Justiz beantragen",
+        "Gebühr zahlen",
+        "Zeugnis per Post erhalten"
+      ],
+      "hinweise": [
+        "Online-Antrag mit Online-Ausweisfunktion möglich",
+        "Zustellung dauert einige Tage"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "bewohnerparkausweis",
+      "titel": "Bewohnerparkausweis beantragen",
+      "lebenslage": "Fahrzeug & Mobilität",
+      "amtstyp": "Bürgeramt / Straßenverkehrsbehörde",
+      "unterlagen": [
+        "Personalausweis mit Meldeadresse im Parkgebiet",
+        "Zulassungsbescheinigung Teil I (Fahrzeug auf Antragsteller zugelassen)",
+        "Antrag",
+        "Gebühr"
+      ],
+      "schritte": [
+        "Zuständige Parkzone prüfen",
+        "Antrag stellen (oft online möglich)",
+        "Gebühr zahlen",
+        "Ausweis erhalten"
+      ],
+      "hinweise": [
+        "Nur für Anwohner der jeweiligen Parkzone",
+        "Meist jährlich zu verlängern"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    }
+  ]
+}
