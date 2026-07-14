@@ -85,6 +85,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
   background:rgba(7,9,15,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border)}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.topbar-actions{display:flex;align-items:center;gap:4px}
 .brand .logo-mark{width:32px;height:32px;flex:none}
 .brand b{font-family:var(--font-head);font-size:20px;letter-spacing:1px;font-weight:700;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
@@ -355,6 +356,22 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .fit-reward p{color:var(--muted);font-size:14px;line-height:1.5}
 .fit-conf{position:fixed;top:-12px;width:9px;height:14px;z-index:81;pointer-events:none;border-radius:2px;animation:fitFall linear forwards}
 @keyframes fitFall{to{transform:translateY(110vh) rotate(560deg);opacity:.8}}
+
+/* ---- Hilfe & Anleitung ---- */
+.help-cat{font-size:12.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:20px 2px 8px}
+.help-card{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:8px;overflow:hidden}
+.help-card summary{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;list-style:none}
+.help-card summary::-webkit-details-marker{display:none}
+.help-card summary::marker{content:''}
+.help-ic{font-size:23px;flex:none;width:30px;text-align:center}
+.help-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.help-tx b{font-size:14.5px}
+.help-tx>span{font-size:12.5px;color:var(--muted);line-height:1.45}
+.help-body{padding:0 14px 14px 56px}
+.help-steps-t{font-size:12px;font-weight:800;color:var(--text);margin-bottom:4px}
+.help-steps{margin:0 0 12px;padding-left:18px;color:var(--muted);font-size:13px;line-height:1.7}
+.help-modal{text-align:center;max-height:82vh;overflow-y:auto}
+.help-modal .help-steps,.help-modal .help-steps-t{text-align:left}
 
 /* ============================== DASHBOARD ============================== */
 /* ---- Dashboard (Leuchtturm: 8er-Raster, klare Typo-Rollen, saubere States) ---- */
@@ -1261,6 +1278,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="shopping"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="nav.shopping">Einkaufsliste</span></button>
       <button data-view="waste"><svg viewBox="0 0 24 24"><use href="#icCal"/></svg><span data-i18n="nav.waste">Müllkalender</span></button>
       <button data-view="checkup"><svg viewBox="0 0 24 24"><use href="#icCheck2"/></svg><span data-i18n="nav.checkup">Vorsorge &amp; Erinnerungen</span></button>
+      <button data-view="help"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg><span data-i18n="nav.help">Hilfe &amp; Anleitung</span></button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
     <div class="foot">
@@ -1271,7 +1289,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
   <header class="topbar">
     <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Effyra</b></a>
-    <button class="icon-btn" id="btnTopSettings" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button>
+    <div class="topbar-actions"><button class="icon-btn" id="btnTopHelp" title="Hilfe &amp; Anleitung" aria-label="Hilfe zum aktuellen Bereich"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg></button><button class="icon-btn" id="btnTopSettings" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button></div>
   </header>
 
   <main>
@@ -1530,6 +1548,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div id="fitRoot"></div>
     </section>
 
+    <!-- ============================== HILFE & ANLEITUNG ============================== -->
+    <section class="view" id="view-help">
+      <div id="helpRoot"></div>
+    </section>
+
     <!-- ============================== CHAT ============================== -->
     <section class="view" id="view-chat">
       <div class="chat-msgs" id="chatMsgs"></div>
@@ -1656,6 +1679,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="shopping"><span class="mi">🛒</span><span data-i18n="nav.shopping">Einkaufsliste</span></button>
       <button data-view="waste"><span class="mi">🗑️</span><span data-i18n="nav.waste">Müllkalender</span></button>
       <button data-view="checkup"><span class="mi">🩺</span><span data-i18n="nav.checkup">Vorsorge</span></button>
+      <button data-view="help"><span class="mi">❓</span><span data-i18n="nav.help">Hilfe &amp; Anleitung</span></button>
       <button data-view="settings"><span class="mi">⚙️</span><span data-i18n="nav.settings">Einstellungen</span></button>
     </div>
   </div>
@@ -1680,6 +1704,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     </symbol>
     <symbol id="icHome" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icFit" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icHelp" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9.4 9.3a2.7 2.7 0 0 1 5.1.9c0 1.8-2.6 2-2.6 3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11.9" cy="17.1" r="1.05" fill="currentColor"/></symbol>
     <symbol id="icDoc" viewBox="0 0 24 24"><path d="M6 2h8l5 5v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 2v6h6M9 13h6M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icCheck2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icCal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -1906,7 +1931,7 @@ const I18N = {
     'fmt.oclock': '{t} Uhr', 'fmt.allday': 'Ganztägig', 'fmt.due': 'fällig {d}', 'fmt.overdue': 'überfällig', 'fmt.nodate': 'ohne Datum', 'fmt.once_today': 'einmalig heute', 'fmt.daily': 'täglich', 'fmt.turns': 'wird {n}', 'fmt.whole_family': '👪 ganze Familie', 'fmt.deadline': 'Frist {d}', 'ct.deadline_passed': 'Frist abgelaufen', 'ct.cancellable': 'kündbar {d}', 'ct.per_month': '/ Monat', 'ct.per_year': '/ Jahr', 'cu.every_months': 'alle {n} Monate', 'cu.last': 'zuletzt {d}', 'cu.next': 'nächste {d}', 'wt.weekly': 'wöchentlich', 'wt.evenweek': 'gerade KW', 'wt.oddweek': 'ungerade KW', 'vault.only_device': 'Nur auf diesem Gerät', 'sh.done': 'Erledigt', 'sh.assignTo': '🛒 Zuweisen an …', 'sh.assign': 'Zuweisen', 'sh.unassign': 'Aufheben', 'sh.forFamily': 'Einkauf für die Familie', 'sh.forYou': 'Für dich', 'sh.assignedTo': 'Zugewiesen an {name}', 'sh.by': 'von {name}', 'sh.due': 'fällig {d}', 'sh.progress': '{done}/{total} erledigt', 'sh.celebrate': 'Einkauf erledigt – super! ✓', 'sh.open': '{n} offen', 'sh.suggest': 'Vorschläge:', 'sh.needBy': 'brauche bis',
     'greet.event_1': '{n} Termin', 'greet.event_n': '{n} Termine', 'greet.task_1': '{n} offene Aufgabe', 'greet.task_n': '{n} offene Aufgaben', 'greet.and': 'und', 'greet.today': '{date} — heute {items}.', 'greet.calm': '{date} — alles im Griff, nichts Dringendes. 🌿', 'day.events_on': 'Termine am {date}',
     'fmt.years_short': 'J.', 'role.owner': 'Administrator', 'role.adult': 'Erwachsen', 'role.child': 'Kind', 'role.ai_on': 'KI aktiv', 'role.ai_off': '🔒 keine KI', 'doc.from': 'von {s}', 'doc.deadline': 'Frist: {date} ({rel})', 'doc.expired': 'abgelaufen', 'school.no_subjects': 'Noch keine Fächer am {day}.',
-    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.contracts': 'Verträge & Abos', 'nav.vault': 'Dokumenten-Tresor', 'nav.shopping': 'Einkaufsliste', 'nav.waste': 'Müllkalender', 'nav.checkup': 'Vorsorge & Erinnerungen', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
+    'nav.dashboard': 'Start', 'nav.work': 'Arbeitszeit', 'nav.docs': 'Effyra AI Dokumentenassistent', 'nav.docgen': 'Briefe Vorlagen', 'nav.life': 'Lebenslagen', 'nav.tasks': 'Aufgaben', 'nav.calendar': 'Kalender', 'nav.school': 'Kinder', 'nav.family': 'Familienzentrale', 'nav.emergency': 'Notfallbereich', 'nav.vehicles': 'Auto & Motorrad', 'nav.contracts': 'Verträge & Abos', 'nav.vault': 'Dokumenten-Tresor', 'nav.shopping': 'Einkaufsliste', 'nav.waste': 'Müllkalender', 'nav.checkup': 'Vorsorge & Erinnerungen', 'nav.fit': 'EffyraFit', 'nav.help': 'Hilfe & Anleitung', 'nav.chat': 'Effyra AI', 'nav.settings': 'Einstellungen', 'nav.more': 'Mehr',
     'tab.start': 'Start', 'tab.assistant': 'Assistent', 'tab.tasks': 'Aufgaben',
     'dash.morning': 'Guten Morgen', 'dash.day': 'Guten Tag', 'dash.evening': 'Guten Abend', 'dash.night': 'Gute Nacht',
     'dash.stat_open': 'Offene Aufgaben', 'dash.stat_today': 'Termine heute', 'dash.stat_docs': 'Dokumente',
@@ -1923,7 +1948,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'All day', 'fmt.due': 'due {d}', 'fmt.overdue': 'overdue', 'fmt.nodate': 'no date', 'fmt.once_today': 'once today', 'fmt.daily': 'daily', 'fmt.turns': 'turns {n}', 'fmt.whole_family': '👪 whole family', 'fmt.deadline': 'deadline {d}', 'ct.deadline_passed': 'Deadline passed', 'ct.cancellable': 'cancellable {d}', 'ct.per_month': '/ month', 'ct.per_year': '/ year', 'cu.every_months': 'every {n} months', 'cu.last': 'last {d}', 'cu.next': 'next {d}', 'wt.weekly': 'weekly', 'wt.evenweek': 'even week', 'wt.oddweek': 'odd week', 'vault.only_device': 'Only on this device', 'sh.done': 'Done', 'sh.assignTo': '🛒 Assign to …', 'sh.assign': 'Assign', 'sh.unassign': 'Unassign', 'sh.forFamily': 'Shopping for the family', 'sh.forYou': 'For you', 'sh.assignedTo': 'Assigned to {name}', 'sh.by': 'from {name}', 'sh.due': 'due {d}', 'sh.progress': '{done}/{total} done', 'sh.celebrate': 'Shopping done – great! ✓', 'sh.open': '{n} open', 'sh.suggest': 'Suggestions:', 'sh.needBy': 'need by',
     'greet.event_1': '{n} event', 'greet.event_n': '{n} events', 'greet.task_1': '{n} open task', 'greet.task_n': '{n} open tasks', 'greet.and': 'and', 'greet.today': '{date} — today {items}.', 'greet.calm': '{date} — all under control, nothing urgent. 🌿', 'day.events_on': 'Events on {date}',
     'fmt.years_short': 'yrs', 'role.owner': 'Administrator', 'role.adult': 'Adult', 'role.child': 'Child', 'role.ai_on': 'AI on', 'role.ai_off': '🔒 no AI', 'doc.from': 'from {s}', 'doc.deadline': 'Deadline: {date} ({rel})', 'doc.expired': 'expired', 'school.no_subjects': 'No subjects on {day} yet.',
-    'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.contracts': 'Contracts & subscriptions', 'nav.vault': 'Document vault', 'nav.shopping': 'Shopping list', 'nav.waste': 'Waste calendar', 'nav.checkup': 'Check-ups & reminders', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
+    'nav.dashboard': 'Home', 'nav.work': 'Working hours', 'nav.docs': 'Document scanner', 'nav.docgen': 'Document assistant', 'nav.life': 'Life situations', 'nav.tasks': 'Tasks', 'nav.calendar': 'Calendar', 'nav.school': 'Kids', 'nav.family': 'Family hub', 'nav.emergency': 'Emergency', 'nav.vehicles': 'Car & Motorcycle', 'nav.contracts': 'Contracts & subscriptions', 'nav.vault': 'Document vault', 'nav.shopping': 'Shopping list', 'nav.waste': 'Waste calendar', 'nav.checkup': 'Check-ups & reminders', 'nav.fit': 'EffyraFit', 'nav.help': 'Help & guide', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Settings', 'nav.more': 'More',
     'tab.start': 'Home', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tasks',
     'dash.morning': 'Good morning', 'dash.day': 'Hello', 'dash.evening': 'Good evening', 'dash.night': 'Good night',
     'dash.stat_open': 'Open tasks', 'dash.stat_today': 'Today’s events', 'dash.stat_docs': 'Documents',
@@ -1940,7 +1965,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'Toute la journée', 'fmt.due': 'échéance {d}', 'fmt.overdue': 'en retard', 'fmt.nodate': 'sans date', 'fmt.once_today': "une fois aujourd'hui", 'fmt.daily': 'quotidien', 'fmt.turns': 'aura {n} ans', 'fmt.whole_family': '👪 toute la famille', 'fmt.deadline': 'échéance {d}', 'ct.deadline_passed': 'Délai dépassé', 'ct.cancellable': 'résiliable {d}', 'ct.per_month': '/ mois', 'ct.per_year': '/ an', 'cu.every_months': 'tous les {n} mois', 'cu.last': 'dernière fois {d}', 'cu.next': 'prochaine {d}', 'wt.weekly': 'hebdomadaire', 'wt.evenweek': 'semaine paire', 'wt.oddweek': 'semaine impaire', 'vault.only_device': 'Uniquement sur cet appareil', 'sh.done': 'Terminé', 'sh.assignTo': '🛒 Attribuer à …', 'sh.assign': 'Attribuer', 'sh.unassign': 'Annuler', 'sh.forFamily': 'Courses pour la famille', 'sh.forYou': 'Pour toi', 'sh.assignedTo': 'Attribué à {name}', 'sh.by': 'de {name}', 'sh.due': 'pour {d}', 'sh.progress': '{done}/{total} faits', 'sh.celebrate': 'Courses terminées – super ! ✓', 'sh.open': '{n} à faire', 'sh.suggest': 'Suggestions :', 'sh.needBy': 'besoin pour',
     'greet.event_1': '{n} événement', 'greet.event_n': '{n} événements', 'greet.task_1': '{n} tâche ouverte', 'greet.task_n': '{n} tâches ouvertes', 'greet.and': 'et', 'greet.today': "{date} — aujourd'hui {items}.", 'greet.calm': '{date} — tout est sous contrôle, rien d’urgent. 🌿', 'day.events_on': 'Événements le {date}',
     'fmt.years_short': 'ans', 'role.owner': 'Administrateur', 'role.adult': 'Adulte', 'role.child': 'Enfant', 'role.ai_on': 'IA active', 'role.ai_off': '🔒 pas d’IA', 'doc.from': 'de {s}', 'doc.deadline': 'Échéance : {date} ({rel})', 'doc.expired': 'expiré', 'school.no_subjects': 'Aucune matière le {day}.',
-    'nav.dashboard': 'Accueil', 'nav.work': 'Temps de travail', 'nav.docs': 'Scanner de documents', 'nav.docgen': 'Assistant de documents', 'nav.life': 'Situations de vie', 'nav.tasks': 'Tâches', 'nav.calendar': 'Calendrier', 'nav.school': 'Enfants', 'nav.family': 'Espace famille', 'nav.emergency': 'Urgences', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contrats & abonnements', 'nav.vault': 'Coffre à documents', 'nav.shopping': 'Liste de courses', 'nav.waste': 'Calendrier des déchets', 'nav.checkup': 'Prévention & rappels', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Paramètres', 'nav.more': 'Plus',
+    'nav.dashboard': 'Accueil', 'nav.work': 'Temps de travail', 'nav.docs': 'Scanner de documents', 'nav.docgen': 'Assistant de documents', 'nav.life': 'Situations de vie', 'nav.tasks': 'Tâches', 'nav.calendar': 'Calendrier', 'nav.school': 'Enfants', 'nav.family': 'Espace famille', 'nav.emergency': 'Urgences', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contrats & abonnements', 'nav.vault': 'Coffre à documents', 'nav.shopping': 'Liste de courses', 'nav.waste': 'Calendrier des déchets', 'nav.checkup': 'Prévention & rappels', 'nav.fit': 'EffyraFit', 'nav.help': 'Aide & guide', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Paramètres', 'nav.more': 'Plus',
     'tab.start': 'Accueil', 'tab.assistant': 'Assistant', 'tab.tasks': 'Tâches',
     'dash.morning': 'Bonjour', 'dash.day': 'Bonjour', 'dash.evening': 'Bonsoir', 'dash.night': 'Bonne nuit',
     'dash.stat_open': 'Tâches ouvertes', 'dash.stat_today': "Événements du jour", 'dash.stat_docs': 'Documents',
@@ -1957,7 +1982,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'Todo el día', 'fmt.due': 'vence {d}', 'fmt.overdue': 'vencido', 'fmt.nodate': 'sin fecha', 'fmt.once_today': 'una vez hoy', 'fmt.daily': 'a diario', 'fmt.turns': 'cumple {n}', 'fmt.whole_family': '👪 toda la familia', 'fmt.deadline': 'plazo {d}', 'ct.deadline_passed': 'Plazo vencido', 'ct.cancellable': 'cancelable {d}', 'ct.per_month': '/ mes', 'ct.per_year': '/ año', 'cu.every_months': 'cada {n} meses', 'cu.last': 'última vez {d}', 'cu.next': 'próxima {d}', 'wt.weekly': 'semanal', 'wt.evenweek': 'semana par', 'wt.oddweek': 'semana impar', 'vault.only_device': 'Solo en este dispositivo', 'sh.done': 'Hecho', 'sh.assignTo': '🛒 Asignar a …', 'sh.assign': 'Asignar', 'sh.unassign': 'Quitar', 'sh.forFamily': 'Compra para la familia', 'sh.forYou': 'Para ti', 'sh.assignedTo': 'Asignado a {name}', 'sh.by': 'de {name}', 'sh.due': 'para {d}', 'sh.progress': '{done}/{total} hechos', 'sh.celebrate': '¡Compra hecha – genial! ✓', 'sh.open': '{n} pendientes', 'sh.suggest': 'Sugerencias:', 'sh.needBy': 'necesito para',
     'greet.event_1': '{n} evento', 'greet.event_n': '{n} eventos', 'greet.task_1': '{n} tarea abierta', 'greet.task_n': '{n} tareas abiertas', 'greet.and': 'y', 'greet.today': '{date} — hoy {items}.', 'greet.calm': '{date} — todo bajo control, nada urgente. 🌿', 'day.events_on': 'Eventos el {date}',
     'fmt.years_short': 'años', 'role.owner': 'Administrador', 'role.adult': 'Adulto', 'role.child': 'Niño', 'role.ai_on': 'IA activa', 'role.ai_off': '🔒 sin IA', 'doc.from': 'de {s}', 'doc.deadline': 'Plazo: {date} ({rel})', 'doc.expired': 'vencido', 'school.no_subjects': 'Aún no hay asignaturas el {day}.',
-    'nav.dashboard': 'Inicio', 'nav.work': 'Horario laboral', 'nav.docs': 'Escáner de documentos', 'nav.docgen': 'Asistente de documentos', 'nav.life': 'Situaciones de vida', 'nav.tasks': 'Tareas', 'nav.calendar': 'Calendario', 'nav.school': 'Niños', 'nav.family': 'Centro familiar', 'nav.emergency': 'Emergencia', 'nav.vehicles': 'Coche y Moto', 'nav.contracts': 'Contratos y suscripciones', 'nav.vault': 'Caja fuerte de documentos', 'nav.shopping': 'Lista de la compra', 'nav.waste': 'Calendario de basura', 'nav.checkup': 'Revisiones y recordatorios', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ajustes', 'nav.more': 'Más',
+    'nav.dashboard': 'Inicio', 'nav.work': 'Horario laboral', 'nav.docs': 'Escáner de documentos', 'nav.docgen': 'Asistente de documentos', 'nav.life': 'Situaciones de vida', 'nav.tasks': 'Tareas', 'nav.calendar': 'Calendario', 'nav.school': 'Niños', 'nav.family': 'Centro familiar', 'nav.emergency': 'Emergencia', 'nav.vehicles': 'Coche y Moto', 'nav.contracts': 'Contratos y suscripciones', 'nav.vault': 'Caja fuerte de documentos', 'nav.shopping': 'Lista de la compra', 'nav.waste': 'Calendario de basura', 'nav.checkup': 'Revisiones y recordatorios', 'nav.fit': 'EffyraFit', 'nav.help': 'Ayuda y guía', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ajustes', 'nav.more': 'Más',
     'tab.start': 'Inicio', 'tab.assistant': 'Asistente', 'tab.tasks': 'Tareas',
     'dash.morning': 'Buenos días', 'dash.day': 'Hola', 'dash.evening': 'Buenas tardes', 'dash.night': 'Buenas noches',
     'dash.stat_open': 'Tareas abiertas', 'dash.stat_today': 'Eventos de hoy', 'dash.stat_docs': 'Documentos',
@@ -1974,7 +1999,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'Tutto il giorno', 'fmt.due': 'scade {d}', 'fmt.overdue': 'in ritardo', 'fmt.nodate': 'senza data', 'fmt.once_today': 'una volta oggi', 'fmt.daily': 'ogni giorno', 'fmt.turns': 'compie {n}', 'fmt.whole_family': '👪 tutta la famiglia', 'fmt.deadline': 'scadenza {d}', 'ct.deadline_passed': 'Termine scaduto', 'ct.cancellable': 'disdicibile {d}', 'ct.per_month': '/ mese', 'ct.per_year': '/ anno', 'cu.every_months': 'ogni {n} mesi', 'cu.last': 'ultima volta {d}', 'cu.next': 'prossima {d}', 'wt.weekly': 'settimanale', 'wt.evenweek': 'settimana pari', 'wt.oddweek': 'settimana dispari', 'vault.only_device': 'Solo su questo dispositivo', 'sh.done': 'Completato', 'sh.assignTo': '🛒 Assegna a …', 'sh.assign': 'Assegna', 'sh.unassign': 'Rimuovi', 'sh.forFamily': 'Spesa per la famiglia', 'sh.forYou': 'Per te', 'sh.assignedTo': 'Assegnato a {name}', 'sh.by': 'da {name}', 'sh.due': 'entro {d}', 'sh.progress': '{done}/{total} fatti', 'sh.celebrate': 'Spesa fatta – ottimo! ✓', 'sh.open': '{n} da fare', 'sh.suggest': 'Suggerimenti:', 'sh.needBy': 'serve entro',
     'greet.event_1': '{n} evento', 'greet.event_n': '{n} eventi', 'greet.task_1': '{n} attività aperta', 'greet.task_n': '{n} attività aperte', 'greet.and': 'e', 'greet.today': '{date} — oggi {items}.', 'greet.calm': '{date} — tutto sotto controllo, niente di urgente. 🌿', 'day.events_on': 'Eventi il {date}',
     'fmt.years_short': 'anni', 'role.owner': 'Amministratore', 'role.adult': 'Adulto', 'role.child': 'Bambino', 'role.ai_on': 'IA attiva', 'role.ai_off': '🔒 niente IA', 'doc.from': 'da {s}', 'doc.deadline': 'Scadenza: {date} ({rel})', 'doc.expired': 'scaduto', 'school.no_subjects': 'Nessuna materia il {day}.',
-    'nav.dashboard': 'Home', 'nav.work': 'Orario di lavoro', 'nav.docs': 'Scanner documenti', 'nav.docgen': 'Assistente documenti', 'nav.life': 'Situazioni di vita', 'nav.tasks': 'Attività', 'nav.calendar': 'Calendario', 'nav.school': 'Bambini', 'nav.family': 'Area famiglia', 'nav.emergency': 'Emergenza', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contratti e abbonamenti', 'nav.vault': 'Cassaforte documenti', 'nav.shopping': 'Lista della spesa', 'nav.waste': 'Calendario rifiuti', 'nav.checkup': 'Prevenzione e promemoria', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Impostazioni', 'nav.more': 'Altro',
+    'nav.dashboard': 'Home', 'nav.work': 'Orario di lavoro', 'nav.docs': 'Scanner documenti', 'nav.docgen': 'Assistente documenti', 'nav.life': 'Situazioni di vita', 'nav.tasks': 'Attività', 'nav.calendar': 'Calendario', 'nav.school': 'Bambini', 'nav.family': 'Area famiglia', 'nav.emergency': 'Emergenza', 'nav.vehicles': 'Auto & Moto', 'nav.contracts': 'Contratti e abbonamenti', 'nav.vault': 'Cassaforte documenti', 'nav.shopping': 'Lista della spesa', 'nav.waste': 'Calendario rifiuti', 'nav.checkup': 'Prevenzione e promemoria', 'nav.fit': 'EffyraFit', 'nav.help': 'Aiuto e guida', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Impostazioni', 'nav.more': 'Altro',
     'tab.start': 'Home', 'tab.assistant': 'Assistente', 'tab.tasks': 'Attività',
     'dash.morning': 'Buongiorno', 'dash.day': 'Ciao', 'dash.evening': 'Buonasera', 'dash.night': 'Buonanotte',
     'dash.stat_open': 'Attività aperte', 'dash.stat_today': 'Eventi di oggi', 'dash.stat_docs': 'Documenti',
@@ -1991,7 +2016,7 @@ const I18N = {
     'fmt.oclock': '{t}', 'fmt.allday': 'Cały dzień', 'fmt.due': 'termin {d}', 'fmt.overdue': 'zaległe', 'fmt.nodate': 'bez daty', 'fmt.once_today': 'jednorazowo dziś', 'fmt.daily': 'codziennie', 'fmt.turns': 'kończy {n}', 'fmt.whole_family': '👪 cała rodzina', 'fmt.deadline': 'termin {d}', 'ct.deadline_passed': 'Termin minął', 'ct.cancellable': 'można wypowiedzieć {d}', 'ct.per_month': '/ mies.', 'ct.per_year': '/ rok', 'cu.every_months': 'co {n} mies.', 'cu.last': 'ostatnio {d}', 'cu.next': 'następna {d}', 'wt.weekly': 'co tydzień', 'wt.evenweek': 'tydzień parzysty', 'wt.oddweek': 'tydzień nieparzysty', 'vault.only_device': 'Tylko na tym urządzeniu', 'sh.done': 'Ukończone', 'sh.assignTo': '🛒 Przypisz do …', 'sh.assign': 'Przypisz', 'sh.unassign': 'Cofnij', 'sh.forFamily': 'Zakupy dla rodziny', 'sh.forYou': 'Dla Ciebie', 'sh.assignedTo': 'Przypisane: {name}', 'sh.by': 'od {name}', 'sh.due': 'na {d}', 'sh.progress': '{done}/{total} gotowe', 'sh.celebrate': 'Zakupy zrobione – super! ✓', 'sh.open': '{n} do zrobienia', 'sh.suggest': 'Propozycje:', 'sh.needBy': 'potrzebne na',
     'greet.event_1': '{n} wydarzenie', 'greet.event_n': '{n} wydarzenia', 'greet.task_1': '{n} otwarte zadanie', 'greet.task_n': '{n} otwartych zadań', 'greet.and': 'i', 'greet.today': '{date} — dziś {items}.', 'greet.calm': '{date} — wszystko pod kontrolą, nic pilnego. 🌿', 'day.events_on': 'Wydarzenia dnia {date}',
     'fmt.years_short': 'l.', 'role.owner': 'Administrator', 'role.adult': 'Dorosły', 'role.child': 'Dziecko', 'role.ai_on': 'AI aktywna', 'role.ai_off': '🔒 bez AI', 'doc.from': 'od {s}', 'doc.deadline': 'Termin: {date} ({rel})', 'doc.expired': 'minął', 'school.no_subjects': 'Brak przedmiotów w {day}.',
-    'nav.dashboard': 'Start', 'nav.work': 'Czas pracy', 'nav.docs': 'Skaner dokumentów', 'nav.docgen': 'Asystent dokumentów', 'nav.life': 'Sytuacje życiowe', 'nav.tasks': 'Zadania', 'nav.calendar': 'Kalendarz', 'nav.school': 'Dzieci', 'nav.family': 'Centrum rodziny', 'nav.emergency': 'Nagły wypadek', 'nav.vehicles': 'Auto i Motocykl', 'nav.contracts': 'Umowy i subskrypcje', 'nav.vault': 'Sejf na dokumenty', 'nav.shopping': 'Lista zakupów', 'nav.waste': 'Kalendarz wywozu śmieci', 'nav.checkup': 'Profilaktyka i przypomnienia', 'nav.fit': 'EffyraFit', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ustawienia', 'nav.more': 'Więcej',
+    'nav.dashboard': 'Start', 'nav.work': 'Czas pracy', 'nav.docs': 'Skaner dokumentów', 'nav.docgen': 'Asystent dokumentów', 'nav.life': 'Sytuacje życiowe', 'nav.tasks': 'Zadania', 'nav.calendar': 'Kalendarz', 'nav.school': 'Dzieci', 'nav.family': 'Centrum rodziny', 'nav.emergency': 'Nagły wypadek', 'nav.vehicles': 'Auto i Motocykl', 'nav.contracts': 'Umowy i subskrypcje', 'nav.vault': 'Sejf na dokumenty', 'nav.shopping': 'Lista zakupów', 'nav.waste': 'Kalendarz wywozu śmieci', 'nav.checkup': 'Profilaktyka i przypomnienia', 'nav.fit': 'EffyraFit', 'nav.help': 'Pomoc i przewodnik', 'nav.chat': 'Effyra Chat', 'nav.settings': 'Ustawienia', 'nav.more': 'Więcej',
     'tab.start': 'Start', 'tab.assistant': 'Asystent', 'tab.tasks': 'Zadania',
     'dash.morning': 'Dzień dobry', 'dash.day': 'Cześć', 'dash.evening': 'Dobry wieczór', 'dash.night': 'Dobranoc',
     'dash.stat_open': 'Otwarte zadania', 'dash.stat_today': 'Dzisiejsze wydarzenia', 'dash.stat_docs': 'Dokumenty',
@@ -2810,7 +2835,75 @@ async function flushAI() {
 let currentView = 'dashboard';
 const RENDERERS = {};
 
-const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'settings'];
+/* ============================== HILFE & ANLEITUNG (app-weit) ==============================
+   Zentrale Modul-Registry (Welle 1). KONVENTION: Ein neues Modul wird ins Hilfe-System
+   integriert, indem hier EIN Eintrag ergänzt wird – KEIN eigener Onboarding-/Hilfe-Code.
+   Felder: id (=view), name, cat, icon, help (wofür ist es da?), steps[] (erste Schritte), keys[] (Suche). */
+const MODULE_CATS = [
+  { id: 'ki', label: 'KI & Dokumente' },
+  { id: 'alltag', label: 'Alltag & Organisation' },
+  { id: 'familie', label: 'Familie' },
+  { id: 'gesundheit', label: 'Gesundheit & Bewegung' },
+  { id: 'finanzen', label: 'Arbeit & Finanzen' }
+];
+const MODULES = [
+  { id: 'chat', name: 'Effyra AI', cat: 'ki', icon: '🤖', help: 'Dein Sprach- und Text-Assistent: Sag einfach, was ansteht – Effyra legt Termine, Aufgaben, Ausgaben oder Notizen automatisch an.', steps: ['Tippe oder sprich „Termin morgen 15 Uhr Zahnarzt".', 'Frag „Was steht heute an?".'], keys: ['assistent', 'sprache', 'chat', 'ki', 'fragen', 'termin anlegen'] },
+  { id: 'docs', name: 'Effyra AI Dokumentenassistent', cat: 'ki', icon: '📄', help: 'Fotografiere einen Brief – Effyra erklärt ihn in einfachen Worten, erkennt Fristen und schlägt Aufgaben & Antworten vor.', steps: ['Tippe auf „Dokument scannen" und fotografiere einen Brief.', 'Übernimm die erkannte Frist in den Kalender.'], keys: ['brief', 'scan', 'dokument', 'frist', 'post', 'mahnung', 'analyse'] },
+  { id: 'docgen', name: 'Briefe Vorlagen', cat: 'ki', icon: '✍️', help: 'Fertige Brief-Vorlagen (Kündigung, Widerspruch u. v. m.) – deine Daten sind schon eingetragen, du ergänzt nur Details und druckst als PDF.', steps: ['Wähle eine Vorlage, z. B. „Kündigung".', 'Ergänze die Angaben und exportiere als PDF.'], keys: ['brief', 'vorlage', 'kündigung', 'widerspruch', 'pdf', 'schreiben'] },
+  { id: 'vault', name: 'Dokumenten-Tresor', cat: 'ki', icon: '🔐', help: 'Wichtige Dokumente sicher an einem Ort ablegen und blitzschnell wiederfinden – Fotos bleiben verschlüsselt auf deinem Gerät.', steps: ['Lege den ersten Eintrag an (z. B. „Ausweis").', 'Nutze die Suche, um ihn sofort zu finden.'], keys: ['tresor', 'dokumente', 'ablage', 'suche', 'ausweis', 'versicherung'] },
+  { id: 'tasks', name: 'Aufgaben', cat: 'alltag', icon: '✅', help: 'Alle To-dos an einem Ort – mit Fälligkeit und Priorität; überfällige werden hervorgehoben, damit nichts liegen bleibt.', steps: ['Lege deine erste Aufgabe an.', 'Setze eine Fälligkeit für eine wichtige Aufgabe.'], keys: ['aufgaben', 'todo', 'erledigen', 'fällig', 'priorität'] },
+  { id: 'calendar', name: 'Kalender', cat: 'alltag', icon: '📅', help: 'Dein Terminüberblick – Termine aus Briefen, Kindern und Fahrzeugen laufen hier automatisch zusammen.', steps: ['Trage deinen ersten Termin ein.', 'Schau dir „Anstehend" für die nächsten Tage an.'], keys: ['kalender', 'termin', 'datum', 'erinnerung'] },
+  { id: 'shopping', name: 'Einkaufsliste', cat: 'alltag', icon: '🛒', help: 'Gemeinsame Einkaufsliste für die Familie – mit Mengen, Kategorie-Icons und Zuweisung; Zutaten aus „Gericht des Tages" direkt übernehmbar.', steps: ['Füge den ersten Artikel hinzu.', 'Weise die Liste einem Familienmitglied zu (wenn verbunden).'], keys: ['einkaufen', 'liste', 'supermarkt', 'besorgen', 'zutaten'] },
+  { id: 'waste', name: 'Müllkalender', cat: 'alltag', icon: '🗑️', help: 'Nie wieder die Tonne verpassen – trage deine Abholtage ein, das Dashboard erinnert dich rechtzeitig.', steps: ['Trage deine erste Tonne mit Wochentag ein.', 'Prüfe den Hinweis auf dem Dashboard.'], keys: ['müll', 'tonne', 'abholung', 'biotonne', 'restmüll'] },
+  { id: 'life', name: 'Lebenslagen', cat: 'alltag', icon: '🧭', help: 'Schritt-für-Schritt-Hilfe für große Lebensereignisse (Umzug, Nachwuchs u. a.) – mit Checklisten, damit nichts vergessen wird.', steps: ['Wähle eine Lebenslage aus.', 'Hake die ersten Schritte ab.'], keys: ['umzug', 'geburt', 'checkliste', 'behörde', 'lebenslage'] },
+  { id: 'family', name: 'Familienzentrale', cat: 'familie', icon: '👪', help: 'Alles Gemeinsame an einem Ort: geteilter Kalender, Aufgaben, Budget, Medikamente & Anlässe – synchron mit dem Partner.', steps: ['Füge Familienmitglieder hinzu.', 'Verbinde dich per Sync mit deinem Partner.'], keys: ['familie', 'partner', 'sync', 'budget', 'medikamente', 'geteilt'] },
+  { id: 'school', name: 'Kinder', cat: 'familie', icon: '🧒', help: 'Organisiere deine Kinder: Stundenplan, Arzt-/Impftermine, Hobbys und Packlisten – Termine erscheinen automatisch im Kalender.', steps: ['Lege ein Kind an.', 'Trage einen Stundenplan oder Termin ein.'], keys: ['kinder', 'schule', 'stundenplan', 'impfung', 'hobby', 'packen'] },
+  { id: 'fit', name: 'EffyraFit', cat: 'gesundheit', icon: '💪', help: 'Bewegung mit Erfolgserlebnis: starte bewusst eine Einheit (Schritte, km, Kalorien) oder trage manuell nach – mit Tagesziel und Belohnungen.', steps: ['Trage in ⚙️ Einstellungen Gewicht & Größe ein.', 'Starte eine Einheit oder trage eine Aktivität nach.'], keys: ['sport', 'bewegung', 'schritte', 'kalorien', 'fitness', 'ziel'] },
+  { id: 'checkup', name: 'Vorsorge & Erinnerungen', cat: 'gesundheit', icon: '🩺', help: 'Werde rechtzeitig an Vorsorge & Impfungen erinnert – wähle aus 50+ Vorlagen, der nächste Termin wird automatisch berechnet.', steps: ['Wähle eine Vorlage, z. B. „Zahnarzt".', 'Trage „zuletzt am" ein – der nächste Termin erscheint.'], keys: ['vorsorge', 'arzt', 'impfung', 'gesundheit', 'zahnarzt'] },
+  { id: 'emergency', name: 'Notfallbereich', cat: 'gesundheit', icon: '🆘', help: 'Wichtige Notfall-Infos griffbereit: Kontakte, medizinische Angaben, Versicherungen – bleibt rein lokal auf deinem Gerät.', steps: ['Trage einen Notfallkontakt ein.', 'Ergänze deine wichtigsten medizinischen Angaben.'], keys: ['notfall', 'kontakt', 'blutgruppe', 'allergie', 'versicherung'] },
+  { id: 'work', name: 'Arbeitszeit', cat: 'finanzen', icon: '🕒', help: 'Erfasse Arbeitszeiten, Schichten und Abwesenheiten – mit Pausen, Saldo und Arbeitszeitnachweis als PDF.', steps: ['Lege deine Dienste (Früh/Spät/Nacht) mit Zeiten an.', 'Trage einen Arbeitstag ein.'], keys: ['arbeit', 'schicht', 'stunden', 'dienst', 'überstunden', 'urlaub'] },
+  { id: 'contracts', name: 'Verträge & Abos', cat: 'finanzen', icon: '🧾', help: 'Behalte Verträge & Abos im Blick – mit Kündigungsfristen-Radar und Direktlink in den Kündigungsbrief.', steps: ['Lege einen Vertrag mit Kündigungsfrist an.', 'Prüfe das Fristen-Radar auf dem Dashboard.'], keys: ['vertrag', 'abo', 'kündigung', 'frist', 'kosten'] },
+  { id: 'vehicles', name: 'Auto & Motorrad', cat: 'finanzen', icon: '🚗', help: 'Verwalte deine Fahrzeuge: TÜV/HU, Tankvorgänge und Kosten – die App erinnert rechtzeitig an fällige Termine.', steps: ['Lege ein Fahrzeug an.', 'Trage den TÜV-Termin ein.'], keys: ['auto', 'motorrad', 'tüv', 'tanken', 'kosten', 'fahrzeug'] }
+];
+function moduleMeta(id) { for (let i = 0; i < MODULES.length; i++) if (MODULES[i].id === id) return MODULES[i]; return null; }
+/* Kontextuelle Hilfe: „?"-Button oben zeigt Hilfe zum aktuellen Bereich; ohne Registry-Eintrag → Hilfe-Center. */
+function helpOpen(viewId) {
+  const m = moduleMeta(viewId);
+  if (!m) { showView('help'); return; }
+  let ov = document.getElementById('helpOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'helpOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert help-modal" role="dialog" aria-modal="true"><div style="font-size:40px">' + m.icon + '</div><h3>' + esc(m.name) + '</h3>' +
+    '<p style="color:var(--muted);font-size:14px;line-height:1.55">' + esc(m.help) + '</p>' +
+    ((m.steps && m.steps.length) ? '<div class="help-steps-t" style="margin-top:12px">Erste Schritte</div><ol class="help-steps">' + m.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>' : '') +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="helpAll">📖 Alle Funktionen</button><button class="btn btn-sm btn-primary" id="helpClose">Verstanden</button></div></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  document.getElementById('helpClose').onclick = close;
+  document.getElementById('helpAll').onclick = () => { close(); showView('help'); };
+  ov.onclick = e => { if (e.target === ov) close(); };
+  const kh = e => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', kh); } };
+  document.addEventListener('keydown', kh);
+}
+RENDERERS.help = function () {
+  const box = $('#helpRoot'); if (!box) return;
+  let h = '<div class="view-head"><h1>❓ Hilfe &amp; Anleitung</h1><p>Alle Funktionen von Effyra – kurz erklärt, wofür sie da sind. Tippe eine Karte für die ersten Schritte.</p></div>';
+  MODULE_CATS.forEach(c => {
+    const mods = MODULES.filter(m => m.cat === c.id);
+    if (!mods.length) return;
+    h += '<div class="help-cat">' + esc(c.label) + '</div>';
+    mods.forEach(m => {
+      h += '<details class="help-card"><summary><span class="help-ic">' + m.icon + '</span><span class="help-tx"><b>' + esc(m.name) + '</b><span>' + esc(m.help) + '</span></span></summary>' +
+        '<div class="help-body">' + ((m.steps && m.steps.length) ? '<div class="help-steps-t">Erste Schritte</div><ol class="help-steps">' + m.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>' : '') +
+        '<button class="btn btn-sm btn-primary" data-go="' + m.id + '">' + esc(m.name) + ' öffnen</button></div></details>';
+    });
+  });
+  h += '<div class="fit-note" style="margin-top:16px">💡 Tipp: Das <b>?</b> oben rechts zeigt dir jederzeit Hilfe zum gerade geöffneten Bereich.</div>';
+  box.innerHTML = h;
+  if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box);
+};
+if ($('#helpRoot')) $('#helpRoot').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) showView(b.dataset.go); });
+
+const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
 let viewHistory = [], _navBack = false;
 function showView(name) {
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
@@ -2880,6 +2973,7 @@ async function startCheckout(product) {
 
 $$('[data-view]').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 $('#btnTopSettings').addEventListener('click', () => showView('settings'));
+$('#btnTopHelp').addEventListener('click', () => helpOpen(currentView));
 $('#moreTab').addEventListener('click', () => $('#moreSheet').classList.toggle('on'));
 $('#moreSheet').addEventListener('click', e => { if (e.target === $('#moreSheet')) $('#moreSheet').classList.remove('on'); });
 
