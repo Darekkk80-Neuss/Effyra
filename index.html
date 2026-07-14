@@ -1022,9 +1022,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 
 /* ============================== ARBEITSZEIT ============================== */
 /* Dienst-Kachel (Glassmorphism, dezente Farbe je Dienst über CSS-Variablen aus WORK_SHIFTS) */
-.cal-day.wsh{background:var(--wshbg);box-shadow:inset 0 0 0 1px var(--wshbd),0 2px 8px rgba(30,40,80,.05)}
-.cal-day.wsh:hover{background:var(--wshbg);box-shadow:inset 0 0 0 1.5px var(--wsh),0 5px 14px rgba(30,40,80,.12)}
-.cal-day.wsh.today{box-shadow:inset 0 0 0 1.6px var(--wsh),0 2px 8px rgba(30,40,80,.06)}
+.cal-day.wsh{background:var(--wshg);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 3px 10px var(--wshsh)}
+.cal-day.wsh .cd-num{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.cal-day.wsh:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),0 6px 16px var(--wshsh)}
+.cal-day.wsh.today{box-shadow:inset 0 0 0 2px #fff,0 3px 10px var(--wshsh)}
+.cal-day.wsh.dim{opacity:.62}
 .cal-day .cd-num{position:relative;z-index:1}
 .cal-day .cd-ic{position:absolute;top:3px;right:4px;font-size:9px;line-height:1}
 .cal-day .cd-badges{position:absolute;bottom:3px;left:0;right:0;display:flex;justify-content:center;gap:3px;height:5px}
@@ -7745,8 +7747,9 @@ const DE_STATES = { BW: 'Baden-Württemberg', BY: 'Bayern', BE: 'Berlin', BB: 'B
 const WORK_SHIFTS = {
   // Zeiten/Pause bewusst LEER – der Nutzer legt Beginn/Ende/Pause je Dienst selbst fest (im Tab „Dienste" oder pro Tag).
   early:       { name: 'Frühdienst',  icon: '🌅', color: '#2563eb', grad: 'linear-gradient(135deg,#60a5fa,#2563eb)', defStart: '', defEnd: '', defBreak: '', shift: true },
-  late:        { name: 'Spätdienst',  icon: '🌇', color: '#ea580c', grad: 'linear-gradient(135deg,#fb923c,#f59e0b)', defStart: '', defEnd: '', defBreak: '', shift: true },
-  night:       { name: 'Nachtdienst', icon: '🌙', color: '#4f46e5', grad: 'linear-gradient(135deg,#818cf8,#4f46e5)', defStart: '', defEnd: '', defBreak: '', shift: true },
+  late:        { name: 'Spätdienst',  icon: '🌇', color: '#ea580c', grad: 'linear-gradient(135deg,#fb923c,#ea580c)', defStart: '', defEnd: '', defBreak: '', shift: true },
+  night:       { name: 'Nachtdienst', icon: '🌙', color: '#4338ca', grad: 'linear-gradient(135deg,#818cf8,#4338ca)', defStart: '', defEnd: '', defBreak: '', shift: true },
+  frei:        { name: 'Frei',        icon: '☕', color: '#64748b', grad: 'linear-gradient(135deg,#94a3b8,#64748b)' },
   urlaub:      { name: 'Urlaub',      icon: '🏖️', color: '#0d9488' },
   krank:       { name: 'Krank',       icon: '🤒', color: '#ef4444' },
   kinderkrank: { name: 'Kinderkrank', icon: '🧒', color: '#eab308' },
@@ -7760,8 +7763,8 @@ function shiftDef(key) { const base = WORK_SHIFTS[key]; if (!base) return null; 
 /* Dienst aus einer Startzeit ableiten (für Einträge ohne gespeicherten Dienst) */
 function inferShift(start) { if (!start) return 'late'; const h = +String(start).slice(0, 2); return h < 11 ? 'early' : (h < 18 ? 'late' : 'night'); }
 /* Alle Dienst-/Status-Schlüssel eines Tages (erstes = primär = füllt die Kachel) */
-function dayShifts(iso) { const out = []; const ab = absenceOn(iso), e = store.work.entries[iso]; if (ab) out.push(ab.type === 'kinderkrank' ? 'kinderkrank' : ab.type === 'urlaub' ? 'urlaub' : 'krank'); else if (e && e.start && e.end) out.push((e.shift && WORK_SHIFTS[e.shift]) ? e.shift : inferShift(e.start)); if (isHoliday(iso)) out.push('feiertag'); return out; }
-const WD_LEGEND = '<div class="wlegend">' + ['early', 'late', 'night', 'urlaub', 'krank', 'feiertag'].map(k => '<span><i style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' ' + WORK_SHIFTS[k].name + '</span>').join('') + '</div>';
+function dayShifts(iso) { const out = []; const ab = absenceOn(iso), e = store.work.entries[iso]; if (ab) out.push(ab.type === 'kinderkrank' ? 'kinderkrank' : ab.type === 'urlaub' ? 'urlaub' : 'krank'); else if (e && e.frei) out.push('frei'); else if (e && e.start && e.end) out.push((e.shift && WORK_SHIFTS[e.shift]) ? e.shift : inferShift(e.start)); if (isHoliday(iso)) out.push('feiertag'); return out; }
+const WD_LEGEND = '<div class="wlegend">' + ['early', 'late', 'night', 'frei', 'urlaub', 'krank', 'feiertag'].map(k => '<span><i style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' ' + WORK_SHIFTS[k].name + '</span>').join('') + '</div>';
 let workTab = 'heute', workCal = null, workSel = null, workYear = null, workMonthSel = null, workAI = null;
 const holCache = {};
 function easterSunday(y) {
@@ -8420,7 +8423,8 @@ function quickAssignChips(iso) {
   let h = '<div class="wq-chips">';
   SHIFT_KEYS.forEach(k => { const s = shiftDef(k); h += '<button class="wq-chip wq-shift" data-wa="applyShift" data-shift="' + k + '" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS[k].color + '">' + WORK_SHIFTS[k].icon + ' ' + esc(s.name) + (s.start && s.end ? ' <span>' + s.start + '–' + s.end + '</span>' : '') + '</button>'; });
   (store.work.shiftTemplates || []).forEach(x => { h += '<button class="wq-chip" data-wa="applyTpl" data-id="' + x.id + '" data-iso="' + iso + '">🗂️ ' + esc(x.name) + ' <span>' + (x.start || '') + '–' + (x.end || '') + '</span></button>'; });
-  h += '<button class="wq-chip abs" data-wa="dayAbs" data-type="urlaub" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.urlaub.color + '">🏖️ Urlaub</button>' +
+  h += '<button class="wq-chip abs" data-wa="dayFree" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.frei.color + '">☕ Frei</button>' +
+    '<button class="wq-chip abs" data-wa="dayAbs" data-type="urlaub" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.urlaub.color + '">🏖️ Urlaub</button>' +
     '<button class="wq-chip abs" data-wa="dayAbs" data-type="krank" data-iso="' + iso + '" style="--c:' + WORK_SHIFTS.krank.color + '">🤒 Krank</button>' +
     '<button class="wq-chip clr" data-wa="clearDay" data-iso="' + iso + '">🗑️ Leeren</button></div>';
   return h;
@@ -8448,21 +8452,23 @@ function workKalender() {
   for (let i = 0; i < cells; i++) {
     const d = new Date(workCal.y, workCal.m, i - offset + 1), iso = toISO(d), dim = d.getMonth() !== workCal.m;
     const sh = dayShifts(iso), primary = sh[0], pd = primary ? WORK_SHIFTS[primary] : null, wsh = pd && iso !== workSel;
-    const vars = wsh ? ' style="--wsh:' + pd.color + ';--wshbg:' + pd.color + '22;--wshbd:' + pd.color + '55"' : '';
+    const wg = pd ? (pd.grad || 'linear-gradient(135deg,' + pd.color + ',' + pd.color + ')') : '';
+    const vars = wsh ? ' style="--wshg:' + wg + ';--wsh:' + pd.color + ';--wshsh:' + pd.color + '55"' : '';
     const ic = wsh ? '<span class="cd-ic">' + pd.icon + '</span>' : '';
     const badges = (sh.length > 1 && iso !== workSel) ? '<span class="cd-badges">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
     grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' sel' : '') + '" data-wday="' + iso + '"' + vars + '><span class="cd-num">' + d.getDate() + '</span>' + ic + badges + '</button>';
   }
-  const _ms = { early: 0, late: 0, night: 0, urlaub: 0, krank: 0 };
+  const _ms = { early: 0, late: 0, night: 0, frei: 0, urlaub: 0, krank: 0 };
   { const _mr = monthRange(workCal.y, workCal.m), _end = parseISO(_mr[1]); for (let d = parseISO(_mr[0]); d <= _end; d.setDate(d.getDate() + 1)) { dayShifts(toISO(d)).forEach(k => { if (k === 'kinderkrank') _ms.krank++; else if (k in _ms) _ms[k]++; }); } }
   const _sc = (k, n, l) => '<span class="wstat"><i class="dot" style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' <b>' + n + '</b> ' + l + '</span>';
-  const wstats = '<div class="wstats">' + _sc('early', _ms.early, 'Früh') + _sc('late', _ms.late, 'Spät') + _sc('night', _ms.night, 'Nacht') + _sc('urlaub', _ms.urlaub, 'Urlaub') + _sc('krank', _ms.krank, 'Krank') + '</div>';
+  const wstats = '<div class="wstats">' + _sc('early', _ms.early, 'Früh') + _sc('late', _ms.late, 'Spät') + _sc('night', _ms.night, 'Nacht') + _sc('frei', _ms.frei, 'Frei') + _sc('urlaub', _ms.urlaub, 'Urlaub') + _sc('krank', _ms.krank, 'Krank') + '</div>';
   let h = wstats + '<div class="card"><div class="cal-head"><h2 style="text-transform:capitalize">' + first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' }) + '</h2><div class="cal-nav"><button class="icon-btn" data-wa="calPrev"><svg viewBox="0 0 24 24"><use href="#icLeft"/></svg></button><button class="icon-btn" data-wa="calNext"><svg viewBox="0 0 24 24"><use href="#icRight"/></svg></button></div></div><div class="cal-grid">' + grid + '</div>' + WD_LEGEND + '</div>';
   h += '<div class="sec-title"><h2>' + fmtDate(workSel) + '</h2></div>';
   if (isHoliday(workSel)) h += '<div class="mem"><span style="font-size:18px">🎉</span><div class="mem-info"><b>Feiertag</b><span>' + esc(holidayName(workSel)) + '</span></div></div>';
   h += quickAssignChips(workSel);
-  const ab = absenceOn(workSel);
+  const ab = absenceOn(workSel), selE = store.work.entries[workSel];
   if (ab) h += '<div class="mem"><span style="font-size:18px">' + ABS_ICON[ab.type] + '</span><div class="mem-info"><b>' + ABS_LABEL[ab.type] + '</b><span>' + fmtDateShort(ab.from) + ' – ' + fmtDateShort(ab.to) + '</span></div></div>';
+  else if (selE && selE.frei) h += '<div class="mem"><span style="font-size:18px">☕</span><div class="mem-info"><b>Frei</b><span>Freier Tag – keine Arbeitszeit</span></div></div>';
   else h += '<div class="card">' + workEntryForm(workSel) + '</div>';
   return h;
 }
@@ -8659,6 +8665,12 @@ $('#workRoot').addEventListener('click', e => {
     if (store.work.entries[di]) { store.work.entries[di].start = ''; store.work.entries[di].end = ''; }
     store.work.absences.push({ id: uid(), type, from: di, to: di, note: '' });
     save(); RENDERERS.work(); toast((type === 'urlaub' ? '🏖️ Urlaub' : '🤒 Krank') + ' eingetragen ✓'); return;
+  }
+  if (a === 'dayFree') {
+    const di = b.dataset.iso;
+    store.work.absences = (store.work.absences || []).filter(z => !(z.from === di && z.to === di));
+    store.work.entries[di] = { frei: true };   // freier Tag (kein Dienst, keine Arbeitszeit)
+    save(); RENDERERS.work(); toast('☕ Frei eingetragen ✓'); return;
   }
   if (a === 'clearDay') {
     const di = b.dataset.iso;
