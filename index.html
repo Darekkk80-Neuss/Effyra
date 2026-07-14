@@ -3317,6 +3317,8 @@ async function syncEntitlements() {
       account.tier = r.data.tier || account.tier || 'free';
       account.ai = { month: r.data.usage_month, used: r.data.ai_used || 0, extra: Math.max(0, (r.data.ai_limit || AI_MONTHLY_LIMIT) - AI_MONTHLY_LIMIT) };
       account.premiumUntil = r.data.premium_until || null;
+      account.viaFamily = !!r.data.via_family;          // Premium über das Familienabo eines Mitglieds geerbt
+      account.familyUntil = r.data.family_until || null;
     }
   } catch (e) { /* Backend evtl. noch nicht deployt – Phase-1-Werte behalten */ }
 }
@@ -6702,6 +6704,7 @@ function famSync() {
     famJoinBlock('🔗 Familie beitreten', 'Gib den 6-stelligen Code deines Partners ein (Buchstaben &amp; Zahlen).') + '</div>';
   else conn = '<div class="card" style="text-align:center"><h3>Familie verbunden ✓</h3><p class="sub" style="color:var(--muted);font-size:13px">Teile diesen Code mit deinem Partner:</p>' +
     '<div class="fam-code">' + esc(store.family.code) + '</div>' +
+    ((account && account.viaFamily) ? '<div class="note-box" style="text-align:left">👪 <b>Premium über das Familienabo freigeschaltet</b> – finanziert von einem Familienmitglied' + (account.familyUntil ? ', aktiv bis ' + esc(fmtDate(String(account.familyUntil).slice(0, 10))) : '') + '.</div>' : '') +
     '<button class="btn btn-sm" data-fam="copyCode" style="margin-bottom:10px">📋 Code kopieren</button><br>' +
     '<button class="btn btn-sm btn-danger" data-fam="leave">Verbindung trennen</button>' +
     '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>' +
