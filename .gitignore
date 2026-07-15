@@ -3,3 +3,6 @@
 
 # Rechtstexte bleiben bewusst lokal (nicht ins öffentliche Repo)
 legal/
+
+# Build-Tooling (nicht deployen)
+node_modules/
