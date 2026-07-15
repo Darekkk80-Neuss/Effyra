@@ -1062,6 +1062,11 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .cal-day.wsh:hover{filter:brightness(1.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28),0 6px 16px var(--wshsh)}
 .cal-day.wsh.today{box-shadow:inset 0 0 0 2px #fff,0 3px 10px var(--wshsh)}
 .cal-day.wsh.dim{opacity:.62}
+/* Auswahl im Dienstplan = Ring (nicht Füllung), damit man Auswahl UND Dienst
+   gleichzeitig erkennt. Tag ohne Dienst: dezenter Ring + zarte Tönung. */
+.cal-day.wsel{background:rgba(124,58,237,.14);box-shadow:inset 0 0 0 2.5px #7c3aed;transform:scale(1.03)}
+.cal-day.wsel .cd-num{color:var(--text)}
+.cal-day.wsh.wsel{background:var(--wshg);box-shadow:inset 0 0 0 2px #fff,0 4px 14px var(--wshsh);transform:scale(1.06)}
 .cal-day .cd-num{position:relative;z-index:1}
 .cal-day .cd-ic{position:absolute;top:3px;right:4px;font-size:9px;line-height:1}
 .cal-day .cd-badges{position:absolute;bottom:3px;left:0;right:0;display:flex;justify-content:center;gap:3px;height:5px}
@@ -8050,7 +8055,7 @@ function shiftDef(key) { const base = WORK_SHIFTS[key]; if (!base) return null; 
 /* Dienst aus einer Startzeit ableiten (für Einträge ohne gespeicherten Dienst) */
 function inferShift(start) { if (!start) return 'late'; const h = +String(start).slice(0, 2); return h < 11 ? 'early' : (h < 18 ? 'late' : 'night'); }
 /* Alle Dienst-/Status-Schlüssel eines Tages (erstes = primär = füllt die Kachel) */
-function dayShifts(iso) { const out = []; const ab = absenceOn(iso), e = store.work.entries[iso]; if (ab) out.push(ab.type === 'kinderkrank' ? 'kinderkrank' : ab.type === 'urlaub' ? 'urlaub' : 'krank'); else if (e && e.frei) out.push('frei'); else if (e && e.start && e.end) out.push((e.shift && WORK_SHIFTS[e.shift]) ? e.shift : inferShift(e.start)); if (isHoliday(iso)) out.push('feiertag'); return out; }
+function dayShifts(iso) { const out = []; const ab = absenceOn(iso), e = store.work.entries[iso]; if (ab) out.push(ab.type === 'kinderkrank' ? 'kinderkrank' : ab.type === 'urlaub' ? 'urlaub' : 'krank'); else if (e && e.frei) out.push('frei'); else if (e && ((e.shift && WORK_SHIFTS[e.shift]) || (e.start && e.end))) out.push((e.shift && WORK_SHIFTS[e.shift]) ? e.shift : inferShift(e.start)); if (isHoliday(iso)) out.push('feiertag'); return out; }
 const WD_LEGEND = '<div class="wlegend">' + ['early', 'late', 'night', 'frei', 'urlaub', 'krank', 'feiertag'].map(k => '<span><i style="background:' + WORK_SHIFTS[k].color + '"></i>' + WORK_SHIFTS[k].icon + ' ' + WORK_SHIFTS[k].name + '</span>').join('') + '</div>';
 let workTab = 'heute', workCal = null, workSel = null, workYear = null, workMonthSel = null, workAI = null;
 const holCache = {};
@@ -8738,12 +8743,12 @@ function workKalender() {
   let grid = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => '<div class="cal-dow">' + d + '</div>').join('');
   for (let i = 0; i < cells; i++) {
     const d = new Date(workCal.y, workCal.m, i - offset + 1), iso = toISO(d), dim = d.getMonth() !== workCal.m;
-    const sh = dayShifts(iso), primary = sh[0], pd = primary ? WORK_SHIFTS[primary] : null, wsh = pd && iso !== workSel;
+    const sh = dayShifts(iso), primary = sh[0], pd = primary ? WORK_SHIFTS[primary] : null, wsh = !!pd;
     const wg = pd ? (pd.grad || 'linear-gradient(135deg,' + pd.color + ',' + pd.color + ')') : '';
     const vars = wsh ? ' style="--wshg:' + wg + ';--wsh:' + pd.color + ';--wshsh:' + pd.color + '55"' : '';
     const ic = wsh ? '<span class="cd-ic">' + pd.icon + '</span>' : '';
-    const badges = (sh.length > 1 && iso !== workSel) ? '<span class="cd-badges">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
-    grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' sel' : '') + '" data-wday="' + iso + '"' + vars + '><span class="cd-num">' + d.getDate() + '</span>' + ic + badges + '</button>';
+    const badges = (sh.length > 1) ? '<span class="cd-badges">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
+    grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' wsel' : '') + '" data-wday="' + iso + '"' + vars + '><span class="cd-num">' + d.getDate() + '</span>' + ic + badges + '</button>';
   }
   const _ms = { early: 0, late: 0, night: 0, frei: 0, urlaub: 0, krank: 0 };
   { const _mr = monthRange(workCal.y, workCal.m), _end = parseISO(_mr[1]); for (let d = parseISO(_mr[0]); d <= _end; d.setDate(d.getDate() + 1)) { dayShifts(toISO(d)).forEach(k => { if (k === 'kinderkrank') _ms.krank++; else if (k in _ms) _ms[k]++; }); } }
@@ -8758,6 +8763,14 @@ function workKalender() {
   else if (selE && selE.frei) h += '<div class="mem"><span style="font-size:18px">☕</span><div class="mem-info"><b>Frei</b><span>Freier Tag – keine Arbeitszeit</span></div></div>';
   else h += '<div class="card">' + workEntryForm(workSel) + '</div>';
   return h;
+}
+/* Beim Monatswechsel die Auswahl in den angezeigten Monat holen, damit die
+   Zuweis-Buttons unten nicht mehr auf einen Tag des alten Monats zeigen. */
+function workSelToShownMonth() {
+  const t = new Date();
+  if (t.getFullYear() === workCal.y && t.getMonth() === workCal.m) { workSel = todayISO(); return; }
+  const dom = Math.min(+String(workSel || '').slice(8, 10) || 1, new Date(workCal.y, workCal.m + 1, 0).getDate());
+  workSel = toISO(new Date(workCal.y, workCal.m, dom));
 }
 function workAbwesenheit() {
   const y = new Date().getFullYear(), [yf, yt] = yearRange(y), st = rangeStats(yf, yt), s = store.work.settings;
@@ -8903,8 +8916,8 @@ $('#workRoot').addEventListener('click', e => {
   if (a === 'stampOut') { setEntry(iso, 'end', nowHM()); save(); RENDERERS.work(); return; }
   if (a === 'stampBreak') { setEntry(iso, 'breakStart', nowHM()); save(); RENDERERS.work(); return; }
   if (a === 'stampBreakEnd') { setEntry(iso, 'breakEnd', nowHM()); save(); RENDERERS.work(); return; }
-  if (a === 'calPrev') { workCal.m--; if (workCal.m < 0) { workCal.m = 11; workCal.y--; } RENDERERS.work(); return; }
-  if (a === 'calNext') { workCal.m++; if (workCal.m > 11) { workCal.m = 0; workCal.y++; } RENDERERS.work(); return; }
+  if (a === 'calPrev') { workCal.m--; if (workCal.m < 0) { workCal.m = 11; workCal.y--; } workSelToShownMonth(); RENDERERS.work(); return; }
+  if (a === 'calNext') { workCal.m++; if (workCal.m > 11) { workCal.m = 0; workCal.y++; } workSelToShownMonth(); RENDERERS.work(); return; }
   if (a === 'yearPrev') { workYear--; RENDERERS.work(); return; }
   if (a === 'yearNext') { workYear++; RENDERERS.work(); return; }
   if (a === 'repPrev') { workMonthSel.m--; if (workMonthSel.m < 0) { workMonthSel.m = 11; workMonthSel.y--; } workAI = null; RENDERERS.work(); return; }
