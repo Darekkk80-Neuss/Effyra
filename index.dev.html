@@ -1892,6 +1892,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
       <div class="card set-card" id="accountCard"></div>
 
+      <div class="card set-card" id="legalCard"></div>
+
       <div class="card set-card">
         <h3 data-i18n="set.lang_title">🌐 Sprache &amp; Region</h3>
         <p class="sub" id="langCardSub" data-noi18n></p>
@@ -3594,8 +3596,50 @@ function noteAIUsage() {
   if (pct < 90) _aiWarned90 = false;
 }
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
+/* ============================== RECHTLICHES & EINWILLIGUNGEN (DSGVO) ============================== */
+/* Versionsstände der einwilligungspflichtigen Zwecke – bei Änderung hochzählen → Re-Consent. */
+const LEGAL_VERSIONS = { ai: '2026-07-16', push: '2026-07-16', terms: '2026-07-16', fit: '2026-07-16', emergency: '2026-07-16' };
+function getConsent(id) { return (store.consents && store.consents[id]) || null; }
+function consentValid(id) { const c = getConsent(id); return !!(c && c.status === 'granted' && c.version === LEGAL_VERSIONS[id]); }
+function setConsent(id, status) {
+  store.consents = store.consents || {};
+  store.consents[id] = { status: status, version: LEGAL_VERSIONS[id], ts: new Date().toISOString() };
+  save();
+  try { syncConsentServer(id); } catch (e) {}
+  if (currentView === 'settings') { try { renderLegalCard(); } catch (e) {} }
+}
+/* Consent-Log serverseitig protokollieren (Art. 5 Abs. 2 Rechenschaftspflicht) – best effort, blockiert nie. */
+async function syncConsentServer(id) {
+  if (typeof CLOUD === 'undefined' || !CLOUD || typeof sb === 'undefined' || !sb) return;
+  try {
+    const ses = (await sb.auth.getSession()).data.session; if (!ses) return;
+    const u = (await sb.auth.getUser()).data.user; if (!u) return;
+    const c = store.consents[id];
+    await sb.from('consents').upsert({ user_id: u.id, consent_id: id, status: c.status, version: c.version, ts: c.ts }, { onConflict: 'user_id,consent_id' });
+  } catch (e) { /* Tabelle evtl. noch nicht angelegt (supabase-consents.sql) */ }
+}
+/* Ausdrückliche KI-Einwilligung (Typ D, Art. 9 Abs. 2 lit. a + Art. 49) – vor der ersten KI-Nutzung. */
+function showAiConsent() {
+  let ov = document.getElementById('aiConsentOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'aiConsentOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" style="max-width:460px;text-align:left">' +
+    '<h3 style="margin-bottom:8px">🤖 KI-Funktionen – deine ausdrückliche Einwilligung</h3>' +
+    '<p style="color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:10px">Wenn du die KI nutzt (Dokument-/Bildanalyse, Chat, Sprache), werden deine Eingaben – <b>einschließlich fotografierter Dokumente, die Gesundheits- oder Behördendaten enthalten können</b> – an unseren Dienstleister <b>OpenAI (USA)</b> übermittelt und dort verarbeitet.</p>' +
+    '<ul style="color:var(--muted);font-size:12.5px;line-height:1.5;margin:0 0 14px 18px">' +
+    '<li>Übermittlung in ein <b>Drittland (USA)</b> auf Basis geeigneter Garantien (Standardvertragsklauseln).</li>' +
+    '<li>OpenAI nutzt API-Daten <b>nicht zum Training</b> und löscht sie nach spätestens 30 Tagen.</li>' +
+    '<li>Verarbeitung <b>besonderer Kategorien</b> (Art. 9) erfolgt nur mit dieser Einwilligung.</li>' +
+    '<li>Bitte keine Gesundheits-/Sozialdaten <b>Dritter</b> eingeben. Effyra ersetzt <b>keine</b> Rechts- oder Medizinberatung.</li>' +
+    '<li>Jederzeit widerrufbar unter <b>Einstellungen → Rechtliches & Datenschutz</b>. Die App bleibt ohne KI voll nutzbar.</li>' +
+    '</ul>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="aiConsentDeny">Ablehnen</button><button class="btn btn-sm" id="aiConsentGrant" style="border-color:rgba(167,139,250,.5)">Ich willige ausdrücklich ein</button></div></div>';
+  ov.classList.add('on');
+  ov.querySelector('#aiConsentDeny').onclick = () => { setConsent('ai', 'denied'); ov.classList.remove('on'); toast('KI bleibt deaktiviert – die App ist ohne KI voll nutzbar.'); };
+  ov.querySelector('#aiConsentGrant').onclick = () => { setConsent('ai', 'granted'); ov.classList.remove('on'); toast('✓ Danke. Du kannst die KI-Funktionen jetzt nutzen.'); };
+}
 function requireAI() {
   if (isChildUser()) { toast('🔒 KI ist für Kinderkonten nicht verfügbar.'); return false; }
+  if (!consentValid('ai')) { showAiConsent(); return false; }   // Typ D: ausdrückliche Einwilligung vor Drittland-/Art.9-Verarbeitung
   if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an OpenAI
   if (!BACKEND_V2) { toast('✨ Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
   if (!(account && account.loggedIn)) { toast('Bitte melde dich an, um die KI zu nutzen.'); return false; }
@@ -11528,6 +11572,7 @@ RENDERERS.settings = function () {
   $('#langCardSub').textContent = lm.flag + ' ' + lm.native + (inCur.toLowerCase() !== lm.native.toLowerCase() ? ' (' + inCur + ')' : '') + ' · ' + (lm.country || '');
   refreshAIStatus();
   renderAccountCard();
+  renderLegalCard();
   $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref()));
   $$('#rtSilSeg button').forEach(b => b.classList.toggle('active', Number(b.dataset.rtsil) === rtSilenceMs()));
   syncEntitlements().then(() => { if (currentView === 'settings') renderAccountCard(); });
@@ -11551,6 +11596,34 @@ $('#rtSilSeg').addEventListener('click', e => {
   toast('Live-Sprachtempo: ' + b.textContent.trim());
 });
 
+/* Rechtliches & Datenschutz: Einwilligungen (Status/Widerruf), Export, Impressum. */
+function renderLegalCard() {
+  const card = $('#legalCard'); if (!card) return;
+  const row = (id, label) => {
+    const c = getConsent(id), on = consentValid(id);
+    const stat = on ? '✓ Erteilt am ' + (c ? new Date(c.ts).toLocaleDateString('de-DE') : '–') : (c && c.status === 'denied') ? 'Abgelehnt' : 'Nicht erteilt';
+    return '<div class="set-row" style="justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px">' +
+      '<span style="font-size:13px;line-height:1.35">' + label + '<br><span class="sub" style="font-size:11px">' + stat + '</span></span>' +
+      (on ? '<button class="btn btn-sm" data-consent-revoke="' + id + '" style="flex:none">Widerrufen</button>'
+          : '<button class="btn btn-sm" data-consent-grant="' + id + '" style="flex:none">Erteilen</button>') + '</div>';
+  };
+  card.innerHTML = '<h3>🔒 Rechtliches &amp; Datenschutz</h3>' +
+    '<div style="margin:8px 0 4px"><b style="font-size:13.5px">Deine Einwilligungen</b><div class="sub" style="font-size:11.5px;margin-bottom:8px">Jederzeit gleich einfach widerrufbar (Art. 7 Abs. 3 DSGVO).</div>' +
+    row('ai', '🤖 KI-Verarbeitung (OpenAI, USA · ausdrücklich)') +
+    row('push', '🔔 Push-Benachrichtigungen') +
+    '</div>' +
+    '<div style="margin:10px 0"><button class="btn btn-sm" id="consentExport">📤 Einwilligungen exportieren</button></div>' +
+    '<details class="up-code"><summary>📄 Impressum</summary><div class="sub" style="margin-top:8px;line-height:1.6;white-space:pre-line">' +
+      esc('Angaben gemäß § 5 DDG\nGonsoft labs – Darius Gonschior\nHerzogstr. 27, 41468 Neuss\nTel.: 0151 56109742\nE-Mail: info@gonsoft-labs.de\nKleinunternehmer gemäß § 19 UStG – keine USt-IdNr.\nVerantwortlich i.S.d. § 18 Abs. 2 MStV: Darius Gonschior (Anschrift wie oben)') +
+    '</div></details>' +
+    '<div class="sub" style="margin-top:10px;font-size:11.5px;color:var(--faint)">Vollständige Datenschutzerklärung &amp; Nutzungsbedingungen werden gerade finalisiert (Entwurf in anwaltlicher Prüfung).</div>';
+  card.querySelectorAll('[data-consent-revoke]').forEach(b => b.onclick = () => setConsent(b.dataset.consentRevoke, 'denied'));
+  card.querySelectorAll('[data-consent-grant]').forEach(b => b.onclick = () => { const id = b.dataset.consentGrant; if (id === 'ai') showAiConsent(); else setConsent(id, 'granted'); });
+  const ex = $('#consentExport'); if (ex) ex.onclick = () => {
+    const blob = new Blob([JSON.stringify({ verantwortlicher: 'Gonsoft labs – Darius Gonschior', consents: store.consents || {}, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = 'effyra-einwilligungen.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000);
+  };
+}
 function renderAccountCard() {
   const card = $('#accountCard');
   if (!account) { card.style.display = 'none'; return; }
