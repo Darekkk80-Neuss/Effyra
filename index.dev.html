@@ -335,6 +335,15 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .tr-dir{flex:1;min-width:0;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr-time{flex:none;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
 :root[data-theme="light"] .tr-line{color:#6d28d9;background:#ede9fe}
+/* ---- Manuelle Dokument-Zuschneide-Funktion ---- */
+.crop-ov{position:fixed;inset:0;z-index:10000;background:rgba(6,8,14,.93);display:none;flex-direction:column;align-items:center;justify-content:center;gap:15px;padding:16px}
+.crop-ov.on{display:flex}
+.crop-wrap{position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.crop-wrap img{display:block;border-radius:6px;pointer-events:none}
+.crop-svg{position:absolute;left:0;top:0;pointer-events:none}
+.crop-h{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;border:3px solid #7c3aed;box-shadow:0 2px 8px rgba(0,0,0,.55);cursor:grab;touch-action:none;z-index:2}
+.crop-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.crop-hint{color:#c6cddb;font-size:13px;text-align:center;max-width:360px;line-height:1.4}
 .meal-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:22px;box-shadow:0 10px 34px rgba(0,0,0,.16)}
 .meal-hero{position:relative;width:100%;aspect-ratio:16/10;background:var(--card2)}
 .meal-hero img{width:100%;height:100%;object-fit:cover;display:block}
@@ -9647,6 +9656,86 @@ function demoAnalyses() {
 /* ============================== DOKUMENTE (View) ============================== */
 const DOC_BADGE = { 'Mahnung': 'b-mahnung', 'Rechnung': 'b-rechnung', 'Vertrag': 'b-vertrag', 'Behörde': 'b-behoerde', 'Sonstiges': 'b-sonstiges' };
 
+/* ---- Manuelle Zuschneide-/Perspektiv-Korrektur (leichtgewichtig, ohne Fremdbibliothek) ---- */
+function _solve8(A, b) {
+  const n = 8, M = A.map((r, i) => r.concat(b[i]));
+  for (let col = 0; col < n; col++) {
+    let piv = col; for (let r = col + 1; r < n; r++) if (Math.abs(M[r][col]) > Math.abs(M[piv][col])) piv = r;
+    const tmp = M[col]; M[col] = M[piv]; M[piv] = tmp;
+    const dv = M[col][col] || 1e-9;
+    for (let cc = col; cc <= n; cc++) M[col][cc] /= dv;
+    for (let r = 0; r < n; r++) if (r !== col) { const fr = M[r][col]; for (let cc = col; cc <= n; cc++) M[r][cc] -= fr * M[col][cc]; }
+  }
+  return M.map(r => r[n]);
+}
+function computeHomography(src, dst) {
+  const A = [], b = [];
+  for (let i = 0; i < 4; i++) { const x = src[i][0], y = src[i][1], X = dst[i][0], Y = dst[i][1]; A.push([x, y, 1, 0, 0, 0, -X * x, -X * y]); b.push(X); A.push([0, 0, 0, x, y, 1, -Y * x, -Y * y]); b.push(Y); }
+  return _solve8(A, b);
+}
+/* Quad (4 Punkte in Bildkoordinaten) → entzerrtes Rechteck-Canvas. */
+function perspectiveCrop(img, quad) {
+  const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+  let outW = Math.round((dist(quad[0], quad[1]) + dist(quad[3], quad[2])) / 2);
+  let outH = Math.round((dist(quad[0], quad[3]) + dist(quad[1], quad[2])) / 2);
+  outW = Math.max(200, outW); outH = Math.max(200, outH);
+  const cap = 1654; if (outW > cap) { outH = Math.round(outH * cap / outW); outW = cap; } if (outH > 2400) { outW = Math.round(outW * 2400 / outH); outH = 2400; }
+  const H = computeHomography([[0, 0], [outW, 0], [outW, outH], [0, outH]], quad);
+  const sw = img.naturalWidth || img.width, sh = img.naturalHeight || img.height;
+  const sc = document.createElement('canvas'); sc.width = sw; sc.height = sh; const sctx = sc.getContext('2d'); sctx.drawImage(img, 0, 0);
+  const sd = sctx.getImageData(0, 0, sw, sh).data;
+  const oc = document.createElement('canvas'); oc.width = outW; oc.height = outH;
+  const octx = oc.getContext('2d'), oimg = octx.createImageData(outW, outH), od = oimg.data;
+  const a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+  for (let Y = 0; Y < outH; Y++) for (let X = 0; X < outW; X++) {
+    const w = g * X + h * Y + 1, u = (a * X + b * Y + c) / w, v = (d * X + e * Y + f) / w;
+    const ix = u | 0, iy = v | 0, oi = (Y * outW + X) * 4;
+    if (ix >= 0 && ix < sw && iy >= 0 && iy < sh) { const si = (iy * sw + ix) * 4; od[oi] = sd[si]; od[oi + 1] = sd[si + 1]; od[oi + 2] = sd[si + 2]; od[oi + 3] = 255; }
+    else { od[oi] = od[oi + 1] = od[oi + 2] = 255; od[oi + 3] = 255; }
+  }
+  octx.putImageData(oimg, 0, 0);
+  return oc;
+}
+/* Zuschneide-Dialog: Foto zeigen, 4 Ecken ziehen → entzerren → weiter in den Scan-/Analyse-Ablauf. */
+function openDocCrop(file) {
+  if (!file) return;
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    const maxW = Math.min(window.innerWidth - 40, 900), maxH = window.innerHeight - 170;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    const dw = Math.max(1, Math.round(img.width * scale)), dh = Math.max(1, Math.round(img.height * scale));
+    let ov = document.getElementById('cropOv');
+    if (!ov) { ov = document.createElement('div'); ov.id = 'cropOv'; document.body.appendChild(ov); }
+    ov.className = 'crop-ov on';
+    ov.innerHTML = '<div class="crop-hint">Zieh die vier Ecken genau auf die Ränder des Dokuments – auch schräge Fotos werden geradegezogen.</div>' +
+      '<div class="crop-wrap" style="width:' + dw + 'px;height:' + dh + 'px"><img src="' + url + '" style="width:' + dw + 'px;height:' + dh + 'px" draggable="false">' +
+      '<svg class="crop-svg" width="' + dw + '" height="' + dh + '"><polygon points="" fill="rgba(124,58,237,.15)" stroke="#7c3aed" stroke-width="2"/></svg>' +
+      [0, 1, 2, 3].map(i => '<span class="crop-h" data-c="' + i + '"></span>').join('') + '</div>' +
+      '<div class="crop-bar"><button class="btn btn-sm" data-crop="cancel">Abbrechen</button><button class="btn btn-sm" data-crop="full">Ganzes Bild</button><button class="btn btn-sm btn-primary" data-crop="ok">✂️ Zuschneiden &amp; scannen</button></div>';
+    const inset = Math.round(Math.min(dw, dh) * 0.05);
+    const C = [[inset, inset], [dw - inset, inset], [dw - inset, dh - inset], [inset, dh - inset]];
+    const wrap = ov.querySelector('.crop-wrap'), poly = ov.querySelector('polygon'), handles = Array.prototype.slice.call(ov.querySelectorAll('.crop-h'));
+    const redraw = () => { poly.setAttribute('points', C.map(p => p[0] + ',' + p[1]).join(' ')); handles.forEach((hEl, i) => { hEl.style.left = C[i][0] + 'px'; hEl.style.top = C[i][1] + 'px'; }); };
+    redraw();
+    let drag = -1;
+    const posFromEvent = (e) => { const r = wrap.getBoundingClientRect(); return [Math.max(0, Math.min(dw, e.clientX - r.left)), Math.max(0, Math.min(dh, e.clientY - r.top))]; };
+    handles.forEach((hEl, i) => hEl.addEventListener('pointerdown', e => { e.preventDefault(); drag = i; }));
+    const onMove = e => { if (drag < 0) return; e.preventDefault(); C[drag] = posFromEvent(e); redraw(); };
+    const onUp = () => { drag = -1; };
+    window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp);
+    const close = () => { ov.classList.remove('on'); window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); URL.revokeObjectURL(url); };
+    ov.querySelector('[data-crop="cancel"]').onclick = close;
+    ov.querySelector('[data-crop="full"]').onclick = () => { close(); handleDocFile(file); };
+    ov.querySelector('[data-crop="ok"]').onclick = () => {
+      let cropped; try { cropped = perspectiveCrop(img, C.map(p => [p[0] / scale, p[1] / scale])); } catch (e) { cropped = null; }
+      close();
+      if (!cropped) { handleDocFile(file); return; }
+      cropped.toBlob(b => handleDocFile(b || file), 'image/jpeg', 0.92);
+    };
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); handleDocFile(file); };
+  img.src = url;
+}
 /* Foto → „echter Scan": Beleuchtung lokal normalisieren (Mittelwert via Integralbild),
    Hintergrund wird weiß, Text bleibt dunkel & scharf – robust gegen Schatten/schräges Licht.
    Ergebnis: sauberes Scan-Bild (JPEG) + Mini-Thumbnail. Fällt bei Fehler auf null zurück. */
@@ -9946,10 +10035,10 @@ $('#dropzone').addEventListener('dragleave', () => $('#dropzone').classList.remo
 $('#dropzone').addEventListener('drop', e => {
   e.preventDefault();
   $('#dropzone').classList.remove('drag');
-  if (e.dataTransfer.files.length) handleDocFile(e.dataTransfer.files[0]);
+  if (e.dataTransfer.files.length) openDocCrop(e.dataTransfer.files[0]);
 });
 $('#docInput').addEventListener('change', e => {
-  if (e.target.files.length) handleDocFile(e.target.files[0]);
+  if (e.target.files.length) openDocCrop(e.target.files[0]);
   e.target.value = '';
 });
 if ($('#autoVaultChk')) {
