@@ -1556,6 +1556,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <p>Brief, Rechnung, Vertrag – Effyra übersetzt Amtsdeutsch in einfache Worte.</p>
       </div>
       <input type="file" id="docInput" accept="image/*" capture="environment">
+      <label style="display:flex;align-items:center;gap:8px;margin:10px 2px 0;font-size:13px;color:var(--faint);cursor:pointer"><input type="checkbox" id="autoVaultChk" style="width:auto;flex:none;margin:0"> Gescannte Dokumente automatisch im Tresor sichern</label>
       <div class="analyzing" id="analyzing">
         <div class="scanbox"><img id="scanImg" alt=""><div class="scanline"></div></div>
         <div class="a-status" id="aStatus">Lese Dokument …</div>
@@ -8256,6 +8257,58 @@ if ($('#vtAddBtn')) $('#vtAddBtn').addEventListener('click', async () => {
     finish();
   } else finish();
 });
+/* Primärmodul eines Scans → passende Tresor-Kategorie */
+const DOC_VAULT_CAT = { 'Auto & Motorrad': 'fahrzeug', 'Notfallbereich': 'gesundheit', 'Lebenslagen': 'sonstiges', 'Dokumente': 'sonstiges', 'Kinder': 'sonstiges', 'Arbeitszeit': 'sonstiges', 'Familienzentrale': 'sonstiges' };
+/* Ein analysiertes Dokument in den Tresor übernehmen (Bild aus IndexedDB kopieren). */
+async function saveDocToVault(d, silent) {
+  try {
+    if ((store.vault || []).some(v => v._fromDoc === d.id)) { if (!silent) toast('Schon im Tresor.'); return; }
+    const blob = await vaultGetImage(d.id);
+    const entry = { id: uid(), _fromDoc: d.id, title: d.title || 'Dokument', cat: DOC_VAULT_CAT[d.primaryModule] || 'sonstiges', tags: Array.isArray(d.keywords) ? d.keywords.slice(0, 6) : [], note: (d.summary || d.explanation || '').slice(0, 200), thumb: '', img: false, createdAt: Date.now() };
+    if (blob) { await vaultPutImage(entry.id, blob); entry.img = true; entry.thumb = d.thumb || ''; }
+    store.vault = store.vault || []; store.vault.unshift(entry); save();
+    if (!silent) { toast('🔐 Im Tresor gespeichert ✓'); if (typeof RENDERERS.vault === 'function') RENDERERS.vault(); }
+  } catch (e) { if (!silent) toast('⚠️ Konnte nicht im Tresor speichern.'); }
+}
+/* Gescanntes Dokument als PDF herunterladen. */
+async function exportDocPdf(d) {
+  try {
+    const blob = await vaultGetImage(d.id);
+    if (!blob) { toast('Kein Bild zum Exportieren.'); return; }
+    toast('PDF wird erstellt …');
+    const pdf = await jpegToPdfBlob(blob);
+    const url = URL.createObjectURL(pdf), a = document.createElement('a');
+    a.href = url; a.download = (d.title || 'Dokument').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_').slice(0, 40) + '.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast('📄 PDF erstellt ✓');
+  } catch (e) { toast('⚠️ PDF-Export fehlgeschlagen.'); }
+}
+/* Minimaler, bibliotheksfreier JPEG→PDF-Encoder: bettet das JPEG als DCTDecode-XObject zentriert auf A4 ein. */
+async function jpegToPdfBlob(jpegBlob) {
+  const bytes = new Uint8Array(await jpegBlob.arrayBuffer());
+  const dim = await new Promise((res, rej) => { const im = new Image(), u = URL.createObjectURL(jpegBlob); im.onload = () => { res({ w: im.naturalWidth, h: im.naturalHeight }); URL.revokeObjectURL(u); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('img')); }; im.src = u; });
+  const PW = 595.28, PH = 841.89, margin = 24;
+  const s = Math.min((PW - 2 * margin) / dim.w, (PH - 2 * margin) / dim.h);
+  const iw = dim.w * s, ih = dim.h * s, ix = (PW - iw) / 2, iy = (PH - ih) / 2;
+  const enc = new TextEncoder(), parts = [], offsets = []; let len = 0;
+  const push = u8 => { parts.push(u8); len += u8.length; };
+  const pushStr = str => push(enc.encode(str));
+  const obj = () => { offsets.push(len); };
+  pushStr('%PDF-1.4\n\n');
+  obj(); pushStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  obj(); pushStr('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+  obj(); pushStr('3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PW.toFixed(2) + ' ' + PH.toFixed(2) + '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n');
+  obj(); pushStr('4 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + dim.w + ' /Height ' + dim.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + bytes.length + ' >>\nstream\n'); push(bytes); pushStr('\nendstream\nendobj\n');
+  const content = enc.encode('q\n' + iw.toFixed(2) + ' 0 0 ' + ih.toFixed(2) + ' ' + ix.toFixed(2) + ' ' + iy.toFixed(2) + ' cm\n/Im0 Do\nQ\n');
+  obj(); pushStr('5 0 obj\n<< /Length ' + content.length + ' >>\nstream\n'); push(content); pushStr('\nendstream\nendobj\n');
+  const xrefStart = len;
+  let xref = 'xref\n0 6\n0000000000 65535 f \n';
+  for (let i = 0; i < offsets.length; i++) xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  pushStr(xref); pushStr('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF');
+  const out = new Uint8Array(len); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return new Blob([out], { type: 'application/pdf' });
+}
 if ($('#vaultRoot')) $('#vaultRoot').addEventListener('click', e => {
   const b = e.target.closest('[data-vlt]'); if (!b) return;
   const v = (store.vault || []).find(x => x.id === b.dataset.id); if (!v) return;
@@ -9072,7 +9125,9 @@ function extractJSON(text) {
 async function aiAnalyze(dataUrl) {
   const m = dataUrl.match(/^data:(image\/\w+);base64,(.+)$/s);
   if (!m) throw new Error('Bild konnte nicht gelesen werden.');
+  const _outLang = (LANGS.find(x => x.code === curLang) || {}).native || 'Deutsch';
   const prompt = 'SYSTEM: Du bist die Analyse-Engine des Effyra-Dokumentenassistenten. Deine Aufgabe ist NICHT nur Texterkennung, sondern: das Dokument vollständig verstehen, korrekt EINEM Fachmodul zuordnen und nur einzelne, konkrete Aktionen ableiten. Heute ist der ' + todayISO() + '.\n\n' +
+    'AUSGABESPRACHE: Formuliere ALLE nutzerseitigen Texte (title, explanation, summary, keyPoints, risks, recommendations sowie die Titel innerhalb von findings) auf ' + _outLang + ' – unabhängig davon, in welcher Sprache das Dokument verfasst ist. AUSNAHME: rawStructured bleibt in der ORIGINALSPRACHE des Dokuments (originalgetreue Extraktion – dort nichts übersetzen). Verändere niemals Zahlen, Beträge, Namen, Daten oder Fristen.\n\n' +
     'ARBEITSWEISE (immer in dieser Reihenfolge):\n' +
     '1) VOLLSTÄNDIG auslesen (OCR), formattreu – Tabellen bleiben Tabellen, Zeiten bleiben Zeiten, Zeilen/Spalten erhalten. Nichts weglassen, nichts vereinfachen, nichts erfinden.\n' +
     '2) Dokumenttyp bestimmen (z. B. Stundenplan, Elternbrief, Dienstplan, Rechnung, Behördenbrief, Arzttermin, Vertrag, Kfz-Papier, Versicherung).\n' +
@@ -9105,7 +9160,9 @@ async function aiAnalyze(dataUrl) {
     '"keyPoints":["wichtigste Punkte"],"risks":["Risiken/Fallstricke"],"recommendations":["konkrete Handlungsempfehlungen"],' +
     '"keywords":["Schlagwörter"],"priority":"hoch|mittel|niedrig","deadline":"YYYY-MM-DD oder null",' +
     '"needsConfirmation":false,"clarifyingQuestion":"präzise Rückfrage oder null",' +
-    '"replyDraft":"höflicher Antwortbrief falls sinnvoll, sonst null","findings":[nur EINZELNE ableitbare Aktionen]}\n' +
+    '"replyDraft":"höflicher Antwortbrief in der ORIGINALSPRACHE des Dokuments (so, dass er direkt an den Absender gesendet werden kann), falls sinnvoll, sonst null",' +
+    '"replyDraftTranslation":"Übersetzung dieses Antwortbriefs auf ' + _outLang + ', damit der Nutzer versteht, was er absendet – sonst null",' +
+    '"findings":[nur EINZELNE ableitbare Aktionen]}\n' +
     'findings – ein zusammenhängender Plan ergibt KEINE Einzeltermine, sondern EINEN Plan-Eintrag:\n' +
     '- schulplan (GANZER Stundenplan als EIN Eintrag, NICHT je Stunde ein event): {"type":"schulplan","title":"Stundenplan für <Kind>","childName":"Name","schedule":{"mon":["Fach1","Fach2",…],"tue":[…],"wed":[…],"thu":[…],"fri":[…]},"start":{"mon":"08:00","tue":"08:00","wed":"08:00","thu":"08:00","fri":"08:00"}}\n' +
     '- dienstplan (GANZER Dienst-/Schichtplan als EIN Eintrag, NICHT je Schicht ein event): {"type":"dienstplan","title":"Dienstplan …","shifts":[{"date":"YYYY-MM-DD","start":"HH:MM","end":"HH:MM","shift":"early|late|night","breakMin":30,"label":"Frühdienst"}, …]}\n' +
@@ -9320,6 +9377,7 @@ async function handleDocFile(file) {
       urgency: result.urgency || result.priority || 'mittel',
       todos: Array.isArray(result.todos) ? result.todos.filter(t => t && t.title).slice(0, 6) : [],
       replyDraft: result.replyDraft || null,
+      replyDraftTranslation: result.replyDraftTranslation || null,
       /* Intelligentes Routing */
       primaryModule: typeof result.primaryModule === 'string' ? result.primaryModule : null,
       subject: (result.subject && typeof result.subject === 'object') ? { type: result.subject.type || 'unbekannt', name: result.subject.name || null } : null,
@@ -9338,7 +9396,9 @@ async function handleDocFile(file) {
       tasksApplied: false, eventApplied: false,
       createdAt: Date.now()
     };
+    try { const _vp = await vaultProcessImage(file); if (_vp && _vp.blob) { await vaultPutImage(doc.id, _vp.blob); doc.hasImage = true; } } catch (e) { /* ohne Bild weiter */ }
     store.docs.push(doc);
+    if (store.settings.autoVault && doc.hasImage) { try { await saveDocToVault(doc, true); } catch (e) {} }
     save();
     refresh();
     toast(demo ? 'Demo-Analyse fertig ✨' : 'Dokument analysiert ✨');
@@ -9498,10 +9558,11 @@ RENDERERS.docs = function () {
             '</div></details>' : '') +
         (d.rawStructured ? '<details class="doc-ai"><summary>📋 Vollständige Extraktion</summary><pre class="doc-raw">' + esc(d.rawStructured) + '</pre></details>' : '') +
         (d.keywords && d.keywords.length ? '<div class="doc-tags">' + d.keywords.slice(0, 8).map(k => '<span class="doc-tag">#' + esc(k) + '</span>').join('') + '</div>' : '') +
-        (d.replyDraft ? '<details class="doc-reply"><summary>✉️ Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div></details>' : '') +
+        (d.replyDraft ? '<details class="doc-reply"><summary>✉️ Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div>' + (d.replyDraftTranslation ? '<div class="reply-text" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);opacity:.9"><b style="font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px">🌐 Übersetzung für dich</b><br>' + esc(d.replyDraftTranslation) + '</div>' : '') + '</details>' : '') +
         '<div class="doc-actions">' +
         '<button class="btn btn-sm" data-act="chatDoc"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Im Chat fragen</button>' +
         (d.replyDraft ? '<button class="btn btn-sm" data-act="copyReply"><svg viewBox="0 0 24 24"><use href="#icCopy"/></svg>Antwort kopieren</button>' : '') +
+        (d.hasImage ? '<button class="btn btn-sm" data-act="docToVault">🔐 Im Tresor sichern</button><button class="btn btn-sm" data-act="docToPdf">📄 Als PDF</button>' : '') +
         '</div></div></div></div>';
     }).join('');
 };
@@ -9518,6 +9579,10 @@ $('#docInput').addEventListener('change', e => {
   if (e.target.files.length) handleDocFile(e.target.files[0]);
   e.target.value = '';
 });
+if ($('#autoVaultChk')) {
+  $('#autoVaultChk').checked = !!store.settings.autoVault;
+  $('#autoVaultChk').addEventListener('change', e => { store.settings.autoVault = e.target.checked; save(); toast(e.target.checked ? 'Auto-Speichern im Tresor an ✓' : 'Auto-Speichern aus'); });
+}
 
 $('#docList').addEventListener('click', e => {
   const act = e.target.closest('[data-act]');
@@ -9537,6 +9602,8 @@ $('#docList').addEventListener('click', e => {
     toast(n ? n + ' Eintrag' + (n > 1 ? 'e' : '') + ' automatisch verteilt ✓' : 'Nichts ausgewählt');
   }
   if (act.dataset.act === 'chatDoc') { chatWithDoc(d); }
+  if (act.dataset.act === 'docToVault') { saveDocToVault(d, false); }
+  if (act.dataset.act === 'docToPdf') { exportDocPdf(d); }
   if (act.dataset.act === 'copyReply' && d.replyDraft) {
     copyText(d.replyDraft).then(ok => toast(ok ? 'Antwort kopiert ✓' : 'Kopieren nicht möglich'));
   }
