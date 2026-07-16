@@ -1646,7 +1646,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <h3>Dokument fotografieren oder hochladen</h3>
         <p>Brief, Rechnung, Vertrag – Effyra übersetzt Amtsdeutsch in einfache Worte.</p>
       </div>
-      <input type="file" id="docInput" accept="image/*" capture="environment">
+      <input type="file" id="docInput" accept="image/*,application/pdf">
       <label style="display:flex;align-items:center;gap:8px;margin:10px 2px 0;font-size:13px;color:var(--faint);cursor:pointer"><input type="checkbox" id="autoVaultChk" style="width:auto;flex:none;margin:0"> Scans automatisch im Tresor sichern</label>
       <div class="analyzing" id="analyzing">
         <div class="scanbox"><img id="scanImg" alt=""><div class="scanline"></div></div>
@@ -1801,7 +1801,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="kid-row" style="margin-bottom:8px"><input type="text" id="vtTitle" placeholder="Titel (z. B. Reisepass Max)" maxlength="80"><select id="vtCat" style="flex:none;width:auto"><option value="ausweis">🪪 Ausweis/Pass</option><option value="versicherung">🛡️ Versicherung</option><option value="vertrag">📑 Vertrag</option><option value="finanzen">🏦 Finanzen</option><option value="gesundheit">🩺 Gesundheit</option><option value="garantie">🧾 Garantie/Kauf</option><option value="wohnung">🏠 Wohnung</option><option value="fahrzeug">🚗 Fahrzeug</option><option value="sonstiges" selected>📄 Sonstiges</option></select></div>
         <input type="text" id="vtTags" placeholder="Schlagwörter, kommagetrennt (optional)" maxlength="120" style="width:100%;margin-bottom:8px">
         <textarea id="vtNote" rows="2" placeholder="Notiz (z. B. „liegt im Ordner Schublade 2, gültig bis 2030”)" style="width:100%;margin-bottom:8px"></textarea>
-        <input type="file" id="vtFile" accept="image/*" capture="environment" style="width:100%;margin-bottom:6px">
+        <input type="file" id="vtFile" accept="image/*" style="width:100%;margin-bottom:6px">
         <div class="sub" style="color:var(--faint);font-size:12px;margin:0 2px 12px">Foto optional – ohne Foto wird ein reiner Text-Eintrag gespeichert. Bilder liegen lokal (IndexedDB), nichts wird hochgeladen.</div>
         <button class="btn btn-primary" id="vtAddBtn" style="width:100%">+ Im Tresor speichern</button>
       </div>
@@ -9697,8 +9697,38 @@ function perspectiveCrop(img, quad) {
   return oc;
 }
 /* Zuschneide-Dialog: Foto zeigen, 4 Ecken ziehen → entzerren → weiter in den Scan-/Analyse-Ablauf. */
+/* PDF-Upload: erste Seite via PDF.js (bei Bedarf vom CDN nachgeladen) zu einem Bild rendern. */
+let _pdfjs = null;
+function loadPdfJs() {
+  if (_pdfjs) return Promise.resolve(_pdfjs);
+  if (window.pdfjsLib) { _pdfjs = window.pdfjsLib; return Promise.resolve(_pdfjs); }
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; _pdfjs = window.pdfjsLib; res(_pdfjs); } catch (e) { rej(e); } };
+    s.onerror = () => rej(new Error('pdfjs'));
+    document.head.appendChild(s);
+  });
+}
+async function pdfFirstPageBlob(file) {
+  const lib = await loadPdfJs();
+  const buf = await file.arrayBuffer();
+  const pdf = await lib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const vp0 = page.getViewport({ scale: 1 });
+  const vp = page.getViewport({ scale: Math.min(2.2, 1654 / vp0.width) });
+  const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+  await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+  return await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+}
 function openDocCrop(file) {
   if (!file) return;
+  if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name || '')) {
+    toast('PDF wird geladen …');
+    pdfFirstPageBlob(file).then(blob => { blob ? handleDocFile(blob) : toast('⚠️ PDF konnte nicht gelesen werden.'); })
+      .catch(() => toast('⚠️ PDF konnte nicht geladen werden – versuch ein Foto oder Bild.'));
+    return;
+  }
   const img = new Image(), url = URL.createObjectURL(file);
   img.onload = () => {
     const maxW = Math.min(window.innerWidth - 40, 900), maxH = window.innerHeight - 170;
