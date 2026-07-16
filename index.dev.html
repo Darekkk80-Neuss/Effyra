@@ -1604,7 +1604,6 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="dash-block" data-block="firststeps" id="fsWidget"></div>
         <div class="dash-block" data-block="brief" id="briefWidget"></div>
         <div class="dash-block" data-block="weather" id="weatherWidget"></div>
-        <div class="dash-block" data-block="warnings" id="warningsWidget"></div>
         <div class="dash-block" data-block="holidays" id="holidaysWidget"></div>
         <div class="dash-block" data-block="fuel" id="fuelWidget"></div>
         <div class="dash-block" data-block="meal" id="mealWidget"></div>
@@ -4900,7 +4899,6 @@ let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (D
 const DASH_BLOCKS = [
   { id: 'brief', name: 'Dein Tag heute', icon: '☀️' },
   { id: 'weather', name: 'Wetter', icon: '🌤️' },
-  { id: 'warnings', name: 'Unwetterwarnungen (DWD)', icon: '⚠️' },
   { id: 'holidays', name: 'Feiertage & Brückentage', icon: '🎉' },
   { id: 'fuel', name: 'Spritpreise', icon: '⛽' },
   { id: 'meal', name: 'Gericht des Tages', icon: '🍽️' },
@@ -5233,7 +5231,6 @@ RENDERERS.dashboard = function () {
   }));
   $$('#statRow [data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
   if (dashOn('weather')) renderWeather(); else $('#weatherWidget').innerHTML = '';
-  if (dashOn('warnings')) renderWarnings(); else $('#warningsWidget').innerHTML = '';
   if (dashOn('holidays')) renderHolidays(); else $('#holidaysWidget').innerHTML = '';
   if (dashOn('fuel')) renderFuel(); else $('#fuelWidget').innerHTML = '';
   if (dashOn('meal')) renderMeal(); else $('#mealWidget').innerHTML = '';
@@ -8363,28 +8360,52 @@ function renderHolidays() {
   h += '</section>';
   box.innerHTML = h;
 }
-/* ============================== DASHBOARD-WIDGET: DWD-UNWETTERWARNUNGEN (Bright Sky, keyless) ============================== */
-let _warnCache = { at: 0, data: null, key: '' };
-const WARN_SEV = { minor: { c: '#eab308', l: 'Hinweis' }, moderate: { c: '#f59e0b', l: 'Warnung' }, severe: { c: '#ef4444', l: 'Unwetter' }, extreme: { c: '#b91c1c', l: 'Extremwetter' } };
-function warnHTML(alerts, loc) {
-  let h = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">⚠️</span><b>Unwetterwarnungen</b><span class="di-loc">' + esc(loc.name || '') + '</span></div>';
-  if (!alerts || !alerts.length) { h += '<div class="di-ok">✓ Keine amtlichen Warnungen</div><div class="di-note">Quelle: Deutscher Wetterdienst (über Bright Sky)</div></section>'; return h; }
-  h += alerts.slice(0, 3).map(a => { const s = WARN_SEV[String(a.severity || '').toLowerCase()] || WARN_SEV.moderate; return '<div class="warn-row" style="border-left-color:' + s.c + '"><b style="color:' + s.c + '">' + esc(a.event_de || a.event_en || 'Warnung') + '</b>' + (a.headline_de ? '<span>' + esc(a.headline_de) + '</span>' : '') + '</div>'; }).join('');
-  h += '<div class="di-note">Quelle: Deutscher Wetterdienst (über Bright Sky)</div></section>';
-  return h;
+/* ============================== UNWETTERWARNUNGEN (DWD via Bright Sky) – nur im Hintergrund, Pop-up/Push nur bei echter Warnung ============================== */
+const WARN_ICON = { minor: 'ℹ️', moderate: '⚠️', severe: '⛈️', extreme: '🚨' };
+let _warnTimer = null;
+const warnKey = (a) => (a.id || a.alert_id || a.event_de || a.event_en || 'w') + '|' + (a.expires || a.effective || '');
+async function showWarnNotification(a, loc) {
+  const icon = WARN_ICON[String(a.severity || '').toLowerCase()] || '⚠️';
+  const title = icon + ' ' + (a.event_de || a.event_en || 'Unwetterwarnung') + (loc && loc.name ? ' · ' + loc.name : '');
+  const body = String(a.headline_de || a.description_de || 'Amtliche Warnung des Deutschen Wetterdienstes.').slice(0, 180);
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification(title, { body: body, tag: 'dwd-' + warnKey(a), icon: 'icon-192.png', badge: 'icon-192.png', requireInteraction: true });
+      return;
+    }
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') { new Notification(title, { body: body, tag: 'dwd-warn' }); return; }
+  } catch (e) {}
+  if (!document.hidden) toast(title);   // Fallback, wenn App im Vordergrund & keine Notification-Erlaubnis
 }
-async function renderWarnings() {
-  const box = $('#warningsWidget'); if (!box) return;
+/* Prüft im Hintergrund die amtlichen DWD-Warnungen für den gespeicherten Ort und meldet NUR neue Warnungen. */
+async function checkWeatherWarnings() {
   const loc = store.weatherLoc;
-  if (!loc || loc.lat == null) { box.innerHTML = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">⚠️</span><b>Unwetterwarnungen</b></div><div class="di-note">Lege oben im Wetter-Widget einen Ort fest – dann erscheinen hier amtliche DWD-Warnungen.</div></section>'; return; }
-  const key = (+loc.lat).toFixed(2) + ',' + (+loc.lon).toFixed(2);
-  if (_warnCache.key === key && Date.now() - _warnCache.at < 9e5 && _warnCache.data) { box.innerHTML = warnHTML(_warnCache.data, loc); return; }
-  if (!_warnCache.data) box.innerHTML = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">⚠️</span><b>Unwetterwarnungen</b></div><div class="di-note">Warnungen werden geladen …</div></section>';
+  if (!loc || loc.lat == null || typeof fetch !== 'function') return;
   try {
     const r = await fetch('https://api.brightsky.dev/alerts?lat=' + loc.lat + '&lon=' + loc.lon).then(x => x.json());
-    _warnCache = { at: Date.now(), data: r.alerts || [], key: key };
-    if (currentView === 'dashboard') box.innerHTML = warnHTML(_warnCache.data, loc);
-  } catch (e) { if (!_warnCache.data && currentView === 'dashboard') box.innerHTML = ''; }
+    const alerts = (r && r.alerts) || [];
+    store.warnNotified = store.warnNotified || {};
+    const now = Date.now();
+    Object.keys(store.warnNotified).forEach(k => { if (store.warnNotified[k] < now - 6 * 864e5) delete store.warnNotified[k]; });
+    let changed = false;
+    for (const a of alerts) {
+      if (String(a.severity || '').toLowerCase() === 'minor') continue;   // reine Hinweise nicht als Push
+      const k = warnKey(a);
+      if (store.warnNotified[k]) continue;                                 // bereits gemeldet
+      store.warnNotified[k] = now; changed = true;
+      await showWarnNotification(a, loc);
+    }
+    if (changed) save();
+  } catch (e) { /* still – keine UI, kein Fehler-Toast */ }
+}
+/* Startet den Hintergrund-Wächter: beim App-Start (verzögert) + alle 30 Min, solange die App läuft.
+   Für Push bei VOLLSTÄNDIG GESCHLOSSENER App: Server-Cron supabase/functions/weather-push (siehe WEATHER_PUSH_SETUP). */
+function startWeatherWatch() {
+  if (_warnTimer) return;
+  setTimeout(checkWeatherWarnings, 8000);
+  _warnTimer = setInterval(checkWeatherWarnings, 30 * 60 * 1000);
+  try { if (typeof ensurePushSub === 'function' && store.weatherLoc && typeof Notification !== 'undefined' && Notification.permission === 'granted') ensurePushSub({ warn: true, warn_lat: store.weatherLoc.lat, warn_lon: store.weatherLoc.lon }); } catch (e) {}
 }
 /* ============================== DASHBOARD-WIDGET: SPRITPREISE (Tankerkönig via Proxy) ============================== */
 let _fuelCache = { at: 0, html: '', key: '' };
@@ -11591,6 +11612,7 @@ $('#btnWipe').addEventListener('click', async () => {
 if (store.profile && store.profile.lang && SUPPORTED_LANGS.indexOf(store.profile.lang) < 0) { store.profile.lang = ''; save(); }
 applyLang((store.profile && store.profile.lang) || 'de', { silent: true, persist: !!(store.profile && store.profile.lang) });
 refreshAIStatus();
+try { startWeatherWatch(); } catch (e) {}
 if (CLOUD && store.family && store.family.code) famPull().then(c => { if (c && currentView === 'dashboard') RENDERERS.dashboard(); });
 if (CLOUD) {
   account = null;   /* lokales Konto ignorieren – Cloud entscheidet */
