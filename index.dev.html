@@ -9038,15 +9038,10 @@ function holidaysDE(y, st) {
 }
 /* ---- Feiertags-Land: Deutsch = offline (mit Bundesland, Standard), sonst Nager.Date-API (gecacht, offline-fähig) ---- */
 const LANG_DEFAULT_COUNTRY = { de: 'DE', fr: 'FR', es: 'ES', it: 'IT', pl: 'PL', en: 'GB' };
+/* Nur die 6 Launch-Länder (passend zu den 6 App-Sprachen de/fr/es/it/pl/en). */
 const HOLIDAY_COUNTRIES = [
-  { code: 'DE', name: '🇩🇪 Deutschland' }, { code: 'AT', name: '🇦🇹 Österreich' }, { code: 'CH', name: '🇨🇭 Schweiz' },
-  { code: 'FR', name: '🇫🇷 France' }, { code: 'ES', name: '🇪🇸 España' }, { code: 'IT', name: '🇮🇹 Italia' },
-  { code: 'PL', name: '🇵🇱 Polska' }, { code: 'NL', name: '🇳🇱 Nederland' }, { code: 'BE', name: '🇧🇪 Belgique/België' },
-  { code: 'LU', name: '🇱🇺 Luxembourg' }, { code: 'GB', name: '🇬🇧 United Kingdom' }, { code: 'IE', name: '🇮🇪 Ireland' },
-  { code: 'PT', name: '🇵🇹 Portugal' }, { code: 'CZ', name: '🇨🇿 Česko' }, { code: 'SK', name: '🇸🇰 Slovensko' },
-  { code: 'DK', name: '🇩🇰 Danmark' }, { code: 'SE', name: '🇸🇪 Sverige' }, { code: 'NO', name: '🇳🇴 Norge' },
-  { code: 'FI', name: '🇫🇮 Suomi' }, { code: 'GR', name: '🇬🇷 Ελλάδα' }, { code: 'HU', name: '🇭🇺 Magyarország' },
-  { code: 'RO', name: '🇷🇴 România' }, { code: 'HR', name: '🇭🇷 Hrvatska' }, { code: 'US', name: '🇺🇸 USA' },
+  { code: 'DE', name: '🇩🇪 Deutschland' }, { code: 'FR', name: '🇫🇷 France' }, { code: 'ES', name: '🇪🇸 España' },
+  { code: 'IT', name: '🇮🇹 Italia' }, { code: 'PL', name: '🇵🇱 Polska' }, { code: 'GB', name: '🇬🇧 United Kingdom' },
 ];
 function holidayCountry() {
   const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
