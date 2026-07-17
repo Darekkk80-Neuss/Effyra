@@ -31,9 +31,10 @@ const OP_MODEL: Record<string, string> = {
 };
 // Credit-Kosten je Operation (serverseitig = fälschungssicher, Client kann sie nicht drücken)
 const OP_COST: Record<string, number> = { question: 1, text: 2, voice: 2, scan: 5, invoice: 10, weekplan: 5, transcribe: 2, tts: 1 };
-// Vorstart: „alles freigeschaltet" → angemeldete Nutzer dürfen die KI ohne Premium nutzen.
-// MUSS zum Client-Flag ENFORCE_TIERS passen. Auf true stellen, sobald Play-Billing live ist (dann greifen Premium + Credits).
-const ENFORCE_TIERS = false;
+// Live: serverseitige KI-Abrechnung aktiv → Free/Trial 100 Credits/14 Tage, Premium 500/Monat (consume_ai).
+// Voraussetzung erfüllt: supabase-trial-and-play.sql + supabase-tiers.sql sind deployt (consume_ai vorhanden).
+// Nach Änderung claude-proxy neu deployen: `supabase functions deploy claude-proxy`.
+const ENFORCE_TIERS = true;
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { ...CORS, 'content-type': 'application/json' } });
