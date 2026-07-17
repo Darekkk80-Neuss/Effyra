@@ -3751,6 +3751,9 @@ function helpOpen(viewId) {
 RENDERERS.help = function () {
   const box = $('#helpRoot'); if (!box) return;
   let h = '<div class="view-head"><h1>❓ Hilfe &amp; Anleitung</h1><p>Alle Funktionen von Effyra – kurz erklärt, wofür sie da sind. Tippe eine Karte für die ersten Schritte.</p></div>';
+  h += '<div class="help-cat" data-noi18n>' + pickLang({ de: 'Einrichtung', en: 'Setup', fr: 'Configuration', es: 'Configuración', it: 'Configurazione', pl: 'Konfiguracja' }) + '</div>' +
+    '<details class="help-card" data-noi18n><summary><span class="help-ic">📅</span><span class="help-tx"><b>' + pickLang({ de: 'Kalender importieren (.ics)', en: 'Import calendar (.ics)', fr: 'Importer le calendrier (.ics)', es: 'Importar calendario (.ics)', it: 'Importa calendario (.ics)', pl: 'Importuj kalendarz (.ics)' }) + '</b><span>' + pickLang({ de: 'Termine aus Google, Apple oder Outlook nach Effyra holen – Schritt für Schritt.', en: 'Bring appointments from Google, Apple or Outlook into Effyra – step by step.', fr: 'Importez vos rendez-vous depuis Google, Apple ou Outlook – étape par étape.', es: 'Trae tus citas desde Google, Apple u Outlook a Effyra, paso a paso.', it: 'Porta gli appuntamenti da Google, Apple o Outlook in Effyra – passo passo.', pl: 'Przenieś terminy z Google, Apple lub Outlook do Effyra – krok po kroku.' }) + '</span></span></summary><div class="help-body">' + calImportGuideHTML() +
+    '<button class="btn btn-sm btn-primary" data-go="calendar">' + pickLang({ de: 'Zum Kalender', en: 'Go to calendar', fr: 'Ouvrir le calendrier', es: 'Ir al calendario', it: 'Vai al calendario', pl: 'Do kalendarza' }) + '</button></div></details>';
   MODULE_CATS.forEach(c => {
     const mods = MODULES.filter(m => m.cat === c.id);
     if (!mods.length) return;
@@ -5972,13 +5975,55 @@ async function handleCalImportFile(f) {
 if ($('#calImportBtn')) $('#calImportBtn').addEventListener('click', () => { const i = $('#calImportFile'); if (i) i.click(); });
 if ($('#calImportFile')) $('#calImportFile').addEventListener('change', e => { const f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) handleCalImportFile(f); });
 /* Einmalige Frage nach der Registrierung: bestehenden Kalender importieren? */
+/* Schritt-für-Schritt-Anleitung: bestehenden Gerätekalender als .ics exportieren (Google/Apple/Outlook). Mehrsprachig, klare nummerierte Schritte. */
+function calImportGuideHTML() {
+  const li = (arr) => '<ol style="margin:4px 0 0 18px;padding:0;font-size:12.5px;line-height:1.55;color:var(--muted)">' + arr.map(s => '<li style="margin-bottom:3px">' + s + '</li>').join('') + '</ol>';
+  const G = pickLang({
+    de: ['calendar.google.com am Computer öffnen (am Handy: Desktop-Ansicht).', 'Oben rechts auf ⚙️ tippen → <b>Einstellungen</b>.', 'Links <b>Import &amp; Export</b> wählen.', 'Unter <b>Exportieren</b> auf <b>Exportieren</b> klicken – du erhältst eine ZIP-Datei.', 'ZIP entpacken → darin liegt die <b>.ics</b>-Datei.'],
+    en: ['Open calendar.google.com on a computer (on mobile: desktop view).', 'Top right, tap ⚙️ → <b>Settings</b>.', 'On the left choose <b>Import &amp; export</b>.', 'Under <b>Export</b> click <b>Export</b> – you get a ZIP file.', 'Unzip it → the <b>.ics</b> file is inside.'],
+    fr: ['Ouvrez calendar.google.com sur un ordinateur (mobile : vue ordinateur).', 'En haut à droite, ⚙️ → <b>Paramètres</b>.', 'À gauche, choisissez <b>Importer &amp; exporter</b>.', 'Sous <b>Exporter</b>, cliquez sur <b>Exporter</b> – vous obtenez un fichier ZIP.', 'Décompressez-le → le fichier <b>.ics</b> est à l’intérieur.'],
+    es: ['Abre calendar.google.com en un ordenador (en móvil: vista de escritorio).', 'Arriba a la derecha, ⚙️ → <b>Configuración</b>.', 'A la izquierda elige <b>Importar y exportar</b>.', 'En <b>Exportar</b> pulsa <b>Exportar</b>: obtienes un archivo ZIP.', 'Descomprímelo → el archivo <b>.ics</b> está dentro.'],
+    it: ['Apri calendar.google.com su un computer (da cellulare: vista desktop).', 'In alto a destra tocca ⚙️ → <b>Impostazioni</b>.', 'A sinistra scegli <b>Importa ed esporta</b>.', 'In <b>Esporta</b> clicca <b>Esporta</b> – ottieni un file ZIP.', 'Estrailo → il file <b>.ics</b> è all’interno.'],
+    pl: ['Otwórz calendar.google.com na komputerze (na telefonie: widok komputera).', 'W prawym górnym rogu ⚙️ → <b>Ustawienia</b>.', 'Po lewej wybierz <b>Import i eksport</b>.', 'W sekcji <b>Eksport</b> kliknij <b>Eksportuj</b> – otrzymasz plik ZIP.', 'Rozpakuj go → plik <b>.ics</b> jest w środku.']
+  });
+  const A = pickLang({
+    de: ['Kalender-App am <b>Mac</b> öffnen (am iPhone allein nicht möglich).', 'Links den gewünschten Kalender anklicken.', 'Menü <b>Ablage → Exportieren → Exportieren</b>.', '<b>.ics</b> speichern (z. B. auf dem Schreibtisch).'],
+    en: ['Open the Calendar app on a <b>Mac</b> (not possible on iPhone alone).', 'Click the desired calendar on the left.', 'Menu <b>File → Export → Export</b>.', 'Save the <b>.ics</b> file (e.g. to the desktop).'],
+    fr: ['Ouvrez l’app Calendrier sur un <b>Mac</b> (impossible sur iPhone seul).', 'Cliquez à gauche sur le calendrier voulu.', 'Menu <b>Fichier → Exporter → Exporter</b>.', 'Enregistrez le fichier <b>.ics</b> (p. ex. sur le bureau).'],
+    es: ['Abre la app Calendario en un <b>Mac</b> (no es posible solo en iPhone).', 'Haz clic en el calendario deseado a la izquierda.', 'Menú <b>Archivo → Exportar → Exportar</b>.', 'Guarda el archivo <b>.ics</b> (p. ej. en el escritorio).'],
+    it: ['Apri l’app Calendario su un <b>Mac</b> (non possibile solo da iPhone).', 'A sinistra clicca il calendario desiderato.', 'Menu <b>Archivio → Esporta → Esporta</b>.', 'Salva il file <b>.ics</b> (es. sulla scrivania).'],
+    pl: ['Otwórz aplikację Kalendarz na <b>Macu</b> (na samym iPhonie się nie da).', 'Po lewej kliknij wybrany kalendarz.', 'Menu <b>Plik → Eksportuj → Eksportuj</b>.', 'Zapisz plik <b>.ics</b> (np. na pulpicie).']
+  });
+  const O = pickLang({
+    de: ['outlook.com öffnen → <b>Kalender</b>.', 'Oben rechts ⚙️ → <b>Kalender</b> → <b>Freigegebene Kalender</b>.', 'Unter <b>Kalender veröffentlichen/exportieren</b> die <b>.ics</b> herunterladen.', '(Outlook am PC: <b>Datei → Kalender speichern</b> → Format iCalendar/.ics.)'],
+    en: ['Open outlook.com → <b>Calendar</b>.', 'Top right ⚙️ → <b>Calendar</b> → <b>Shared calendars</b>.', 'Under <b>Publish/export calendar</b> download the <b>.ics</b>.', '(Outlook desktop: <b>File → Save Calendar</b> → iCalendar/.ics format.)'],
+    fr: ['Ouvrez outlook.com → <b>Calendrier</b>.', 'En haut à droite ⚙️ → <b>Calendrier</b> → <b>Calendriers partagés</b>.', 'Sous <b>Publier/exporter le calendrier</b>, téléchargez le <b>.ics</b>.', '(Outlook sur PC : <b>Fichier → Enregistrer le calendrier</b> → format iCalendar/.ics.)'],
+    es: ['Abre outlook.com → <b>Calendario</b>.', 'Arriba a la derecha ⚙️ → <b>Calendario</b> → <b>Calendarios compartidos</b>.', 'En <b>Publicar/exportar calendario</b> descarga el <b>.ics</b>.', '(Outlook de escritorio: <b>Archivo → Guardar calendario</b> → formato iCalendar/.ics.)'],
+    it: ['Apri outlook.com → <b>Calendario</b>.', 'In alto a destra ⚙️ → <b>Calendario</b> → <b>Calendari condivisi</b>.', 'In <b>Pubblica/esporta calendario</b> scarica il <b>.ics</b>.', '(Outlook desktop: <b>File → Salva calendario</b> → formato iCalendar/.ics.)'],
+    pl: ['Otwórz outlook.com → <b>Kalendarz</b>.', 'W prawym górnym rogu ⚙️ → <b>Kalendarz</b> → <b>Udostępnione kalendarze</b>.', 'W sekcji <b>Publikuj/eksportuj kalendarz</b> pobierz plik <b>.ics</b>.', '(Outlook na PC: <b>Plik → Zapisz kalendarz</b> → format iCalendar/.ics.)']
+  });
+  const last = pickLang({ de: 'Zum Schluss unten auf <b>„.ics auswählen"</b> tippen und die Datei wählen – fertig. ✓', en: 'Finally, tap <b>“Select .ics”</b> below and choose the file – done. ✓', fr: 'Enfin, touchez <b>« Choisir un .ics »</b> ci-dessous et sélectionnez le fichier – terminé. ✓', es: 'Por último, pulsa <b>«Seleccionar .ics»</b> abajo y elige el archivo: listo. ✓', it: 'Infine, tocca <b>“Seleziona .ics”</b> qui sotto e scegli il file – fatto. ✓', pl: 'Na koniec dotknij <b>„Wybierz .ics"</b> poniżej i wskaż plik – gotowe. ✓' });
+  return '<div style="margin:2px 0 12px;font-size:12.5px">' +
+    '<div style="font-weight:700;margin:8px 0 2px">📱 ' + pickLang({ de: 'Google Kalender', en: 'Google Calendar', fr: 'Google Agenda', es: 'Google Calendar', it: 'Google Calendar', pl: 'Kalendarz Google' }) + '</div>' + li(G) +
+    '<div style="font-weight:700;margin:8px 0 2px">🍎 ' + pickLang({ de: 'Apple Kalender', en: 'Apple Calendar', fr: 'Calendrier Apple', es: 'Calendario de Apple', it: 'Calendario Apple', pl: 'Kalendarz Apple' }) + '</div>' + li(A) +
+    '<div style="font-weight:700;margin:8px 0 2px">📧 Outlook</div>' + li(O) +
+    '<p style="margin:10px 0 0;color:var(--muted);line-height:1.5">' + last + '</p></div>';
+}
 function askCalendarImport() {
   if (store.calImportAsked) return; store.calImportAsked = true; save();
   let ov = document.getElementById('calImpOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'calImpOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
-  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true"><h3 style="margin-bottom:6px">📅 Kalender übernehmen?</h3>' +
-    '<p style="color:var(--muted);font-size:13.5px;margin-bottom:12px">Möchtest du deinen bestehenden Kalender in Effyra importieren? Exportiere ihn als <b>.ics</b>-Datei (in Google-, Apple- oder Outlook-Kalender möglich) und wähle sie hier aus.</p>' +
-    '<div class="fam-alert-btns"><button class="btn btn-sm" id="calImpLater">Später</button><button class="btn btn-sm btn-primary" id="calImpNow">📥 .ics auswählen</button></div></div>';
+  const T = {
+    head: pickLang({ de: '📅 Kalender übernehmen?', en: '📅 Import your calendar?', fr: '📅 Importer votre agenda ?', es: '📅 ¿Importar tu calendario?', it: '📅 Importare il calendario?', pl: '📅 Zaimportować kalendarz?' }),
+    intro: pickLang({ de: 'Möchtest du deinen bestehenden Kalender in Effyra importieren? Exportiere ihn als <b>.ics</b>-Datei (Google, Apple oder Outlook) und wähle sie hier aus.', en: 'Would you like to import your existing calendar into Effyra? Export it as an <b>.ics</b> file (Google, Apple or Outlook) and select it here.', fr: 'Souhaitez-vous importer votre agenda dans Effyra ? Exportez-le en fichier <b>.ics</b> (Google, Apple ou Outlook) et sélectionnez-le ici.', es: '¿Quieres importar tu calendario a Effyra? Expórtalo como archivo <b>.ics</b> (Google, Apple u Outlook) y selecciónalo aquí.', it: 'Vuoi importare il tuo calendario in Effyra? Esportalo come file <b>.ics</b> (Google, Apple o Outlook) e selezionalo qui.', pl: 'Chcesz zaimportować swój kalendarz do Effyra? Wyeksportuj go jako plik <b>.ics</b> (Google, Apple lub Outlook) i wybierz tutaj.' }),
+    help: pickLang({ de: '❓ Anleitung: Wie exportiere ich meinen Kalender?', en: '❓ Guide: how do I export my calendar?', fr: '❓ Guide : comment exporter mon agenda ?', es: '❓ Guía: ¿cómo exporto mi calendario?', it: '❓ Guida: come esporto il calendario?', pl: '❓ Instrukcja: jak wyeksportować kalendarz?' }),
+    later: pickLang({ de: 'Später', en: 'Later', fr: 'Plus tard', es: 'Más tarde', it: 'Più tardi', pl: 'Później' }),
+    now: pickLang({ de: '📥 .ics auswählen', en: '📥 Select .ics', fr: '📥 Choisir un .ics', es: '📥 Seleccionar .ics', it: '📥 Seleziona .ics', pl: '📥 Wybierz .ics' }),
+  };
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" data-noi18n style="max-width:460px;text-align:left"><h3 style="margin-bottom:6px">' + T.head + '</h3>' +
+    '<p style="color:var(--muted);font-size:13.5px;margin-bottom:8px">' + T.intro + '</p>' +
+    '<details id="calImpHelp" style="margin-bottom:12px"><summary style="cursor:pointer;color:#7c3aed;font-size:13px;font-weight:600;list-style:none">' + T.help + '</summary>' + calImportGuideHTML() + '</details>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="calImpLater">' + T.later + '</button><button class="btn btn-sm btn-primary" id="calImpNow">' + T.now + '</button></div></div>';
   ov.classList.add('on');
   ov.querySelector('#calImpLater').onclick = () => ov.classList.remove('on');
   ov.querySelector('#calImpNow').onclick = () => { ov.classList.remove('on'); const i = $('#calImportFile'); if (i) i.click(); };
