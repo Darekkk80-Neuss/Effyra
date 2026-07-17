@@ -1,5 +1,5 @@
 -- ============================================================================
--- Effyra – Trial (50 Credits / 14 Tage) serverseitig + Google-Play-Entitlements
+-- Effyra – Trial (100 Credits / 14 Tage) serverseitig + Google-Play-Entitlements
 -- ----------------------------------------------------------------------------
 -- Im Supabase SQL-Editor ausführen. Setzt voraus, dass supabase-tiers.sql und
 -- supabase-family-entitlements.sql bereits gelaufen sind (profiles, consume_ai,
@@ -20,11 +20,11 @@ alter table public.profiles add column if not exists lifetime boolean not null d
 -- Bestehende Profile: Trial ab jetzt (bzw. ab Kontoerstellung, falls vorhanden)
 update public.profiles set trial_start = coalesce(trial_start, now()) where trial_start is null;
 
-create or replace function public.ai_trial_credits() returns int language sql immutable as $$ select 50 $$;
+create or replace function public.ai_trial_credits() returns int language sql immutable as $$ select 100 $$;
 create or replace function public.ai_trial_days()    returns int language sql immutable as $$ select 14 $$;
 
 -- 2) consume_ai NEU: Trial (Free) mit 50 Credits/14 Tagen serverseitig ------
---    Free  : bis 50 Credits innerhalb 14 Tagen → danach 'trial_over'
+--    Free  : bis 100 Credits innerhalb 14 Tagen → danach 'trial_over'
 --    premium: 500/Monat (+ ai_extra)  |  medium/lifetime: kein Server-KI ('no_ai')
 create or replace function public.consume_ai(p_user uuid, p_n int default 1)
 returns json
