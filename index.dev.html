@@ -323,6 +323,13 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .di-list{margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
 .di-note{margin-top:8px;font-size:11.5px;color:var(--faint);line-height:1.4}
 .di-ok{font-size:13.5px;color:#6ee7b7;font-weight:600}
+.fuel-row{padding:7px 0;border-bottom:1px solid rgba(127,127,127,.14)}
+.fuel-row:last-of-type{border-bottom:none}
+.fuel-top{display:flex;align-items:baseline;gap:8px}
+.fuel-type{font-weight:700;font-size:12px;min-width:46px;flex:none;color:var(--muted)}
+.fuel-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fuel-price{flex:none;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;color:var(--text)}
+.fuel-addr{margin-left:54px;margin-top:1px;font-size:12px;color:var(--muted);line-height:1.35}
 .warn-row{border-left:3px solid #f59e0b;padding:5px 0 5px 10px;margin-bottom:7px;display:flex;flex-direction:column;gap:1px}
 .warn-row b{font-size:13.5px;line-height:1.25}
 .warn-row span{font-size:12px;color:var(--muted);line-height:1.35}
@@ -5001,7 +5008,7 @@ const DASH_BLOCKS = [
   { id: 'brief', name: 'Dein Tag heute', icon: '☀️' },
   { id: 'weather', name: 'Wetter', icon: '🌤️' },
   { id: 'holidays', name: 'Feiertage & Brückentage', icon: '🎉' },
-  { id: 'fuel', name: 'Spritpreise', icon: '⛽' },
+  { id: 'fuel', name: 'Spritpreise', icon: '⛽', defOff: true },   // standardmäßig aus – nur wenn der Nutzer es im Dashboard aktiviert
   { id: 'meal', name: 'Gericht des Tages', icon: '🍽️' },
   { id: 'quickactions', name: 'Schnellzugriff', icon: '⚡' },
   { id: 'capture', name: 'Schnell erfassen', icon: '✍️' },
@@ -5018,8 +5025,15 @@ const DASH_BLOCKS = [
   { id: 'waste', name: 'Müllabholung', icon: '🗑️' },
   { id: 'checkup', name: 'Vorsorge', icon: '🩺' }
 ];
-function dashOn(id) { return !(store.dashHidden && store.dashHidden[id]); }
-function dashSetVisible(id, on) { store.dashHidden = store.dashHidden || {}; if (on) delete store.dashHidden[id]; else store.dashHidden[id] = 1; save(); }
+function dashDefOff(id) { const b = DASH_BLOCKS.find(x => x.id === id); return !!(b && b.defOff); }
+function dashOn(id) {
+  if (dashDefOff(id)) return !!(store.dashShown && store.dashShown[id]);   // default-off: nur wenn ausdrücklich aktiviert
+  return !(store.dashHidden && store.dashHidden[id]);
+}
+function dashSetVisible(id, on) {
+  if (dashDefOff(id)) { store.dashShown = store.dashShown || {}; if (on) store.dashShown[id] = 1; else delete store.dashShown[id]; save(); return; }
+  store.dashHidden = store.dashHidden || {}; if (on) delete store.dashHidden[id]; else store.dashHidden[id] = 1; save();
+}
 /* Dynamische Inhalts-Sektionen (bekommen einen sortierbaren Wrapper in #dashBlocks). */
 const DASH_SECTION_IDS = ['meds', 'events', 'tasks', 'famtasks', 'shopping', 'finance', 'family', 'docs', 'contracts', 'waste', 'checkup'];
 /* Vom Nutzer gewählte Reihenfolge (store.dashOrder); unbekannte/neue Blöcke hinten anhängen. */
@@ -5062,7 +5076,7 @@ function dashCustomizeOpen() {
   ov.classList.add('on');
   const close = () => ov.classList.remove('on');
   ov.querySelector('#dashCustDone').onclick = close;
-  ov.querySelector('#dashCustReset').onclick = () => { store.dashHidden = {}; store.dashOrder = null; save(); RENDERERS.dashboard(); dashCustomizeOpen(); };
+  ov.querySelector('#dashCustReset').onclick = () => { store.dashHidden = {}; store.dashShown = {}; store.dashOrder = null; save(); RENDERERS.dashboard(); dashCustomizeOpen(); };
   ov.querySelectorAll('[data-dashtog]').forEach(btn => btn.onclick = () => {
     const id = btn.dataset.dashtog; dashSetVisible(id, !dashOn(id));
     const on = dashOn(id); btn.classList.toggle('on', on); btn.textContent = on ? 'An' : 'Aus'; btn.setAttribute('aria-checked', on);
@@ -8557,7 +8571,17 @@ function startWeatherWatch() {
 let _fuelCache = { at: 0, html: '', key: '' };
 function fuelCard(inner, loc) { return '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">⛽</span><b>Spritpreise</b>' + (loc ? '<span class="di-loc">' + esc(loc.name || '') + '</span>' : '') + '</div>' + inner + '</section>'; }
 function fuelSetupHTML() { return fuelCard('<div class="di-note">Noch einzurichten: kostenlosen <b>Tankerkönig-API-Key</b> holen und die Function <code>fuel-proxy</code> deployen (Secret <code>TANKERKOENIG_KEY</code>). Danach erscheinen hier die günstigsten Tankstellen in der Nähe.</div>'); }
-function fuelRow(label, st) { return st && st.price != null ? '<div class="tr-row"><span class="tr-line">' + label + '</span><span class="tr-dir">' + esc(st.name || st.brand || '') + '</span><span class="tr-time">' + Number(st.price).toFixed(2).replace('.', ',') + ' €</span></div>' : ''; }
+function fuelRow(label, st) {
+  if (!st || st.price == null) return '';
+  const price = Number(st.price).toFixed(2).replace('.', ',') + ' €';
+  const addr = [st.street, st.houseNumber].filter(Boolean).join(' ').trim();
+  const distTxt = (st.dist != null && !isNaN(st.dist)) ? ('📍 ' + Number(st.dist).toFixed(1).replace('.', ',') + ' km') : '';
+  const nm = esc(st.name || st.brand || 'Tankstelle');
+  const sub = [esc(addr), distTxt].filter(Boolean).join(' · ');
+  return '<div class="fuel-row"><div class="fuel-top"><span class="fuel-type">' + label + '</span>' +
+    '<span class="fuel-name">' + nm + '</span><span class="fuel-price">' + price + '</span></div>' +
+    (sub ? '<div class="fuel-addr">' + sub + '</div>' : '') + '</div>';
+}
 async function renderFuel() {
   const box = $('#fuelWidget'); if (!box) return;
   const loc = store.weatherLoc;

@@ -36,13 +36,16 @@ Deno.serve(async (req) => {
     const j = await res.json().catch(() => ({}));
     if (!j || !j.ok || !Array.isArray(j.stations)) return json({ ok: false, error: 'upstream' }, 200);
 
-    // Günstigste offene Station je Kraftstoff bestimmen
+    // Günstigste offene Station je Kraftstoff bestimmen (inkl. Adresse zur Zuordnung)
     const cheapest = (fuel: string) => {
       let best: any = null;
       for (const s of j.stations) {
         const p = s[fuel];
         if (typeof p === 'number' && p > 0 && (s.isOpen !== false)) {
-          if (!best || p < best.price) best = { name: s.name, brand: s.brand, price: p, dist: s.dist };
+          if (!best || p < best.price) best = {
+            name: s.name, brand: s.brand, price: p, dist: s.dist,
+            street: s.street, houseNumber: s.houseNumber, place: s.place, postCode: s.postCode,
+          };
         }
       }
       return best;
