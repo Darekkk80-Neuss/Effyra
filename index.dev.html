@@ -314,6 +314,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .di-ic{font-size:19px;flex:none}
 .di-head b{font-size:15px;font-weight:700;flex:1;min-width:0}
 .di-go{border:none;background:none;color:#7c3aed;font-size:12.5px;font-weight:600;cursor:pointer;flex:none;padding:0}
+.di-country{flex:none;max-width:52%;font-size:12.5px;padding:4px 8px;border-radius:9px;border:1px solid var(--border2,rgba(127,127,127,.28));background:var(--card,transparent);color:inherit;cursor:pointer}
 .di-loc{font-size:12px;color:var(--faint);flex:none}
 .di-main{display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
 .di-big{font-size:18px;font-weight:800;color:var(--text);line-height:1.2}
@@ -2417,6 +2418,7 @@ function applyLang(code, opts) {
     setTimeout(() => document.body.classList.remove('lang-switching'), 320);
   }
   refresh();
+  try { ensureHolidayData(); } catch (e) {}   // Feiertags-Land folgt der Sprache (falls nicht explizit gewählt) → Daten laden
   if (curLang === 'de') { stopI18nObserver(); restoreGerman(document.body); }
   else { startI18nObserver(); scheduleSweep(); }
   /* Picker-/Datums-Übersetzungen (eigenes Dict) aus den JSON-Dateien nachladen */
@@ -9034,41 +9036,99 @@ function holidaysDE(y, st) {
   if (st === 'SN') { let x = new Date(y, 10, 22); while (x.getDay() !== 3) x.setDate(x.getDate() - 1); add(toISO(x), 'Buß- und Bettag'); }
   return map;
 }
-function holMap(iso) { const y = iso.slice(0, 4), st = store.work.settings.state || '', key = y + '_' + st; if (!holCache[key]) holCache[key] = holidaysDE(+y, st); return holCache[key]; }
+/* ---- Feiertags-Land: Deutsch = offline (mit Bundesland, Standard), sonst Nager.Date-API (gecacht, offline-fähig) ---- */
+const LANG_DEFAULT_COUNTRY = { de: 'DE', fr: 'FR', es: 'ES', it: 'IT', pl: 'PL', en: 'GB' };
+const HOLIDAY_COUNTRIES = [
+  { code: 'DE', name: '🇩🇪 Deutschland' }, { code: 'AT', name: '🇦🇹 Österreich' }, { code: 'CH', name: '🇨🇭 Schweiz' },
+  { code: 'FR', name: '🇫🇷 France' }, { code: 'ES', name: '🇪🇸 España' }, { code: 'IT', name: '🇮🇹 Italia' },
+  { code: 'PL', name: '🇵🇱 Polska' }, { code: 'NL', name: '🇳🇱 Nederland' }, { code: 'BE', name: '🇧🇪 Belgique/België' },
+  { code: 'LU', name: '🇱🇺 Luxembourg' }, { code: 'GB', name: '🇬🇧 United Kingdom' }, { code: 'IE', name: '🇮🇪 Ireland' },
+  { code: 'PT', name: '🇵🇹 Portugal' }, { code: 'CZ', name: '🇨🇿 Česko' }, { code: 'SK', name: '🇸🇰 Slovensko' },
+  { code: 'DK', name: '🇩🇰 Danmark' }, { code: 'SE', name: '🇸🇪 Sverige' }, { code: 'NO', name: '🇳🇴 Norge' },
+  { code: 'FI', name: '🇫🇮 Suomi' }, { code: 'GR', name: '🇬🇷 Ελλάδα' }, { code: 'HU', name: '🇭🇺 Magyarország' },
+  { code: 'RO', name: '🇷🇴 România' }, { code: 'HR', name: '🇭🇷 Hrvatska' }, { code: 'US', name: '🇺🇸 USA' },
+];
+function holidayCountry() {
+  const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
+  if (lang === 'de') return 'DE';   // Deutsch: immer deutsche Feiertage (Standard, kein Länder-Picker)
+  return store.holidayCountry || LANG_DEFAULT_COUNTRY[lang] || 'DE';
+}
+let holApiCache = (function () { try { return JSON.parse(localStorage.getItem('effyra_hol_api')) || {}; } catch (e) { return {}; } })();
+function saveHolApi() { try { localStorage.setItem('effyra_hol_api', JSON.stringify(holApiCache)); } catch (e) {} }
+const _holFetching = {};
+async function fetchHolidayYear(country, y) {
+  const key = country + '_' + y;
+  if (holApiCache[key] || _holFetching[key]) return;
+  _holFetching[key] = 1;
+  try {
+    const r = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + y + '/' + country);
+    if (r.ok) {
+      const arr = await r.json(); const map = {};
+      (arr || []).forEach(h => { if (h.global !== false && h.date) map[h.date] = h.localName || h.name; });   // nur landesweite Feiertage
+      holApiCache[key] = map; saveHolApi();
+      try { if (currentView === 'dashboard') renderHolidays(); if (currentView === 'work' && RENDERERS.work) RENDERERS.work(); } catch (e) {}
+    }
+  } catch (e) {}
+  delete _holFetching[key];
+}
+function curHolMap(y) {
+  const country = holidayCountry();
+  if (country === 'DE') { const st = store.work.settings.state || '', key = 'DE_' + y + '_' + st; if (!holCache[key]) holCache[key] = holidaysDE(+y, st); return holCache[key]; }
+  const key = country + '_' + y;
+  if (holApiCache[key]) return holApiCache[key];
+  fetchHolidayYear(country, y);   // async nachladen → re-render
+  return {};
+}
+function holMap(iso) { return curHolMap(iso.slice(0, 4)); }
 const isHoliday = (iso) => !!holMap(iso)[iso];
 const holidayName = (iso) => holMap(iso)[iso] || '';
+function ensureHolidayData() { const y = +todayISO().slice(0, 4), c = holidayCountry(); if (c !== 'DE') { fetchHolidayYear(c, y); fetchHolidayYear(c, y + 1); } }
 /* ============================== DASHBOARD-WIDGET: FEIERTAGE & BRÜCKENTAGE ============================== */
 /* Nutzt die bereits vorhandene Offline-Feiertagsberechnung (holidaysDE) – kein API nötig, Bundesland aus store.work.settings.state. */
 function nextHolidays(n) {
-  const state = (store.work && store.work.settings && store.work.settings.state) || '';
   const today = todayISO(), y = +today.slice(0, 4);
-  const map = Object.assign({}, holidaysDE(y, state), holidaysDE(y + 1, state));
+  const map = Object.assign({}, curHolMap('' + y), curHolMap('' + (y + 1)));
   return Object.keys(map).filter(iso => iso >= today).sort().slice(0, n).map(iso => ({ iso, name: map[iso] }));
 }
 function brueckentagTip(iso) {
   const dow = parseISO(iso).getDay();   // 0 So .. 6 Sa
-  if (dow === 2) return '💡 Brückentag-Tipp: 1 Tag Urlaub am Montag → 4 Tage am Stück frei.';
-  if (dow === 4) return '💡 Brückentag-Tipp: 1 Tag Urlaub am Freitag → 4 Tage am Stück frei.';
-  if (dow === 3) return '💡 Brückentag-Tipp: Mo+Di oder Do+Fr Urlaub → bis zu 6 Tage am Stück frei.';
-  if (dow === 1 || dow === 5) return '💡 Fällt auf ' + (dow === 1 ? 'Montag' : 'Freitag') + ' → automatisch langes Wochenende.';
+  if (dow === 2) return pickLang({ de: '💡 Brückentag-Tipp: 1 Tag Urlaub am Montag → 4 Tage am Stück frei.', en: '💡 Bridge-day tip: 1 day off on Monday → 4 days off in a row.', fr: '💡 Astuce pont : 1 jour de congé le lundi → 4 jours de suite.', es: '💡 Consejo de puente: 1 día libre el lunes → 4 días seguidos.', it: '💡 Consiglio ponte: 1 giorno di ferie lunedì → 4 giorni di fila.', pl: '💡 Wskazówka: 1 dzień urlopu w poniedziałek → 4 dni wolnego z rzędu.' });
+  if (dow === 4) return pickLang({ de: '💡 Brückentag-Tipp: 1 Tag Urlaub am Freitag → 4 Tage am Stück frei.', en: '💡 Bridge-day tip: 1 day off on Friday → 4 days off in a row.', fr: '💡 Astuce pont : 1 jour de congé le vendredi → 4 jours de suite.', es: '💡 Consejo de puente: 1 día libre el viernes → 4 días seguidos.', it: '💡 Consiglio ponte: 1 giorno di ferie venerdì → 4 giorni di fila.', pl: '💡 Wskazówka: 1 dzień urlopu w piątek → 4 dni wolnego z rzędu.' });
+  if (dow === 3) return pickLang({ de: '💡 Brückentag-Tipp: Mo+Di oder Do+Fr Urlaub → bis zu 6 Tage am Stück frei.', en: '💡 Bridge-day tip: Mon+Tue or Thu+Fri off → up to 6 days in a row.', fr: '💡 Astuce pont : lun+mar ou jeu+ven de congé → jusqu’à 6 jours de suite.', es: '💡 Consejo de puente: lun+mar o jue+vie libres → hasta 6 días seguidos.', it: '💡 Consiglio ponte: lun+mar o gio+ven di ferie → fino a 6 giorni di fila.', pl: '💡 Wskazówka: pon+wt lub czw+pt urlopu → do 6 dni wolnego z rzędu.' });
+  if (dow === 1 || dow === 5) return pickLang({ de: '💡 Fällt auf ' + (dow === 1 ? 'Montag' : 'Freitag') + ' → automatisch langes Wochenende.', en: '💡 Falls on ' + (dow === 1 ? 'Monday' : 'Friday') + ' → automatically a long weekend.', fr: '💡 Tombe un ' + (dow === 1 ? 'lundi' : 'vendredi') + ' → week-end prolongé automatique.', es: '💡 Cae en ' + (dow === 1 ? 'lunes' : 'viernes') + ' → fin de semana largo automático.', it: '💡 Cade di ' + (dow === 1 ? 'lunedì' : 'venerdì') + ' → weekend lungo automatico.', pl: '💡 Wypada w ' + (dow === 1 ? 'poniedziałek' : 'piątek') + ' → automatycznie długi weekend.' });
   return '';
 }
 function renderHolidays() {
   const box = $('#holidaysWidget'); if (!box) return;
+  const country = holidayCountry();
   const list = nextHolidays(4);
-  if (!list.length) { box.innerHTML = ''; return; }
+  /* Länderauswahl nur, wenn die App NICHT auf Deutsch läuft (Deutsch = deutsche Feiertage als Standard). */
+  const picker = (curLang !== 'de')
+    ? '<select class="di-country" data-holcountry data-noi18n aria-label="Land">' + HOLIDAY_COUNTRIES.map(c => '<option value="' + c.code + '"' + (c.code === country ? ' selected' : '') + '>' + c.name + '</option>').join('') + '</select>'
+    : '<button class="di-go" data-go="work">Arbeitszeit ›</button>';
+  let h = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">🎉</span><b>Feiertage &amp; Brückentage</b>' + picker + '</div>';
+  if (!list.length) {
+    // Nicht-DE: Daten werden noch geladen; DE hat immer Feiertage → Widget bliebe leer
+    if (country === 'DE') { box.innerHTML = ''; return; }
+    h += '<div class="di-note">' + pickLang({ de: 'Feiertage werden geladen …', en: 'Loading holidays …', fr: 'Chargement des jours fériés …', es: 'Cargando festivos …', it: 'Caricamento festività …', pl: 'Ładowanie świąt …' }) + '</div></section>';
+    box.innerHTML = h; return;
+  }
   const n0 = list[0], dl = dayDiff(n0.iso);
   const rel = dl <= 0 ? t('date.today') : dl === 1 ? t('date.tomorrow') : t('date.in_days', { n: dl });
   const tip = brueckentagTip(n0.iso);
-  const state = (store.work && store.work.settings && store.work.settings.state) || '';
-  let h = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">🎉</span><b>Feiertage &amp; Brückentage</b><button class="di-go" data-go="work">Arbeitszeit ›</button></div>' +
-    '<div class="di-main"><span class="di-big">' + esc(n0.name) + '</span><span class="di-sub">' + fmtDate(n0.iso) + ' · <b>' + rel + '</b></span></div>';
+  h += '<div class="di-main"><span class="di-big">' + esc(n0.name) + '</span><span class="di-sub">' + fmtDate(n0.iso) + ' · <b>' + rel + '</b></span></div>';
   if (tip) h += '<div class="di-tip">' + tip + '</div>';
   if (list.length > 1) h += '<div class="di-list">' + list.slice(1).map(x => '<span>📅 ' + esc(x.name) + ' · ' + fmtDate(x.iso) + '</span>').join('') + '</div>';
-  if (!state) h += '<div class="di-note">Tipp: Bundesland in der Arbeitszeit-Einstellung wählen → exakte regionale Feiertage.</div>';
+  if (country === 'DE' && !(store.work && store.work.settings && store.work.settings.state)) h += '<div class="di-note">Tipp: Bundesland in der Arbeitszeit-Einstellung wählen → exakte regionale Feiertage.</div>';
   h += '</section>';
   box.innerHTML = h;
 }
+/* Länderauswahl im Feiertags-Widget → Land merken, Daten laden, neu rendern. */
+if ($('#holidaysWidget')) $('#holidaysWidget').addEventListener('change', e => {
+  const sel = e.target.closest('[data-holcountry]'); if (!sel) return;
+  store.holidayCountry = sel.value; save();
+  ensureHolidayData(); renderHolidays();
+});
 /* ============================== UNWETTERWARNUNGEN (DWD via Bright Sky) – nur im Hintergrund, Pop-up/Push nur bei echter Warnung ============================== */
 const WARN_ICON = { minor: 'ℹ️', moderate: '⚠️', severe: '⛈️', extreme: '🚨' };
 let _warnTimer = null;
