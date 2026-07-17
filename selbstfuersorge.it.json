@@ -12,143 +12,743 @@
   },
   {
    "id": 3,
+   "thema": "Percezione del corpo",
+   "frage": "Quand’è stata l’ultima volta che hai lasciato scendere le spalle consapevolmente?"
+  },
+  {
+   "id": 4,
+   "thema": "Percezione del corpo",
+   "frage": "Sei seduto o in piedi comodamente ora, o vorresti cambiare postura?"
+  },
+  {
+   "id": 5,
+   "thema": "Percezione del corpo",
+   "frage": "Quale parte del tuo corpo potresti trattare oggi con un po’ più di affetto?"
+  },
+  {
+   "id": 6,
+   "thema": "Percezione del corpo",
+   "frage": "Senti più stanchezza o più energia ora – e cosa ti dice?"
+  },
+  {
+   "id": 7,
+   "thema": "Percezione del corpo",
+   "frage": "Quand’è stata l’ultima volta che ti sei stiracchiato consapevolmente oggi?"
+  },
+  {
+   "id": 8,
+   "thema": "Percezione del corpo",
+   "frage": "Hai abbastanza caldo ora, o lo vorresti un po’ più accogliente?"
+  },
+  {
+   "id": 9,
+   "thema": "Percezione del corpo",
+   "frage": "Cosa farebbe bene al tuo corpo nei prossimi minuti?"
+  },
+  {
+   "id": 10,
+   "thema": "Percezione del corpo",
+   "frage": "Quanto respiri profondamente ora – piuttosto superficiale, o calmo e pieno?"
+  },
+  {
+   "id": 11,
    "thema": "Respiro e calma",
    "frage": "Ti va di respirare per tre respiri e basta?"
   },
   {
-   "id": 4,
+   "id": 12,
+   "thema": "Respiro e calma",
+   "frage": "Come ti sentiresti ora dopo un respiro lento e profondo?"
+  },
+  {
+   "id": 13,
    "thema": "Respiro e calma",
    "frage": "Cosa succede se lasci andare un po’ al prossimo respiro in uscita?"
   },
   {
-   "id": 5,
+   "id": 14,
+   "thema": "Respiro e calma",
+   "frage": "Dove puoi trovare oggi un breve momento di quiete?"
+  },
+  {
+   "id": 15,
+   "thema": "Respiro e calma",
+   "frage": "Cosa ti calma quando tutto sembra troppo in questo momento?"
+  },
+  {
+   "id": 16,
+   "thema": "Respiro e calma",
+   "frage": "Quando oggi hai avuto un momento in cui nulla ti veniva chiesto?"
+  },
+  {
+   "id": 17,
+   "thema": "Respiro e calma",
+   "frage": "Può essere tutto tranquillo e lento per un po’ ora?"
+  },
+  {
+   "id": 18,
+   "thema": "Respiro e calma",
+   "frage": "Come suona il silenzio per te – piuttosto piacevole o insolito?"
+  },
+  {
+   "id": 19,
+   "thema": "Respiro e calma",
+   "frage": "Cosa ti aiuta a calmarti dentro?"
+  },
+  {
+   "id": 20,
+   "thema": "Respiro e calma",
+   "frage": "Vuoi chiudere gli occhi un attimo e semplicemente essere qui?"
+  },
+  {
+   "id": 21,
    "thema": "Pause ed energia",
    "frage": "Quando ti sei concesso l’ultima vera pausa oggi?"
   },
   {
-   "id": 6,
+   "id": 22,
    "thema": "Pause ed energia",
    "frage": "Cosa ti dà energia ora – e cosa te la toglie?"
   },
   {
-   "id": 7,
+   "id": 23,
+   "thema": "Pause ed energia",
+   "frage": "Hai bisogno ora piuttosto di una pausa o di una piccola spinta?"
+  },
+  {
+   "id": 24,
+   "thema": "Pause ed energia",
+   "frage": "Quanto ti senti carico oggi?"
+  },
+  {
+   "id": 25,
+   "thema": "Pause ed energia",
+   "frage": "Quale piccola pausa potresti concederti nella prossima ora?"
+  },
+  {
+   "id": 26,
+   "thema": "Pause ed energia",
+   "frage": "Stai facendo troppe cose insieme in questo momento?"
+  },
+  {
+   "id": 27,
+   "thema": "Pause ed energia",
+   "frage": "Cosa potresti tralasciare oggi con la coscienza tranquilla?"
+  },
+  {
+   "id": 28,
+   "thema": "Pause ed energia",
+   "frage": "Quand’è stata l’ultima volta che ti sei concesso di non fare nulla?"
+  },
+  {
+   "id": 29,
+   "thema": "Pause ed energia",
+   "frage": "Cosa ti fa bene quando sei esausto?"
+  },
+  {
+   "id": 30,
+   "thema": "Pause ed energia",
+   "frage": "Come ci si sente a prendere fiato prima di continuare?"
+  },
+  {
+   "id": 31,
    "thema": "Gratitudine",
    "frage": "Per cosa sei grato oggi – anche per qualcosa di piccolissimo?"
   },
   {
-   "id": 8,
+   "id": 32,
    "thema": "Gratitudine",
    "frage": "Cosa ti ha fatto sorridere oggi?"
   },
   {
-   "id": 9,
+   "id": 33,
+   "thema": "Gratitudine",
+   "frage": "Chi ti ha fatto bene ultimamente?"
+  },
+  {
+   "id": 34,
+   "thema": "Gratitudine",
+   "frage": "Quale piccola cosa di oggi è stata più bella del previsto?"
+  },
+  {
+   "id": 35,
+   "thema": "Gratitudine",
+   "frage": "Cosa della tua giornata di oggi vorresti trattenere?"
+  },
+  {
+   "id": 36,
+   "thema": "Gratitudine",
+   "frage": "Di cosa sei grato a te stesso in questo momento?"
+  },
+  {
+   "id": 37,
+   "thema": "Gratitudine",
+   "frage": "Quale momento di oggi è stato calmo e piacevole?"
+  },
+  {
+   "id": 38,
+   "thema": "Gratitudine",
+   "frage": "Cosa nella tua vita va bene ora, così com’è?"
+  },
+  {
+   "id": 39,
+   "thema": "Gratitudine",
+   "frage": "A chi vorresti magari dire grazie oggi?"
+  },
+  {
+   "id": 40,
+   "thema": "Gratitudine",
+   "frage": "Cosa dai per scontato che è in realtà un piccolo dono?"
+  },
+  {
+   "id": 41,
    "thema": "Emozioni",
    "frage": "Come stai davvero ora – non solo “ok”?"
   },
   {
-   "id": 10,
+   "id": 42,
+   "thema": "Emozioni",
+   "frage": "Quale emozione ti accompagna di più oggi?"
+  },
+  {
+   "id": 43,
    "thema": "Emozioni",
    "frage": "Può esserci ciò che senti, senza scacciarlo?"
   },
   {
-   "id": 11,
+   "id": 44,
+   "thema": "Emozioni",
+   "frage": "Cosa vorresti dire alla tua emozione in questo momento?"
+  },
+  {
+   "id": 45,
+   "thema": "Emozioni",
+   "frage": "Di cosa hai più bisogno emotivamente in questo momento?"
+  },
+  {
+   "id": 46,
+   "thema": "Emozioni",
+   "frage": "C’è qualcosa che oggi ti pesa e avrebbe bisogno di spazio?"
+  },
+  {
+   "id": 47,
+   "thema": "Emozioni",
+   "frage": "Quand’è stata l’ultima volta che ti sei sentito davvero a tuo agio oggi?"
+  },
+  {
+   "id": 48,
+   "thema": "Emozioni",
+   "frage": "Cosa ti aiuterebbe a sentirti un po’ più leggero ora?"
+  },
+  {
+   "id": 49,
+   "thema": "Emozioni",
+   "frage": "Oggi sei piuttosto severo o gentile con te stesso?"
+  },
+  {
+   "id": 50,
+   "thema": "Emozioni",
+   "frage": "Quale umore vorresti portare con te nel resto della giornata?"
+  },
+  {
+   "id": 51,
    "thema": "Bisogni e confini",
    "frage": "Di cosa hai più bisogno proprio ora?"
   },
   {
-   "id": 12,
+   "id": 52,
    "thema": "Bisogni e confini",
    "frage": "C’è un “no” oggi che ti farebbe davvero bene?"
   },
   {
-   "id": 13,
+   "id": 53,
+   "thema": "Bisogni e confini",
+   "frage": "Ti prendi abbastanza tempo per te stesso?"
+  },
+  {
+   "id": 54,
+   "thema": "Bisogni e confini",
+   "frage": "Cosa fai per gli altri che potresti concedere anche a te stesso?"
+  },
+  {
+   "id": 55,
+   "thema": "Bisogni e confini",
+   "frage": "Dove puoi porre un confine oggi?"
+  },
+  {
+   "id": 56,
+   "thema": "Bisogni e confini",
+   "frage": "Cosa non vuoi più farti fare oggi?"
+  },
+  {
+   "id": 57,
+   "thema": "Bisogni e confini",
+   "frage": "Stai ascoltando ciò che il tuo corpo ti dice in questo momento?"
+  },
+  {
+   "id": 58,
+   "thema": "Bisogni e confini",
+   "frage": "Quale dei tuoi bisogni è trascurato ultimamente?"
+  },
+  {
+   "id": 59,
+   "thema": "Bisogni e confini",
+   "frage": "Cosa desidereresti se osassi dirlo ad alta voce?"
+  },
+  {
+   "id": 60,
+   "thema": "Bisogni e confini",
+   "frage": "Va bene pensare prima a te stesso anche oggi?"
+  },
+  {
+   "id": 61,
    "thema": "Gioia e piccole cose",
    "frage": "Cosa ti darebbe gioia oggi – senza alcun motivo?"
   },
   {
-   "id": 14,
+   "id": 62,
+   "thema": "Gioia e piccole cose",
+   "frage": "Quale piccola cosa potresti concederti oggi?"
+  },
+  {
+   "id": 63,
    "thema": "Gioia e piccole cose",
    "frage": "Quand’è stata l’ultima volta che hai riso di cuore?"
   },
   {
-   "id": 15,
+   "id": 64,
+   "thema": "Gioia e piccole cose",
+   "frage": "Cosa ti dà gioia nella tua quotidianità in questo periodo?"
+  },
+  {
+   "id": 65,
+   "thema": "Gioia e piccole cose",
+   "frage": "Quale piccolo rituale ti fa bene?"
+  },
+  {
+   "id": 66,
+   "thema": "Gioia e piccole cose",
+   "frage": "Cosa faresti se ti regalassi 15 minuti solo per te oggi?"
+  },
+  {
+   "id": 67,
+   "thema": "Gioia e piccole cose",
+   "frage": "Quale musica si adatterebbe al tuo umore ora?"
+  },
+  {
+   "id": 68,
+   "thema": "Gioia e piccole cose",
+   "frage": "Qual è il tuo piccolo momento preferito in un giorno qualsiasi?"
+  },
+  {
+   "id": 69,
+   "thema": "Gioia e piccole cose",
+   "frage": "Cosa ti solleva il morale quasi sempre?"
+  },
+  {
+   "id": 70,
+   "thema": "Gioia e piccole cose",
+   "frage": "Di cosa vorresti portare di più nella tua giornata oggi?"
+  },
+  {
+   "id": 71,
    "thema": "Connessione",
    "frage": "Con chi un breve contatto ti farebbe bene oggi?"
   },
   {
-   "id": 16,
+   "id": 72,
+   "thema": "Connessione",
+   "frage": "Quand’è stata l’ultima volta che ti sei sentito davvero vicino a qualcuno?"
+  },
+  {
+   "id": 73,
    "thema": "Connessione",
    "frage": "A chi potresti fare una piccola gioia oggi?"
   },
   {
-   "id": 17,
+   "id": 74,
+   "thema": "Connessione",
+   "frage": "Chi ti fa sentire libero di essere esattamente come sei?"
+  },
+  {
+   "id": 75,
+   "thema": "Connessione",
+   "frage": "Ti manca qualcuno in questo momento a cui potresti scrivere?"
+  },
+  {
+   "id": 76,
+   "thema": "Connessione",
+   "frage": "Quand’è stata l’ultima volta che ti sei sentito compreso?"
+  },
+  {
+   "id": 77,
+   "thema": "Connessione",
+   "frage": "Chi nella tua vita merita un grazie oggi?"
+  },
+  {
+   "id": 78,
+   "thema": "Connessione",
+   "frage": "Oggi hai voglia di metterti in gioco o piuttosto di ritirarti?"
+  },
+  {
+   "id": 79,
+   "thema": "Connessione",
+   "frage": "Cosa ti lega alle persone che contano per te?"
+  },
+  {
+   "id": 80,
+   "thema": "Connessione",
+   "frage": "Quand’è stata l’ultima volta che hai osato chiedere aiuto?"
+  },
+  {
+   "id": 81,
    "thema": "Consapevolezza",
    "frage": "Cosa noti ora se ti fermi un attimo?"
   },
   {
-   "id": 18,
+   "id": 82,
+   "thema": "Consapevolezza",
+   "frage": "Quali tre cose puoi vedere, sentire e percepire in questo momento?"
+  },
+  {
+   "id": 83,
+   "thema": "Consapevolezza",
+   "frage": "Cosa odori o assapori ora – in piena consapevolezza?"
+  },
+  {
+   "id": 84,
+   "thema": "Consapevolezza",
+   "frage": "Come senti il pavimento sotto i piedi?"
+  },
+  {
+   "id": 85,
    "thema": "Consapevolezza",
    "frage": "Cosa va bene, in fondo, proprio in questo istante?"
   },
   {
-   "id": 19,
+   "id": 86,
+   "thema": "Consapevolezza",
+   "frage": "Puoi lasciare che questo momento sia, per qualche secondo?"
+  },
+  {
+   "id": 87,
+   "thema": "Consapevolezza",
+   "frage": "Cosa noteresti se rallentassi?"
+  },
+  {
+   "id": 88,
+   "thema": "Consapevolezza",
+   "frage": "Dov’è la tua attenzione ora – qui o del tutto altrove?"
+  },
+  {
+   "id": 89,
+   "thema": "Consapevolezza",
+   "frage": "Cosa cambia se dai al momento presente tutta la tua attenzione?"
+  },
+  {
+   "id": 90,
+   "thema": "Consapevolezza",
+   "frage": "Qual è la cosa più bella che puoi vedere intorno a te ora?"
+  },
+  {
+   "id": 91,
    "thema": "Gentilezza verso sé",
    "frage": "Parleresti a un buon amico come stai parlando a te ora?"
   },
   {
-   "id": 20,
+   "id": 92,
+   "thema": "Gentilezza verso sé",
+   "frage": "Cosa ti diresti se fossi il tuo migliore amico?"
+  },
+  {
+   "id": 93,
    "thema": "Gentilezza verso sé",
    "frage": "Di cosa puoi essere fiero di te oggi?"
   },
   {
-   "id": 21,
+   "id": 94,
+   "thema": "Gentilezza verso sé",
+   "frage": "Cosa hai già fatto oggi – anche se piccolo?"
+  },
+  {
+   "id": 95,
+   "thema": "Gentilezza verso sé",
+   "frage": "Ti è concesso non essere perfetto anche oggi?"
+  },
+  {
+   "id": 96,
+   "thema": "Gentilezza verso sé",
+   "frage": "Cosa vorresti perdonarti?"
+  },
+  {
+   "id": 97,
+   "thema": "Gentilezza verso sé",
+   "frage": "Come potresti trattarti con un po’ più di dolcezza oggi?"
+  },
+  {
+   "id": 98,
+   "thema": "Gentilezza verso sé",
+   "frage": "Quale frase gentile vorresti regalarti oggi?"
+  },
+  {
+   "id": 99,
+   "thema": "Gentilezza verso sé",
+   "frage": "Cosa ti piace di te – anche se fai fatica ad ammetterlo?"
+  },
+  {
+   "id": 100,
+   "thema": "Gentilezza verso sé",
+   "frage": "Riconosci quanto stai portando in questo momento?"
+  },
+  {
+   "id": 101,
    "thema": "Sonno e riposo",
    "frage": "Hai riposato abbastanza la scorsa notte?"
   },
   {
-   "id": 22,
+   "id": 102,
    "thema": "Sonno e riposo",
    "frage": "Cosa ti aiuterebbe a staccare stasera?"
   },
   {
-   "id": 23,
+   "id": 103,
+   "thema": "Sonno e riposo",
+   "frage": "Quando andresti idealmente a riposare oggi?"
+  },
+  {
+   "id": 104,
+   "thema": "Sonno e riposo",
+   "frage": "Cosa a volte ti impedisce di dormire bene?"
+  },
+  {
+   "id": 105,
+   "thema": "Sonno e riposo",
+   "frage": "Come potresti concludere la serata un po’ più tranquillamente oggi?"
+  },
+  {
+   "id": 106,
+   "thema": "Sonno e riposo",
+   "frage": "Ti senti riposato ora, o piuttosto stanco?"
+  },
+  {
+   "id": 107,
+   "thema": "Sonno e riposo",
+   "frage": "Cosa ti fa bene prima di dormire?"
+  },
+  {
+   "id": 108,
+   "thema": "Sonno e riposo",
+   "frage": "Ti concedi abbastanza vero riposo – non solo distrazione?"
+  },
+  {
+   "id": 109,
+   "thema": "Sonno e riposo",
+   "frage": "Cosa renderebbe la serata riposante per te?"
+  },
+  {
+   "id": 110,
+   "thema": "Sonno e riposo",
+   "frage": "Quand’è stata l’ultima volta che ti sei concesso un momento davvero pigro?"
+  },
+  {
+   "id": 111,
    "thema": "Movimento e aria aperta",
    "frage": "Sei già uscito all’aria aperta oggi?"
   },
   {
-   "id": 24,
+   "id": 112,
    "thema": "Movimento e aria aperta",
    "frage": "Come ti sentiresti dopo una breve passeggiata ora?"
   },
   {
-   "id": 25,
+   "id": 113,
+   "thema": "Movimento e aria aperta",
+   "frage": "Forse il tuo corpo vorrebbe muoversi un po’ oggi?"
+  },
+  {
+   "id": 114,
+   "thema": "Movimento e aria aperta",
+   "frage": "Quand’è stata l’ultima volta che hai guardato il cielo con consapevolezza?"
+  },
+  {
+   "id": 115,
+   "thema": "Movimento e aria aperta",
+   "frage": "Cosa ti darebbero pochi minuti nella natura?"
+  },
+  {
+   "id": 116,
+   "thema": "Movimento e aria aperta",
+   "frage": "Ti va di alzarti un attimo e stiracchiarti?"
+  },
+  {
+   "id": 117,
+   "thema": "Movimento e aria aperta",
+   "frage": "Come senti l’aria fresca o la luce del sole sulla pelle?"
+  },
+  {
+   "id": 118,
+   "thema": "Movimento e aria aperta",
+   "frage": "Quale movimento ti darebbe gioia oggi, senza alcuna pressione?"
+  },
+  {
+   "id": 119,
+   "thema": "Movimento e aria aperta",
+   "frage": "Quand’è stata l’ultima volta che sei stato fuori, senza meta?"
+  },
+  {
+   "id": 120,
+   "thema": "Movimento e aria aperta",
+   "frage": "Che tipo di movimento farebbe bene al tuo corpo oggi?"
+  },
+  {
+   "id": 121,
    "thema": "Pensieri e focus",
    "frage": "Quale pensiero ti gira in testa proprio ora?"
   },
   {
-   "id": 26,
+   "id": 122,
+   "thema": "Pensieri e focus",
+   "frage": "Di ciò che ti preoccupa, cosa puoi davvero influenzare ora?"
+  },
+  {
+   "id": 123,
    "thema": "Pensieri e focus",
    "frage": "Cosa potresti lasciar andare consapevolmente oggi?"
   },
   {
-   "id": 27,
+   "id": 124,
+   "thema": "Pensieri e focus",
+   "frage": "A cosa vorresti dare meno attenzione oggi?"
+  },
+  {
+   "id": 125,
+   "thema": "Pensieri e focus",
+   "frage": "Cosa è davvero importante ora – e cosa è solo rumore?"
+  },
+  {
+   "id": 126,
+   "thema": "Pensieri e focus",
+   "frage": "Quale pensiero ti farebbe bene se lo pensassi più spesso?"
+  },
+  {
+   "id": 127,
+   "thema": "Pensieri e focus",
+   "frage": "Cosa ti consiglieresti se prendessi un attimo le distanze?"
+  },
+  {
+   "id": 128,
+   "thema": "Pensieri e focus",
+   "frage": "Ti stai mettendo più pressione del necessario in questo momento?"
+  },
+  {
+   "id": 129,
+   "thema": "Pensieri e focus",
+   "frage": "E se oggi bastasse, così com’è?"
+  },
+  {
+   "id": 130,
+   "thema": "Pensieri e focus",
+   "frage": "Quale preoccupazione puoi mettere da parte per ora?"
+  },
+  {
+   "id": 131,
    "thema": "Senso e valori",
    "frage": "Cosa conta davvero per te oggi?"
   },
   {
-   "id": 28,
+   "id": 132,
    "thema": "Senso e valori",
    "frage": "Quand’è stata l’ultima volta che ti sei sentito davvero vivo?"
   },
   {
-   "id": 29,
+   "id": 133,
+   "thema": "Senso e valori",
+   "frage": "Cosa dà significato alla tua giornata in questo momento?"
+  },
+  {
+   "id": 134,
+   "thema": "Senso e valori",
+   "frage": "Per cosa ti piace alzarti la mattina?"
+  },
+  {
+   "id": 135,
+   "thema": "Senso e valori",
+   "frage": "Quale valore dovrebbe guidare la tua giornata oggi?"
+  },
+  {
+   "id": 136,
+   "thema": "Senso e valori",
+   "frage": "Cosa vorresti poter dire di te a fine giornata?"
+  },
+  {
+   "id": 137,
+   "thema": "Senso e valori",
+   "frage": "Cosa renderebbe la tua vita un po’ più ricca ora?"
+  },
+  {
+   "id": 138,
+   "thema": "Senso e valori",
+   "frage": "Di cosa vorresti di più nella tua vita e di cosa di meno?"
+  },
+  {
+   "id": 139,
+   "thema": "Senso e valori",
+   "frage": "Cosa ti fa bene a lungo termine, anche se costa fatica a breve?"
+  },
+  {
+   "id": 140,
+   "thema": "Senso e valori",
+   "frage": "Quando ti senti più te stesso?"
+  },
+  {
+   "id": 141,
    "thema": "Cura di sé quotidiana",
    "frage": "Hai bevuto abbastanza oggi?"
   },
   {
-   "id": 30,
+   "id": 142,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Quand’è stata l’ultima volta che ti sei concesso con calma qualcosa di buono?"
+  },
+  {
+   "id": 143,
    "thema": "Cura di sé quotidiana",
    "frage": "Cosa ti darebbe forza in questo momento?"
+  },
+  {
+   "id": 144,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Ti concederai oggi qualcosa solo per il tuo benessere?"
+  },
+  {
+   "id": 145,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Cosa fa più bene al tuo benessere in questo momento?"
+  },
+  {
+   "id": 146,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Come puoi prenderti cura di te con gentilezza oggi?"
+  },
+  {
+   "id": 147,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Di cosa hai bisogno per sentirti sicuro e protetto?"
+  },
+  {
+   "id": 148,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Quale piccola cura puoi concederti nei prossimi minuti?"
+  },
+  {
+   "id": 149,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Cosa ti consiglierebbe ora una persona affettuosa?"
+  },
+  {
+   "id": 150,
+   "thema": "Cura di sé quotidiana",
+   "frage": "Se oggi fai una sola cosa per te – quale sarebbe?"
   }
  ]
 }

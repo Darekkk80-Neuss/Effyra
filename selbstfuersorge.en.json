@@ -12,143 +12,743 @@
   },
   {
    "id": 3,
+   "thema": "Body awareness",
+   "frage": "When did you last consciously let your shoulders drop?"
+  },
+  {
+   "id": 4,
+   "thema": "Body awareness",
+   "frage": "Are you sitting or standing comfortably right now, or would you like to change your posture?"
+  },
+  {
+   "id": 5,
+   "thema": "Body awareness",
+   "frage": "Which part of your body could you treat a little more lovingly today?"
+  },
+  {
+   "id": 6,
+   "thema": "Body awareness",
+   "frage": "Do you feel more tired or more energetic right now – and what does that tell you?"
+  },
+  {
+   "id": 7,
+   "thema": "Body awareness",
+   "frage": "When did you last consciously stretch today?"
+  },
+  {
+   "id": 8,
+   "thema": "Body awareness",
+   "frage": "Are you warm enough right now, or could it be a bit cosier?"
+  },
+  {
+   "id": 9,
+   "thema": "Body awareness",
+   "frage": "What would do your body good in the next few minutes?"
+  },
+  {
+   "id": 10,
+   "thema": "Body awareness",
+   "frage": "How deeply are you breathing right now – rather shallow, or calm and full?"
+  },
+  {
+   "id": 11,
    "thema": "Breath & calm",
    "frage": "Would you like to simply breathe for three breaths and do nothing else?"
   },
   {
-   "id": 4,
+   "id": 12,
+   "thema": "Breath & calm",
+   "frage": "How would a slow, deep breath feel right now?"
+  },
+  {
+   "id": 13,
    "thema": "Breath & calm",
    "frage": "What happens if you let go a little on your next exhale?"
   },
   {
-   "id": 5,
+   "id": 14,
+   "thema": "Breath & calm",
+   "frage": "Where can you find a brief moment of quiet today?"
+  },
+  {
+   "id": 15,
+   "thema": "Breath & calm",
+   "frage": "What calms you when everything feels like a lot right now?"
+  },
+  {
+   "id": 16,
+   "thema": "Breath & calm",
+   "frage": "When today did you have a moment where nothing was asked of you?"
+  },
+  {
+   "id": 17,
+   "thema": "Breath & calm",
+   "frage": "May things be quiet and slow for a while right now?"
+  },
+  {
+   "id": 18,
+   "thema": "Breath & calm",
+   "frage": "What does silence sound like to you – rather pleasant or unfamiliar?"
+  },
+  {
+   "id": 19,
+   "thema": "Breath & calm",
+   "frage": "What helps you settle inwardly?"
+  },
+  {
+   "id": 20,
+   "thema": "Breath & calm",
+   "frage": "Would you like to close your eyes for a moment and simply be here?"
+  },
+  {
+   "id": 21,
    "thema": "Breaks & energy",
    "frage": "When did you last take a real break today?"
   },
   {
-   "id": 6,
+   "id": 22,
    "thema": "Breaks & energy",
    "frage": "What gives you energy right now – and what drains it?"
   },
   {
-   "id": 7,
+   "id": 23,
+   "thema": "Breaks & energy",
+   "frage": "Do you need a break right now, or a little push?"
+  },
+  {
+   "id": 24,
+   "thema": "Breaks & energy",
+   "frage": "How full does your battery feel today?"
+  },
+  {
+   "id": 25,
+   "thema": "Breaks & energy",
+   "frage": "What small break could you give yourself in the next hour?"
+  },
+  {
+   "id": 26,
+   "thema": "Breaks & energy",
+   "frage": "Are you doing too much at once right now?"
+  },
+  {
+   "id": 27,
+   "thema": "Breaks & energy",
+   "frage": "What could you leave out today with a clear conscience?"
+  },
+  {
+   "id": 28,
+   "thema": "Breaks & energy",
+   "frage": "When did you last allow yourself to simply do nothing?"
+  },
+  {
+   "id": 29,
+   "thema": "Breaks & energy",
+   "frage": "What does you good when you’re exhausted?"
+  },
+  {
+   "id": 30,
+   "thema": "Breaks & energy",
+   "frage": "How does it feel to take a breath before carrying on?"
+  },
+  {
+   "id": 31,
    "thema": "Gratitude",
    "frage": "What are you grateful for today – even something very small?"
   },
   {
-   "id": 8,
+   "id": 32,
    "thema": "Gratitude",
    "frage": "What made you smile today?"
   },
   {
-   "id": 9,
+   "id": 33,
+   "thema": "Gratitude",
+   "frage": "Who has done you good lately?"
+  },
+  {
+   "id": 34,
+   "thema": "Gratitude",
+   "frage": "Which little thing today was nicer than you expected?"
+  },
+  {
+   "id": 35,
+   "thema": "Gratitude",
+   "frage": "What about your day today would you like to hold on to?"
+  },
+  {
+   "id": 36,
+   "thema": "Gratitude",
+   "frage": "What are you grateful for in yourself right now?"
+  },
+  {
+   "id": 37,
+   "thema": "Gratitude",
+   "frage": "Which moment today was calm and pleasant?"
+  },
+  {
+   "id": 38,
+   "thema": "Gratitude",
+   "frage": "What in your life is good right now, just as it is?"
+  },
+  {
+   "id": 39,
+   "thema": "Gratitude",
+   "frage": "Who might you still want to thank today?"
+  },
+  {
+   "id": 40,
+   "thema": "Gratitude",
+   "frage": "What that you take for granted is actually a small gift?"
+  },
+  {
+   "id": 41,
    "thema": "Emotions",
    "frage": "How are you really doing right now – not just “okay”?"
   },
   {
-   "id": 10,
+   "id": 42,
+   "thema": "Emotions",
+   "frage": "Which feeling accompanies you most today?"
+  },
+  {
+   "id": 43,
    "thema": "Emotions",
    "frage": "May what you feel simply be here, without pushing it away?"
   },
   {
-   "id": 11,
+   "id": 44,
+   "thema": "Emotions",
+   "frage": "What would you like to say to your feeling right now?"
+  },
+  {
+   "id": 45,
+   "thema": "Emotions",
+   "frage": "What do you need most emotionally right now?"
+  },
+  {
+   "id": 46,
+   "thema": "Emotions",
+   "frage": "Is there something on your mind today that would need some space?"
+  },
+  {
+   "id": 47,
+   "thema": "Emotions",
+   "frage": "When did you last feel really at ease today?"
+  },
+  {
+   "id": 48,
+   "thema": "Emotions",
+   "frage": "What would help you feel a bit lighter right now?"
+  },
+  {
+   "id": 49,
+   "thema": "Emotions",
+   "frage": "Are you rather strict or kind with yourself today?"
+  },
+  {
+   "id": 50,
+   "thema": "Emotions",
+   "frage": "Which mood would you like to carry into the rest of the day?"
+  },
+  {
+   "id": 51,
    "thema": "Needs & boundaries",
    "frage": "What do you need most urgently right now?"
   },
   {
-   "id": 12,
+   "id": 52,
    "thema": "Needs & boundaries",
    "frage": "Is there a “no” today that would actually feel good?"
   },
   {
-   "id": 13,
+   "id": 53,
+   "thema": "Needs & boundaries",
+   "frage": "Are you taking enough time for yourself?"
+  },
+  {
+   "id": 54,
+   "thema": "Needs & boundaries",
+   "frage": "What do you do for others that you could also grant yourself?"
+  },
+  {
+   "id": 55,
+   "thema": "Needs & boundaries",
+   "frage": "Where may you set a boundary today?"
+  },
+  {
+   "id": 56,
+   "thema": "Needs & boundaries",
+   "frage": "What are you no longer willing to let happen to you today?"
+  },
+  {
+   "id": 57,
+   "thema": "Needs & boundaries",
+   "frage": "Are you listening to what your body is telling you right now?"
+  },
+  {
+   "id": 58,
+   "thema": "Needs & boundaries",
+   "frage": "Which of your needs has been coming up short lately?"
+  },
+  {
+   "id": 59,
+   "thema": "Needs & boundaries",
+   "frage": "What would you wish for if you dared to say it out loud?"
+  },
+  {
+   "id": 60,
+   "thema": "Needs & boundaries",
+   "frage": "Is it okay to put yourself first today, too?"
+  },
+  {
+   "id": 61,
    "thema": "Joy & little things",
    "frage": "What would bring you joy today – for no reason at all?"
   },
   {
-   "id": 14,
+   "id": 62,
+   "thema": "Joy & little things",
+   "frage": "What little thing could you treat yourself to today?"
+  },
+  {
+   "id": 63,
    "thema": "Joy & little things",
    "frage": "When did you last laugh really heartily?"
   },
   {
-   "id": 15,
+   "id": 64,
+   "thema": "Joy & little things",
+   "frage": "What brings you joy in your everyday life right now?"
+  },
+  {
+   "id": 65,
+   "thema": "Joy & little things",
+   "frage": "Which small ritual does you good?"
+  },
+  {
+   "id": 66,
+   "thema": "Joy & little things",
+   "frage": "What would you do if you gave yourself 15 minutes just for you today?"
+  },
+  {
+   "id": 67,
+   "thema": "Joy & little things",
+   "frage": "What music would match your mood right now?"
+  },
+  {
+   "id": 68,
+   "thema": "Joy & little things",
+   "frage": "What is your favourite little moment on an ordinary day?"
+  },
+  {
+   "id": 69,
+   "thema": "Joy & little things",
+   "frage": "What almost always lifts your mood?"
+  },
+  {
+   "id": 70,
+   "thema": "Joy & little things",
+   "frage": "What would you like to bring more of into your day today?"
+  },
+  {
+   "id": 71,
    "thema": "Connection",
    "frage": "Who would a short moment of contact do you good with today?"
   },
   {
-   "id": 16,
+   "id": 72,
+   "thema": "Connection",
+   "frage": "When did you last feel truly close to someone?"
+  },
+  {
+   "id": 73,
    "thema": "Connection",
    "frage": "Who could you bring a little joy to today?"
   },
   {
-   "id": 17,
+   "id": 74,
+   "thema": "Connection",
+   "frage": "Who makes you feel free to be exactly who you are?"
+  },
+  {
+   "id": 75,
+   "thema": "Connection",
+   "frage": "Is there someone you’re missing right now whom you could message?"
+  },
+  {
+   "id": 76,
+   "thema": "Connection",
+   "frage": "When did you last feel understood?"
+  },
+  {
+   "id": 77,
+   "thema": "Connection",
+   "frage": "Who in your life deserves a thank-you today?"
+  },
+  {
+   "id": 78,
+   "thema": "Connection",
+   "frage": "Do you feel like showing up today, or rather withdrawing?"
+  },
+  {
+   "id": 79,
+   "thema": "Connection",
+   "frage": "What connects you with the people who matter to you?"
+  },
+  {
+   "id": 80,
+   "thema": "Connection",
+   "frage": "When did you last dare to ask for help?"
+  },
+  {
+   "id": 81,
    "thema": "Mindfulness",
    "frage": "What do you notice right now if you pause for a moment?"
   },
   {
-   "id": 18,
+   "id": 82,
+   "thema": "Mindfulness",
+   "frage": "What three things can you see, hear and feel in this moment?"
+  },
+  {
+   "id": 83,
+   "thema": "Mindfulness",
+   "frage": "What do you smell or taste right now – quite consciously?"
+  },
+  {
+   "id": 84,
+   "thema": "Mindfulness",
+   "frage": "How does the ground feel under your feet?"
+  },
+  {
+   "id": 85,
    "thema": "Mindfulness",
    "frage": "What is actually okay in this very moment?"
   },
   {
-   "id": 19,
+   "id": 86,
+   "thema": "Mindfulness",
+   "frage": "Can you let this moment simply be, for a few seconds?"
+  },
+  {
+   "id": 87,
+   "thema": "Mindfulness",
+   "frage": "What would you notice if you slowed down?"
+  },
+  {
+   "id": 88,
+   "thema": "Mindfulness",
+   "frage": "Where is your attention right now – here, or somewhere else entirely?"
+  },
+  {
+   "id": 89,
+   "thema": "Mindfulness",
+   "frage": "What changes if you give the present moment your full attention?"
+  },
+  {
+   "id": 90,
+   "thema": "Mindfulness",
+   "frage": "What is the most beautiful thing you can see around you right now?"
+  },
+  {
+   "id": 91,
    "thema": "Self-kindness",
    "frage": "Would you speak to a good friend the way you speak to yourself right now?"
   },
   {
-   "id": 20,
+   "id": 92,
+   "thema": "Self-kindness",
+   "frage": "What would you say to yourself if you were your own best friend?"
+  },
+  {
+   "id": 93,
    "thema": "Self-kindness",
    "frage": "What may you be proud of yourself for today?"
   },
   {
-   "id": 21,
+   "id": 94,
+   "thema": "Self-kindness",
+   "frage": "What have you already managed today – even if it was small?"
+  },
+  {
+   "id": 95,
+   "thema": "Self-kindness",
+   "frage": "Are you allowed to be imperfect today, too?"
+  },
+  {
+   "id": 96,
+   "thema": "Self-kindness",
+   "frage": "What would you like to forgive yourself for?"
+  },
+  {
+   "id": 97,
+   "thema": "Self-kindness",
+   "frage": "How could you treat yourself a little more gently today?"
+  },
+  {
+   "id": 98,
+   "thema": "Self-kindness",
+   "frage": "Which kind sentence would you like to give yourself today?"
+  },
+  {
+   "id": 99,
+   "thema": "Self-kindness",
+   "frage": "What do you like about yourself – even if it’s hard to admit?"
+  },
+  {
+   "id": 100,
+   "thema": "Self-kindness",
+   "frage": "Do you acknowledge how much you’re actually carrying right now?"
+  },
+  {
+   "id": 101,
    "thema": "Sleep & rest",
    "frage": "Did you get enough rest last night?"
   },
   {
-   "id": 22,
+   "id": 102,
    "thema": "Sleep & rest",
    "frage": "What would help you unwind this evening?"
   },
   {
-   "id": 23,
+   "id": 103,
+   "thema": "Sleep & rest",
+   "frage": "When would you ideally go to rest today?"
+  },
+  {
+   "id": 104,
+   "thema": "Sleep & rest",
+   "frage": "What sometimes keeps you from sleeping well?"
+  },
+  {
+   "id": 105,
+   "thema": "Sleep & rest",
+   "frage": "How could you wind down your evening a little more calmly today?"
+  },
+  {
+   "id": 106,
+   "thema": "Sleep & rest",
+   "frage": "Do you feel rested right now, or rather tired?"
+  },
+  {
+   "id": 107,
+   "thema": "Sleep & rest",
+   "frage": "What does you good before going to sleep?"
+  },
+  {
+   "id": 108,
+   "thema": "Sleep & rest",
+   "frage": "Do you allow yourself enough real rest – not just distraction?"
+  },
+  {
+   "id": 109,
+   "thema": "Sleep & rest",
+   "frage": "What would make a restful evening for you?"
+  },
+  {
+   "id": 110,
+   "thema": "Sleep & rest",
+   "frage": "When did you last allow yourself a really lazy moment?"
+  },
+  {
+   "id": 111,
    "thema": "Movement & outdoors",
    "frage": "Have you already been outside in the fresh air today?"
   },
   {
-   "id": 24,
+   "id": 112,
    "thema": "Movement & outdoors",
    "frage": "How would a short walk feel right now?"
   },
   {
-   "id": 25,
+   "id": 113,
+   "thema": "Movement & outdoors",
+   "frage": "Might your body like to move a little today?"
+  },
+  {
+   "id": 114,
+   "thema": "Movement & outdoors",
+   "frage": "When did you last consciously look up at the sky?"
+  },
+  {
+   "id": 115,
+   "thema": "Movement & outdoors",
+   "frage": "What would a few minutes in nature give you?"
+  },
+  {
+   "id": 116,
+   "thema": "Movement & outdoors",
+   "frage": "Would you like to stand up briefly and stretch?"
+  },
+  {
+   "id": 117,
+   "thema": "Movement & outdoors",
+   "frage": "How does fresh air or sunlight feel on your skin?"
+  },
+  {
+   "id": 118,
+   "thema": "Movement & outdoors",
+   "frage": "What movement would bring you joy today, with no pressure at all?"
+  },
+  {
+   "id": 119,
+   "thema": "Movement & outdoors",
+   "frage": "When were you last simply outside, with no goal?"
+  },
+  {
+   "id": 120,
+   "thema": "Movement & outdoors",
+   "frage": "What kind of movement would do your body good today?"
+  },
+  {
+   "id": 121,
    "thema": "Thoughts & focus",
    "frage": "Which thought keeps going round in your head right now?"
   },
   {
-   "id": 26,
+   "id": 122,
+   "thema": "Thoughts & focus",
+   "frage": "Of the things you worry about, what can you actually influence right now?"
+  },
+  {
+   "id": 123,
    "thema": "Thoughts & focus",
    "frage": "What could you consciously let go of today?"
   },
   {
-   "id": 27,
+   "id": 124,
+   "thema": "Thoughts & focus",
+   "frage": "What would you like to give less attention today?"
+  },
+  {
+   "id": 125,
+   "thema": "Thoughts & focus",
+   "frage": "What is truly important right now – and what is just loud?"
+  },
+  {
+   "id": 126,
+   "thema": "Thoughts & focus",
+   "frage": "Which thought would do you good if you thought it more often?"
+  },
+  {
+   "id": 127,
+   "thema": "Thoughts & focus",
+   "frage": "What would you advise yourself if you took a step back for a moment?"
+  },
+  {
+   "id": 128,
+   "thema": "Thoughts & focus",
+   "frage": "Are you putting more pressure on yourself than necessary right now?"
+  },
+  {
+   "id": 129,
+   "thema": "Thoughts & focus",
+   "frage": "What if today is enough, just as it is?"
+  },
+  {
+   "id": 130,
+   "thema": "Thoughts & focus",
+   "frage": "Which worry may you set aside for the moment?"
+  },
+  {
+   "id": 131,
    "thema": "Meaning & values",
    "frage": "What truly matters to you today?"
   },
   {
-   "id": 28,
+   "id": 132,
    "thema": "Meaning & values",
    "frage": "When did you last feel truly alive?"
   },
   {
-   "id": 29,
+   "id": 133,
+   "thema": "Meaning & values",
+   "frage": "What gives your day meaning right now?"
+  },
+  {
+   "id": 134,
+   "thema": "Meaning & values",
+   "frage": "What do you like getting up for in the morning?"
+  },
+  {
+   "id": 135,
+   "thema": "Meaning & values",
+   "frage": "Which value should guide your day today?"
+  },
+  {
+   "id": 136,
+   "thema": "Meaning & values",
+   "frage": "What would you like to be able to say about yourself at the end of the day?"
+  },
+  {
+   "id": 137,
+   "thema": "Meaning & values",
+   "frage": "What would make your life a little richer right now?"
+  },
+  {
+   "id": 138,
+   "thema": "Meaning & values",
+   "frage": "What would you like more of in your life, and what less?"
+  },
+  {
+   "id": 139,
+   "thema": "Meaning & values",
+   "frage": "What is good for you long-term, even if it takes effort short-term?"
+  },
+  {
+   "id": 140,
+   "thema": "Meaning & values",
+   "frage": "When do you feel most like yourself?"
+  },
+  {
+   "id": 141,
    "thema": "Everyday self-care",
    "frage": "Have you had enough to drink today?"
   },
   {
-   "id": 30,
+   "id": 142,
+   "thema": "Everyday self-care",
+   "frage": "When did you last calmly treat yourself to something good?"
+  },
+  {
+   "id": 143,
    "thema": "Everyday self-care",
    "frage": "What would give you strength right now?"
+  },
+  {
+   "id": 144,
+   "thema": "Everyday self-care",
+   "frage": "Will you treat yourself to something today that’s just for your well-being?"
+  },
+  {
+   "id": 145,
+   "thema": "Everyday self-care",
+   "frage": "What does your well-being most good right now?"
+  },
+  {
+   "id": 146,
+   "thema": "Everyday self-care",
+   "frage": "How can you kindly care for yourself today?"
+  },
+  {
+   "id": 147,
+   "thema": "Everyday self-care",
+   "frage": "What do you need to feel safe and secure?"
+  },
+  {
+   "id": 148,
+   "thema": "Everyday self-care",
+   "frage": "What small act of care can you give yourself in the next few minutes?"
+  },
+  {
+   "id": 149,
+   "thema": "Everyday self-care",
+   "frage": "What would a loving person advise you right now?"
+  },
+  {
+   "id": 150,
+   "thema": "Everyday self-care",
+   "frage": "If you do just one thing for yourself today – what would it be?"
   }
  ]
 }

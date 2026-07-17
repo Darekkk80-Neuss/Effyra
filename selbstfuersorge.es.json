@@ -12,143 +12,743 @@
   },
   {
    "id": 3,
+   "thema": "Percepción corporal",
+   "frage": "¿Cuándo dejaste caer los hombros conscientemente por última vez?"
+  },
+  {
+   "id": 4,
+   "thema": "Percepción corporal",
+   "frage": "¿Estás sentado o de pie cómodamente, o te gustaría cambiar de postura?"
+  },
+  {
+   "id": 5,
+   "thema": "Percepción corporal",
+   "frage": "¿Qué parte de tu cuerpo podrías tratar hoy con un poco más de cariño?"
+  },
+  {
+   "id": 6,
+   "thema": "Percepción corporal",
+   "frage": "¿Sientes ahora más cansancio o más energía, y qué te dice eso?"
+  },
+  {
+   "id": 7,
+   "thema": "Percepción corporal",
+   "frage": "¿Cuándo te estiraste conscientemente por última vez hoy?"
+  },
+  {
+   "id": 8,
+   "thema": "Percepción corporal",
+   "frage": "¿Tienes suficiente calor ahora, o lo necesitas un poco más acogedor?"
+  },
+  {
+   "id": 9,
+   "thema": "Percepción corporal",
+   "frage": "¿Qué le vendría bien a tu cuerpo en los próximos minutos?"
+  },
+  {
+   "id": 10,
+   "thema": "Percepción corporal",
+   "frage": "¿Con qué profundidad respiras ahora, más bien superficial o tranquila y plena?"
+  },
+  {
+   "id": 11,
    "thema": "Respiración y calma",
    "frage": "¿Te apetece solo respirar tres veces y nada más?"
   },
   {
-   "id": 4,
+   "id": 12,
+   "thema": "Respiración y calma",
+   "frage": "¿Cómo se sentiría ahora una respiración lenta y profunda?"
+  },
+  {
+   "id": 13,
    "thema": "Respiración y calma",
    "frage": "¿Qué pasa si sueltas un poco al exhalar la próxima vez?"
   },
   {
-   "id": 5,
+   "id": 14,
+   "thema": "Respiración y calma",
+   "frage": "¿Dónde puedes encontrar hoy un breve momento de silencio?"
+  },
+  {
+   "id": 15,
+   "thema": "Respiración y calma",
+   "frage": "¿Qué te calma cuando todo se siente demasiado ahora?"
+  },
+  {
+   "id": 16,
+   "thema": "Respiración y calma",
+   "frage": "¿Cuándo tuviste hoy un momento en el que no se te pedía nada?"
+  },
+  {
+   "id": 17,
+   "thema": "Respiración y calma",
+   "frage": "¿Puede ser todo tranquilo y lento un rato ahora?"
+  },
+  {
+   "id": 18,
+   "thema": "Respiración y calma",
+   "frage": "¿Cómo suena el silencio para ti, más bien agradable o poco habitual?"
+  },
+  {
+   "id": 19,
+   "thema": "Respiración y calma",
+   "frage": "¿Qué te ayuda a calmarte por dentro?"
+  },
+  {
+   "id": 20,
+   "thema": "Respiración y calma",
+   "frage": "¿Quieres cerrar los ojos un momento y simplemente estar aquí?"
+  },
+  {
+   "id": 21,
    "thema": "Pausas y energía",
    "frage": "¿Cuándo fue tu última pausa de verdad hoy?"
   },
   {
-   "id": 6,
+   "id": 22,
    "thema": "Pausas y energía",
    "frage": "¿Qué te da energía ahora, y qué te la quita?"
   },
   {
-   "id": 7,
+   "id": 23,
+   "thema": "Pausas y energía",
+   "frage": "¿Necesitas ahora más bien una pausa o un pequeño empujón?"
+  },
+  {
+   "id": 24,
+   "thema": "Pausas y energía",
+   "frage": "¿Qué tan cargada sientes hoy tu batería?"
+  },
+  {
+   "id": 25,
+   "thema": "Pausas y energía",
+   "frage": "¿Qué pequeña pausa podrías darte en la próxima hora?"
+  },
+  {
+   "id": 26,
+   "thema": "Pausas y energía",
+   "frage": "¿Estás haciendo demasiado a la vez ahora?"
+  },
+  {
+   "id": 27,
+   "thema": "Pausas y energía",
+   "frage": "¿Qué podrías dejar de lado hoy con la conciencia tranquila?"
+  },
+  {
+   "id": 28,
+   "thema": "Pausas y energía",
+   "frage": "¿Cuándo te permitiste por última vez no hacer nada?"
+  },
+  {
+   "id": 29,
+   "thema": "Pausas y energía",
+   "frage": "¿Qué te sienta bien cuando estás agotado?"
+  },
+  {
+   "id": 30,
+   "thema": "Pausas y energía",
+   "frage": "¿Cómo se siente respirar un momento antes de seguir?"
+  },
+  {
+   "id": 31,
    "thema": "Gratitud",
    "frage": "¿Por qué estás agradecido hoy, aunque sea algo muy pequeño?"
   },
   {
-   "id": 8,
+   "id": 32,
    "thema": "Gratitud",
    "frage": "¿Qué te hizo sonreír hoy?"
   },
   {
-   "id": 9,
+   "id": 33,
+   "thema": "Gratitud",
+   "frage": "¿Quién te ha hecho bien últimamente?"
+  },
+  {
+   "id": 34,
+   "thema": "Gratitud",
+   "frage": "¿Qué pequeña cosa de hoy fue mejor de lo que esperabas?"
+  },
+  {
+   "id": 35,
+   "thema": "Gratitud",
+   "frage": "¿Qué de tu día de hoy te gustaría conservar?"
+  },
+  {
+   "id": 36,
+   "thema": "Gratitud",
+   "frage": "¿Qué agradeces de ti mismo ahora?"
+  },
+  {
+   "id": 37,
+   "thema": "Gratitud",
+   "frage": "¿Qué momento de hoy fue tranquilo y agradable?"
+  },
+  {
+   "id": 38,
+   "thema": "Gratitud",
+   "frage": "¿Qué en tu vida está bien ahora, tal como es?"
+  },
+  {
+   "id": 39,
+   "thema": "Gratitud",
+   "frage": "¿A quién quizá quieras dar las gracias hoy?"
+  },
+  {
+   "id": 40,
+   "thema": "Gratitud",
+   "frage": "¿Qué das por sentado que en realidad es un pequeño regalo?"
+  },
+  {
+   "id": 41,
    "thema": "Emociones",
    "frage": "¿Cómo estás de verdad ahora, no solo «bien»?"
   },
   {
-   "id": 10,
+   "id": 42,
+   "thema": "Emociones",
+   "frage": "¿Qué emoción te acompaña más hoy?"
+  },
+  {
+   "id": 43,
    "thema": "Emociones",
    "frage": "¿Puede estar lo que sientes, sin apartarlo?"
   },
   {
-   "id": 11,
+   "id": 44,
+   "thema": "Emociones",
+   "frage": "¿Qué te gustaría decirle a tu emoción ahora?"
+  },
+  {
+   "id": 45,
+   "thema": "Emociones",
+   "frage": "¿Qué necesitas ahora más a nivel emocional?"
+  },
+  {
+   "id": 46,
+   "thema": "Emociones",
+   "frage": "¿Hay algo que te preocupe hoy y que necesitaría espacio?"
+  },
+  {
+   "id": 47,
+   "thema": "Emociones",
+   "frage": "¿Cuándo te sentiste de verdad a gusto por última vez hoy?"
+  },
+  {
+   "id": 48,
+   "thema": "Emociones",
+   "frage": "¿Qué te ayudaría a sentirte un poco más ligero ahora?"
+  },
+  {
+   "id": 49,
+   "thema": "Emociones",
+   "frage": "¿Eres hoy más bien severo o amable contigo mismo?"
+  },
+  {
+   "id": 50,
+   "thema": "Emociones",
+   "frage": "¿Qué ánimo te gustaría llevar al resto del día?"
+  },
+  {
+   "id": 51,
    "thema": "Necesidades y límites",
    "frage": "¿Qué necesitas ahora mismo con más urgencia?"
   },
   {
-   "id": 12,
+   "id": 52,
    "thema": "Necesidades y límites",
    "frage": "¿Hay un «no» hoy que en realidad te vendría bien?"
   },
   {
-   "id": 13,
+   "id": 53,
+   "thema": "Necesidades y límites",
+   "frage": "¿Te dedicas suficiente tiempo a ti mismo?"
+  },
+  {
+   "id": 54,
+   "thema": "Necesidades y límites",
+   "frage": "¿Qué haces por los demás que también podrías concederte a ti?"
+  },
+  {
+   "id": 55,
+   "thema": "Necesidades y límites",
+   "frage": "¿Dónde puedes poner un límite hoy?"
+  },
+  {
+   "id": 56,
+   "thema": "Necesidades y límites",
+   "frage": "¿Qué ya no quieres permitir que te hagan hoy?"
+  },
+  {
+   "id": 57,
+   "thema": "Necesidades y límites",
+   "frage": "¿Estás escuchando lo que tu cuerpo te dice ahora?"
+  },
+  {
+   "id": 58,
+   "thema": "Necesidades y límites",
+   "frage": "¿Cuál de tus necesidades se está quedando corta últimamente?"
+  },
+  {
+   "id": 59,
+   "thema": "Necesidades y límites",
+   "frage": "¿Qué desearías si te atrevieras a decirlo en voz alta?"
+  },
+  {
+   "id": 60,
+   "thema": "Necesidades y límites",
+   "frage": "¿Está bien pensar hoy también en ti primero?"
+  },
+  {
+   "id": 61,
    "thema": "Alegría y pequeñas cosas",
    "frage": "¿Qué te daría alegría hoy, sin ningún motivo?"
   },
   {
-   "id": 14,
+   "id": 62,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué pequeña cosa podrías permitirte hoy?"
+  },
+  {
+   "id": 63,
    "thema": "Alegría y pequeñas cosas",
    "frage": "¿Cuándo te reíste de verdad a carcajadas por última vez?"
   },
   {
-   "id": 15,
+   "id": 64,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué te alegra ahora en tu día a día?"
+  },
+  {
+   "id": 65,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué pequeño ritual te sienta bien?"
+  },
+  {
+   "id": 66,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué harías si te regalaras hoy 15 minutos solo para ti?"
+  },
+  {
+   "id": 67,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué música encajaría con tu ánimo ahora?"
+  },
+  {
+   "id": 68,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Cuál es tu pequeño momento favorito en un día normal?"
+  },
+  {
+   "id": 69,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué te levanta el ánimo casi siempre?"
+  },
+  {
+   "id": 70,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿De qué te gustaría traer más a tu día hoy?"
+  },
+  {
+   "id": 71,
    "thema": "Conexión",
    "frage": "¿Con quién te vendría bien un breve contacto hoy?"
   },
   {
-   "id": 16,
+   "id": 72,
+   "thema": "Conexión",
+   "frage": "¿Cuándo te sentiste de verdad cercano a alguien por última vez?"
+  },
+  {
+   "id": 73,
    "thema": "Conexión",
    "frage": "¿A quién podrías alegrar un poco hoy?"
   },
   {
-   "id": 17,
+   "id": 74,
+   "thema": "Conexión",
+   "frage": "¿Quién te hace sentir que puedes ser tal como eres?"
+  },
+  {
+   "id": 75,
+   "thema": "Conexión",
+   "frage": "¿Echas de menos ahora a alguien a quien podrías escribir?"
+  },
+  {
+   "id": 76,
+   "thema": "Conexión",
+   "frage": "¿Cuándo te sentiste comprendido por última vez?"
+  },
+  {
+   "id": 77,
+   "thema": "Conexión",
+   "frage": "¿Quién en tu vida merece hoy un gracias?"
+  },
+  {
+   "id": 78,
+   "thema": "Conexión",
+   "frage": "¿Prefieres hoy mostrarte o más bien retirarte?"
+  },
+  {
+   "id": 79,
+   "thema": "Conexión",
+   "frage": "¿Qué te conecta con las personas que te importan?"
+  },
+  {
+   "id": 80,
+   "thema": "Conexión",
+   "frage": "¿Cuándo te atreviste a pedir ayuda por última vez?"
+  },
+  {
+   "id": 81,
    "thema": "Atención plena",
    "frage": "¿Qué percibes ahora si te detienes un momento?"
   },
   {
-   "id": 18,
+   "id": 82,
+   "thema": "Atención plena",
+   "frage": "¿Qué tres cosas puedes ver, oír y sentir en este momento?"
+  },
+  {
+   "id": 83,
+   "thema": "Atención plena",
+   "frage": "¿Qué hueles o saboreas ahora, muy conscientemente?"
+  },
+  {
+   "id": 84,
+   "thema": "Atención plena",
+   "frage": "¿Cómo se siente el suelo bajo tus pies?"
+  },
+  {
+   "id": 85,
    "thema": "Atención plena",
    "frage": "¿Qué está bien, en realidad, en este preciso instante?"
   },
   {
-   "id": 19,
+   "id": 86,
+   "thema": "Atención plena",
+   "frage": "¿Puedes dejar que este momento simplemente sea, unos segundos?"
+  },
+  {
+   "id": 87,
+   "thema": "Atención plena",
+   "frage": "¿Qué notarías si fueras más despacio?"
+  },
+  {
+   "id": 88,
+   "thema": "Atención plena",
+   "frage": "¿Dónde está tu atención ahora, aquí o en otro lugar?"
+  },
+  {
+   "id": 89,
+   "thema": "Atención plena",
+   "frage": "¿Qué cambia si le das al momento presente toda tu atención?"
+  },
+  {
+   "id": 90,
+   "thema": "Atención plena",
+   "frage": "¿Qué es lo más bonito que puedes ver ahora a tu alrededor?"
+  },
+  {
+   "id": 91,
    "thema": "Amabilidad contigo",
    "frage": "¿Le hablarías a un buen amigo como te hablas ahora a ti?"
   },
   {
-   "id": 20,
+   "id": 92,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Qué te dirías si fueras tu mejor amigo?"
+  },
+  {
+   "id": 93,
    "thema": "Amabilidad contigo",
    "frage": "¿De qué puedes estar orgulloso de ti hoy?"
   },
   {
-   "id": 21,
+   "id": 94,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Qué has logrado ya hoy, aunque fuera pequeño?"
+  },
+  {
+   "id": 95,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Puedes hoy también no ser perfecto?"
+  },
+  {
+   "id": 96,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Qué te gustaría perdonarte?"
+  },
+  {
+   "id": 97,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Cómo podrías tratarte hoy con un poco más de suavidad?"
+  },
+  {
+   "id": 98,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Qué frase amable te gustaría regalarte hoy?"
+  },
+  {
+   "id": 99,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Qué te gusta de ti mismo, aunque te cueste admitirlo?"
+  },
+  {
+   "id": 100,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Reconoces cuánto estás cargando en realidad ahora?"
+  },
+  {
+   "id": 101,
    "thema": "Sueño y descanso",
    "frage": "¿Descansaste lo suficiente anoche?"
   },
   {
-   "id": 22,
+   "id": 102,
    "thema": "Sueño y descanso",
    "frage": "¿Qué te ayudaría a desconectar esta noche?"
   },
   {
-   "id": 23,
+   "id": 103,
+   "thema": "Sueño y descanso",
+   "frage": "¿Cuándo irías idealmente a descansar hoy?"
+  },
+  {
+   "id": 104,
+   "thema": "Sueño y descanso",
+   "frage": "¿Qué te impide a veces dormir bien?"
+  },
+  {
+   "id": 105,
+   "thema": "Sueño y descanso",
+   "frage": "¿Cómo podrías cerrar tu noche hoy con un poco más de calma?"
+  },
+  {
+   "id": 106,
+   "thema": "Sueño y descanso",
+   "frage": "¿Te sientes ahora descansado o más bien cansado?"
+  },
+  {
+   "id": 107,
+   "thema": "Sueño y descanso",
+   "frage": "¿Qué te sienta bien antes de dormir?"
+  },
+  {
+   "id": 108,
+   "thema": "Sueño y descanso",
+   "frage": "¿Te concedes suficiente descanso real, no solo distracción?"
+  },
+  {
+   "id": 109,
+   "thema": "Sueño y descanso",
+   "frage": "¿Qué haría de tu noche una velada reparadora?"
+  },
+  {
+   "id": 110,
+   "thema": "Sueño y descanso",
+   "frage": "¿Cuándo te permitiste por última vez un momento de verdadera pereza?"
+  },
+  {
+   "id": 111,
    "thema": "Movimiento y aire libre",
    "frage": "¿Ya has salido hoy a tomar el aire?"
   },
   {
-   "id": 24,
+   "id": 112,
    "thema": "Movimiento y aire libre",
    "frage": "¿Cómo se sentiría un breve paseo ahora?"
   },
   {
-   "id": 25,
+   "id": 113,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Quizá tu cuerpo quiera moverse un poco hoy?"
+  },
+  {
+   "id": 114,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Cuándo miraste el cielo conscientemente por última vez?"
+  },
+  {
+   "id": 115,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Qué te darían unos minutos en la naturaleza?"
+  },
+  {
+   "id": 116,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Te apetece levantarte un momento y estirarte?"
+  },
+  {
+   "id": 117,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Cómo se siente el aire fresco o el sol en tu piel?"
+  },
+  {
+   "id": 118,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Qué movimiento te daría alegría hoy, sin ninguna presión?"
+  },
+  {
+   "id": 119,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Cuándo estuviste por última vez simplemente fuera, sin rumbo?"
+  },
+  {
+   "id": 120,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Qué tipo de movimiento le vendría bien hoy a tu cuerpo?"
+  },
+  {
+   "id": 121,
    "thema": "Pensamientos y enfoque",
    "frage": "¿Qué pensamiento te da vueltas ahora mismo?"
   },
   {
-   "id": 26,
+   "id": 122,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿De lo que te preocupa, qué puedes influir realmente ahora?"
+  },
+  {
+   "id": 123,
    "thema": "Pensamientos y enfoque",
    "frage": "¿Qué podrías soltar conscientemente hoy?"
   },
   {
-   "id": 27,
+   "id": 124,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿A qué te gustaría prestar hoy menos atención?"
+  },
+  {
+   "id": 125,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué es de verdad importante ahora, y qué solo hace ruido?"
+  },
+  {
+   "id": 126,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué pensamiento te haría bien si lo pensaras más a menudo?"
+  },
+  {
+   "id": 127,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué te aconsejarías si tomaras un poco de distancia?"
+  },
+  {
+   "id": 128,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Te estás poniendo ahora más presión de la necesaria?"
+  },
+  {
+   "id": 129,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Y si hoy fuera suficiente, tal como es?"
+  },
+  {
+   "id": 130,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué preocupación puedes dejar a un lado por ahora?"
+  },
+  {
+   "id": 131,
    "thema": "Sentido y valores",
    "frage": "¿Qué te importa de verdad hoy?"
   },
   {
-   "id": 28,
+   "id": 132,
    "thema": "Sentido y valores",
    "frage": "¿Cuándo te sentiste de verdad vivo por última vez?"
   },
   {
-   "id": 29,
+   "id": 133,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué le da sentido a tu día ahora?"
+  },
+  {
+   "id": 134,
+   "thema": "Sentido y valores",
+   "frage": "¿Por qué te gusta levantarte por la mañana?"
+  },
+  {
+   "id": 135,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué valor debería guiar hoy tu día?"
+  },
+  {
+   "id": 136,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué te gustaría poder decir de ti al final del día?"
+  },
+  {
+   "id": 137,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué haría tu vida un poco más rica ahora?"
+  },
+  {
+   "id": 138,
+   "thema": "Sentido y valores",
+   "frage": "¿De qué querrías más en tu vida y de qué menos?"
+  },
+  {
+   "id": 139,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué te hace bien a largo plazo, aunque cueste a corto plazo?"
+  },
+  {
+   "id": 140,
+   "thema": "Sentido y valores",
+   "frage": "¿Cuándo te sientes más tú mismo?"
+  },
+  {
+   "id": 141,
    "thema": "Autocuidado diario",
    "frage": "¿Has bebido suficiente hoy?"
   },
   {
-   "id": 30,
+   "id": 142,
+   "thema": "Autocuidado diario",
+   "frage": "¿Cuándo te concediste con calma algo bueno por última vez?"
+  },
+  {
+   "id": 143,
    "thema": "Autocuidado diario",
    "frage": "¿Qué te daría fuerzas ahora?"
+  },
+  {
+   "id": 144,
+   "thema": "Autocuidado diario",
+   "frage": "¿Te concederás hoy algo solo para tu bienestar?"
+  },
+  {
+   "id": 145,
+   "thema": "Autocuidado diario",
+   "frage": "¿Qué le viene mejor ahora a tu bienestar?"
+  },
+  {
+   "id": 146,
+   "thema": "Autocuidado diario",
+   "frage": "¿Cómo puedes cuidarte hoy con amabilidad?"
+  },
+  {
+   "id": 147,
+   "thema": "Autocuidado diario",
+   "frage": "¿Qué necesitas para sentirte seguro y protegido?"
+  },
+  {
+   "id": 148,
+   "thema": "Autocuidado diario",
+   "frage": "¿Qué pequeño cuidado puedes darte en los próximos minutos?"
+  },
+  {
+   "id": 149,
+   "thema": "Autocuidado diario",
+   "frage": "¿Qué te aconsejaría ahora una persona cariñosa?"
+  },
+  {
+   "id": 150,
+   "thema": "Autocuidado diario",
+   "frage": "Si hoy haces solo una cosa por ti, ¿cuál sería?"
   }
  ]
 }
