@@ -3604,7 +3604,7 @@ function noteAIUsage() {
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
 /* ============================== RECHTLICHES & EINWILLIGUNGEN (DSGVO) ============================== */
 /* Versionsstände der einwilligungspflichtigen Zwecke – bei Änderung hochzählen → Re-Consent. */
-const LEGAL_VERSIONS = { ai: '2026-07-17', push: '2026-07-17', terms: '2026-07-17', privacy: '2026-07-17', fit: '2026-07-17', emergency: '2026-07-17' };
+const LEGAL_VERSIONS = { ai: '2026-07-17', push: '2026-07-17', terms: '2026-07-17', privacy: '2026-07-17', fit: '2026-07-17', emergency: '2026-07-17', kids: '2026-07-17' };
 function getConsent(id) { return (store.consents && store.consents[id]) || null; }
 function consentValid(id) { const c = getConsent(id); return !!(c && c.status === 'granted' && c.version === LEGAL_VERSIONS[id]); }
 function setConsent(id, status) {
@@ -3642,6 +3642,29 @@ function showAiConsent() {
   ov.classList.add('on');
   ov.querySelector('#aiConsentDeny').onclick = () => { setConsent('ai', 'denied'); ov.classList.remove('on'); toast('KI bleibt deaktiviert – die App ist ohne KI voll nutzbar.'); };
   ov.querySelector('#aiConsentGrant').onclick = () => { setConsent('ai', 'granted'); ov.classList.remove('on'); toast('✓ Danke. Du kannst die KI-Funktionen jetzt nutzen.'); };
+}
+/* Elterliche Einwilligung für den Kinderbereich (Typ D, Art. 8; Termine „Arzt/Impfung" = Art. 9). Kinderdaten werden verschlüsselt mit dem Konto synchronisiert. */
+function showKidsConsent(onGrant) {
+  const de = legalLang() === 'de';
+  let ov = document.getElementById('kidsConsentOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'kidsConsentOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10001'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" style="max-width:460px;text-align:left">' +
+    '<h3 style="margin-bottom:8px">' + (de ? '👨‍👩‍👧 Kinderdaten – Einwilligung als Sorgeberechtigte(r)' : '👨‍👩‍👧 Children\'s data – consent as parent/guardian') + '</h3>' +
+    '<p style="color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:10px">' + (de
+      ? 'Du legst Daten eines Kindes an, für das du sorgeberechtigt bist (Vorname, Stundenplan, Termine, Hobbys). Diese werden <b>verschlüsselt mit deinem Konto synchronisiert</b> (Backup &amp; Geräteabgleich).'
+      : 'You are entering data about a child in your care (first name, timetable, appointments, hobbies). This is <b>synchronised encrypted with your account</b> (backup &amp; device sync).') + '</p>' +
+    '<ul style="color:var(--muted);font-size:12.5px;line-height:1.5;margin:0 0 12px 18px">' +
+    '<li>' + (de ? 'Ich bin <b>sorgeberechtigt</b> und willige stellvertretend für das Kind ein (Art. 8 DSGVO).' : 'I am the <b>legal guardian</b> and consent on the child\'s behalf (Art. 8 GDPR).') + '</li>' +
+    '<li>' + (de ? 'Termine wie <b>„Arzt/Impfung"</b> können Gesundheitsdaten sein (Art. 9) – nur mit dieser Einwilligung.' : 'Appointments such as <b>„doctor/vaccination"</b> may be health data (Art. 9) – only with this consent.') + '</li>' +
+    '<li>' + (de ? 'Jederzeit widerrufbar unter <b>Einstellungen → Rechtliches &amp; Datenschutz</b>; Kinder lassen sich dort löschen.' : 'Revocable any time under <b>Settings → Legal &amp; Privacy</b>; children can be deleted there.') + '</li>' +
+    '</ul>' +
+    '<label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.45;margin-bottom:14px;cursor:pointer"><input type="checkbox" id="kidsChk" style="width:auto;flex:none;margin-top:2px"><span>' + (de ? 'Ich bestätige das Vorstehende und willige ein.' : 'I confirm the above and consent.') + '</span></label>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="kidsDeny">' + (de ? 'Abbrechen' : 'Cancel') + '</button><button class="btn btn-sm" id="kidsGo" disabled style="opacity:.5;border-color:rgba(167,139,250,.5)">' + (de ? 'Einwilligen &amp; anlegen' : 'Consent &amp; add') + '</button></div></div>';
+  ov.classList.add('on');
+  const chk = ov.querySelector('#kidsChk'), go = ov.querySelector('#kidsGo');
+  chk.onchange = () => { go.disabled = !chk.checked; go.style.opacity = chk.checked ? '1' : '.5'; };
+  ov.querySelector('#kidsDeny').onclick = () => { ov.classList.remove('on'); };
+  go.onclick = () => { if (!chk.checked) return; setConsent('kids', 'granted'); ov.classList.remove('on'); try { onGrant && onGrant(); } catch (e) {} };
 }
 /* In-App-Dokument-Viewer (Overlay, ohne Navigationsverlust). Sprache: DE in Deutschland, sonst EN. */
 function legalLang() { return (typeof curLang !== 'undefined' && curLang === 'de') ? 'de' : 'en'; }
@@ -5655,9 +5678,7 @@ function kidPack(kid) {
   return h;
 }
 
-$('#kidAddBtn').addEventListener('click', () => {
-  const name = $('#kidName').value.trim();
-  if (!name) { $('#kidName').focus(); return; }
+function addKidNow(name) {
   const sched = {};
   [1, 2, 3, 4, 5].forEach(d => sched[d] = { start: '08:00', subjects: [] });
   store.kids.push({ id: uid(), name, color: KID_COLORS[store.kids.length % KID_COLORS.length], lessonMin: 45, breakMin: 30, breakEvery: 2, sched, hobbies: [], packlists: [] });
@@ -5665,6 +5686,12 @@ $('#kidAddBtn').addEventListener('click', () => {
   save();
   RENDERERS.school();
   toast(name + ' angelegt ✓');
+}
+$('#kidAddBtn').addEventListener('click', () => {
+  const name = $('#kidName').value.trim();
+  if (!name) { $('#kidName').focus(); return; }
+  if (!consentValid('kids')) { showKidsConsent(() => addKidNow(name)); return; }   // Art. 8/9: elterliche Einwilligung vor erster Anlage
+  addKidNow(name);
 });
 $('#kidName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#kidAddBtn').click(); });
 
@@ -7064,7 +7091,7 @@ $('#fitRoot') && $('#fitRoot').addEventListener('click', e => {
   if (a === 'del') { store.fit.activities = (store.fit.activities || []).filter(x => x.id !== b.dataset.id); save(); RENDERERS.fit(); return; }
 });
 $('#fitRoot') && $('#fitRoot').addEventListener('change', e => {
-  const t = e.target; if (t.dataset.fit === 'consent') { store.fit.consent = t.checked; save(); RENDERERS.fit(); }
+  const t = e.target; if (t.dataset.fit === 'consent') { store.fit.consent = t.checked; save(); try { setConsent('fit', t.checked ? 'granted' : 'denied'); } catch (er) {} RENDERERS.fit(); }
 });
 
 /* ============================== FAMILIENZENTRALE ============================== */
@@ -11645,15 +11672,18 @@ function renderLegalCard() {
     '<div style="margin:8px 0 4px"><b style="font-size:13.5px">Deine Einwilligungen</b><div class="sub" style="font-size:11.5px;margin-bottom:8px">Jederzeit gleich einfach widerrufbar (Art. 7 Abs. 3 DSGVO).</div>' +
     row('ai', '🤖 KI-Verarbeitung (OpenAI, USA · ausdrücklich)') +
     row('push', '🔔 Push-Benachrichtigungen') +
+    row('kids', '👨‍👩‍👧 Kinderbereich (Art. 8/9 · Cloud-Sync)') +
+    row('fit', '💪 EffyraFit-Sensoren (Art. 9 · nur lokal)') +
     '</div>' +
+    '<div class="sub" style="font-size:11px;line-height:1.45;margin:-2px 0 8px">🔒 Notfalldaten (Blutgruppe, Medikamente …) sind besondere Daten nach Art. 9 und bleiben ausschließlich lokal auf deinem Gerät – keine Übertragung, daher keine Einwilligung nötig.</div>' +
     '<div style="margin:10px 0"><button class="btn btn-sm" id="consentExport">📤 Einwilligungen exportieren</button></div>' +
     '<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px"><b style="font-size:13.5px">Dokumente</b>' +
     '<button class="btn btn-sm" data-legal="datenschutz" style="text-align:left;justify-content:flex-start">📄 Datenschutzerklärung</button>' +
     '<button class="btn btn-sm" data-legal="nutzungsbedingungen" style="text-align:left;justify-content:flex-start">📄 Nutzungsbedingungen</button>' +
     '<button class="btn btn-sm" data-legal="impressum" style="text-align:left;justify-content:flex-start">📄 Impressum</button></div>';
   card.querySelectorAll('[data-legal]').forEach(b => b.onclick = () => showLegalDoc(b.dataset.legal));
-  card.querySelectorAll('[data-consent-revoke]').forEach(b => b.onclick = () => setConsent(b.dataset.consentRevoke, 'denied'));
-  card.querySelectorAll('[data-consent-grant]').forEach(b => b.onclick = () => { const id = b.dataset.consentGrant; if (id === 'ai') showAiConsent(); else setConsent(id, 'granted'); });
+  card.querySelectorAll('[data-consent-revoke]').forEach(b => b.onclick = () => { const id = b.dataset.consentRevoke; if (id === 'fit') { store.fit = store.fit || {}; store.fit.consent = false; save(); } setConsent(id, 'denied'); });
+  card.querySelectorAll('[data-consent-grant]').forEach(b => b.onclick = () => { const id = b.dataset.consentGrant; if (id === 'ai') showAiConsent(); else if (id === 'kids') showKidsConsent(); else if (id === 'fit') { store.fit = store.fit || {}; store.fit.consent = true; save(); setConsent('fit', 'granted'); } else setConsent(id, 'granted'); });
   const ex = $('#consentExport'); if (ex) ex.onclick = () => {
     const blob = new Blob([JSON.stringify({ verantwortlicher: 'Gonsoft labs – Darius Gonschior', consents: store.consents || {}, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
     const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = 'effyra-einwilligungen.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000);

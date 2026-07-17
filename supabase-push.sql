@@ -12,6 +12,15 @@ create table if not exists public.push_subscriptions (
   primary key (user_id, endpoint)
 );
 
+-- Opt-in-Zusatzfelder pro Gerät (Server-Cron liest sie mit Service-Role-Key):
+--   morning   = Tages-Briefing morgens         (Function push-send / morning-Cron)
+--   warn*     = amtliche Unwetter-Warnung (DWD) (Function weather-push)
+alter table public.push_subscriptions add column if not exists morning   boolean default false;
+alter table public.push_subscriptions add column if not exists warn      boolean default false;
+alter table public.push_subscriptions add column if not exists warn_lat  double precision;
+alter table public.push_subscriptions add column if not exists warn_lon  double precision;
+alter table public.push_subscriptions add column if not exists warn_last text;
+
 alter table public.push_subscriptions enable row level security;
 
 -- Nutzer verwalten ausschließlich ihre eigenen Abos.
