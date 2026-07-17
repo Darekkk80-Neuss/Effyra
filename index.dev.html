@@ -3490,7 +3490,10 @@ const TDICT_SRC = {
   'Ziel erreicht. Das hast du dir verdient.': { en: 'Goal reached. You’ve earned it.', fr: 'Objectif atteint. Vous l’avez mérité.', es: 'Objetivo logrado. Te lo has ganado.', it: 'Obiettivo raggiunto. Te lo sei meritato.', pl: 'Cel osiągnięty. Zasłużyłeś na to.' },
   'Voller Erfolg! Sei stolz auf dich.': { en: 'Full success! Be proud of yourself.', fr: 'Plein succès ! Soyez fier de vous.', es: '¡Éxito total! Siéntete orgulloso.', it: 'Pieno successo! Sii fiero di te.', pl: 'Pełny sukces! Bądź z siebie dumny.' },
   'Durchgezogen bis zum Schluss – stark!': { en: 'Saw it through to the end – strong!', fr: 'Mené jusqu’au bout – bravo !', es: 'Lo llevaste hasta el final: ¡fuerte!', it: 'Portato fino in fondo – forte!', pl: 'Dociągnięte do końca – mocne!' },
-  'Ziel erreicht. Morgen setzt du das nächste.': { en: 'Goal reached. Tomorrow you set the next one.', fr: 'Objectif atteint. Demain, le prochain.', es: 'Objetivo logrado. Mañana pones el siguiente.', it: 'Obiettivo raggiunto. Domani il prossimo.', pl: 'Cel osiągnięty. Jutro wyznaczysz kolejny.' }
+  'Ziel erreicht. Morgen setzt du das nächste.': { en: 'Goal reached. Tomorrow you set the next one.', fr: 'Objectif atteint. Demain, le prochain.', es: 'Objetivo logrado. Mañana pones el siguiente.', it: 'Obiettivo raggiunto. Domani il prossimo.', pl: 'Cel osiągnięty. Jutro wyznaczysz kolejny.' },
+  /* Selbstfürsorge-Popup-Chrome (Fragen selbst kommen aus selbstfuersorge.<lang>.json) */
+  'Als gelesen markieren': { en: 'Mark as read', fr: 'Marquer comme lu', es: 'Marcar como leído', it: 'Segna come letto', pl: 'Oznacz jako przeczytane' },
+  'Ein sanfter Anstoß – kein Ersatz für professionelle Hilfe.': { en: 'A gentle nudge – not a substitute for professional help.', fr: 'Un petit encouragement – ne remplace pas une aide professionnelle.', es: 'Un pequeño impulso: no sustituye la ayuda profesional.', it: 'Un piccolo stimolo – non sostituisce l’aiuto professionale.', pl: 'Delikatny impuls – nie zastępuje profesjonalnej pomocy.' }
 };
 
 /* TDICT[lang][deutscherText] = Übersetzung */
@@ -5294,16 +5297,24 @@ function dailyMindfulQuote() {
    on, lastDate, targetDate/targetMin (Zufallszeit des Tages), queue (Rotation), rein LOKAL.
    Ehrliche Grenze: Erscheinen bei GESCHLOSSENER App zur exakten Zufallszeit bräuchte Push –
    hier reine In-App-Logik (zeigt beim Öffnen ab Zielzeit; nach 18 Uhr kein Nachholen). */
-let _scData = null, _scTimer = null;
+let _scData = null, _scLang = null, _scTimer = null;
 function selfcarePrefs() {
   if (!store.selfcare) store.selfcare = {};
   if (typeof store.selfcare.on !== 'boolean') store.selfcare.on = true;   // Standard: aktiviert
   return store.selfcare;
 }
+/* Sprachabhängig laden: Deutsch = 150 Fragen, andere Sprachen = lokalisierte Datei (30/Sprache), Fallback Deutsch. */
 async function selfcareLoad() {
-  if (_scData) return _scData;
-  try { const r = await fetch('selbstfuersorge.json', { cache: 'force-cache' }); const d = await r.json(); _scData = (d && d.fragen) || []; }
+  const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
+  if (_scData && _scLang === lang) return _scData;
+  const file = lang === 'de' ? 'selbstfuersorge.json' : 'selbstfuersorge.' + lang + '.json';
+  try { const r = await fetch(file, { cache: 'force-cache' }); const d = await r.json(); _scData = (d && Array.isArray(d.fragen)) ? d.fragen : []; }
   catch (e) { _scData = []; }
+  if (!_scData.length && lang !== 'de') {   // Fallback auf die deutsche Basis
+    try { const r = await fetch('selbstfuersorge.json', { cache: 'force-cache' }); const d = await r.json(); _scData = (d && d.fragen) || []; } catch (e2) {}
+  }
+  if (_scLang !== null && _scLang !== lang && store.selfcare) { store.selfcare.queue = null; }   // Sprachwechsel → Rotation neu (ids unterscheiden sich)
+  _scLang = lang;
   return _scData;
 }
 /* Rotation: gemischte Warteschlange, keine Wiederholung bis alle gezeigt – dann neu mischen. */

@@ -1,0 +1,154 @@
+{
+ "fragen": [
+  {
+   "id": 1,
+   "thema": "Świadomość ciała",
+   "frage": "Jak czuje się teraz Twoje ciało, w tej chwili?"
+  },
+  {
+   "id": 2,
+   "thema": "Świadomość ciała",
+   "frage": "Gdzie w ciele czujesz napięcie – i czy może trochę zelżeć?"
+  },
+  {
+   "id": 3,
+   "thema": "Oddech i spokój",
+   "frage": "Masz ochotę po prostu wziąć trzy oddechy i nic więcej?"
+  },
+  {
+   "id": 4,
+   "thema": "Oddech i spokój",
+   "frage": "Co się stanie, jeśli przy następnym wydechu trochę odpuścisz?"
+  },
+  {
+   "id": 5,
+   "thema": "Przerwy i energia",
+   "frage": "Kiedy ostatnio zrobiłeś dziś prawdziwą przerwę?"
+  },
+  {
+   "id": 6,
+   "thema": "Przerwy i energia",
+   "frage": "Co teraz dodaje Ci energii – a co ją zabiera?"
+  },
+  {
+   "id": 7,
+   "thema": "Wdzięczność",
+   "frage": "Za co jesteś dziś wdzięczny – choćby za drobiazg?"
+  },
+  {
+   "id": 8,
+   "thema": "Wdzięczność",
+   "frage": "Co dziś wywołało Twój uśmiech?"
+  },
+  {
+   "id": 9,
+   "thema": "Emocje",
+   "frage": "Jak naprawdę się teraz czujesz – nie tylko „w porządku\"?"
+  },
+  {
+   "id": 10,
+   "thema": "Emocje",
+   "frage": "Czy to, co czujesz, może po prostu być – bez odsuwania?"
+  },
+  {
+   "id": 11,
+   "thema": "Potrzeby i granice",
+   "frage": "Czego najbardziej teraz potrzebujesz?"
+  },
+  {
+   "id": 12,
+   "thema": "Potrzeby i granice",
+   "frage": "Czy jest dziś jakieś „nie\", które by Ci dobrze zrobiło?"
+  },
+  {
+   "id": 13,
+   "thema": "Radość i drobiazgi",
+   "frage": "Co sprawiłoby Ci dziś radość – zupełnie bez powodu?"
+  },
+  {
+   "id": 14,
+   "thema": "Radość i drobiazgi",
+   "frage": "Kiedy ostatnio śmiałeś się naprawdę serdecznie?"
+  },
+  {
+   "id": 15,
+   "thema": "Więź",
+   "frage": "Z kim krótki kontakt dobrze by Ci dziś zrobił?"
+  },
+  {
+   "id": 16,
+   "thema": "Więź",
+   "frage": "Komu mógłbyś dziś sprawić małą radość?"
+  },
+  {
+   "id": 17,
+   "thema": "Uważność",
+   "frage": "Co zauważasz teraz, gdy na chwilę się zatrzymasz?"
+  },
+  {
+   "id": 18,
+   "thema": "Uważność",
+   "frage": "Co właściwie jest w porządku w tej właśnie chwili?"
+  },
+  {
+   "id": 19,
+   "thema": "Życzliwość dla siebie",
+   "frage": "Czy mówiłbyś do dobrego przyjaciela tak, jak teraz mówisz do siebie?"
+  },
+  {
+   "id": 20,
+   "thema": "Życzliwość dla siebie",
+   "frage": "Z czego możesz być dziś z siebie dumny?"
+  },
+  {
+   "id": 21,
+   "thema": "Sen i odpoczynek",
+   "frage": "Czy zeszłej nocy wystarczająco odpocząłeś?"
+  },
+  {
+   "id": 22,
+   "thema": "Sen i odpoczynek",
+   "frage": "Co pomogłoby Ci dziś wieczorem się wyciszyć?"
+  },
+  {
+   "id": 23,
+   "thema": "Ruch i świeże powietrze",
+   "frage": "Byłeś już dziś na świeżym powietrzu?"
+  },
+  {
+   "id": 24,
+   "thema": "Ruch i świeże powietrze",
+   "frage": "Jak czułbyś się po krótkim spacerze teraz?"
+  },
+  {
+   "id": 25,
+   "thema": "Myśli i skupienie",
+   "frage": "Jaka myśl krąży Ci teraz po głowie?"
+  },
+  {
+   "id": 26,
+   "thema": "Myśli i skupienie",
+   "frage": "Co mógłbyś dziś świadomie odpuścić?"
+  },
+  {
+   "id": 27,
+   "thema": "Sens i wartości",
+   "frage": "Co jest dziś dla Ciebie naprawdę ważne?"
+  },
+  {
+   "id": 28,
+   "thema": "Sens i wartości",
+   "frage": "Kiedy ostatnio czułeś się naprawdę żywy?"
+  },
+  {
+   "id": 29,
+   "thema": "Codzienna troska o siebie",
+   "frage": "Czy piłeś dziś wystarczająco dużo?"
+  },
+  {
+   "id": 30,
+   "thema": "Codzienna troska o siebie",
+   "frage": "Co dodałoby Ci teraz sił?"
+  }
+ ]
+}

@@ -1,0 +1,154 @@
+{
+ "fragen": [
+  {
+   "id": 1,
+   "thema": "Conscience du corps",
+   "frage": "Comment ton corps se sent-il là, en cet instant ?"
+  },
+  {
+   "id": 2,
+   "thema": "Conscience du corps",
+   "frage": "Où ressens-tu des tensions dans ton corps – et peuvent-elles se détendre un peu ?"
+  },
+  {
+   "id": 3,
+   "thema": "Souffle & calme",
+   "frage": "Aimerais-tu simplement respirer trois fois, sans rien faire d’autre ?"
+  },
+  {
+   "id": 4,
+   "thema": "Souffle & calme",
+   "frage": "Que se passe-t-il si tu relâches un peu à la prochaine expiration ?"
+  },
+  {
+   "id": 5,
+   "thema": "Pauses & énergie",
+   "frage": "Quand as-tu pris ta dernière vraie pause aujourd’hui ?"
+  },
+  {
+   "id": 6,
+   "thema": "Pauses & énergie",
+   "frage": "Qu’est-ce qui te donne de l’énergie là – et qu’est-ce qui t’en prend ?"
+  },
+  {
+   "id": 7,
+   "thema": "Gratitude",
+   "frage": "De quoi es-tu reconnaissant aujourd’hui – même une toute petite chose ?"
+  },
+  {
+   "id": 8,
+   "thema": "Gratitude",
+   "frage": "Qu’est-ce qui t’a fait sourire aujourd’hui ?"
+  },
+  {
+   "id": 9,
+   "thema": "Émotions",
+   "frage": "Comment vas-tu vraiment là – pas juste « ça va » ?"
+  },
+  {
+   "id": 10,
+   "thema": "Émotions",
+   "frage": "Ce que tu ressens peut-il simplement être là, sans le repousser ?"
+  },
+  {
+   "id": 11,
+   "thema": "Besoins & limites",
+   "frage": "De quoi as-tu le plus besoin là, tout de suite ?"
+  },
+  {
+   "id": 12,
+   "thema": "Besoins & limites",
+   "frage": "Y a-t-il un « non » aujourd’hui qui te ferait du bien ?"
+  },
+  {
+   "id": 13,
+   "thema": "Joie & petits plaisirs",
+   "frage": "Qu’est-ce qui te ferait plaisir aujourd’hui – sans aucune raison ?"
+  },
+  {
+   "id": 14,
+   "thema": "Joie & petits plaisirs",
+   "frage": "Quand as-tu ri de bon cœur pour la dernière fois ?"
+  },
+  {
+   "id": 15,
+   "thema": "Lien",
+   "frage": "Avec qui un petit contact te ferait-il du bien aujourd’hui ?"
+  },
+  {
+   "id": 16,
+   "thema": "Lien",
+   "frage": "À qui pourrais-tu faire une petite joie aujourd’hui ?"
+  },
+  {
+   "id": 17,
+   "thema": "Pleine conscience",
+   "frage": "Que remarques-tu là si tu fais une courte pause ?"
+  },
+  {
+   "id": 18,
+   "thema": "Pleine conscience",
+   "frage": "Qu’est-ce qui va, au fond, en cet instant précis ?"
+  },
+  {
+   "id": 19,
+   "thema": "Bienveillance envers soi",
+   "frage": "Parlerais-tu à un bon ami comme tu te parles là ?"
+  },
+  {
+   "id": 20,
+   "thema": "Bienveillance envers soi",
+   "frage": "De quoi peux-tu être fier de toi aujourd’hui ?"
+  },
+  {
+   "id": 21,
+   "thema": "Sommeil & repos",
+   "frage": "As-tu assez récupéré la nuit dernière ?"
+  },
+  {
+   "id": 22,
+   "thema": "Sommeil & repos",
+   "frage": "Qu’est-ce qui t’aiderait à décompresser ce soir ?"
+  },
+  {
+   "id": 23,
+   "thema": "Mouvement & plein air",
+   "frage": "Es-tu déjà sorti prendre l’air aujourd’hui ?"
+  },
+  {
+   "id": 24,
+   "thema": "Mouvement & plein air",
+   "frage": "Comment te sentirais-tu après une courte marche là ?"
+  },
+  {
+   "id": 25,
+   "thema": "Pensées & focus",
+   "frage": "Quelle pensée te revient sans cesse là ?"
+  },
+  {
+   "id": 26,
+   "thema": "Pensées & focus",
+   "frage": "Que pourrais-tu laisser aller consciemment aujourd’hui ?"
+  },
+  {
+   "id": 27,
+   "thema": "Sens & valeurs",
+   "frage": "Qu’est-ce qui compte vraiment pour toi aujourd’hui ?"
+  },
+  {
+   "id": 28,
+   "thema": "Sens & valeurs",
+   "frage": "Quand t’es-tu senti vraiment vivant pour la dernière fois ?"
+  },
+  {
+   "id": 29,
+   "thema": "Prendre soin au quotidien",
+   "frage": "As-tu assez bu aujourd’hui ?"
+  },
+  {
+   "id": 30,
+   "thema": "Prendre soin au quotidien",
+   "frage": "Qu’est-ce qui te donnerait de la force là ?"
+  }
+ ]
+}

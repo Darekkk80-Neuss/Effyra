@@ -1,0 +1,154 @@
+{
+ "fragen": [
+  {
+   "id": 1,
+   "thema": "Percepción corporal",
+   "frage": "¿Cómo se siente tu cuerpo ahora mismo, en este momento?"
+  },
+  {
+   "id": 2,
+   "thema": "Percepción corporal",
+   "frage": "¿Dónde sientes tensión en tu cuerpo, y puede aflojarse un poco?"
+  },
+  {
+   "id": 3,
+   "thema": "Respiración y calma",
+   "frage": "¿Te apetece solo respirar tres veces y nada más?"
+  },
+  {
+   "id": 4,
+   "thema": "Respiración y calma",
+   "frage": "¿Qué pasa si sueltas un poco al exhalar la próxima vez?"
+  },
+  {
+   "id": 5,
+   "thema": "Pausas y energía",
+   "frage": "¿Cuándo fue tu última pausa de verdad hoy?"
+  },
+  {
+   "id": 6,
+   "thema": "Pausas y energía",
+   "frage": "¿Qué te da energía ahora, y qué te la quita?"
+  },
+  {
+   "id": 7,
+   "thema": "Gratitud",
+   "frage": "¿Por qué estás agradecido hoy, aunque sea algo muy pequeño?"
+  },
+  {
+   "id": 8,
+   "thema": "Gratitud",
+   "frage": "¿Qué te hizo sonreír hoy?"
+  },
+  {
+   "id": 9,
+   "thema": "Emociones",
+   "frage": "¿Cómo estás de verdad ahora, no solo «bien»?"
+  },
+  {
+   "id": 10,
+   "thema": "Emociones",
+   "frage": "¿Puede estar lo que sientes, sin apartarlo?"
+  },
+  {
+   "id": 11,
+   "thema": "Necesidades y límites",
+   "frage": "¿Qué necesitas ahora mismo con más urgencia?"
+  },
+  {
+   "id": 12,
+   "thema": "Necesidades y límites",
+   "frage": "¿Hay un «no» hoy que en realidad te vendría bien?"
+  },
+  {
+   "id": 13,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Qué te daría alegría hoy, sin ningún motivo?"
+  },
+  {
+   "id": 14,
+   "thema": "Alegría y pequeñas cosas",
+   "frage": "¿Cuándo te reíste de verdad a carcajadas por última vez?"
+  },
+  {
+   "id": 15,
+   "thema": "Conexión",
+   "frage": "¿Con quién te vendría bien un breve contacto hoy?"
+  },
+  {
+   "id": 16,
+   "thema": "Conexión",
+   "frage": "¿A quién podrías alegrar un poco hoy?"
+  },
+  {
+   "id": 17,
+   "thema": "Atención plena",
+   "frage": "¿Qué percibes ahora si te detienes un momento?"
+  },
+  {
+   "id": 18,
+   "thema": "Atención plena",
+   "frage": "¿Qué está bien, en realidad, en este preciso instante?"
+  },
+  {
+   "id": 19,
+   "thema": "Amabilidad contigo",
+   "frage": "¿Le hablarías a un buen amigo como te hablas ahora a ti?"
+  },
+  {
+   "id": 20,
+   "thema": "Amabilidad contigo",
+   "frage": "¿De qué puedes estar orgulloso de ti hoy?"
+  },
+  {
+   "id": 21,
+   "thema": "Sueño y descanso",
+   "frage": "¿Descansaste lo suficiente anoche?"
+  },
+  {
+   "id": 22,
+   "thema": "Sueño y descanso",
+   "frage": "¿Qué te ayudaría a desconectar esta noche?"
+  },
+  {
+   "id": 23,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Ya has salido hoy a tomar el aire?"
+  },
+  {
+   "id": 24,
+   "thema": "Movimiento y aire libre",
+   "frage": "¿Cómo se sentiría un breve paseo ahora?"
+  },
+  {
+   "id": 25,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué pensamiento te da vueltas ahora mismo?"
+  },
+  {
+   "id": 26,
+   "thema": "Pensamientos y enfoque",
+   "frage": "¿Qué podrías soltar conscientemente hoy?"
+  },
+  {
+   "id": 27,
+   "thema": "Sentido y valores",
+   "frage": "¿Qué te importa de verdad hoy?"
+  },
+  {
+   "id": 28,
+   "thema": "Sentido y valores",
+   "frage": "¿Cuándo te sentiste de verdad vivo por última vez?"
+  },
+  {
+   "id": 29,
+   "thema": "Autocuidado diario",
+   "frage": "¿Has bebido suficiente hoy?"
+  },
+  {
+   "id": 30,
+   "thema": "Autocuidado diario",
+   "frage": "¿Qué te daría fuerzas ahora?"
+  }
+ ]
+}
