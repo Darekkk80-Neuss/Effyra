@@ -1,0 +1,6 @@
+# Binär / keine EOL-Normalisierung – byte-identische Auslieferung der self-hosted Assets
+*.woff2 binary
+*.jpg   binary
+*.png   binary
+vendor/*.js -text
+fonts/*.css -text

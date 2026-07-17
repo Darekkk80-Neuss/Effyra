@@ -11,9 +11,8 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<!-- Schriften self-hosted (kein Abruf von Google beim Laden; §25 TDDDG / kein Drittland-Transfer) -->
+<link href="fonts/effyra-fonts.css" rel="stylesheet">
 <style>
 /* ============================== TOKENS ============================== */
 :root{
@@ -2056,7 +2055,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   </defs>
 </svg>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.2/dist/umd/supabase.min.js" integrity="sha384-sgcvElP/LlNRtORGYFLO/9K/bENcpJK19HgvqslWXog6d8f/Va4TpltGiBlGntCM" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="vendor/supabase.min.js"></script><!-- self-hosted @supabase/supabase-js 2.110.2 -->
+
 <script>
 (() => {
 'use strict';
@@ -9871,8 +9871,8 @@ function loadPdfJs() {
   if (window.pdfjsLib) { _pdfjs = window.pdfjsLib; return Promise.resolve(_pdfjs); }
   return new Promise((res, rej) => {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'; _pdfjs = window.pdfjsLib; res(_pdfjs); } catch (e) { rej(e); } };
+    s.src = 'vendor/pdf.min.js';   // self-hosted pdfjs-dist 3.11.174
+    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js'; _pdfjs = window.pdfjsLib; res(_pdfjs); } catch (e) { rej(e); } };
     s.onerror = () => rej(new Error('pdfjs'));
     document.head.appendChild(s);
   });
@@ -9888,14 +9888,14 @@ async function pdfFirstPageBlob(file) {
   await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
   return await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
 }
-/* Word-Upload (.docx): Text via Mammoth (bei Bedarf vom CDN nachgeladen) extrahieren und als Bild rendern → wie ein Foto/PDF analysieren. */
+/* Word-Upload (.docx): Text via Mammoth (bei Bedarf lokal nachgeladen) extrahieren und als Bild rendern → wie ein Foto/PDF analysieren. */
 let _mammoth = null;
 function loadMammoth() {
   if (_mammoth) return Promise.resolve(_mammoth);
   if (window.mammoth) { _mammoth = window.mammoth; return Promise.resolve(_mammoth); }
   return new Promise((res, rej) => {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js';
+    s.src = 'vendor/mammoth.browser.min.js';   // self-hosted mammoth 1.6.0
     s.onload = () => { _mammoth = window.mammoth; _mammoth ? res(_mammoth) : rej(new Error('mammoth')); };
     s.onerror = () => rej(new Error('mammoth'));
     document.head.appendChild(s);
