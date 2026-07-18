@@ -133,6 +133,29 @@ Deno.serve(async (req) => {
     const isGreeting = op === 'tts_greeting';
     const input = String(body?.text || '').slice(0, isGreeting ? 180 : 1500);   // Begrüßung: kurz (Missbrauch/Kosten begrenzen)
     if (!input) return json({ error: 'bad_request' }, 400);
+
+    // Start-Begrüßung: wenn ein ElevenLabs-Key gesetzt ist → cineastische JARVIS-Stimme (sonst OpenAI unten).
+    if (isGreeting) {
+      const elKey = Deno.env.get('ELEVENLABS_API_KEY') || '';
+      if (elKey) {
+        try {
+          const voiceId = Deno.env.get('ELEVENLABS_VOICE_ID') || 'JBFqnCBsd6RMkjVDRZzb';   // „George" – britisch, warm-souverän
+          const elModel = Deno.env.get('ELEVENLABS_MODEL') || 'eleven_multilingual_v2';
+          const er = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
+            method: 'POST',
+            headers: { 'xi-api-key': elKey, 'content-type': 'application/json', accept: 'audio/mpeg' },
+            body: JSON.stringify({ text: input, model_id: elModel, voice_settings: { stability: 0.45, similarity_boost: 0.8, style: 0.35, use_speaker_boost: true } }),
+          });
+          if (er.ok) {
+            const eb = new Uint8Array(await er.arrayBuffer());
+            let ebin = ''; for (let i = 0; i < eb.length; i++) ebin += String.fromCharCode(eb[i]);
+            return json({ audio: btoa(ebin), mime: 'audio/mpeg', engine: 'elevenlabs', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
+          }
+          // nicht ok → unten auf OpenAI zurückfallen
+        } catch (_e) { /* Fallback OpenAI */ }
+      }
+    }
+
     const voice = /^(alloy|echo|fable|onyx|nova|shimmer|coral|sage|ash|ballad|verse)$/.test(String(body?.voice || '')) ? String(body.voice) : 'nova';
     const LANGN: Record<string, string> = { de: 'German', en: 'English', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish' };
     const langName = LANGN[String(body?.lang || 'de')] || 'German';
