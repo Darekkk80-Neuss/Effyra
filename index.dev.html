@@ -11415,7 +11415,7 @@ async function rtStart() {
     rtSetStatus('🟢 Live – sprich einfach …', 'listening');
     rtSend({ type: 'session.update', session: {
       type: 'realtime',
-      instructions: buildAgentPrompt() + '\n\nDu bist im LIVE-Sprachmodus. Antworte KURZ und natürlich auf Deutsch. Nutze für jede Alltags-Aktion die passende Funktion (Tool) und bestätige knapp, was du getan hast.',
+      instructions: buildAgentPrompt(true),
       audio: { input: { transcription: { model: 'gpt-4o-mini-transcribe' }, turn_detection: { type: 'server_vad', silence_duration_ms: rtSilenceMs() } }, output: { voice: TTS_VOICE } },
       tools: rtToolSchemas(), tool_choice: 'auto'
     }});
@@ -11461,7 +11461,13 @@ function rtOnEvent(ev) {
   } else if (type === 'conversation.item.input_audio_transcription.completed' && m.transcript) {
     store.chat.push({ role: 'user', text: String(m.transcript).trim(), actions: [] }); save(); if (currentView === 'chat') RENDERERS.chat();
   } else if ((type === 'response.audio_transcript.done' || type === 'response.output_audio_transcript.done') && m.transcript) {
-    pushBot(String(m.transcript).trim()); if (currentView === 'chat') RENDERERS.chat();
+    const tx = String(m.transcript).trim();
+    const plan = parseAgentJSON(tx);   // Fallback: Modell hat trotz Anweisung JSON gesprochen → ausführen, nur reply zeigen
+    if (plan) {
+      (Array.isArray(plan.actions) ? plan.actions : []).forEach(a => { if (!a || !a.tool) return; const tl = AGENT_TOOLS[a.tool]; if (!tl) return; try { const s = tl.run(a.params || {}); if (s) pushBot(s); } catch (e) {} });
+      const r = (plan.reply || '').trim(); if (r) pushBot(r);
+    } else pushBot(tx);
+    if (currentView === 'chat') RENDERERS.chat();
   } else if (type === 'response.function_call_arguments.done') {
     const tool = AGENT_TOOLS[m.name]; let out = 'ok';
     if (tool) { let p = {}; try { p = JSON.parse(m.arguments || '{}'); } catch (e) {} try { const s = tool.run(p); if (s) { out = s; pushBot(s); if (currentView === 'chat') RENDERERS.chat(); } } catch (e) { out = 'Fehler: ' + e.message; } }
@@ -12242,17 +12248,26 @@ const AGENT_TOOLS = {
     }
   }
 };
-function buildAgentPrompt() {
+function buildAgentPrompt(live) {
   const wd = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'][new Date().getDay()];
   const tools = Object.keys(AGENT_TOOLS).map(k => '- ' + k + ': ' + AGENT_TOOLS[k].desc + ' | params: ' + AGENT_TOOLS[k].params).join('\n');
   const veh = ((store.vehicles || []).map(v => v.name).join(', ')) || 'keine';
   const fam = (((store.family && store.family.members) || []).map(m => m.name).join(', ')) || 'keine';
-  return [
+  // LIVE-Sprachmodus: über echte Funktions-Tools handeln, NIEMALS JSON sprechen.
+  // Text-Modus: strukturiert als EIN JSON-Objekt antworten (wird clientseitig geparst).
+  const head = live ? [
+    'Du bist Effyra, ein handelnder KI-Assistent (Agent) im LIVE-Sprachmodus einer deutschen Alltags-App.',
+    'Erkenne die Absicht der Nutzernachricht und FÜHRE passende Aktionen über die bereitgestellten FUNKTIONEN (Tools) aus. Handle OHNE Rückfrage, wenn die Absicht klar ist.',
+    'Sprich KURZ, natürlich und freundlich auf Deutsch und bestätige knapp, was du getan hast.',
+    'WICHTIG: Gib NIEMALS JSON, Code, Tool-/Funktionsnamen oder Parameter als gesprochenen Text aus – rufe stattdessen die passende Funktion auf. Ist keine App-Aktion nötig, antworte einfach hilfreich in normaler Sprache.'
+  ] : [
     'Du bist Effyra, ein handelnder KI-Assistent (Agent) in einer deutschen Alltags-App.',
     'Erkenne die Absicht der Nutzernachricht und entscheide, welche AKTIONEN auszuführen sind. Handle OHNE Rückfrage, wenn die Absicht klar ist.',
     'Antworte AUSSCHLIESSLICH mit EINEM JSON-Objekt (kein Text davor/danach, kein Codeblock):',
     '{"reply":"kurze, freundliche Bestätigung/Antwort auf Deutsch","actions":[{"tool":"NAME","params":{...}}]}',
-    'Ist keine App-Aktion nötig (reine Frage/Smalltalk), gib "actions":[] und beantworte hilfreich in "reply".',
+    'Ist keine App-Aktion nötig (reine Frage/Smalltalk), gib "actions":[] und beantworte hilfreich in "reply".'
+  ];
+  return head.concat([
     'Heute ist ' + todayISO() + ' (' + wd + '). Währung EUR. Datum als YYYY-MM-DD (auch "today"/"tomorrow"/"yesterday"). Beträge als reine Zahl (100, nicht "100 €").',
     'Verfügbare Tools:',
     tools,
@@ -12264,7 +12279,7 @@ function buildAgentPrompt() {
     '- FAHRZEUG: „getankt", „Sprit", „Auto/Motorrad-Kosten" → IMMER create_vehicle_expense (das legt den Eintrag im Fahrzeug-Bereich an UND bucht die Ausgabe automatisch in die Finanzen). NICHT zusätzlich create_expense dafür verwenden.',
     '- FAMILIENAUFGABE: Wird eine Aufgabe einer bestimmten PERSON aus der Familie zugewiesen („weise Sandra … zu", „Papa soll den Müll rausbringen", „Aufgabe für Emma") → IMMER assign_family_task mit member=Name, NICHT create_task. Der Name im Feld member sollte einem der obigen Familienmitglieder entsprechen.',
     '- Sonstige Ausgaben/Käufe → create_expense.'
-  ].join('\n');
+  ]).join('\n');
 }
 function parseAgentJSON(raw) {
   if (!raw) return null;
@@ -12284,7 +12299,13 @@ async function agentReply(text) {
     messages: history.length ? history : [{ role: 'user', content: text }]
   });
   const plan = parseAgentJSON(raw);
-  if (!plan) { pushBot(String(raw || '').replace(/```/g, '').trim() || 'Ok.'); return; }
+  if (!plan) {
+    let txt = String(raw || '').replace(/```/g, '').trim();
+    const rm = txt.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);   // JSON kaputt/abgeschnitten → wenigstens den reply-Text herausziehen, nie rohes JSON zeigen/vorlesen
+    if (rm) { try { txt = JSON.parse('"' + rm[1] + '"'); } catch (e) { txt = rm[1]; } }
+    else if (/^\s*[{[]/.test(txt)) txt = 'Ok.';
+    pushBot(txt || 'Ok.'); return;
+  }
   const done = [];
   (Array.isArray(plan.actions) ? plan.actions : []).forEach(a => {
     if (!a || !a.tool) return; const tool = AGENT_TOOLS[a.tool]; if (!tool) return;
