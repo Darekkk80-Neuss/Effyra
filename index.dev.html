@@ -2191,6 +2191,7 @@ let syncApplying = false, _pushTimer = null;
 function stateSnapshot() {
   const s = { _ts: store._ts || Date.now() };
   SYNC_KEYS.forEach(k => { if (store[k] !== undefined) s[k] = store[k]; });
+  try { s.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}   // Zeitzone für serverseitige Fälligkeits-Erinnerungen (due-reminder)
   return s;
 }
 function schedulePush() {
