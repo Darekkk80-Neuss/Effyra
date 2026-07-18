@@ -1,15 +1,13 @@
 -- ============================================================
--- Effyra – Fälligkeits-Erinnerungen: Log-Tabelle (Idempotenz) + Cron
--- Voraussetzung:
---   • supabase-push.sql (Tabelle push_subscriptions) ausgeführt
---   • supabase-sync.sql (Tabelle user_state) ausgeführt
---   • Edge Function "due-reminder" deployt  (supabase functions deploy due-reminder --no-verify-jwt)
---   • Secret CRON_SECRET gesetzt (identisch zum Header unten), sowie VAPID_* (wie push-send)
--- Einmalig im Supabase SQL-Editor ausführen ("Run"). Mehrfach ausführbar.
+-- Effyra – Fälligkeits-Erinnerungen: Log-Tabelle + Cron (alle 15 Min)
+-- SELBST-KONFIGURIEREND: das CRON_SECRET wird automatisch aus einem
+-- bestehenden Effyra-Cron übernommen – du musst nichts eintippen.
+-- Voraussetzung: Edge Function "due-reminder" ist deployt; supabase-push.sql
+-- (push_subscriptions) und supabase-sync.sql (user_state) wurden ausgeführt.
+-- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.
 -- ============================================================
 
--- 1) Log-Tabelle: verhindert doppelte Erinnerungen (jede rk genau einmal je Nutzer).
---    rk-Beispiele: 'e:<eventId>:2026-07-20T15:00'  |  't:<taskId>:2026-07-20'
+-- 1) Log-Tabelle (Idempotenz: jede Erinnerung genau einmal je Nutzer)
 create table if not exists public.reminder_log (
   user_id uuid not null references auth.users(id) on delete cascade,
   rk      text not null,
@@ -17,30 +15,46 @@ create table if not exists public.reminder_log (
   primary key (user_id, rk)
 );
 create index if not exists reminder_log_sent_idx on public.reminder_log(sent_at);
-
--- Nur die Edge Function (service_role) greift zu; kein Client-Zugriff.
 alter table public.reminder_log enable row level security;
-revoke all on public.reminder_log from anon, authenticated;
+revoke all on public.reminder_log from anon, authenticated;   -- nur service_role (Edge Function)
 
 -- 2) Zeitplan (alle 15 Minuten). pg_cron + pg_net sind auf Supabase verfügbar.
 create extension if not exists pg_cron;
 
+-- 2a) evtl. vorhandenen (auch den kaputten Platzhalter-)Job entfernen
 do $$ begin perform cron.unschedule('effyra-due'); exception when others then null; end $$;
 
-select cron.schedule(
-  'effyra-due',
-  '*/15 * * * *',
-  $cron$
-    select net.http_post(
+-- 2b) Secret automatisch aus einem korrekt konfigurierten Cron übernehmen und neu planen
+do $$
+declare
+  v_secret text;
+begin
+  select (regexp_matches(command, $re$x-cron-secret'\s*,\s*'([^']+)'$re$))[1]
+    into v_secret
+    from cron.job
+   where command like '%x-cron-secret%'
+     and command not like '%<CRON_SECRET>%'      -- kaputten Platzhalter überspringen
+   limit 1;
+
+  if v_secret is null then
+    raise exception 'Kein echtes CRON_SECRET in bestehenden Crons gefunden. Bitte zuerst supabase-morning.sql oder supabase-overdue.sql mit deinem Secret ausfuehren – dann diese Datei erneut laufen lassen. (Alternativ das Secret manuell im format(...) unten eintragen.)';
+  end if;
+
+  perform cron.schedule(
+    'effyra-due',
+    '*/15 * * * *',
+    format($f$select net.http_post(
       url     := 'https://ocnlrxmosbbtsczjyvxb.supabase.co/functions/v1/due-reminder',
-      headers := jsonb_build_object('content-type', 'application/json', 'x-cron-secret', '<CRON_SECRET>'),
+      headers := jsonb_build_object('content-type', 'application/json', 'x-cron-secret', '%s'),
       body    := '{}'::jsonb
-    );
-  $cron$
-);
+    );$f$, v_secret)
+  );
+  raise notice 'effyra-due geplant (alle 15 Min) mit uebernommenem CRON_SECRET.';
+end $$;
 
 -- Kontrolle:
 --   select jobname, schedule, active from cron.job where jobname = 'effyra-due';
+--   select command from cron.job where jobname = 'effyra-due';   -- Secret sollte NICHT <CRON_SECRET> sein
 --   select * from cron.job_run_details where jobid = (select jobid from cron.job where jobname='effyra-due') order by start_time desc limit 5;
 -- Deaktivieren:
 --   select cron.unschedule('effyra-due');
