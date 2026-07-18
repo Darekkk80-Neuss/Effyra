@@ -8033,7 +8033,8 @@ function bootGreetingText() {
   return (typeof cleanForTTS === 'function') ? cleanForTTS(raw) : raw;
 }
 /* Cache für die neuronale coral-Stimme: einmal erzeugt, danach gratis & offline (je Text = Tageszeit/Name/Sprache). */
-const BOOT_TTS_KEY = 'effyra_boot_tts_v1';
+const BOOT_VOICE = 'onyx';   // tiefe, souveräne KI-Assistenten-Stimme (Tony-Stark-/JARVIS-Anmutung)
+const BOOT_TTS_KEY = 'effyra_boot_tts_v2';   // v2: neue Stimme/Regie → alten Cache verwerfen
 function bootTtsGet(text) { try { return (JSON.parse(localStorage.getItem(BOOT_TTS_KEY) || '{}'))[text] || null; } catch (e) { return null; } }
 function bootTtsPut(text, mime, audio) {
   try {
@@ -8074,7 +8075,7 @@ async function speakBootGreeting() {
         const resp = await fetch(FN_URL('claude-proxy'), {
           method: 'POST',
           headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
-          body: JSON.stringify({ op: 'tts_greeting', text, voice: TTS_VOICE, lang: curLang })
+          body: JSON.stringify({ op: 'tts_greeting', text, voice: BOOT_VOICE, lang: curLang })
         });
         const d = await resp.json().catch(() => ({}));
         if (resp.ok && d && d.audio) { bootTtsPut(text, d.mime, d.audio); bootPlayAudio(d.mime, d.audio); return; }

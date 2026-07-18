@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
     const LANGN: Record<string, string> = { de: 'German', en: 'English', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish' };
     const langName = LANGN[String(body?.lang || 'de')] || 'German';
     const instr = isGreeting
-      ? `Speak in ${langName} as a warm, upbeat friend who is genuinely happy to see this person. Bright, energetic and encouraging, with natural, flowing, connected phrasing and lively, expressive intonation and a gentle smile in the voice. Keep it effortless and human — never flat, monotone, robotic, choppy, or like an advertising announcer.`
+      ? `Speak in ${langName} like a sophisticated, high-tech AI assistant — the calm, refined artificial-intelligence butler from the Iron Man films (think J.A.R.V.I.S.). Poised, articulate and composed, with quiet confidence, effortless smooth and flowing phrasing, and subtle warmth. Intelligent and reassuring, gently welcoming, with a hint of dry charm — never flat, robotic, choppy, hyper, sing-song, or like an advertising announcer.`
       : 'Sprich auf Deutsch, warm, freundlich und natürlich – wie eine hilfsbereite Freundin, nicht wie eine Werbestimme.';
     const doTts = (m: string) => {
       const b: any = { model: m, input, voice, response_format: 'mp3', instructions: instr };
