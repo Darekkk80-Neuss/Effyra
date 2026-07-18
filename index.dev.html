@@ -4151,6 +4151,23 @@ async function syncConsentServer(id) {
     await sb.from('consents').upsert({ user_id: u.id, consent_id: id, status: c.status, version: c.version, ts: c.ts }, { onConflict: 'user_id,consent_id' });
   } catch (e) { /* Tabelle evtl. noch nicht angelegt (supabase-consents.sql) */ }
 }
+/* Einwilligungen PERSONENBEZOGEN laden (statt geräteweit): beim Login die Consents DIESES Kontos
+   aus der Server-Tabelle holen und die lokale Liste ersetzen. So wird ein frisches Konto korrekt
+   neu nach Zustimmung gefragt und ein anderes Konto „erbt" auf demselben Gerät keine fremde Zustimmung. */
+async function pullConsents() {
+  if (typeof CLOUD === 'undefined' || !CLOUD || !sb || !(account && account.loggedIn)) return;
+  try {
+    const ses = (await sb.auth.getSession()).data.session; if (!ses) return;
+    const r = await sb.from('consents').select('consent_id,status,version,ts').eq('user_id', ses.user.id);
+    if (r.error) return;   // Tabelle/Recht fehlt → lokal unverändert lassen (nicht verschlechtern)
+    const fresh = {};
+    (r.data || []).forEach(row => { if (row && row.consent_id) fresh[row.consent_id] = { status: row.status, version: row.version, ts: row.ts }; });
+    store.consents = fresh;   // fremde/veraltete lokale Zustimmungen dieses Geräts verwerfen
+    save();
+    try { maybeShowTermsGate(); } catch (e) {}   // mit den korrekten Consents neu bewerten
+    if (currentView === 'settings') { try { renderLegalCard(); } catch (e) {} }
+  } catch (e) {}
+}
 /* Volltext-Übersetzung für Consent-Dialoge (formatierungserhaltend). Wählt die App-Sprache; Fallback EN, dann DE. */
 function pickLang(m) { const l = (typeof curLang !== 'undefined') ? curLang : 'de'; return (m[l] != null ? m[l] : (m.en != null ? m.en : m.de)); }
 /* Ausdrückliche KI-Einwilligung (Typ D, Art. 9 Abs. 2 lit. a + Art. 49) – vor der ersten KI-Nutzung. */
@@ -4459,6 +4476,7 @@ async function cloudSession(session, fallbackName) {
     loggedIn: true
   };
   if (account.name && !store.name) { store.name = account.name; save(); }
+  await pullConsents();   // Einwilligungen dieses Kontos laden (personenbezogen statt geräteweit)
   statePull();   // Cloud-Zustand geräteübergreifend abgleichen (nicht awaiten – läuft im Hintergrund)
 }
 
