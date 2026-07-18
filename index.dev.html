@@ -103,6 +103,31 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .brand .logo-mark{width:32px;height:32px;flex:none}
 .brand b{font-family:var(--font-head);font-size:20px;letter-spacing:1px;font-weight:700;
   background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+/* ===== Boot-Erlebnis: kurzer „Plattform fährt hoch"-Moment beim App-Start ===== */
+#bootFx{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:radial-gradient(120% 90% at 50% 38%,#141a2b 0%,var(--bg) 72%);opacity:1;transition:opacity .6s ease}
+:root[data-theme="light"] #bootFx{background:radial-gradient(120% 90% at 50% 38%,#eaf0fb 0%,var(--bg) 72%)}
+#bootFx.leaving{opacity:0;pointer-events:none}
+.bootfx-orb{width:104px;height:104px;border-radius:50%;position:relative;
+  background:conic-gradient(from 0deg,#8b5cf6,#06b6d4,#8b5cf6);animation:bootSpin 3.2s linear infinite;
+  box-shadow:0 0 46px 6px rgba(124,58,237,.45),0 0 90px 18px rgba(6,182,212,.24)}
+.bootfx-orb::after{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--bg);box-shadow:inset 0 0 22px rgba(6,182,212,.32)}
+.bootfx-orb::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(139,92,246,.7);animation:bootSpin 1.4s linear infinite reverse}
+.bootfx-txt{text-align:center;opacity:0;transform:translateY(8px);animation:bootRise .7s .35s ease forwards}
+.bootfx-hi{font-family:var(--font-head);font-size:26px;font-weight:800;letter-spacing:.3px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.bootfx-sub{margin-top:6px;font-size:13.5px;color:var(--muted);letter-spacing:.4px}
+.bootfx-dots{display:flex;gap:6px;opacity:0;animation:bootRise .6s .62s ease forwards}
+.bootfx-dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bootBlink 1.2s infinite}
+.bootfx-dots i:nth-child(2){animation-delay:.2s}.bootfx-dots i:nth-child(3){animation-delay:.4s}
+@keyframes bootSpin{to{transform:rotate(360deg)}}
+@keyframes bootRise{to{opacity:1;transform:translateY(0)}}
+@keyframes bootBlink{0%,100%{opacity:.25}50%{opacity:.9}}
+@media (prefers-reduced-motion:reduce){
+  .bootfx-orb,.bootfx-orb::before{animation:none}
+  .bootfx-txt,.bootfx-dots{animation:none;opacity:1;transform:none}
+  #bootFx{transition:opacity .25s ease}
+}
 .icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;
   border-radius:13px;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:.2s}
 .icon-btn:hover{color:var(--text);border-color:var(--border2)}
@@ -1932,6 +1957,16 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
+        <h3>✨ Start-Erlebnis</h3>
+        <p class="sub">Beim Öffnen begrüßt dich Effyra mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.</p>
+        <div class="seg" id="bootFxSeg" style="margin-bottom:0">
+          <button data-bootfx="full">🔔 An mit Ton</button>
+          <button data-bootfx="quiet">Nur Begrüßung</button>
+          <button data-bootfx="off">Aus</button>
+        </div>
+      </div>
+
+      <div class="card set-card">
         <h3>Dein Name</h3>
         <p class="sub">So spricht Effyra dich an.</p>
         <div class="set-row">
@@ -2607,6 +2642,11 @@ const TDICT_SRC = {
   'Guten Tag': { en: 'Hello', fr: 'Bonjour', es: 'Hola', it: 'Ciao', pl: 'Cześć' },
   'Guten Abend': { en: 'Good evening', fr: 'Bonsoir', es: 'Buenas tardes', it: 'Buonasera', pl: 'Dobry wieczór' },
   'Gute Nacht': { en: 'Good night', fr: 'Bonne nuit', es: 'Buenas noches', it: 'Buonanotte', pl: 'Dobranoc' },
+  'Deine Plattform ist bereit': { en: 'Your platform is ready', fr: 'Votre plateforme est prête', es: 'Tu plataforma está lista', it: 'La tua piattaforma è pronta', pl: 'Twoja platforma jest gotowa' },
+  '✨ Start-Erlebnis': { en: '✨ Startup experience', fr: '✨ Expérience de démarrage', es: '✨ Experiencia de inicio', it: '✨ Esperienza d’avvio', pl: '✨ Ekran startowy' },
+  'Beim Öffnen begrüßt dich Effyra mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.': { en: 'When you open the app, Effyra greets you by name – depending on the time of day, with a short startup sound.', fr: 'À l’ouverture, Effyra t’accueille par ton prénom – selon l’heure, avec un court son de démarrage.', es: 'Al abrir, Effyra te saluda por tu nombre, según la hora del día, con un breve sonido de inicio.', it: 'All’apertura, Effyra ti saluta per nome – a seconda dell’ora, con un breve suono d’avvio.', pl: 'Po otwarciu Effyra wita Cię imieniem – zależnie od pory dnia, z krótkim dźwiękiem startowym.' },
+  '🔔 An mit Ton': { en: '🔔 On with sound', fr: '🔔 Activé avec son', es: '🔔 Con sonido', it: '🔔 Con suono', pl: '🔔 Wł. z dźwiękiem' },
+  'Nur Begrüßung': { en: 'Greeting only', fr: 'Salutation seule', es: 'Solo saludo', it: 'Solo saluto', pl: 'Tylko powitanie' },
   'Offene Aufgaben': { en: 'Open tasks', fr: 'Tâches ouvertes', es: 'Tareas abiertas', it: 'Attività aperte', pl: 'Otwarte zadania' },
   'Termine heute': { en: 'Today’s events', fr: 'Événements du jour', es: 'Eventos de hoy', it: 'Eventi di oggi', pl: 'Dzisiejsze wydarzenia' },
   'Dokumente': { en: 'Documents', fr: 'Documents', es: 'Documentos', it: 'Documenti', pl: 'Dokumenty' },
@@ -7744,6 +7784,7 @@ async function startPlayPurchase(product) {
     } catch (e) { /* Verifikation zieht sonst per RTDN nach */ }
     await resp.complete('success');
     try { await syncEntitlements(); } catch (e) {}
+    if (product === 'family') { try { await famDiscover(); if (currentView === 'family') RENDERERS.family(); } catch (e) {} }   // Familien-Code nach dem Kauf sofort anzeigen
     const pw = $('#paywall'); if (pw) pw.classList.remove('on');
     toast('✓ ' + p.label + ' aktiviert. Danke!');
   } catch (e) { toast('Kauf abgebrochen oder nicht möglich.'); }
@@ -7771,7 +7812,7 @@ async function reverifyActivePurchases() {
         did = true;
       } catch (e) { /* einzelnes Abo übersprungen */ }
     }
-    if (did) { try { await syncEntitlements(); gate(); if (currentView === 'settings') RENDERERS.settings(); } catch (e) {} }
+    if (did) { try { await syncEntitlements(); await famDiscover(); gate(); if (currentView === 'settings') RENDERERS.settings(); } catch (e) {} }
   } catch (e) { /* Digital Goods evtl. nicht verfügbar */ }
 }
 /* Abo verwalten/kündigen: öffnet die Google-Play-Abo-Verwaltung (Kündigung läuft immer über Google Play). */
@@ -7898,9 +7939,14 @@ function checkFamilyTaskAlerts() {
   if (newForMe.length) famTaskAlert(newForMe);
 }
 /* Audio bei erster Nutzer-Interaktion freischalten (sonst blockiert Mobile-Autoplay den Ton). */
-let _famAC = null;
+let _famAC = null, _bootChimeArmed = false;
 function famAudioUnlock() {
-  try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; if (!_famAC) _famAC = new AC(); if (_famAC.state === 'suspended') _famAC.resume(); } catch (e) {}
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    if (!_famAC) _famAC = new AC();
+    const fire = () => { if (_bootChimeArmed && _famAC && _famAC.state === 'running') { _bootChimeArmed = false; try { playBootChime(_famAC); } catch (e) {} } };
+    if (_famAC.state === 'suspended') _famAC.resume().then(fire).catch(() => {}); else fire();
+  } catch (e) {}
 }
 ['pointerdown', 'touchstart', 'keydown'].forEach(ev => document.addEventListener(ev, famAudioUnlock, { passive: true }));
 function playAlertBeep() {
@@ -7915,6 +7961,56 @@ function playAlertBeep() {
       o.connect(g); g.connect(ctx.destination); o.start(now + pair[1]); o.stop(now + pair[1] + 0.17);
     });
   } catch (e) {}
+}
+/* ===== Start-Erlebnis: sanfte Einschalt-Melodie + Tageszeit-Begrüßung ===== */
+/* Weicher, aufsteigender Akkord (C-Dur) mit warmem Grundton – ~1,3 s, dezent. */
+function playBootChime(ctx) {
+  const now = ctx.currentTime;
+  [[523.25, 0], [659.25, 0.13], [783.99, 0.26], [1046.50, 0.42]].forEach(pair => {   // C5 · E5 · G5 · C6
+    const o = ctx.createOscillator(), g = ctx.createGain(), s = now + pair[1];
+    o.type = 'sine'; o.frequency.value = pair[0];
+    g.gain.setValueAtTime(0.0001, s);
+    g.gain.exponentialRampToValueAtTime(0.13, s + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.95);
+    o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + 1.0);
+  });
+  const p = ctx.createOscillator(), pg = ctx.createGain();   // warmer Grundton (C3)
+  p.type = 'triangle'; p.frequency.value = 130.81;
+  pg.gain.setValueAtTime(0.0001, now); pg.gain.exponentialRampToValueAtTime(0.05, now + 0.2); pg.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+  p.connect(pg); pg.connect(ctx.destination); p.start(now); p.stop(now + 1.6);
+}
+function bootMelody() {
+  try {
+    famAudioUnlock(); const ctx = _famAC;
+    if (!ctx || ctx.state !== 'running') { _bootChimeArmed = true; return; }   // Autoplay geblockt → beim ersten Tippen nachholen
+    playBootChime(ctx);
+  } catch (e) { _bootChimeArmed = true; }
+}
+/* Tageszeit-Begrüßung, lokalisiert (nutzt dasselbe Wörterbuch wie das Dashboard). */
+function greetWord() {
+  const H = new Date().getHours();
+  const g = H < 5 ? 'Gute Nacht' : H < 11 ? 'Guten Morgen' : H < 18 ? 'Guten Tag' : 'Guten Abend';
+  return (curLang === 'de' ? g : (lookupTr(g) || g));
+}
+function bootFxMode() { const m = store.settings && store.settings.bootFx; return (m === 'quiet' || m === 'off') ? m : 'full'; }
+let _bootDone = false;
+function bootExperience() {
+  if (_bootDone) return; _bootDone = true;
+  if (bootFxMode() === 'off' || isKidMode() || !store.onboarded) return;   // Erststart/Kindermodus: kein Boot-Overlay
+  if (document.getElementById('bootFx')) return;
+  const name = (store.name || (account && account.name) || '').trim();
+  const hi = greetWord() + (name ? ', ' + name : '');
+  const sub = (curLang === 'de' ? 'Deine Plattform ist bereit' : (lookupTr('Deine Plattform ist bereit') || 'Deine Plattform ist bereit'));
+  const ov = document.createElement('div');
+  ov.id = 'bootFx'; ov.setAttribute('data-noi18n', ''); ov.setAttribute('role', 'status');
+  ov.innerHTML = '<div class="bootfx-orb"></div>' +
+    '<div class="bootfx-txt"><div class="bootfx-hi">' + esc(hi) + '</div><div class="bootfx-sub">' + esc(sub) + '</div></div>' +
+    '<div class="bootfx-dots"><i></i><i></i><i></i></div>';
+  document.body.appendChild(ov);
+  const dismiss = () => { if (!ov.parentNode) return; ov.classList.add('leaving'); setTimeout(() => { if (ov.parentNode) ov.remove(); }, 650); };
+  ov.addEventListener('pointerdown', dismiss, { once: true });   // Tippen überspringt
+  setTimeout(dismiss, 2300);
+  if (bootFxMode() === 'full') bootMelody();
 }
 /* ===== Web Push: Hintergrund-Benachrichtigungen (auch bei geschlossener App) ===== */
 const VAPID_PUBLIC = 'BBAzv2_kQDhxKzY2OsRjZuU-Icbt8btSdfcDVIsOvjaNO2E3SXdJYC6ZE397mDzoVVC64IaFkIKtJ3qBCKQjSfI';
@@ -8135,6 +8231,25 @@ async function famPull() {
     checkShopDoneAlert();                        // erledigte zugewiesene Einkaufsliste → Popup beim Zuweiser
     return JSON.stringify(famPayload()) !== before || selfAdded;
   } catch (e) { return false; }
+}
+/* Serverseitig angelegte Familie übernehmen, wenn der Client (noch) keinen Code kennt –
+   z. B. direkt nach dem Familien-Kauf (apply_family_purchase legt Familie + Code an) oder
+   beim Login auf einem NEUEN Gerät. get_family liefert die Familie des angemeldeten Nutzers.
+   Ohne das würde der Käufer im Sync-Tab weiterhin „Code erzeugen" sehen und beim Klick
+   versehentlich eine zweite (unbezahlte) Familie anlegen. */
+async function famDiscover() {
+  if (!CLOUD || isKidMode() || (store.family && store.family.code)) return false;
+  if (!await famAuth()) return false;
+  try {
+    const r = await sb.rpc('get_family');
+    if (r && !r.error && r.data && r.data.code) {
+      ensureFamily();
+      store.family.code = r.data.code; save();
+      await famPull();                 // Daten + Selbst-Mitgliedschaft nachziehen
+      return true;
+    }
+  } catch (e) {}
+  return false;
 }
 function famChanged() { save(); famPush(); RENDERERS.family(); }
 async function famCreate() {
@@ -12438,6 +12553,7 @@ RENDERERS.settings = function () {
   renderLegalCard();
   $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref()));
   $$('#rtSilSeg button').forEach(b => b.classList.toggle('active', Number(b.dataset.rtsil) === rtSilenceMs()));
+  $$('#bootFxSeg button').forEach(b => b.classList.toggle('active', b.dataset.bootfx === bootFxMode()));
   syncEntitlements().then(() => { if (currentView === 'settings') renderAccountCard(); });
 };
 
@@ -12457,6 +12573,12 @@ $('#rtSilSeg').addEventListener('click', e => {
   // Läuft gerade ein Live-Gespräch? Reaktionszeit sofort übernehmen.
   if (typeof RT !== 'undefined' && RT && RT.active) rtSend({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: { type: 'server_vad', silence_duration_ms: rtSilenceMs() } } } } });
   toast('Live-Sprachtempo: ' + b.textContent.trim());
+});
+$('#bootFxSeg').addEventListener('click', e => {
+  const b = e.target.closest('[data-bootfx]'); if (!b) return;
+  store.settings.bootFx = b.dataset.bootfx; save();
+  $$('#bootFxSeg button').forEach(x => x.classList.toggle('active', x === b));
+  if (b.dataset.bootfx !== 'off') { _bootDone = false; bootExperience(); }   // Vorschau (Ton spielt, da Nutzer gerade getippt hat)
 });
 
 /* Rechtliches & Datenschutz: Einwilligungen (Status/Widerruf), Export, Impressum. */
@@ -12651,6 +12773,7 @@ if (CLOUD) {
     if (r.data.session.user && r.data.session.user.is_anonymous) { await kidResume(r.data.session); return; }   // Kind (anonym)
     await cloudSession(r.data.session);
     await syncEntitlements();
+    await famDiscover();   // serverseitig angelegte Familie (nach Family-Kauf / neues Gerät) übernehmen
     gate();
     if (!isTrialExpired() && !store.onboarded) {
       $('#onboarding').classList.add('on');
@@ -12670,6 +12793,7 @@ if (CLOUD) {
 }
 if (STORE_SAFE) document.body.classList.add('store-safe');   // Play-sicher: Kauf-Buttons ausblenden
 showView('dashboard');
+try { setTimeout(bootExperience, 60); } catch (e) {}   // „Plattform fährt hoch": Begrüßung + kurzer Startklang (einmal je Kaltstart)
 
 pruneMedTaken();                              // alte „genommen"-Marken aufräumen
 checkMedReminders();                          // Medikamenten-Erinnerungen: beim Start prüfen …
