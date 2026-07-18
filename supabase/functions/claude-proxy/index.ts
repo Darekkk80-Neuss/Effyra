@@ -117,7 +117,9 @@ Deno.serve(async (req) => {
       const form = new FormData();
       form.append('file', new Blob([bytes], { type: mime }), `audio.${ext}`);
       form.append('model', m);
-      form.append('language', 'de');
+      // Sprache der Spracherkennung = App-Sprache des Nutzers (nicht hart Deutsch – Polnisch-Bug 18.07.2026)
+      const sttLang = /^(de|en|fr|es|it|pl)$/.test(String(body?.lang || '')) ? String(body.lang) : 'de';
+      form.append('language', sttLang);
       form.append('response_format', 'json');
       return fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${OPENAI_API_KEY}` }, body: form });
     };
@@ -193,7 +195,7 @@ Deno.serve(async (req) => {
     const langName = LANGN[String(body?.lang || 'de')] || 'German';
     const instr = isGreeting
       ? `Speak in ${langName} like a sophisticated, high-tech AI assistant — the calm, refined artificial-intelligence butler from the Iron Man films (think J.A.R.V.I.S.). Poised, articulate and composed, with quiet confidence, effortless smooth and flowing phrasing, and subtle warmth. Intelligent and reassuring, gently welcoming, with a hint of dry charm — never flat, robotic, choppy, hyper, sing-song, or like an advertising announcer.`
-      : 'Sprich auf Deutsch, warm, freundlich und natürlich – wie eine hilfsbereite Freundin, nicht wie eine Werbestimme.';
+      : `Speak in ${langName}, warm, friendly and natural – like a helpful friend, not like an advertising voice.`;
     const doTts = (m: string) => {
       const b: any = { model: m, input, voice, response_format: 'mp3', instructions: instr };
       return fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { 'content-type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` }, body: JSON.stringify(b) });
