@@ -8070,7 +8070,7 @@ function bootGreetingText() {
 }
 /* Cache für die neuronale coral-Stimme: einmal erzeugt, danach gratis & offline (je Text = Tageszeit/Name/Sprache). */
 const BOOT_VOICE = 'fable';   // OpenAI-Fallback-Stimme, falls ElevenLabs nicht gesetzt/erreichbar
-const BOOT_TTS_KEY = 'effyra_boot_tts_v5';   // v5: Google-Cloud-TTS-Stimme → alten Cache verwerfen
+const BOOT_TTS_KEY = 'effyra_boot_tts_v6';   // v6: US-Stimme (flüssiger/schneller/lebensfroher) → alten Cache verwerfen
 function bootTtsGet(text) { try { return (JSON.parse(localStorage.getItem(BOOT_TTS_KEY) || '{}'))[text] || null; } catch (e) { return null; } }
 function bootTtsPut(text, mime, audio) {
   try {

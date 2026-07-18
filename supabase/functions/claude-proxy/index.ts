@@ -140,18 +140,21 @@ Deno.serve(async (req) => {
       if (gKey) {
         try {
           const G: Record<string, [string, string]> = {
-            de: ['de-DE', 'de-DE-Neural2-B'], en: ['en-GB', 'en-GB-Neural2-B'], fr: ['fr-FR', 'fr-FR-Neural2-B'],
+            de: ['en-US', 'en-US-Neural2-D'], en: ['en-US', 'en-US-Neural2-D'], fr: ['fr-FR', 'fr-FR-Neural2-B'],   // de/en: US-Stimme = leichter US-Akzent
             es: ['es-ES', 'es-ES-Neural2-B'], it: ['it-IT', 'it-IT-Neural2-C'], pl: ['pl-PL', 'pl-PL-Wavenet-B'],
           };
           const pair = G[String(body?.lang || 'de')] || G.de;
           const gVoice = Deno.env.get('GOOGLE_TTS_VOICE') || pair[1];
-          const gLang = Deno.env.get('GOOGLE_TTS_LANG') || pair[0];
+          // Sprachcode IMMER aus dem Stimmennamen ableiten (verhindert Voice/Lang-Mismatch), sofern nicht explizit gesetzt.
+          const gLang = Deno.env.get('GOOGLE_TTS_LANG') || (/^[a-z]{2}-[A-Z]{2}/.test(gVoice) ? gVoice.slice(0, 5) : pair[0]);
+          const gRate = Number(Deno.env.get('GOOGLE_TTS_RATE') || '1.08');    // etwas schneller & flüssiger
+          const gPitch = Number(Deno.env.get('GOOGLE_TTS_PITCH') || '2.0');   // höher = mehr Lebensfreude
           const gr = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gKey}`, {
             method: 'POST', headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
               input: { text: input },
               voice: { languageCode: gLang, name: gVoice },
-              audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },   // ruhig, etwas tiefer = souverän
+              audioConfig: { audioEncoding: 'MP3', speakingRate: gRate, pitch: gPitch },
             }),
           });
           const gd: any = await gr.json().catch(() => ({}));
