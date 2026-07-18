@@ -134,7 +134,36 @@ Deno.serve(async (req) => {
     const input = String(body?.text || '').slice(0, isGreeting ? 180 : 1500);   // Begrüßung: kurz (Missbrauch/Kosten begrenzen)
     if (!input) return json({ error: 'bad_request' }, 400);
 
-    // Start-Begrüßung: wenn ein ElevenLabs-Key gesetzt ist → cineastische JARVIS-Stimme (sonst OpenAI unten).
+    // Start-Begrüßung, 1. Wahl: Google Cloud TTS (kostenlos im Kontingent, sehr natürliche Neural2-Stimmen), wenn Key gesetzt.
+    if (isGreeting) {
+      const gKey = Deno.env.get('GOOGLE_TTS_KEY') || '';
+      if (gKey) {
+        try {
+          const G: Record<string, [string, string]> = {
+            de: ['de-DE', 'de-DE-Neural2-B'], en: ['en-GB', 'en-GB-Neural2-B'], fr: ['fr-FR', 'fr-FR-Neural2-B'],
+            es: ['es-ES', 'es-ES-Neural2-B'], it: ['it-IT', 'it-IT-Neural2-C'], pl: ['pl-PL', 'pl-PL-Wavenet-B'],
+          };
+          const pair = G[String(body?.lang || 'de')] || G.de;
+          const gVoice = Deno.env.get('GOOGLE_TTS_VOICE') || pair[1];
+          const gLang = Deno.env.get('GOOGLE_TTS_LANG') || pair[0];
+          const gr = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${gKey}`, {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              input: { text: input },
+              voice: { languageCode: gLang, name: gVoice },
+              audioConfig: { audioEncoding: 'MP3', speakingRate: 0.96, pitch: -1.5 },   // ruhig, etwas tiefer = souverän
+            }),
+          });
+          const gd: any = await gr.json().catch(() => ({}));
+          if (gr.ok && gd.audioContent) {
+            return json({ audio: gd.audioContent, mime: 'audio/mpeg', engine: 'google', ai_used: usage.ai_used, ai_limit: usage.ai_limit }, 200);
+          }
+          // sonst: weiter zu ElevenLabs/OpenAI
+        } catch (_e) { /* Fallback */ }
+      }
+    }
+
+    // Start-Begrüßung, 2. Wahl: ElevenLabs (falls Key gesetzt) – cineastisch, aber kommerziell kostenpflichtig.
     if (isGreeting) {
       const elKey = Deno.env.get('ELEVENLABS_API_KEY') || '';
       if (elKey) {
