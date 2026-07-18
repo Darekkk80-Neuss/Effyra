@@ -42,16 +42,33 @@ Deno.serve(async (req) => {
   if (!subs || !subs.length) return json({ ok: true, sent: 0 }, 200);
 
   (webpush as any).setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
-  const payload = JSON.stringify({
-    title: '☀️ Guten Morgen!',
-    body: 'Dein Tagesüberblick wartet in Effyra – Termine, Aufgaben, Medikamente und Fristen auf einen Blick.',
-    tag: 'effyra-morning',
-    url: './',
-  });
+
+  // Sprache je Empfänger aus user_state (profile.lang im Sync-Snapshot); Fallback Deutsch.
+  const uids = [...new Set((subs as any[]).map((s) => s.user_id))];
+  const langBy = new Map<string, string>();
+  try {
+    const { data: states } = await admin.from('user_state').select('user_id,data').in('user_id', uids);
+    for (const st of (states || []) as any[]) {
+      const l = st?.data?.profile?.lang;
+      if (typeof l === 'string' && /^(de|en|fr|es|it|pl)$/.test(l)) langBy.set(st.user_id, l);
+    }
+  } catch (_e) { /* Fallback de */ }
+  const MSG: Record<string, { title: string; body: string }> = {
+    de: { title: '☀️ Guten Morgen!', body: 'Dein Tagesüberblick wartet in Effyra – Termine, Aufgaben, Medikamente und Fristen auf einen Blick.' },
+    en: { title: '☀️ Good morning!', body: 'Your daily overview is waiting in Effyra – appointments, tasks, medication and deadlines at a glance.' },
+    fr: { title: '☀️ Bonjour !', body: 'Ton aperçu du jour t’attend dans Effyra – rendez-vous, tâches, médicaments et échéances en un coup d’œil.' },
+    es: { title: '☀️ ¡Buenos días!', body: 'Tu resumen del día te espera en Effyra: citas, tareas, medicamentos y plazos de un vistazo.' },
+    it: { title: '☀️ Buongiorno!', body: 'La tua panoramica del giorno ti aspetta in Effyra: appuntamenti, attività, farmaci e scadenze a colpo d’occhio.' },
+    pl: { title: '☀️ Dzień dobry!', body: 'Twój przegląd dnia czeka w Effyrze – terminy, zadania, leki i terminy płatności w jednym miejscu.' },
+  };
+  const payloadFor = (uid: string) => {
+    const m = MSG[langBy.get(uid) || 'de'] || MSG.de;
+    return JSON.stringify({ title: m.title, body: m.body, tag: 'effyra-morning', url: './' });
+  };
 
   let sent = 0, dead = 0;
   for (const s of subs as any[]) {
-    try { await (webpush as any).sendNotification(s.sub, payload); sent++; }
+    try { await (webpush as any).sendNotification(s.sub, payloadFor(s.user_id)); sent++; }
     catch (e: any) {
       const code = e?.statusCode;
       if (code === 404 || code === 410) {   // Abo tot → aufräumen

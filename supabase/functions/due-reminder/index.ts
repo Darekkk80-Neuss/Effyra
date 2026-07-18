@@ -65,8 +65,21 @@ Deno.serve(async (req) => {
   type Rem = { user_id: string; rk: string; title: string; body: string };
   const candidates: Rem[] = [];
 
+  // Push-Texte in der Sprache des Empfängers (profile.lang aus dem Sync-Snapshot)
+  const L: Record<string, Record<string, string>> = {
+    soon:  { de: '⏰ Gleich: ', en: '⏰ Coming up: ', fr: '⏰ Bientôt : ', es: '⏰ Pronto: ', it: '⏰ Tra poco: ', pl: '⏰ Wkrótce: ' },
+    at:    { de: 'Um ', en: 'At ', fr: 'À ', es: 'A las ', it: 'Alle ', pl: 'O ' },
+    clock: { de: ' Uhr', en: '', fr: '', es: '', it: '', pl: '' },
+    inMin: { de: ' · in etwa {n} Min.', en: ' · in about {n} min', fr: ' · dans env. {n} min', es: ' · en unos {n} min', it: ' · tra circa {n} min', pl: ' · za ok. {n} min' },
+    dueT:  { de: '📋 Heute fällig', en: '📋 Due today', fr: '📋 À faire aujourd’hui', es: '📋 Vence hoy', it: '📋 In scadenza oggi', pl: '📋 Termin dziś' },
+    event: { de: 'Termin', en: 'Appointment', fr: 'Rendez-vous', es: 'Cita', it: 'Appuntamento', pl: 'Termin' },
+    task:  { de: 'Aufgabe', en: 'Task', fr: 'Tâche', es: 'Tarea', it: 'Attività', pl: 'Zadanie' },
+  };
+  const tr = (key: string, lang: string) => (L[key] && (L[key][lang] || L[key].de)) || '';
+
   for (const st of (states || []) as any[]) {
     const d = st.data || {};
+    const lang = (d.profile && typeof d.profile.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(d.profile.lang)) ? d.profile.lang : 'de';
     const tz = (typeof d.tz === 'string' && d.tz) ? d.tz : 'Europe/Berlin';
     const nowLocal = wallClock(now, tz);                       // 'YYYY-MM-DDTHH:MM'
     if (!nowLocal) continue;
@@ -84,8 +97,8 @@ Deno.serve(async (req) => {
         candidates.push({
           user_id: st.user_id,
           rk: 'e:' + (ev.id || ev.title) + ':' + ev.date + 'T' + ev.time,
-          title: '⏰ Gleich: ' + String(ev.title || 'Termin'),
-          body: 'Um ' + ev.time + ' Uhr' + (ev.note ? ' · ' + String(ev.note).slice(0, 80) : '') + ' · in etwa ' + Math.round(min) + ' Min.',
+          title: tr('soon', lang) + String(ev.title || tr('event', lang)),
+          body: tr('at', lang) + ev.time + tr('clock', lang) + (ev.note ? ' · ' + String(ev.note).slice(0, 80) : '') + tr('inMin', lang).replace('{n}', String(Math.round(min))),
         });
       }
     }
@@ -97,8 +110,8 @@ Deno.serve(async (req) => {
         candidates.push({
           user_id: st.user_id,
           rk: 't:' + (t.id || t.title) + ':' + t.due,
-          title: '📋 Heute fällig',
-          body: String(t.title || 'Aufgabe').replace(/^[🛒📝🔔]\s*/, '') + (t.time ? ' · ' + t.time + ' Uhr' : ''),
+          title: tr('dueT', lang),
+          body: String(t.title || tr('task', lang)).replace(/^[🛒📝🔔]\s*/, '') + (t.time ? ' · ' + t.time + tr('clock', lang) : ''),
         });
       }
     }

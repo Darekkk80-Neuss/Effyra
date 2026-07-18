@@ -36,18 +36,71 @@ function dayNum(iso: string): number | null {
 
 const MILESTONES = [1, 3, 7];
 
-// Eine überfällige Aufgabe (freundlich, mit Aufgaben-Titel).
-const SINGLE: Record<number, { title: string; body: (t: string) => string }> = {
-  1: { title: '🌟 Sanfte Erinnerung', body: (t) => '„' + t + '“ von gestern ist noch offen. Vielleicht findest du heute einen passenden Moment dafür.' },
-  3: { title: '💙 Ganz ohne Druck', body: (t) => '„' + t + '“ begleitet dich schon ein paar Tage. Falls es nicht mehr relevant ist, kannst du es auch löschen oder verschieben.' },
-  7: { title: '🗂️ Kurzer Blick?', body: (t) => '„' + t + '“ ist schon länger offen. Vielleicht lohnt sich ein kurzer Blick, ob es noch aktuell ist.' },
+// Eine/mehrere überfällige Aufgaben – freundliche Texte in der Sprache des Empfängers (profile.lang).
+type Tpl = { title: string; body: (x: any) => string };
+const SINGLE_L: Record<string, Record<number, Tpl>> = {
+  de: {
+    1: { title: '🌟 Sanfte Erinnerung', body: (t) => '„' + t + '“ von gestern ist noch offen. Vielleicht findest du heute einen passenden Moment dafür.' },
+    3: { title: '💙 Ganz ohne Druck', body: (t) => '„' + t + '“ begleitet dich schon ein paar Tage. Falls es nicht mehr relevant ist, kannst du es auch löschen oder verschieben.' },
+    7: { title: '🗂️ Kurzer Blick?', body: (t) => '„' + t + '“ ist schon länger offen. Vielleicht lohnt sich ein kurzer Blick, ob es noch aktuell ist.' },
+  },
+  en: {
+    1: { title: '🌟 Gentle reminder', body: (t) => '“' + t + '” from yesterday is still open. Maybe you’ll find a good moment for it today.' },
+    3: { title: '💙 No pressure', body: (t) => '“' + t + '” has been with you for a few days. If it’s no longer relevant, feel free to delete or reschedule it.' },
+    7: { title: '🗂️ Quick look?', body: (t) => '“' + t + '” has been open for a while. Maybe it’s worth a quick look to see if it’s still current.' },
+  },
+  fr: {
+    1: { title: '🌟 Petit rappel', body: (t) => '« ' + t + ' » d’hier est encore ouvert. Tu trouveras peut-être un bon moment aujourd’hui.' },
+    3: { title: '💙 Sans pression', body: (t) => '« ' + t + ' » t’accompagne depuis quelques jours. Si ce n’est plus utile, supprime-le ou reporte-le.' },
+    7: { title: '🗂️ Un coup d’œil ?', body: (t) => '« ' + t + ' » est ouvert depuis un moment. Un rapide coup d’œil vaut peut-être la peine.' },
+  },
+  es: {
+    1: { title: '🌟 Recordatorio suave', body: (t) => '«' + t + '» de ayer sigue pendiente. Quizás hoy encuentres un buen momento.' },
+    3: { title: '💙 Sin presión', body: (t) => '«' + t + '» te acompaña desde hace unos días. Si ya no es relevante, puedes borrarla o aplazarla.' },
+    7: { title: '🗂️ ¿Un vistazo?', body: (t) => '«' + t + '» lleva un tiempo pendiente. Quizás valga la pena comprobar si sigue siendo actual.' },
+  },
+  it: {
+    1: { title: '🌟 Promemoria gentile', body: (t) => '“' + t + '” di ieri è ancora aperta. Forse oggi trovi un momento adatto.' },
+    3: { title: '💙 Senza fretta', body: (t) => '“' + t + '” ti accompagna da qualche giorno. Se non serve più, puoi eliminarla o rimandarla.' },
+    7: { title: '🗂️ Un’occhiata?', body: (t) => '“' + t + '” è aperta da un po’. Forse vale un rapido controllo se è ancora attuale.' },
+  },
+  pl: {
+    1: { title: '🌟 Delikatne przypomnienie', body: (t) => '„' + t + '” z wczoraj wciąż czeka. Może dziś znajdziesz na to chwilę.' },
+    3: { title: '💙 Bez presji', body: (t) => '„' + t + '” towarzyszy Ci już kilka dni. Jeśli straciło aktualność, możesz je usunąć lub przełożyć.' },
+    7: { title: '🗂️ Krótki rzut oka?', body: (t) => '„' + t + '” jest otwarte od dłuższego czasu. Może warto sprawdzić, czy wciąż jest aktualne.' },
+  },
 };
-
-// Mehrere überfällige Aufgaben derselben Person → zusammengefasst (Ton = höchster Meilenstein).
-const MULTI: Record<number, { title: string; body: (n: number) => string }> = {
-  1: { title: '🌟 Sanfte Erinnerung', body: (n) => n + ' Aufgaben von den letzten Tagen sind noch offen. Vielleicht findest du heute für eine davon einen Moment.' },
-  3: { title: '💙 Ganz ohne Druck', body: (n) => n + ' Aufgaben begleiten dich schon eine Weile. Was nicht mehr passt, darfst du löschen oder verschieben.' },
-  7: { title: '🗂️ Kurzer Blick?', body: (n) => n + ' Aufgaben sind schon länger offen. Ein kurzer Blick lohnt sich vielleicht, was davon noch aktuell ist.' },
+const MULTI_L: Record<string, Record<number, Tpl>> = {
+  de: {
+    1: { title: '🌟 Sanfte Erinnerung', body: (n) => n + ' Aufgaben von den letzten Tagen sind noch offen. Vielleicht findest du heute für eine davon einen Moment.' },
+    3: { title: '💙 Ganz ohne Druck', body: (n) => n + ' Aufgaben begleiten dich schon eine Weile. Was nicht mehr passt, darfst du löschen oder verschieben.' },
+    7: { title: '🗂️ Kurzer Blick?', body: (n) => n + ' Aufgaben sind schon länger offen. Ein kurzer Blick lohnt sich vielleicht, was davon noch aktuell ist.' },
+  },
+  en: {
+    1: { title: '🌟 Gentle reminder', body: (n) => n + ' tasks from the last days are still open. Maybe you’ll find a moment for one of them today.' },
+    3: { title: '💙 No pressure', body: (n) => n + ' tasks have been with you for a while. Whatever no longer fits, feel free to delete or reschedule.' },
+    7: { title: '🗂️ Quick look?', body: (n) => n + ' tasks have been open for a while. A quick check which are still current might be worth it.' },
+  },
+  fr: {
+    1: { title: '🌟 Petit rappel', body: (n) => n + ' tâches des derniers jours sont encore ouvertes. Peut-être un moment aujourd’hui pour l’une d’elles.' },
+    3: { title: '💙 Sans pression', body: (n) => n + ' tâches t’accompagnent depuis un moment. Supprime ou reporte ce qui ne convient plus.' },
+    7: { title: '🗂️ Un coup d’œil ?', body: (n) => n + ' tâches sont ouvertes depuis un moment. Un rapide tri vaut peut-être la peine.' },
+  },
+  es: {
+    1: { title: '🌟 Recordatorio suave', body: (n) => n + ' tareas de los últimos días siguen pendientes. Quizás hoy haya un momento para una de ellas.' },
+    3: { title: '💙 Sin presión', body: (n) => n + ' tareas te acompañan desde hace un tiempo. Lo que ya no encaje, bórralo o aplázalo.' },
+    7: { title: '🗂️ ¿Un vistazo?', body: (n) => n + ' tareas llevan un tiempo pendientes. Quizás valga la pena revisar cuáles siguen siendo actuales.' },
+  },
+  it: {
+    1: { title: '🌟 Promemoria gentile', body: (n) => n + ' attività degli ultimi giorni sono ancora aperte. Forse oggi trovi un momento per una di esse.' },
+    3: { title: '💙 Senza fretta', body: (n) => n + ' attività ti accompagnano da un po’. Ciò che non serve più, puoi eliminarlo o rimandarlo.' },
+    7: { title: '🗂️ Un’occhiata?', body: (n) => n + ' attività sono aperte da tempo. Forse vale un rapido controllo di cosa è ancora attuale.' },
+  },
+  pl: {
+    1: { title: '🌟 Delikatne przypomnienie', body: (n) => n + ' zadań z ostatnich dni wciąż czeka. Może dziś znajdziesz chwilę na jedno z nich.' },
+    3: { title: '💙 Bez presji', body: (n) => n + ' zadań towarzyszy Ci już jakiś czas. Co straciło aktualność, możesz usunąć lub przełożyć.' },
+    7: { title: '🗂️ Krótki rzut oka?', body: (n) => n + ' zadań jest otwartych od dłuższego czasu. Może warto sprawdzić, które są wciąż aktualne.' },
+  },
 };
 
 Deno.serve(async (req) => {
@@ -122,13 +175,27 @@ Deno.serve(async (req) => {
 
   (webpush as any).setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
+  // Sprache je Empfänger aus user_state (profile.lang); Fallback Deutsch.
+  const langBy = new Map<string, string>();
+  try {
+    const rids = [...perUser.keys()];
+    if (rids.length) {
+      const { data: states } = await admin.from('user_state').select('user_id,data').in('user_id', rids);
+      for (const st of (states || []) as any[]) {
+        const l = st?.data?.profile?.lang;
+        if (typeof l === 'string' && /^(de|en|fr|es|it|pl)$/.test(l)) langBy.set(st.user_id, l);
+      }
+    }
+  } catch (_e) { /* Fallback de */ }
+
   let sent = 0, dead = 0, users = 0;
   for (const [authId, info] of perUser) {
     const subs = subsByUser.get(authId);
     if (!subs || !subs.length) continue;
     const n = info.titles.length;
     const lvl = info.level;                                        // 1, 3 oder 7
-    const spec = n === 1 ? SINGLE[lvl] : MULTI[lvl];
+    const lang = langBy.get(authId) || 'de';
+    const spec = n === 1 ? (SINGLE_L[lang] || SINGLE_L.de)[lvl] : (MULTI_L[lang] || MULTI_L.de)[lvl];
     if (!spec) continue;
     const body = n === 1 ? (spec as any).body(info.titles[0]) : (spec as any).body(n);
     const payload = JSON.stringify({ title: spec.title, body, tag: 'effyra-overdue', url: './?fam=1' });
