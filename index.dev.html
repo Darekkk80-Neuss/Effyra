@@ -7944,7 +7944,7 @@ function famAudioUnlock() {
   try {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     if (!_famAC) _famAC = new AC();
-    const fire = () => { if (_bootChimeArmed && _famAC && _famAC.state === 'running') { _bootChimeArmed = false; try { playBootChime(_famAC); } catch (e) {} } };
+    const fire = () => { if (_bootChimeArmed && _famAC && _famAC.state === 'running') { _bootChimeArmed = false; try { bootSoundNow(); } catch (e) {} } };
     if (_famAC.state === 'suspended') _famAC.resume().then(fire).catch(() => {}); else fire();
   } catch (e) {}
 }
@@ -7962,28 +7962,89 @@ function playAlertBeep() {
     });
   } catch (e) {}
 }
-/* ===== Start-Erlebnis: sanfte Einschalt-Melodie + Tageszeit-Begrüßung ===== */
-/* Weicher, aufsteigender Akkord (C-Dur) mit warmem Grundton – ~1,3 s, dezent. */
+/* ===== Start-Erlebnis: Klang-Signatur (Einschalt-Sound) + gesprochene Begrüßung ===== */
+/* Kurzer synthetischer Hallraum (Impulsantwort) – gibt dem Sound Tiefe/Wertigkeit. */
+function bootReverbIR(ctx, seconds, decay) {
+  const rate = ctx.sampleRate, len = Math.max(1, Math.floor(rate * seconds));
+  const buf = ctx.createBuffer(2, len, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+  }
+  return buf;
+}
+/* „Plattform fährt hoch": Sub-Fundament + warmer Pad-Swell durch öffnenden Tiefpass
+   + aufsteigende Schimmer-Glocken (Cadd9, positiv auflösend) – im Hall, über Kompressor. ~3 s. */
 function playBootChime(ctx) {
   const now = ctx.currentTime;
-  [[523.25, 0], [659.25, 0.13], [783.99, 0.26], [1046.50, 0.42]].forEach(pair => {   // C5 · E5 · G5 · C6
-    const o = ctx.createOscillator(), g = ctx.createGain(), s = now + pair[1];
-    o.type = 'sine'; o.frequency.value = pair[0];
-    g.gain.setValueAtTime(0.0001, s);
-    g.gain.exponentialRampToValueAtTime(0.13, s + 0.05);
-    g.gain.exponentialRampToValueAtTime(0.0001, s + 0.95);
-    o.connect(g); g.connect(ctx.destination); o.start(s); o.stop(s + 1.0);
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.28;
+  comp.connect(ctx.destination);
+  const dry = ctx.createGain(); dry.gain.value = 0.9; dry.connect(comp);
+  const rev = ctx.createConvolver(); rev.buffer = bootReverbIR(ctx, 2.6, 2.4);
+  const wet = ctx.createGain(); wet.gain.value = 0.34; rev.connect(wet); wet.connect(comp);
+  const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(dry); bus.connect(rev);
+
+  const sub = ctx.createOscillator(); sub.type = 'sine'; sub.frequency.value = 65.41;   // C2 – Wärme/Gewicht
+  const subG = ctx.createGain(); subG.gain.setValueAtTime(0.0001, now);
+  subG.gain.exponentialRampToValueAtTime(0.24, now + 0.25); subG.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
+  sub.connect(subG).connect(bus); sub.start(now); sub.stop(now + 2.7);
+
+  const pad = ctx.createGain(); pad.gain.value = 0;                                       // Pad-Swell (das „Hochfahren")
+  const flt = ctx.createBiquadFilter(); flt.type = 'lowpass'; flt.Q.value = 0.8;
+  flt.frequency.setValueAtTime(220, now); flt.frequency.exponentialRampToValueAtTime(4600, now + 1.7);
+  pad.connect(flt).connect(bus);
+  [130.81, 196.00, 261.63, 329.63, 587.33].forEach(f => [-7, 7].forEach(dt => {           // Cadd9: C3 G3 C4 E4 D5
+    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = dt;
+    const g = ctx.createGain(); g.gain.value = 0.055;
+    o.connect(g).connect(pad); o.start(now); o.stop(now + 3.2);
+  }));
+  pad.gain.setValueAtTime(0.0001, now);
+  pad.gain.exponentialRampToValueAtTime(0.5, now + 1.15);
+  pad.gain.setValueAtTime(0.5, now + 1.9);
+  pad.gain.exponentialRampToValueAtTime(0.0001, now + 3.1);
+
+  [[783.99, 1.15], [1046.50, 1.33], [1318.51, 1.51], [1567.98, 1.73]].forEach(pair => {   // Glocken G5 C6 E6 G6
+    const s = now + pair[1];
+    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = pair[0];
+    const oh = ctx.createOscillator(); oh.type = 'triangle'; oh.frequency.value = pair[0] * 2;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, s);
+    g.gain.exponentialRampToValueAtTime(0.13, s + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s + 1.2);
+    const gh = ctx.createGain(); gh.gain.value = 0.028;
+    o.connect(g).connect(bus); oh.connect(gh).connect(g);
+    o.start(s); o.stop(s + 1.25); oh.start(s); oh.stop(s + 1.25);
   });
-  const p = ctx.createOscillator(), pg = ctx.createGain();   // warmer Grundton (C3)
-  p.type = 'triangle'; p.frequency.value = 130.81;
-  pg.gain.setValueAtTime(0.0001, now); pg.gain.exponentialRampToValueAtTime(0.05, now + 0.2); pg.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
-  p.connect(pg); pg.connect(ctx.destination); p.start(now); p.stop(now + 1.6);
 }
+/* Beste Gerätestimme für die aktuelle Sprache (Google/Neural bevorzugt). */
+function pickVoiceFor(lang) {
+  try {
+    const vs = speechSynthesis.getVoices().filter(v => new RegExp('^' + lang, 'i').test(v.lang));
+    return vs.find(v => /google/i.test(v.name)) || vs.find(v => /(natural|neural|online|premium|enhanced)/i.test(v.name)) || vs[0] || null;
+  } catch (e) { return null; }
+}
+/* Gesprochene Begrüßung „Guten Abend, Darius" – lokalisiert, warm, gratis (Gerätestimme, keine KI-Credits). */
+function speakBootGreeting() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const name = (store.name || (account && account.name) || '').trim();
+    const raw = greetWord() + (name ? ', ' + name : '');
+    const text = (typeof cleanForTTS === 'function') ? cleanForTTS(raw) : raw;
+    if (!text) return;
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoiceFor(curLang);
+    if (v) u.voice = v;
+    u.lang = (typeof curLocale === 'string' && curLocale) ? curLocale : 'de-DE';
+    u.rate = 0.95; u.pitch = 1.02; u.volume = 1;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+/* Signatur + kurz danach die gesprochene Begrüßung (auf dem Hall-Ausklang). */
+function bootSoundNow() { try { playBootChime(_famAC); } catch (e) {} setTimeout(speakBootGreeting, 1300); }
 function bootMelody() {
   try {
     famAudioUnlock(); const ctx = _famAC;
     if (!ctx || ctx.state !== 'running') { _bootChimeArmed = true; return; }   // Autoplay geblockt → beim ersten Tippen nachholen
-    playBootChime(ctx);
+    bootSoundNow();
   } catch (e) { _bootChimeArmed = true; }
 }
 /* Tageszeit-Begrüßung, lokalisiert (nutzt dasselbe Wörterbuch wie das Dashboard). */
@@ -8009,7 +8070,7 @@ function bootExperience() {
   document.body.appendChild(ov);
   const dismiss = () => { if (!ov.parentNode) return; ov.classList.add('leaving'); setTimeout(() => { if (ov.parentNode) ov.remove(); }, 650); };
   ov.addEventListener('pointerdown', dismiss, { once: true });   // Tippen überspringt
-  setTimeout(dismiss, 2300);
+  setTimeout(dismiss, 2900);
   if (bootFxMode() === 'full') bootMelody();
 }
 /* ===== Web Push: Hintergrund-Benachrichtigungen (auch bei geschlossener App) ===== */
