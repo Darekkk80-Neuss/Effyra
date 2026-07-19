@@ -8965,17 +8965,30 @@ async function startPlayPurchase(product) {
     );
     const resp = await req.show();
     const token = resp.details && resp.details.token;
+    // Server-Freischaltung: Antwort AUSWERTEN (nicht mehr verschlucken) – sonst zeigen wir „aktiviert“,
+    // obwohl der Grant scheiterte (das war die Ursache für „Family kam nur als Premium an“).
+    let verifyOk = null;   // null = keine Verifikation versucht (offline), true/false = Ergebnis
     try {
       if (CLOUD && sb) {
         const s = (await sb.auth.getSession()).data.session;
-        if (s) await fetch(FN_URL('play-verify'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ sku: p.id, token: token, type: p.type }) });
+        if (s) {
+          const res = await fetch(FN_URL('play-verify'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ sku: p.id, token: token, type: p.type }) });
+          const data = await res.json().catch(() => ({}));
+          verifyOk = res.ok && !data.error;
+        }
       }
-    } catch (e) { /* Verifikation zieht sonst per RTDN nach */ }
-    await resp.complete('success');
+    } catch (e) { verifyOk = false; }
+    await resp.complete('success');   // Kauf ist gültig -> gegenüber Google bestätigen (Grant heilt sonst per Sync/RTDN nach)
+    if (verifyOk === false) {
+      // Kauf ok bei Google, aber Freischaltung hakte -> Selbstheilung anstoßen und EHRLICH melden (kein falsches „aktiviert“).
+      try { await reverifyActivePurchases(); } catch (e) {}
+    }
     try { await syncEntitlements(); } catch (e) {}
     if (product === 'family') { try { await famDiscover(); if (currentView === 'family') RENDERERS.family(); } catch (e) {} }   // Familien-Code nach dem Kauf sofort anzeigen
     const pw = $('#paywall'); if (pw) pw.classList.remove('on');
-    toast('✓ ' + p.label + ' aktiviert. Danke!');
+    toast(verifyOk === false
+      ? '✓ Kauf erhalten – die Freischaltung wird abgeschlossen. Falls nicht sofort sichtbar, App in ~1 Min neu öffnen.'
+      : '✓ ' + p.label + ' aktiviert. Danke!');
   } catch (e) { toast('Kauf abgebrochen oder nicht möglich.'); }
 }
 /* Beim App-Start aktive Play-Abos neu verifizieren → Ablaufdatum idempotent auf Googles Stand setzen,

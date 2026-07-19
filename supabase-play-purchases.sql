@@ -26,7 +26,10 @@ create or replace function public.sync_play_expiry(p_user uuid, p_sku text, p_ex
 returns json
 language plpgsql security definer set search_path = public
 as $$
-declare v_exp timestamptz := to_timestamp(p_expiry_ms / 1000.0);
+declare
+  v_exp  timestamptz := to_timestamp(p_expiry_ms / 1000.0);
+  v_fid  uuid;
+  v_code text;
 begin
   if p_sku = 'effyra_premium' then
     update public.profiles
@@ -35,8 +38,20 @@ begin
            premium_until = v_exp
      where id = p_user;
   elsif p_sku = 'effyra_family' then
-    -- Familien-Abo des Käufers (plan_by) auf das echte Ablaufdatum setzen …
-    update public.families set plan = 'family', plan_until = v_exp where plan_by = p_user;
+    -- SELBSTHEILEND: Falls der Erstkauf-Grant (apply_family_purchase) nie ankam und
+    -- daher noch KEINE Familie mit plan_by=Käufer existiert, hier eine anlegen –
+    -- sonst würde der Sync den Käufer nur auf premium heben und Family bliebe „free".
+    select fm.family_id into v_fid from public.family_members fm where fm.user_id = p_user limit 1;
+    if v_fid is null then
+      loop
+        v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+        exit when not exists (select 1 from public.families where code = v_code);
+      end loop;
+      insert into public.families (code, created_by) values (v_code, p_user) returning id into v_fid;
+      insert into public.family_members (family_id, user_id) values (v_fid, p_user) on conflict do nothing;
+    end if;
+    -- Familien-Abo IDEMPOTENT auf Googles echtes Ablaufdatum setzen (SET, keine kumulative Verlängerung)
+    update public.families set plan = 'family', plan_by = p_user, plan_until = v_exp where id = v_fid;
     -- … und den Käufer persönlich ebenfalls (er ist selbst Premium).
     update public.profiles
        set tier = 'premium', plan = 'premium',

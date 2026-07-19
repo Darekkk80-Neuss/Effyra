@@ -139,21 +139,22 @@ begin
 
   eff := public.effective_tier(uid);
 
-  -- Premium nur über die Familie geliehen (kein eigenes aktives Premium)?
-  if eff = 'premium'
-     and not (p.tier = 'premium' and (p.premium_until is null or p.premium_until >= now())) then
+  -- Aktive Familie? -> gilt für den INHABER (plan_by) GENAUSO wie für geerbte Mitglieder.
+  -- (Vorher nur für Mitglieder OHNE eigenes Premium – dadurch sah der Family-Käufer sich
+  --  fälschlich als „Premium", weil apply_family_purchase ihn zusätzlich persönlich premium setzt.)
+  select f.plan_until, f.ai_used, coalesce(f.ai_extra, 0), f.ai_month, coalesce(f.seats_adults, 2)
+    into v_fam_until, fam_used, fam_extra, fam_month, fam_seats
+    from public.family_members fm
+    join public.families f on f.id = fm.family_id
+   where fm.user_id = uid
+     and f.plan = 'family'
+     and (f.plan_until is null or f.plan_until >= now())
+   limit 1;
+  if fam_seats is not null then
     v_via := true;
-    -- Gemeinsamen Familien-KI-Topf ermitteln (für die Anzeige)
-    select f.plan_until, f.ai_used, coalesce(f.ai_extra, 0), f.ai_month, coalesce(f.seats_adults, 2)
-      into v_fam_until, fam_used, fam_extra, fam_month, fam_seats
-      from public.family_members fm
-      join public.families f on f.id = fm.family_id
-     where fm.user_id = uid limit 1;
-    if fam_seats is not null then
-      via_fam_ai := true;
-      if fam_month is distinct from cur_month then fam_used := 0; fam_extra := 0; end if;   -- Monatswechsel: Anzeige auf 0
-      fam_limit := fam_seats * public.ai_family_seat() + coalesce(fam_extra, 0);
-    end if;
+    via_fam_ai := true;
+    if fam_month is distinct from cur_month then fam_used := 0; fam_extra := 0; end if;   -- Monatswechsel: Anzeige auf 0
+    fam_limit := fam_seats * public.ai_family_seat() + coalesce(fam_extra, 0);
   end if;
 
   return json_build_object(
