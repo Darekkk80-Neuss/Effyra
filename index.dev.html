@@ -9025,6 +9025,30 @@ async function bookAddon(kind) {
       : 'Kauf nicht möglich: ' + ((e && (e.name || e.message)) ? (e.name + (e.message ? ' – ' + e.message : '')) : 'unbekannter Fehler'));
   }
 }
+/* Sichtbare Billing-Diagnose: zeigt, welche Produkte Google kennt (inkl. Preis) und was der Nutzer besitzt.
+   Damit lässt sich „Kauf abgebrochen“ eindeutig einordnen: fehlt das Produkt bei getDetails → Console-Konfig;
+   steht es unter BESITZ → bereits gekauft; sonst echter Abbruch/Angebotsproblem. */
+async function billingDiag() {
+  if (!hasPlayBilling()) { alert('Kein Google Play Billing verfügbar (nur in der installierten Effyra-App).'); return; }
+  const ids = ['effyra_premium', 'effyra_family', 'effyra_adult_addon', 'effyra_child_addon'];
+  const out = [];
+  try {
+    const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
+    try {
+      const det = await svc.getDetails(ids);
+      out.push('KENNT GOOGLE (' + ((det && det.length) || 0) + '):');
+      (det || []).forEach(d => out.push('• ' + d.itemId + ' — ' + (d.title || '?') + ' — ' + ((d.price && d.price.value) ? (d.price.value + ' ' + (d.price.currency || '')) : 'kein Preis')));
+      const missing = ids.filter(id => !(det || []).some(d => d.itemId === id));
+      if (missing.length) out.push('⚠️ FEHLT bei Google: ' + missing.join(', '));
+    } catch (e) { out.push('getDetails-Fehler: ' + (e && e.name) + ' – ' + (e && e.message)); }
+    try {
+      const pur = await (typeof svc.listPurchases === 'function' ? svc.listPurchases() : Promise.resolve([]));
+      out.push('', 'DU BESITZT (' + ((pur && pur.length) || 0) + '):');
+      if (pur && pur.length) pur.forEach(x => out.push('• ' + x.itemId)); else out.push('• (nichts)');
+    } catch (e) { out.push('listPurchases-Fehler: ' + (e && e.name) + ' – ' + (e && e.message)); }
+  } catch (e) { out.push('Service-Fehler: ' + (e && e.name) + ' – ' + (e && e.message)); }
+  alert(out.join('\n'));
+}
 /* ---- Google Play Billing: Haupt-Produkte ----
    Die IDs müssen EXAKT den in der Play Console angelegten Produkten entsprechen
    (siehe GOOGLE_PLAY_SETUP.md). type: subs=Abo, inapp=Einmalkauf, consumable=verbrauchbar.
@@ -9871,7 +9895,8 @@ function famPersonen() {
   if (hasPlayBilling()) {
     h += '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">' +
       '<button class="btn btn-sm" data-fam="bookAdult">+ Erwachsener · 3,99 €/Mon</button>' +
-      '<button class="btn btn-sm" data-fam="bookChild">+ Kind · 0,99 €/Mon</button></div>';
+      '<button class="btn btn-sm" data-fam="bookChild">+ Kind · 0,99 €/Mon</button>' +
+      '<button class="btn btn-sm" data-fam="billingDiag" title="Play-Billing prüfen">🔍 Billing-Diagnose</button></div>';
   } else {
     h += '<div class="sub" style="margin-top:6px;color:var(--faint)">Weitere Mitglieder buchst du in der Effyra-App (Google Play).</div>';
   }
@@ -10116,6 +10141,7 @@ $('#famRoot').addEventListener('click', e => {
   if (a === 'topupAi') { startCheckout('topup'); return; }
   if (a === 'bookAdult') { bookAddon('adult'); return; }
   if (a === 'bookChild') { bookAddon('child'); return; }
+  if (a === 'billingDiag') { billingDiag(); return; }
   if (a === 'pushOn') {
     ensurePushPermission().then(p => {
       if (p === 'granted') { subscribeFamilyPush().then(() => { RENDERERS.family(); toast('🔔 Aktiviert – tippe „Test an mich".'); }); }
