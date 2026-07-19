@@ -1484,7 +1484,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <div class="tier-cards">
       <div class="tier-card best" data-tier="premium">
         <div class="tier-badge">Beste Wahl</div>
-        <div class="tier-top"><span class="tier-name">Effyra AI Premium</span><span class="tier-price">4,99 €<small>/ Monat</small></span></div>
+        <div class="tier-top"><span class="tier-name">Effyra Premium</span><span class="tier-price">4,99 €<small>/ Monat</small></span></div>
         <ul class="tier-feats">
           <li>✅ Komplette App + echte KI</li>
           <li>✅ 500 KI-Credits / Monat</li>
@@ -3561,7 +3561,7 @@ const TDICT_SRC = {
   '🎒 Packen': { en: '🎒 Packing', fr: '🎒 Bagages', es: '🎒 Equipaje', it: '🎒 Valigia', pl: '🎒 Pakowanie' },
   '⚽ Hobbys': { en: '⚽ Hobbies', fr: '⚽ Loisirs', es: '⚽ Aficiones', it: '⚽ Hobby', pl: '⚽ Hobby' },
   'Kinderorganisation': { en: 'Kids organizer', fr: 'Organisation des enfants', es: 'Organización de los niños', it: 'Organizzazione bambini', pl: 'Organizacja dzieci' },
-  'Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.': { en: 'Shared calendar, birthdays and sync with your partner.', fr: 'Calendrier partagé, anniversaires et synchro avec le partenaire.', es: 'Calendario compartido, cumpleaños y sincronización con la pareja.', it: 'Calendario condiviso, compleanni e sync con il partner.', pl: 'Wspólny kalendarz, urodziny i synchronizacja z partnerem.' },
+  'Alles für die Familie an einem Ort — Kalender, Aufgaben, Budget & Medikamente, automatisch geteilt.': { en: 'Everything for the family in one place — calendar, tasks, budget & medication, shared automatically.', fr: 'Tout pour la famille au même endroit — calendrier, tâches, budget & médicaments, partagés automatiquement.', es: 'Todo para la familia en un solo lugar: calendario, tareas, presupuesto y medicación, compartidos automáticamente.', it: 'Tutto per la famiglia in un unico posto — calendario, attività, budget e farmaci, condivisi in automatico.', pl: 'Wszystko dla rodziny w jednym miejscu — kalendarz, zadania, budżet i leki, udostępniane automatycznie.' },
   'Pro Kind: Stundenplan, Termine, Hobbys & Packlisten – alles an einem Ort.': { en: 'Per child: schedule, appointments, hobbies & packing lists – all in one place.', fr: 'Par enfant : emploi du temps, rendez-vous, loisirs et listes de bagages – au même endroit.', es: 'Por niño: horario, citas, aficiones y listas de equipaje, todo en un lugar.', it: 'Per bambino: orario, appuntamenti, hobby e liste valigia – tutto in un posto.', pl: 'Dla każdego dziecka: plan lekcji, terminy, hobby i listy pakowania – wszystko w jednym miejscu.' },
   '+ Person hinzufügen': { en: '+ Add person', fr: '+ Ajouter une personne', es: '+ Añadir persona', it: '+ Aggiungi persona', pl: '+ Dodaj osobę' },
   'Kind entfernen': { en: 'Remove child', fr: "Supprimer l'enfant", es: 'Eliminar niño', it: 'Rimuovi bambino', pl: 'Usuń dziecko' },
@@ -6693,7 +6693,7 @@ RENDERERS.dashboard = function () {
     if (paid) {
       /* Aktiver Plan – die anderen Optionen entfallen (nur der gebuchte Plan wird gezeigt). */
       const ic = fam ? '👪' : '⭐';
-      const nm = fam ? pickLang({ de: 'Familienabo', en: 'Family plan', fr: 'Abonnement Famille', es: 'Plan Familia', it: 'Abbonamento Famiglia', pl: 'Abonament Rodzina' }) : 'Effyra AI Pro';
+      const nm = fam ? pickLang({ de: 'Familienabo', en: 'Family plan', fr: 'Abonnement Famille', es: 'Plan Familia', it: 'Abbonamento Famiglia', pl: 'Abonament Rodzina' }) : 'Effyra Premium';
       const low = rem <= Math.max(10, Math.round(lim * 0.1));
       /* Aus Plan + Credits zusammengesetzt → nicht sweepbar, daher direkt lokalisiert. */
       const head = agentMsg({
@@ -6739,7 +6739,7 @@ RENDERERS.dashboard = function () {
         tier('free', '🎁',
           pickLang({ de: 'Kostenlos', en: 'Free', fr: 'Gratuit', es: 'Gratis', it: 'Gratis', pl: 'Za darmo' }),
           pickLang({ de: 'dein Plan', en: 'your plan', fr: 'ta formule', es: 'tu plan', it: 'il tuo piano', pl: 'Twój plan' }), true) +
-        tier('premium', '⭐', 'Pro',
+        tier('premium', '⭐', 'Premium',
           pickLang({ de: '4,99 €/Mon.', en: '€4.99/mo.', fr: '4,99 €/mois', es: '4,99 €/mes', it: '4,99 €/mese', pl: '4,99 €/mies.' }), false,
           pickLang({ de: 'Top', en: 'Top', fr: 'Top', es: 'Top', it: 'Top', pl: 'Top' })) +
         tier('family', '👪',
@@ -8969,7 +8969,7 @@ async function bookAddon(kind) {
    (siehe GOOGLE_PLAY_SETUP.md). type: subs=Abo, inapp=Einmalkauf, consumable=verbrauchbar.
    kind = serverseitiger Entitlement-Typ (grant_play_purchase in supabase-trial-and-play.sql). */
 const PLAY_PRODUCTS = {
-  premium:  { id: 'effyra_premium',  type: 'subs',       kind: 'premium',  label: 'Effyra AI Pro',    price: '4,99 €/Mon.' },
+  premium:  { id: 'effyra_premium',  type: 'subs',       kind: 'premium',  label: 'Effyra Premium',   price: '4,99 €/Mon.' },
   family:   { id: 'effyra_family',   type: 'subs',       kind: 'family',   label: 'Familienabo',      price: '14,99 €/Mon.' },
   topup:    { id: 'effyra_ai_boost', type: 'consumable', kind: 'topup',    label: 'KI-Credits +1000', price: '4,99 €' }
 };
@@ -9011,6 +9011,8 @@ async function startPlayPurchase(product) {
     toast(verifyOk === false
       ? '✓ Kauf erhalten – die Freischaltung wird abgeschlossen. Falls nicht sofort sichtbar, App in ~1 Min neu öffnen.'
       : '✓ ' + p.label + ' aktiviert. Danke!');
+    // Nach dem Family-Kauf sofort an die Hand nehmen: Erfolgs-Screen -> Einladen-Assistent.
+    if (product === 'family' && verifyOk !== false) { try { showFamilyWelcome(); } catch (e) {} }
   } catch (e) { toast('Kauf abgebrochen oder nicht möglich.'); }
 }
 /* Beim App-Start aktive Play-Abos neu verifizieren → Ablaufdatum idempotent auf Googles Stand setzen,
@@ -9637,9 +9639,96 @@ async function famLeave() {
   toast('Verbindung getrennt');
 }
 
+/* ===== Vereinheitlichter Einladen-Flow (UX-Umbau) =====
+   Ein Einstieg „+ Mitglied einladen": erst Erwachsener/Kind wählen, dann der passende Code
+   samt fertiger Teilen-Nachricht. Ersetzt das Zusammensuchen aus Paywall / Sync-Tab / Personen-Tab. */
+function buildInviteMessage(code) {
+  return pickLang({
+    de: 'Ich habe dich zu unserer Effyra-Familie eingeladen 👪\n\nSo machst du mit:\n1) Effyra laden (Google Play)\n2) Unten auf „Ich habe einen Einladungscode" tippen\n3) Diesen Code eingeben: ' + code,
+    en: 'I invited you to our Effyra family 👪\n\n1) Get Effyra (Google Play)\n2) Tap "I have an invite code"\n3) Enter this code: ' + code,
+    fr: 'Je t’ai invité·e dans notre famille Effyra 👪\n\n1) Installe Effyra (Google Play)\n2) Appuie sur « J’ai un code d’invitation »\n3) Saisis ce code : ' + code,
+    es: 'Te invité a nuestra familia de Effyra 👪\n\n1) Instala Effyra (Google Play)\n2) Toca «Tengo un código de invitación»\n3) Introduce este código: ' + code,
+    it: 'Ti ho invitato nella nostra famiglia Effyra 👪\n\n1) Installa Effyra (Google Play)\n2) Tocca «Ho un codice d’invito»\n3) Inserisci questo codice: ' + code,
+    pl: 'Zaprosiłem Cię do naszej rodziny Effyra 👪\n\n1) Zainstaluj Effyra (Google Play)\n2) Naciśnij „Mam kod zaproszenia"\n3) Wpisz ten kod: ' + code
+  });
+}
+async function shareInvite(code) {
+  code = code || (store.family && store.family.code);
+  if (!code) { toast('Erst eine Familie erstellen.'); return; }
+  const text = buildInviteMessage(code);
+  if (navigator.share) { try { await navigator.share({ title: 'Effyra – Familie', text: text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  const ok = await copyText(text); toast(ok ? 'Einladung kopiert – jetzt einfügen ✓' : 'Teilen nicht möglich');
+}
+/* Erfolgs-Screen direkt nach dem Family-Kauf – nimmt den Nutzer an die Hand statt ihn ins Menü zu werfen. */
+function showFamilyWelcome() {
+  let ov = document.getElementById('famWelcomeOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'famWelcomeOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-label="Familienabo aktiv">' +
+    '<div class="sc-ic" aria-hidden="true">🎉</div><h3>Familienabo aktiv!</h3>' +
+    '<p class="sub" style="margin-bottom:14px">Als Nächstes lädst du deine Familie ein – dauert unter einer Minute.</p>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm" id="fwLater">Später</button><button class="btn btn-sm btn-primary" id="fwGo">Familie einrichten</button></div></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.querySelector('#fwLater').onclick = close;
+  ov.querySelector('#fwGo').onclick = () => { close(); showInviteChooser(); };
+}
+/* Einladen-Assistent: erst die Rolle, dann der richtige Weg. */
+function showInviteChooser() {
+  if (!CLOUD) { toast('Einladen braucht die Anmeldung (Cloud).'); return; }
+  let ov = document.getElementById('famInviteOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'famInviteOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-label="Mitglied einladen">' +
+    '<button class="sc-x" id="ivClose" aria-label="Schließen">✕</button><div class="sc-ic" aria-hidden="true">👪</div>' +
+    '<h3>Wen möchtest du hinzufügen?</h3>' +
+    '<div class="fam-alert-btns" style="flex-direction:column;gap:10px;margin-top:14px">' +
+    '<button class="btn btn-primary" id="ivAdult" style="width:100%">🧑 Erwachsenen einladen (Partner)</button>' +
+    '<button class="btn btn-primary" id="ivChild" style="width:100%">🧒 Kind hinzufügen</button></div>' +
+    '<p class="sub" style="color:var(--faint);font-size:12.5px;margin-top:12px">Erwachsene bekommen ein eigenes Konto &amp; KI. Kinder brauchen kein Konto – nur den Code.</p></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.querySelector('#ivClose').onclick = close;
+  ov.querySelector('#ivAdult').onclick = () => { close(); showAdultInvite(); };
+  ov.querySelector('#ivChild').onclick = () => { close(); inviteChildFlow(); };
+}
+/* Erwachsener/Partner: Code sicherstellen (bei Bedarf erzeugen) und mit fertiger Nachricht teilen. */
+async function showAdultInvite() {
+  if (!CLOUD) { toast('Einladen braucht die Anmeldung (Cloud).'); return; }
+  if (!(store.family && store.family.code)) { await famCreate(); }
+  const code = store.family && store.family.code;
+  if (!code) return;   // famCreate hat bei Fehler bereits eine Meldung gezeigt
+  let ov = document.getElementById('famAdultInvOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'famAdultInvOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-label="Partner einladen">' +
+    '<button class="sc-x" id="aiClose" aria-label="Schließen">✕</button><div class="sc-ic" aria-hidden="true">🧑</div>' +
+    '<h3>Partner einladen</h3>' +
+    '<p class="sub" style="margin-bottom:6px">Teile diesen Code – dein Partner gibt ihn beim Start ein:</p>' +
+    '<div class="fam-code">' + esc(code) + '</div>' +
+    '<div class="fam-alert-btns" style="margin-top:12px"><button class="btn btn-sm" id="aiCopy">📋 Code kopieren</button><button class="btn btn-sm btn-primary" id="aiShare">📤 Einladung teilen</button></div>' +
+    '<div class="note-box" style="margin-top:12px;text-align:left">Der Partner lädt Effyra, tippt unten auf „Ich habe einen Einladungscode" und gibt den Code ein.</div></div>';
+  ov.classList.add('on');
+  const close = () => ov.classList.remove('on');
+  ov.onclick = e => { if (e.target === ov) close(); };
+  ov.querySelector('#aiClose').onclick = close;
+  ov.querySelector('#aiCopy').onclick = () => copyText(code).then(ok => toast(ok ? 'Code kopiert ✓' : 'Kopieren nicht möglich'));
+  ov.querySelector('#aiShare').onclick = () => shareInvite(code);
+}
+/* Kind: sicher in den vorhandenen Weg führen (Typ „Kind" vorwählen, Namensfeld fokussieren). */
+function inviteChildFlow() {
+  showView('family');
+  famTab = 'personen'; RENDERERS.family();
+  setTimeout(() => {
+    const d = $('#famRoot details'); if (d) d.open = true;   // „Person eintragen" aufklappen
+    const ty = $('#famType'); if (ty) ty.value = 'child';
+    const nm = $('#famName'); if (nm) { try { nm.scrollIntoView({ block: 'center' }); } catch (e) {} nm.focus(); }
+    toast('Trag den Namen des Kindes ein und tippe „+ Person hinzufügen" – danach 📱 antippen für den Kinder-Code.');
+  }, 140);
+}
+
 RENDERERS.family = function () {
   ensureFamily();
-  let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Gemeinsamer Kalender, Geburtstage und Sync mit dem Partner.</p></div>';
+  let h = '<div class="view-head"><h1>Familienzentrale</h1><p>Alles für die Familie an einem Ort — Kalender, Aufgaben, Budget &amp; Medikamente, automatisch geteilt.</p></div>';
   h += '<div class="fam-nav" role="tablist">' + [['personen', '👪 Personen'], ['ftasks', '✅ Aufgaben'], ['meds', '💊 Medikamente'], ['budget', '💰 Budget'], ['kalender', '📅 Kalender'], ['anlaesse', '🎂 Anlässe'], ['sync', '🔗 Sync']].map(x =>
     '<button data-ftab="' + x[0] + '" class="' + (famTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
   h += famTab === 'ftasks' ? famTasks() : famTab === 'meds' ? famMeds() : famTab === 'budget' ? famBudget() : famTab === 'kalender' ? famKalender() : famTab === 'anlaesse' ? famAnlaesse() : famTab === 'sync' ? famSync() : famPersonen();
@@ -9697,10 +9786,14 @@ function famAiPanel() {
 }
 function famPersonen() {
   let h = famAiPanel();
-  h += '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
+  // Primäraktion: EIN Einstieg zum Einladen (Erwachsener/Kind) – bündelt die früher getrennten Wege.
+  if (CLOUD) h += '<button class="btn btn-primary" data-fam="invite" style="width:100%;margin-bottom:6px">👪 + Mitglied einladen</button>' +
+    '<p class="sub" style="color:var(--faint);font-size:12px;margin:0 0 14px">Partner mit eigenem Konto &amp; KI – oder Kind ohne Konto.</p>';
+  h += '<details ' + (CLOUD ? '' : 'open') + ' style="margin-bottom:12px"><summary class="sub" style="cursor:pointer;color:var(--faint);font-size:13px">Person nur eintragen (ohne App-Zugang)</summary><div style="margin-top:10px">' +
+    '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
     '<div class="kid-row" style="margin-bottom:8px"><select id="famType"><option value="adult">🧑 Erwachsen (18+)</option><option value="child">🧒 Kind (unter 18)</option></select>' +
     '<input type="date" id="famBday" title="Geburtsdatum"></div>' +
-    '<button class="btn btn-primary btn-sm" data-fam="addMem" style="width:100%;margin-bottom:14px">+ Person hinzufügen</button>';
+    '<button class="btn btn-primary btn-sm" data-fam="addMem" style="width:100%">+ Person hinzufügen</button></div></details>';
   /* Zusatzmitglieder als Add-on (Google Play Billing) */
   const addA = (store.family.addons && store.family.addons.adult) || 0, addC = (store.family.addons && store.family.addons.child) || 0;
   h += '<div class="note-box" style="margin-bottom:14px"><b>➕ Zusatzmitglieder</b>' +
@@ -9720,7 +9813,7 @@ function famPersonen() {
     h += '<div class="mem"><span class="kid-dot" style="background:' + safeColor(m.color) + '"></span><div class="mem-info"><b>' + esc(m.name) + '</b><span>' + sub + '</span></div>' +
       (m.role === 'owner'
         ? '<span class="badge b-premium" title="Administrator">👑 Admin</span>'
-        : ((m.role === 'child' && CLOUD) ? '<button class="btn btn-sm" data-fam="kidSetup" data-id="' + m.id + '" data-name="' + esc(m.name) + '" title="Kinder-Handy einrichten" style="min-height:34px">📱</button>' : '') +
+        : ((m.role === 'child' && CLOUD) ? '<button class="btn btn-sm" data-fam="kidSetup" data-id="' + m.id + '" data-name="' + esc(m.name) + '" title="Kinder-Handy einrichten" aria-label="Kinder-Handy einrichten" style="min-height:34px">📱</button>' : '') +
           '<button class="t-del" data-fam="delMem" data-id="' + m.id + '" aria-label="Entfernen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button>') +
       '</div>';
   });
@@ -9915,7 +10008,7 @@ function famSync() {
         ? agentMsg({ de: ', aktiv bis {d}', en: ', active until {d}', fr: ', actif jusqu\'au {d}', es: ', activo hasta {d}', it: ', attivo fino al {d}', pl: ', aktywne do {d}' }, { d: esc(fmtDate(String(account.familyUntil).slice(0, 10))) })
         : ''
     }) + '</div>' : '') +
-    '<button class="btn btn-sm" data-fam="copyCode" style="margin-bottom:10px">📋 Code kopieren</button><br>' +
+    '<div class="fam-alert-btns" style="justify-content:center;margin-bottom:10px"><button class="btn btn-sm" data-fam="copyCode">📋 Code kopieren</button><button class="btn btn-sm btn-primary" data-fam="shareInvite">📤 Einladung teilen</button></div>' +
     '<button class="btn btn-sm btn-danger" data-fam="leave">Verbindung trennen</button>' +
     '<div class="em-priv">Änderungen werden automatisch geteilt, sobald ihr online seid.</div></div>' +
     '<div class="card"><h3 style="margin-bottom:6px">Anderes Gerät verbinden?</h3><p class="sub" style="color:var(--muted);font-size:13px;margin-bottom:2px">Auf dem Gerät deines Partners denselben Code oben eingeben – oder hier den Code einer anderen Familie eintragen, um zu wechseln.</p>' +
@@ -9993,7 +10086,19 @@ $('#famRoot').addEventListener('click', e => {
     famChanged(); return;
   }
   if (a === 'kidSetup') { kidProvision(b.dataset.id, b.dataset.name); return; }
-  if (a === 'delMem') { store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return; }
+  if (a === 'delMem') {
+    const _m = (store.family.members || []).find(x => x.id === b.dataset.id);
+    const _nm = _m ? _m.name : 'dieses Mitglied';
+    if (!confirm(pickLang({
+      de: _nm + ' aus der Familie entfernen? Verliert dann den Zugriff auf die geteilten Bereiche.',
+      en: 'Remove ' + _nm + ' from the family? They will lose access to the shared areas.',
+      fr: 'Retirer ' + _nm + ' de la famille ? Cette personne perdra l’accès aux espaces partagés.',
+      es: '¿Quitar a ' + _nm + ' de la familia? Perderá el acceso a las áreas compartidas.',
+      it: 'Rimuovere ' + _nm + ' dalla famiglia? Perderà l’accesso alle aree condivise.',
+      pl: 'Usunąć ' + _nm + ' z rodziny? Utraci dostęp do wspólnych obszarów.'
+    }))) return;
+    store.family.members = store.family.members.filter(m => m.id !== b.dataset.id); famChanged(); return;
+  }
   if (a === 'toggleShare') {
     const area = b.dataset.area; ensureFamily();
     store.family.share[area] = !store.family.share[area];
@@ -10048,6 +10153,8 @@ $('#famRoot').addEventListener('click', e => {
     return;
   }
   if (a === 'copyCode') { copyText(store.family.code).then(ok => toast(ok ? 'Code kopiert ✓' : 'Kopieren nicht möglich')); return; }
+  if (a === 'invite') { showInviteChooser(); return; }
+  if (a === 'shareInvite') { shareInvite(); return; }
   if (a === 'leave') { famLeave(); return; }
 });
 $('#famRoot').addEventListener('keydown', e => {
