@@ -171,7 +171,12 @@ begin
      where fm.user_id = p_user and f.plan = 'family' and (f.plan_until is null or f.plan_until >= now())
      limit 1;
     if v_fid is not null then
-      update public.families set ai_extra = coalesce(ai_extra, 0) + 1000 where id = v_fid;
+      -- WICHTIG: ai_month mitsetzen – sonst maskiert get_entitlements die +1000 in der Anzeige auf 0
+      -- (Monats-Reset-Gate). Betrag rollt weiter über, es wird nur der Monatsstempel aktualisiert.
+      update public.families
+         set ai_extra = coalesce(ai_extra, 0) + 1000,
+             ai_month = to_char(now(), 'YYYY-MM')
+       where id = v_fid;
     else
       update public.profiles set ai_extra = coalesce(ai_extra, 0) + 1000 where id = p_user;
     end if;
