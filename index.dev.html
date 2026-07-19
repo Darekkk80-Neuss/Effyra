@@ -5033,6 +5033,7 @@ const usingOwnKey = () => hasKey();                 // eigener Schlüssel = unbe
 const isChildUser = () => !!(account && account.role === 'child');
 function canRealAI() {
   if (isChildUser()) return false;                  // Kinder: niemals KI
+  if (typeof consentValid === 'function' && !consentValid('ai')) return false;  // DSGVO: ohne ausdrückliche KI-Einwilligung KEINE Übermittlung an OpenAI (Sprache/Live/Foto). Erst nach showAiConsent().
   if (usingOwnKey()) return true;                   // eigener Schlüssel: unbegrenzt
   if (!(BACKEND_V2 && account && account.loggedIn)) return false;
   if (isPaid()) return aiRemaining() > 0;           // zahlende Stufe: 500/Monat (+Extra)
@@ -12837,6 +12838,8 @@ function vaProcessRecording() {
 }
 async function vaToggleMic() {
   if (vaListening) { vaStopMic(); return; }   // laufende Aufnahme sofort beenden & verarbeiten
+  /* KI-Sprache setzt die ausdrückliche KI-Einwilligung voraus – aktiv einholen, statt still auf lokale Erkennung zu wechseln. */
+  if (AI_VOICE && aiSttOk && !isChildUser() && typeof consentValid === 'function' && !consentValid('ai') && (usingOwnKey() || (BACKEND_V2 && account && account.loggedIn)) && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { showAiConsent(); return; }
   /* Primär: OpenAI-Transkription mit VAD (freigegebenes gpt-4o-mini-transcribe); sonst Browser-Spracherkennung. */
   if (AI_VOICE && aiSttOk && canRealAI() && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     return vaRecordVAD();
@@ -12893,6 +12896,7 @@ function rtSilenceMs() { const v = Number(store.settings && store.settings.rtSil
 function rtSetStatus(txt, cls) { const st = $('#vaStatus'); if (st) { st.textContent = txt; st.className = 'va-status on live-on va-' + (cls || 'listening'); } }
 async function rtToggle() { if (RT && RT.active) { rtStop('Live-Gespräch beendet.'); return; } await rtStart(); }
 async function rtStart() {
+  if (!isChildUser() && typeof consentValid === 'function' && !consentValid('ai')) { showAiConsent(); return; }   // KI-Einwilligung sichtbar einholen
   if (!canRealAI()) { toast('Bitte melde dich an, um den Live-Modus zu nutzen.'); return; }
   if (!window.RTCPeerConnection) { toast('Live-Modus braucht Chrome, Edge oder Safari.'); return; }
   if (vaListening) vaStopMic();
