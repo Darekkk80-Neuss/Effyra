@@ -8964,7 +8964,7 @@ async function bookAddon(kind) {
     // Vorabcheck 1: kennt Google dieses Add-on-Produkt als kaufbares Angebot? Sonst rejected show() nur mit Sammelfehler.
     if (svc && typeof svc.getDetails === 'function') {
       try {
-        const det = await svc.getDetails([p.id]);
+        const det = await dgsRetry(() => svc.getDetails([p.id]));
         if (!det || !det.length) { toast('„' + p.label + '" ist bei Google Play noch nicht kaufbar. Play Console: Produkt UND monatlicher Basisplan auf „Aktiv"?'); return; }
       } catch (e) { console.warn('[Effyra addon getDetails]', p.id, e && e.name, e && e.message); }
     }
@@ -8972,7 +8972,7 @@ async function bookAddon(kind) {
     // sonst mit AbortError ab. Statt Neukauf den bestehenden Kauf verifizieren → Sitzplatz freischalten (Selbstheilung).
     if (svc && typeof svc.listPurchases === 'function') {
       try {
-        const owned = (await svc.listPurchases()) || [];
+        const owned = (await dgsRetry(() => svc.listPurchases())) || [];
         const mine = owned.find(x => x.itemId === p.id);
         if (mine) {
           console.warn('[Effyra addon already owned]', p.id);
@@ -9028,6 +9028,20 @@ async function bookAddon(kind) {
 /* Sichtbare Billing-Diagnose: zeigt, welche Produkte Google kennt (inkl. Preis) und was der Nutzer besitzt.
    Damit lässt sich „Kauf abgebrochen“ eindeutig einordnen: fehlt das Produkt bei getDetails → Console-Konfig;
    steht es unter BESITZ → bereits gekauft; sonst echter Abbruch/Angebotsproblem. */
+/* Retry für Play-Billing-Operationen: der Play-Billing-Client ist beim Kaltstart oft noch nicht
+   verbunden und wirft dann OperationError/clientAppUnavailable – ein kurzer Retry heilt das meist. */
+async function dgsRetry(fn, tries) {
+  tries = tries || 3; let last;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); }
+    catch (e) {
+      last = e;
+      if (!/clientappunavailable|unavailable|disconnected|operationerror/i.test(String((e && (e.message || e.name)) || ''))) throw e;
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  throw last;
+}
 async function billingDiag() {
   if (!hasPlayBilling()) { alert('Kein Google Play Billing verfügbar (nur in der installierten Effyra-App).'); return; }
   const ids = ['effyra_premium', 'effyra_family', 'effyra_adult_addon', 'effyra_child_addon'];
@@ -9043,14 +9057,14 @@ async function billingDiag() {
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     try {
-      const det = await svc.getDetails(ids);
+      const det = await dgsRetry(() => svc.getDetails(ids));
       out.push('KENNT GOOGLE (' + ((det && det.length) || 0) + '):');
       (det || []).forEach(d => out.push('• ' + d.itemId + ' — ' + (d.title || '?') + ' — ' + ((d.price && d.price.value) ? (d.price.value + ' ' + (d.price.currency || '')) : 'kein Preis')));
       const missing = ids.filter(id => !(det || []).some(d => d.itemId === id));
       if (missing.length) out.push('⚠️ FEHLT bei Google: ' + missing.join(', '));
     } catch (e) { out.push('getDetails-Fehler: ' + (e && e.name) + ' – ' + (e && e.message)); }
     try {
-      const pur = await (typeof svc.listPurchases === 'function' ? svc.listPurchases() : Promise.resolve([]));
+      const pur = await (typeof svc.listPurchases === 'function' ? dgsRetry(() => svc.listPurchases()) : Promise.resolve([]));
       out.push('', 'DU BESITZT (' + ((pur && pur.length) || 0) + '):');
       if (pur && pur.length) pur.forEach(x => out.push('• ' + x.itemId)); else out.push('• (nichts)');
     } catch (e) { out.push('listPurchases-Fehler: ' + (e && e.name) + ' – ' + (e && e.message)); }
