@@ -9032,6 +9032,14 @@ async function billingDiag() {
   if (!hasPlayBilling()) { alert('Kein Google Play Billing verfügbar (nur in der installierten Effyra-App).'); return; }
   const ids = ['effyra_premium', 'effyra_family', 'effyra_adult_addon', 'effyra_child_addon'];
   const out = [];
+  // Lauf-Kontext: echte Play-App (TWA) oder Browser/PWA? clientAppUnavailable = kein Play-Billing-Client (kein TWA).
+  const standalone = !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+  const fromApp = /android-app:\/\//.test(document.referrer || '');
+  out.push('KONTEXT:');
+  out.push('• Aus Play-App (TWA) gestartet: ' + (fromApp ? 'JA' : 'NEIN/unklar'));
+  out.push('• display-mode standalone: ' + standalone);
+  out.push('• referrer: ' + (document.referrer || '(leer)'));
+  out.push('');
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     try {
