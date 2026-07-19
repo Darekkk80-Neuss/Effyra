@@ -45,17 +45,24 @@ $$;
 -- ------------------------------------------------------------
 create or replace function public.create_family()
 returns json language plpgsql security definer set search_path = public as $$
-declare v_code text; v_id uuid; v_try int := 0;
+declare v_code text; v_id uuid; v_try int := 0; v_data jsonb; v_upd timestamptz;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
-  delete from public.family_members where user_id = auth.uid();   -- vorherige Familie verlassen
+  -- IDEMPOTENT: schon in einer Familie? Dann DIESE zurückgeben – niemals eine zweite anlegen
+  -- (verhinderte früher Doppel-/Waisenfamilien, wenn der Client den Code lokal nicht mehr kannte).
+  v_id := public.my_family_id();
+  if v_id is not null then
+    select code, data, updated_at into v_code, v_data, v_upd from public.families where id = v_id;
+    return json_build_object('code', v_code, 'data', v_data, 'updated_at', v_upd, 'existing', true);
+  end if;
   loop
     v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
     exit when not exists (select 1 from public.families where code = v_code);
     v_try := v_try + 1; if v_try > 20 then raise exception 'code generation failed'; end if;
   end loop;
   insert into public.families (code, created_by) values (v_code, auth.uid()) returning id into v_id;
-  insert into public.family_members (family_id, user_id) values (v_id, auth.uid());
+  insert into public.family_members (family_id, user_id, role) values (v_id, auth.uid(), 'adult')
+    on conflict (family_id, user_id) do nothing;
   return json_build_object('code', v_code);
 end; $$;
 

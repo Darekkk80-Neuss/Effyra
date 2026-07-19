@@ -9623,6 +9623,10 @@ async function famCreate() {
     if (r.error) { toast('Sync fehlgeschlagen – ist supabase-family.sql ausgeführt?'); return; }
     if (!r.data) { toast('Bitte zuerst supabase-family.sql ausführen'); return; }
     store.family.code = r.data.code; save();
+    if (r.data.existing) {   // schon vorhanden → Server-Daten NICHT überschreiben, nur laden
+      await famPull(); RENDERERS.family();
+      toast('Mit deiner Familie verbunden 👪'); return;
+    }
     ensureFamily(); famEnsureSelfMember();   // Ersteller mit stabiler authId als Mitglied, bevor gepusht wird
     await famPush();
     RENDERERS.family();
