@@ -22,7 +22,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-import { chunk, pageAll, pMap, withFallback } from '../_shared/util.ts';
+import { chunk, pageAll, pageEach, pMap, withFallback } from '../_shared/util.ts';
 
 function json(o: unknown, s = 200) {
   return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
@@ -137,48 +137,65 @@ Deno.serve(async (req) => {
   // nacktes select serverseitig bei max_rows abgeschnitten würde – ohne Fehler.
   // Aus dem Familien-Blob nur members/tasks holen; shopping/events/occasions
   // werden hier nie gelesen und machen den Löwenanteil der Größe aus.
-  let fams: any[], allSubs: any[];
-  try {
-    fams = await withFallback(
-      () => pageAll<any>(() => admin.from('families').select('members:data->members,tasks:data->tasks')),
-      async () => (await pageAll<any>(() => admin.from('families').select('data')))
-        .map((f) => ({ members: f.data?.members, tasks: f.data?.tasks })),
-    );
-    allSubs = await pageAll(() => admin.from('push_subscriptions').select('user_id,endpoint,sub'));
-  } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
-
-  // Push-Abos nach user_id gruppieren.
+  // Push-Abos zuerst: sie sind klein (~200 Byte je Gerät) und werden für die
+  // Zielauswahl unten gebraucht.
   const subsByUser = new Map<string, any[]>();
-  for (const s of allSubs) {
-    if (!subsByUser.has(s.user_id)) subsByUser.set(s.user_id, []);
-    subsByUser.get(s.user_id)!.push(s);
-  }
+  try {
+    const allSubs = await pageAll<any>(() => admin.from('push_subscriptions').select('user_id,endpoint,sub'));
+    for (const s of allSubs) {
+      const list = subsByUser.get(s.user_id);
+      if (list) list.push(s); else subsByUser.set(s.user_id, [s]);
+    }
+  } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
 
   // Qualifizierende Aufgaben je zuständiger authId sammeln.
   //   perUser: authId -> { level (höchster erreichter Meilenstein), titles[] }
+  //
+  // Die Familien-Blobs werden SEITENWEISE verarbeitet und sofort verworfen.
+  // Vorher wurden alle gleichzeitig gehalten – bei ~20 KB members+tasks je
+  // Familie hätte das die 256-MB-Grenze der Edge Functions (nicht erhöhbar,
+  // auf keinem Plan) im niedrigen fünfstelligen Familienbereich gerissen, und
+  // zwar still: die Function stirbt, pg_cron protokolliert nichts Auswertbares.
+  // Im Speicher bleibt jetzt nur das kleine Ergebnis, nicht die Rohdaten.
   const perUser = new Map<string, { level: number; titles: string[] }>();
-  for (const f of fams) {
-    const members = Array.isArray(f.members) ? f.members : [];
-    const tasks = Array.isArray(f.tasks) ? f.tasks : [];
-    const authById = new Map<string, string>();
-    for (const m of members) { if (m && m.id && m.authId) authById.set(String(m.id), String(m.authId)); }
-    for (const t of tasks) {
-      if (!t || t.done || !t.assignee || !t.due) continue;         // nur offene, terminierte, zugewiesene Aufgaben
-      const due = dayNum(String(t.due));
-      if (due == null) continue;
-      const overdue = Math.round((today - due) / 86400000);
-      if (MILESTONES.indexOf(overdue) < 0) continue;               // ausschließlich an Tag 1 / 3 / 7
-      // Zielperson: die/der Zuständige, sofern push-fähig; sonst die/der Erstellende (Manager, z. B. Elternteil).
-      // t.by ist bereits eine authId (famSelfId), t.assignee eine Member-ID.
-      const assigneeAuth = authById.get(String(t.assignee));
-      let target = (assigneeAuth && subsByUser.has(assigneeAuth)) ? assigneeAuth : '';
-      if (!target && t.by && subsByUser.has(String(t.by))) target = String(t.by);
-      if (!target) continue;                                       // niemand mit Gerät → kein Push möglich
-      const cur = perUser.get(target) || { level: 0, titles: [] };
-      cur.titles.push(String(t.title || 'Aufgabe'));
-      if (overdue > cur.level) cur.level = overdue;
-      perUser.set(target, cur);
+  const collect = (rows: any[]) => {
+    for (const f of rows) {
+      const members = Array.isArray(f.members) ? f.members : [];
+      const tasks = Array.isArray(f.tasks) ? f.tasks : [];
+      const authById = new Map<string, string>();
+      for (const m of members) { if (m && m.id && m.authId) authById.set(String(m.id), String(m.authId)); }
+      for (const t of tasks) {
+        if (!t || t.done || !t.assignee || !t.due) continue;         // nur offene, terminierte, zugewiesene Aufgaben
+        const due = dayNum(String(t.due));
+        if (due == null) continue;
+        const overdue = Math.round((today - due) / 86400000);
+        if (MILESTONES.indexOf(overdue) < 0) continue;               // ausschließlich an Tag 1 / 3 / 7
+        // Zielperson: die/der Zuständige, sofern push-fähig; sonst die/der Erstellende (Manager, z. B. Elternteil).
+        // t.by ist bereits eine authId (famSelfId), t.assignee eine Member-ID.
+        const assigneeAuth = authById.get(String(t.assignee));
+        let target = (assigneeAuth && subsByUser.has(assigneeAuth)) ? assigneeAuth : '';
+        if (!target && t.by && subsByUser.has(String(t.by))) target = String(t.by);
+        if (!target) continue;                                       // niemand mit Gerät → kein Push möglich
+        const cur = perUser.get(target) || { level: 0, titles: [] };
+        cur.titles.push(String(t.title || 'Aufgabe'));
+        if (overdue > cur.level) cur.level = overdue;
+        perUser.set(target, cur);
+      }
     }
+  };
+
+  let famCount = 0;
+  try {
+    famCount = await pageEach<any>(
+      () => admin.from('families').select('members:data->members,tasks:data->tasks'),
+      collect, 500);
+  } catch (_e) {
+    // Ältere PostgREST-Version ohne JSON-Pfad-Auswahl → voller Blob, ebenfalls seitenweise.
+    try {
+      famCount = await pageEach<any>(
+        () => admin.from('families').select('data'),
+        (rows) => collect(rows.map((f: any) => ({ members: f.data?.members, tasks: f.data?.tasks }))), 500);
+    } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
   }
 
   (webpush as any).setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
@@ -230,5 +247,5 @@ Deno.serve(async (req) => {
   for (const part of chunk(deadEps, 200)) {
     try { await admin.from('push_subscriptions').delete().in('endpoint', part); } catch (_e) { /* nächster Lauf */ }
   }
-  return json({ ok: true, users, sent, dead: deadEps.length, berlinHour }, 200);
+  return json({ ok: true, families: famCount, users, sent, dead: deadEps.length, berlinHour }, 200);
 });

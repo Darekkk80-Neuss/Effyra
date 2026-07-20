@@ -53,7 +53,7 @@ begin
   -- alte Codes dieses Kindes in dieser Familie entwerten
   update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id and not revoked;
   loop
-    v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+    v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
     exit when not exists (select 1 from public.family_child_codes where code = v_code);
     v_try := v_try + 1; if v_try > 30 then raise exception 'code generation failed'; end if;
   end loop;
@@ -83,6 +83,9 @@ returns json language plpgsql security definer set search_path = public as $$
 declare v_rec public.family_child_codes%rowtype; v_data jsonb; v_fcode text;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
+  -- Beitrittsversuche begrenzen (siehe supabase-codes.sql): der Kindercode ist
+  -- genauso lang wie der Familiencode und öffnet ebenfalls den Familien-Blob.
+  if not public.join_rate_ok() then raise exception 'too many attempts'; end if;
   select * into v_rec from public.family_child_codes where code = upper(trim(p_code)) and not revoked;
   if v_rec.code is null then return null; end if;   -- ungültig/entwertet
   delete from public.family_members where user_id = auth.uid();   -- evtl. vorherige Bindung lösen

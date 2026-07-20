@@ -14,7 +14,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-import { chunk, pageAll, pMap, withFallback } from '../_shared/util.ts';
+import { chunk, pageAll, pageEach, pMap, withFallback } from '../_shared/util.ts';
 
 function json(o: unknown, s = 200) {
   return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
@@ -35,33 +35,8 @@ Deno.serve(async (req) => {
   if (!VAPID_PUBLIC || !VAPID_PRIVATE) return json({ error: 'push_not_configured' }, 500);
 
   const admin = createClient(SUPABASE_URL, SERVICE);
-  let subs: any[];
-  try {
-    subs = await pageAll(() => admin
-      .from('push_subscriptions')
-      .select('user_id,endpoint,sub')
-      .eq('morning', true));
-  } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
-  if (!subs.length) return json({ ok: true, sent: 0 }, 200);
-
   (webpush as any).setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
-  // Sprache je Empfänger aus user_state. Nur das Sprachfeld selbst holen – der
-  // volle data-Blob wäre hier ein Vielfaches an Übertragung für zwei Buchstaben.
-  const uids = [...new Set(subs.map((s) => s.user_id))];
-  const langBy = new Map<string, string>();
-  try {
-    await pMap(chunk(uids, 300), 4, async (part) => {
-      const states = await withFallback(
-        () => pageAll<any>(() => admin.from('user_state').select('user_id,lang:data->profile->>lang').in('user_id', part)),
-        async () => (await pageAll<any>(() => admin.from('user_state').select('user_id,data').in('user_id', part)))
-          .map((r) => ({ user_id: r.user_id, lang: r.data?.profile?.lang })),
-      );
-      for (const st of states) {
-        if (typeof st.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(st.lang)) langBy.set(st.user_id, st.lang);
-      }
-    });
-  } catch (_e) { /* Fallback de */ }
   const MSG: Record<string, { title: string; body: string }> = {
     de: { title: '☀️ Guten Morgen!', body: 'Dein Tagesüberblick wartet in Effyra – Termine, Aufgaben, Medikamente und Fristen auf einen Blick.' },
     en: { title: '☀️ Good morning!', body: 'Your daily overview is waiting in Effyra – appointments, tasks, medication and deadlines at a glance.' },
@@ -70,27 +45,61 @@ Deno.serve(async (req) => {
     it: { title: '☀️ Buongiorno!', body: 'La tua panoramica del giorno ti aspetta in Effyra: appuntamenti, attività, farmaci e scadenze a colpo d’occhio.' },
     pl: { title: '☀️ Dzień dobry!', body: 'Twój przegląd dnia czeka w Effyrze – terminy, zadania, leki i terminy płatności w jednym miejscu.' },
   };
-  const payloadFor = (uid: string) => {
-    const m = MSG[langBy.get(uid) || 'de'] || MSG.de;
-    return JSON.stringify({ title: m.title, body: m.body, tag: 'effyra-morning', url: './' });
-  };
+  // Seitenweise verarbeiten und sofort zustellen. Vorher wurden erst ALLE Abos
+  // gesammelt und danach verschickt – das hielt unnötig viel im Speicher und,
+  // gravierender, die Zustellung begann erst nach dem letzten Datenbanktreffer.
+  // Hier ist nicht der Speicher das Limit, sondern die Laufzeit: das
+  // Wall-Clock-Limit liegt bei 400 s (bezahlt). Mit 50 gleichzeitigen
+  // Zustellungen à ~200 ms sind das rund 100.000 Geräte je Lauf statt 40.000.
+  let sent = 0, total = 0;
+  const deadEps: string[] = [];
+  try {
+    total = await pageEach<any>(
+      () => admin.from('push_subscriptions').select('user_id,endpoint,sub').eq('morning', true),
+      async (page) => {
+        // Sprache nur für die Nutzer DIESER Seite holen (zwei Buchstaben je
+        // Nutzer statt des vollen Zustands-Blobs).
+        const uids = [...new Set(page.map((s: any) => s.user_id))];
+        const langBy = new Map<string, string>();
+        try {
+          const states = await withFallback(
+            () => pageAll<any>(() => admin.from('user_state').select('user_id,lang:data->profile->>lang').in('user_id', uids)),
+            async () => (await pageAll<any>(() => admin.from('user_state').select('user_id,data').in('user_id', uids)))
+              .map((r) => ({ user_id: r.user_id, lang: r.data?.profile?.lang })),
+          );
+          for (const st of states) {
+            if (typeof st.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(st.lang)) langBy.set(st.user_id, st.lang);
+          }
+        } catch (_e) { /* Fallback de */ }
 
-  // Zustellung nebenläufig (20 gleichzeitig). Sequenziell war das der harte
-  // Deckel des Laufs: bei ~200 ms je Push reicht das Function-Limit sonst nur
-  // für einige hundert Geräte, der Rest bekommt still nichts.
-  const outcome = await pMap(subs, 20, async (s) => {
-    try { await (webpush as any).sendNotification(s.sub, payloadFor(s.user_id)); return 'sent'; }
-    catch (e: any) {
-      const code = e?.statusCode;
-      return (code === 404 || code === 410) ? s.endpoint : 'fail';   // Abo tot → Endpoint zum Aufräumen
-    }
-  });
-  const sent = outcome.filter((o) => o === 'sent').length;
-  const deadEps = outcome.filter((o) => o !== 'sent' && o !== 'fail') as string[];
+        const payloadFor = (uid: string) => {
+          const m = MSG[langBy.get(uid) || 'de'] || MSG.de;
+          return JSON.stringify({ title: m.title, body: m.body, tag: 'effyra-morning', url: './' });
+        };
 
-  // Tote Abos gebündelt entfernen statt einzeln.
-  for (const part of chunk(deadEps, 200)) {
+        const outcome = await pMap(page, 50, async (s: any) => {
+          try { await (webpush as any).sendNotification(s.sub, payloadFor(s.user_id)); return 'sent'; }
+          catch (e: any) {
+            const code = e?.statusCode;
+            return (code === 404 || code === 410) ? s.endpoint : 'fail';   // Abo tot → Endpoint zum Aufräumen
+          }
+        });
+        sent += outcome.filter((o) => o === 'sent').length;
+        // Tote Abos nur SAMMELN. Würde hier gelöscht, verschöben sich die
+        // Offsets der Paginierung und die nächste Seite überspränge genau so
+        // viele Zeilen, wie gerade entfernt wurden – die betroffenen Geräte
+        // bekämen still keinen Push.
+        for (const o of outcome) if (o !== 'sent' && o !== 'fail') deadEps.push(o as string);
+      },
+      500,
+    );
+  } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e), sent }, 500); }
+
+  // Erst nach der vollständigen Paginierung aufräumen.
+  const uniqueDead = [...new Set(deadEps)];
+  for (const part of chunk(uniqueDead, 200)) {
     try { await admin.from('push_subscriptions').delete().in('endpoint', part); } catch (_e) { /* nächster Lauf */ }
   }
-  return json({ ok: true, sent, dead: deadEps.length }, 200);
+
+  return json({ ok: true, subs: total, sent, dead: uniqueDead.length }, 200);
 });

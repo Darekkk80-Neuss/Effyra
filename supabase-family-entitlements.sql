@@ -218,7 +218,7 @@ begin
   -- Kein „Zuhause" für das Abo? -> Familie für den Käufer anlegen (wie create_family)
   if v_fid is null then
     loop
-      v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+      v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
       exit when not exists (select 1 from public.families where code = v_code);
       v_try := v_try + 1; if v_try > 20 then raise exception 'code generation failed'; end if;
     end loop;

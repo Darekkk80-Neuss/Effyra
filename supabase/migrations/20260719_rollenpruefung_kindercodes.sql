@@ -15,7 +15,7 @@ begin
   -- alte Codes dieses Kindes in dieser Familie entwerten
   update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id and not revoked;
   loop
-    v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+    v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
     exit when not exists (select 1 from public.family_child_codes where code = v_code);
     v_try := v_try + 1; if v_try > 30 then raise exception 'code generation failed'; end if;
   end loop;

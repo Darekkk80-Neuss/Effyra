@@ -51,6 +51,28 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
   return out;
 }
 
+/** Wie pageAll, gibt die Seiten aber EINZELN weiter, statt alles zu sammeln.
+ *  Entscheidend, wenn die Zeilen groß sind (JSONB-Blobs): der Speicherbedarf
+ *  bleibt bei einer Seite statt bei der ganzen Tabelle, und die 256-MB-Grenze
+ *  der Edge Functions ist damit unabhängig von der Nutzerzahl. */
+export async function pageEach<T = any>(
+  build: () => any,
+  onPage: (rows: T[]) => Promise<void> | void,
+  size = 500,
+  hardLimit = 200000,
+): Promise<number> {
+  let total = 0;
+  for (let from = 0; from < hardLimit; from += size) {
+    const { data, error } = await build().range(from, from + size - 1);
+    if (error) throw new Error(error.message);
+    if (!data || !data.length) break;
+    total += data.length;
+    await onPage(data as T[]);
+    if (data.length < size) break;
+  }
+  return total;
+}
+
 /** Liest ALLE Zeilen einer PostgREST-Abfrage seitenweise.
  *  `build` muss den Query bei jedem Aufruf NEU erzeugen (Builder sind einmalig).
  *  Wichtig, weil ein nacktes .select() serverseitig bei max_rows (Default 1000)

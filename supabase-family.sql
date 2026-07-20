@@ -79,7 +79,7 @@ begin
     return json_build_object('code', v_code, 'data', v_data, 'updated_at', v_upd, 'existing', true);
   end if;
   loop
-    v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+    v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
     exit when not exists (select 1 from public.families where code = v_code);
     v_try := v_try + 1; if v_try > 20 then raise exception 'code generation failed'; end if;
   end loop;
@@ -106,6 +106,11 @@ begin
   if coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
     raise exception 'not allowed for anonymous sessions';
   end if;
+
+  -- Beitrittsversuche begrenzen (siehe supabase-codes.sql). Ein Code wird
+  -- abgetippt, nicht durchprobiert – 20 Versuche am Tag reichen für jede
+  -- legitime Nutzung und machen das Absuchen des Coderaums unbezahlbar.
+  if not public.join_rate_ok() then raise exception 'too many attempts'; end if;
 
   select id, data, updated_at into v_id, v_data, v_upd from public.families where code = upper(trim(p_code));
   if v_id is null then return null; end if;

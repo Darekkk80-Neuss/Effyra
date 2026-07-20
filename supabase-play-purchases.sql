@@ -44,7 +44,7 @@ begin
     select fm.family_id into v_fid from public.family_members fm where fm.user_id = p_user limit 1;
     if v_fid is null then
       loop
-        v_code := upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6));
+        v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
         exit when not exists (select 1 from public.families where code = v_code);
       end loop;
       insert into public.families (code, created_by) values (v_code, p_user) returning id into v_fid;
