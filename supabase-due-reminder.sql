@@ -46,7 +46,8 @@ begin
     format($f$select net.http_post(
       url     := 'https://ocnlrxmosbbtsczjyvxb.supabase.co/functions/v1/due-reminder',
       headers := jsonb_build_object('content-type', 'application/json', 'x-cron-secret', '%s'),
-      body    := '{}'::jsonb
+      body    := '{}'::jsonb,
+      timeout_milliseconds := 60000
     );$f$, v_secret)
   );
   raise notice 'effyra-due geplant (alle 15 Min) mit uebernommenem CRON_SECRET.';
