@@ -5011,7 +5011,7 @@ async function sha256Hex(s) {
 const TIER_RANK = { free: 0, medium: 1, premium: 2 };
 const TIER_LABEL = { free: 'Free', medium: 'Medium', premium: 'Premium' };
 const AI_MONTHLY_LIMIT = 500;
-const TRIAL_CREDITS = 100;           // kostenlose KI-Credits während der 7-Tage-Testphase (angehoben von 50: Dokument-/Rechnungsanalyse kostet 5–10 → mehr Erprobung). MUSS zu ai_trial_credits() in supabase-trial-and-play.sql passen.
+const TRIAL_CREDITS = 50;           // kostenlose KI-Credits während der 7-Tage-Testphase (angehoben von 50: Dokument-/Rechnungsanalyse kostet 5–10 → mehr Erprobung). MUSS zu ai_trial_credits() in supabase-trial-and-play.sql passen.
 const ENFORCE_AI_CREDITS = true;     // Trial-Credits verbindlich abziehen & KI sperren, wenn leer (Module bleiben offen)
 /* Module, die mindestens Medium brauchen (im 3-Tage-Free-Test gesperrt).
    Frei in jeder Stufe: dashboard, tasks, calendar, voice, docgen, chat, settings. */
@@ -5046,7 +5046,7 @@ function ensureAIQuota() {
   if (!account.ai) account.ai = { month: aiMonthKey(), used: 0, extra: 0 };
   if (account.ai.month !== aiMonthKey()) { account.ai.month = aiMonthKey(); account.ai.used = 0; account.ai.extra = 0; saveAccount(); }   // Monatswechsel → Reset
 }
-/* Basis-Kontingent je Stufe: Free/Trial = 100 Credits, zahlend = 500/Monat. Extra = nachgebuchte Credits. */
+/* Basis-Kontingent je Stufe: Free/Trial = 50 Credits, zahlend = 500/Monat. Extra = nachgebuchte Credits. */
 function aiBase() { return isPaid() ? AI_MONTHLY_LIMIT : TRIAL_CREDITS; }
 function aiLimit() { ensureAIQuota(); return aiBase() + (account.ai.extra || 0); }
 /* Testphase (Free) nach 7 Tagen vorbei → keine KI mehr, App bleibt ohne KI nutzbar. */
@@ -5066,7 +5066,7 @@ function canRealAI() {
   if (!(BACKEND_V2 && account && account.loggedIn)) return false;
   if (isPaid()) return aiRemaining() > 0;           // zahlende Stufe: 500/Monat (+Extra)
   if (!ENFORCE_AI_CREDITS) return true;             // Trial-Enforcement aus → frei
-  return !aiTrialOver() && aiRemaining() > 0;       // Testphase: 100 Credits & 7 Tage
+  return !aiTrialOver() && aiRemaining() > 0;       // Testphase: 50 Credits & 7 Tage
 }
 let _aiWarned90 = false;   // Verbrauch ist server-autoritativ (applyServerUsage via consume_ai); kein client-seitiger Zähler mehr.
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
@@ -5228,7 +5228,7 @@ function requireAI() {
     return true;
   }
   if (!ENFORCE_AI_CREDITS) return true;              // Trial-Enforcement aus → frei
-  if (aiTrialOver()) { toast('⏳ Deine 14-tägige Testphase ist abgelaufen. Schließe ein Abo ab, um die KI weiter zu nutzen – die App bleibt sonst ohne KI voll nutzbar.'); showUpgrade(); return false; }
+  if (aiTrialOver()) { toast('⏳ Deine 7-tägige Testphase ist abgelaufen. Schließe ein Abo ab, um die KI weiter zu nutzen – die App bleibt sonst ohne KI voll nutzbar.'); showUpgrade(); return false; }
   if (aiRemaining() <= 0) { toast('✨ ' + pickLang({ de: 'Deine ' + TRIAL_CREDITS + ' kostenlosen KI-Credits sind aufgebraucht. Schließe ein Einzel- oder Familienabo ab, um weiter mit der KI zu arbeiten.', en: 'Your ' + TRIAL_CREDITS + ' free AI credits are used up. Get a solo or family plan to keep using AI.', fr: 'Tes ' + TRIAL_CREDITS + ' crédits IA gratuits sont épuisés. Prends un abonnement solo ou famille pour continuer.', es: 'Tus ' + TRIAL_CREDITS + ' créditos de IA gratuitos se han agotado. Contrata un plan individual o familiar para seguir.', it: 'I tuoi ' + TRIAL_CREDITS + ' crediti IA gratuiti sono esauriti. Attiva un piano singolo o famiglia per continuare.', pl: 'Twoje ' + TRIAL_CREDITS + ' darmowych kredytów AI zostało zużytych. Wykup plan solo lub rodzinny, aby korzystać dalej.' })); showUpgrade(); return false; }
   return true;
 }
