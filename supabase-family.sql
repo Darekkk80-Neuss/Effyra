@@ -177,6 +177,36 @@ begin
   end;
 end; $$;
 
+-- ------------------------------------------------------------
+-- Personenbezug eines Mitglieds aus dem Familien-Blob entfernen
+-- ------------------------------------------------------------
+-- Wird von delete-account gebraucht: Verlässt jemand die App, während andere
+-- die Familie weiternutzen, blieben Name und Geburtsdatum sonst unbefristet in
+-- families.data stehen (Art. 17 DSGVO). Nur für service_role.
+-- Aufgaben und Termine bleiben erhalten – sie gehören der Familie, nicht der
+-- Person; der Verweis auf die Mitglieds-ID läuft danach ins Leere, was die App
+-- wie ein gelöschtes Mitglied behandelt.
+create or replace function public.scrub_member_from_family(p_fid uuid, p_user uuid)
+returns int language plpgsql security definer set search_path = public as $$
+declare v_data jsonb; v_members jsonb; v_new jsonb; v_removed int := 0;
+begin
+  select data into v_data from public.families where id = p_fid for update;
+  if v_data is null then return 0; end if;
+  v_members := case when jsonb_typeof(v_data->'members') = 'array' then v_data->'members' else '[]'::jsonb end;
+  select coalesce(jsonb_agg(m), '[]'::jsonb) into v_new
+    from jsonb_array_elements(v_members) m
+   where coalesce(m->>'authId', '') <> p_user::text;
+  v_removed := jsonb_array_length(v_members) - jsonb_array_length(v_new);
+  if v_removed > 0 then
+    update public.families
+       set data = jsonb_set(v_data, '{members}', v_new), updated_at = now()
+     where id = p_fid;
+  end if;
+  return v_removed;
+end; $$;
+
+revoke execute on function public.scrub_member_from_family(uuid, uuid) from public, anon, authenticated;
+
 -- Ausführungsrechte: nur angemeldete Nutzer
 revoke execute on function public.create_family(), public.join_family(text), public.get_family(),
   public.save_family(jsonb), public.leave_family(), public.my_family_id() from public, anon;

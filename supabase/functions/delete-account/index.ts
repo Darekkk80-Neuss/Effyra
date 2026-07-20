@@ -38,15 +38,45 @@ Deno.serve(async (req) => {
     // 1) Personenbezogene Zeilen des Nutzers entfernen (service_role umgeht RLS)
     await admin.from('push_subscriptions').delete().eq('user_id', uid);
     await admin.from('user_state').delete().eq('user_id', uid);
+
+    // Familien, in denen der Nutzer nur MITGLIED ist: seinen Personenbezug aus
+    // dem gemeinsamen Blob entfernen, bevor die Mitgliedschaft gelöscht wird.
+    // Vorher blieben Name, Geburtsdatum und die von ihm angelegten Einträge
+    // unbefristet in families.data stehen – Art. 17 DSGVO war damit nicht
+    // erfüllt, und nach dem Löschen der Mitgliedschaft war die Zeile nicht
+    // einmal mehr auffindbar.
+    try {
+      const { data: mine } = await admin
+        .from('family_members').select('family_id').eq('user_id', uid);
+      for (const m of mine || []) {
+        const { data: fam } = await admin
+          .from('families').select('data,created_by').eq('id', m.family_id).maybeSingle();
+        if (!fam || fam.created_by === uid) continue;   // eigene Familie wird unten komplett gelöscht
+        await admin.rpc('scrub_member_from_family', { p_fid: m.family_id, p_user: uid });
+      }
+    } catch (e) { console.error('scrub_failed', String(e)); }
+
     await admin.from('family_members').delete().eq('user_id', uid);
-    // Vom Nutzer erstellte Familien: Mitglieder + Familie loesen (verwaiste Familie vermeiden)
+
+    // Vom Nutzer erstellte Familien: nur löschen, wenn NIEMAND sonst mehr drin
+    // ist. Vorher wurde die Familie samt aller Daten von Partner und Kindern
+    // mitgelöscht, nur weil der Ersteller sein Konto aufgab.
     const { data: fams } = await admin.from('families').select('id').eq('created_by', uid);
     for (const f of fams || []) {
+      const { count } = await admin
+        .from('family_members').select('user_id', { count: 'exact', head: true }).eq('family_id', f.id);
+      if ((count ?? 0) > 0) {
+        // Andere nutzen sie weiter → nur die Urheberschaft lösen (FK ist ON DELETE SET NULL).
+        await admin.from('families').update({ created_by: null }).eq('id', f.id);
+        continue;
+      }
       await admin.from('family_child_codes').delete().eq('family_id', f.id);
-      await admin.from('family_members').delete().eq('family_id', f.id);
       await admin.from('families').delete().eq('id', f.id);
     }
-    await admin.from('photo_cache').delete().eq('user_id', uid);
+
+    // photo_cache hat KEINE user_id (nur key/data/updated_at) – der frühere
+    // Aufruf lief ins Leere. Die Tabelle enthält reine Pexels-Fotos ohne
+    // Personenbezug, es gibt hier also nichts zu löschen.
     await admin.from('profiles').delete().eq('id', uid);
 
     // 2) Auth-Nutzer endgueltig loeschen

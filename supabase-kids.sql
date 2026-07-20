@@ -102,12 +102,29 @@ end; $$;
 -- ------------------------------------------------------------
 create or replace function public.save_family(p_data jsonb)
 returns json language plpgsql security definer set search_path = public as $$
-declare v_id uuid; v_role text;
+declare v_id uuid; v_role text; v_size int;
 begin
   v_id := public.my_family_id();
   if v_id is null then raise exception 'no family'; end if;
   select role into v_role from public.family_members where user_id = auth.uid() and family_id = v_id;
   if v_role = 'child' then raise exception 'children are read-only'; end if;   -- Kindermodus schreibt nicht
+
+  -- Grössenschranke. Ohne sie konnte ein Mitglied einen beliebig grossen Blob
+  -- ablegen, den danach JEDES Familiengerät bei jedem Poll herunterlädt – ein
+  -- billiger Weg, die Familie lahmzulegen und Egress zu verbrennen.
+  -- 2 MB entspricht mehreren Jahren normaler Nutzung (Aufgaben, Einkaufsliste,
+  -- Termine); wer darüber liegt, hat ein Aufräumproblem, kein Speicherproblem.
+  v_size := octet_length(p_data::text);
+  if v_size > 2 * 1024 * 1024 then
+    raise exception 'family data too large: % bytes (max 2 MB)', v_size;
+  end if;
+
+  -- Plausibilität: der Client schickt immer ein Objekt. Ein Skalar oder Array
+  -- wäre ein Fehlaufruf und würde die Familiendaten unbrauchbar machen.
+  if jsonb_typeof(p_data) is distinct from 'object' then
+    raise exception 'family data must be an object';
+  end if;
+
   update public.families set data = p_data, updated_at = now() where id = v_id;
   return json_build_object('updated_at', now());
 end; $$;
