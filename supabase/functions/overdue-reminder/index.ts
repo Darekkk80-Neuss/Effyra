@@ -22,6 +22,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
+import { chunk, pageAll, pMap, withFallback } from '../_shared/util.ts';
 
 function json(o: unknown, s = 200) {
   return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
@@ -132,15 +133,23 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SUPABASE_URL, SERVICE);
 
-  // Alle Familien-Blobs + alle Push-Abos laden (Service-Role, umgeht RLS).
-  const { data: fams, error: fe } = await admin.from('families').select('data');
-  if (fe) return json({ error: 'db_error', detail: fe.message }, 500);
-  const { data: allSubs, error: se } = await admin.from('push_subscriptions').select('user_id,endpoint,sub');
-  if (se) return json({ error: 'db_error', detail: se.message }, 500);
+  // Familien + Push-Abos laden (Service-Role, umgeht RLS). Seitenweise, weil ein
+  // nacktes select serverseitig bei max_rows abgeschnitten würde – ohne Fehler.
+  // Aus dem Familien-Blob nur members/tasks holen; shopping/events/occasions
+  // werden hier nie gelesen und machen den Löwenanteil der Größe aus.
+  let fams: any[], allSubs: any[];
+  try {
+    fams = await withFallback(
+      () => pageAll<any>(() => admin.from('families').select('members:data->members,tasks:data->tasks')),
+      async () => (await pageAll<any>(() => admin.from('families').select('data')))
+        .map((f) => ({ members: f.data?.members, tasks: f.data?.tasks })),
+    );
+    allSubs = await pageAll(() => admin.from('push_subscriptions').select('user_id,endpoint,sub'));
+  } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
 
   // Push-Abos nach user_id gruppieren.
   const subsByUser = new Map<string, any[]>();
-  for (const s of (allSubs || []) as any[]) {
+  for (const s of allSubs) {
     if (!subsByUser.has(s.user_id)) subsByUser.set(s.user_id, []);
     subsByUser.get(s.user_id)!.push(s);
   }
@@ -148,10 +157,9 @@ Deno.serve(async (req) => {
   // Qualifizierende Aufgaben je zuständiger authId sammeln.
   //   perUser: authId -> { level (höchster erreichter Meilenstein), titles[] }
   const perUser = new Map<string, { level: number; titles: string[] }>();
-  for (const f of (fams || []) as any[]) {
-    const d = f.data || {};
-    const members = Array.isArray(d.members) ? d.members : [];
-    const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+  for (const f of fams) {
+    const members = Array.isArray(f.members) ? f.members : [];
+    const tasks = Array.isArray(f.tasks) ? f.tasks : [];
     const authById = new Map<string, string>();
     for (const m of members) { if (m && m.id && m.authId) authById.set(String(m.id), String(m.authId)); }
     for (const t of tasks) {
@@ -179,16 +187,23 @@ Deno.serve(async (req) => {
   const langBy = new Map<string, string>();
   try {
     const rids = [...perUser.keys()];
-    if (rids.length) {
-      const { data: states } = await admin.from('user_state').select('user_id,data').in('user_id', rids);
-      for (const st of (states || []) as any[]) {
-        const l = st?.data?.profile?.lang;
-        if (typeof l === 'string' && /^(de|en|fr|es|it|pl)$/.test(l)) langBy.set(st.user_id, l);
+    // Nur das Sprachfeld, nicht den kompletten Zustands-Blob je Empfänger.
+    await pMap(chunk(rids, 300), 4, async (part) => {
+      const states = await withFallback(
+        () => pageAll<any>(() => admin.from('user_state').select('user_id,lang:data->profile->>lang').in('user_id', part)),
+        async () => (await pageAll<any>(() => admin.from('user_state').select('user_id,data').in('user_id', part)))
+          .map((r) => ({ user_id: r.user_id, lang: r.data?.profile?.lang })),
+      );
+      for (const st of states) {
+        if (typeof st.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(st.lang)) langBy.set(st.user_id, st.lang);
       }
-    }
+    });
   } catch (_e) { /* Fallback de */ }
 
-  let sent = 0, dead = 0, users = 0;
+  // Erst alle Zustellungen bestimmen, dann nebenläufig senden (20 gleichzeitig).
+  type Job = { sub: any; endpoint: string; payload: string };
+  const jobs: Job[] = [];
+  let users = 0;
   for (const [authId, info] of perUser) {
     const subs = subsByUser.get(authId);
     if (!subs || !subs.length) continue;
@@ -200,16 +215,20 @@ Deno.serve(async (req) => {
     const body = n === 1 ? (spec as any).body(info.titles[0]) : (spec as any).body(n);
     const payload = JSON.stringify({ title: spec.title, body, tag: 'effyra-overdue', url: './?fam=1' });
     users++;
-    for (const s of subs) {
-      try { await (webpush as any).sendNotification(s.sub, payload); sent++; }
-      catch (e: any) {
-        const code = e?.statusCode;
-        if (code === 404 || code === 410) {                        // Abo tot → aufräumen
-          await admin.from('push_subscriptions').delete().eq('user_id', authId).eq('endpoint', s.endpoint);
-          dead++;
-        }
-      }
-    }
+    for (const s of subs) jobs.push({ sub: s.sub, endpoint: s.endpoint, payload });
   }
-  return json({ ok: true, users, sent, dead, berlinHour }, 200);
+
+  const outcome = await pMap(jobs, 20, async (j) => {
+    try { await (webpush as any).sendNotification(j.sub, j.payload); return 'sent'; }
+    catch (e: any) {
+      const code = e?.statusCode;
+      return (code === 404 || code === 410) ? j.endpoint : 'fail';   // Abo tot → aufräumen
+    }
+  });
+  const sent = outcome.filter((o) => o === 'sent').length;
+  const deadEps = [...new Set(outcome.filter((o) => o !== 'sent' && o !== 'fail') as string[])];
+  for (const part of chunk(deadEps, 200)) {
+    try { await admin.from('push_subscriptions').delete().in('endpoint', part); } catch (_e) { /* nächster Lauf */ }
+  }
+  return json({ ok: true, users, sent, dead: deadEps.length, berlinHour }, 200);
 });

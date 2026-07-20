@@ -1368,6 +1368,13 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-sub{color:var(--muted);font-size:14px;margin-bottom:20px;overflow-wrap:break-word}
 .gate-fields{display:flex;flex-direction:column;gap:10px;text-align:left}
 .gate-cta{width:100%;padding:13px;font-size:15px}
+/* Google-Anmeldung: laut Googles Markenvorgaben weisse Flaeche, dunkler Text, Original-Logo. */
+.gate-google{width:100%;padding:12px;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#fff;color:#1f1f1f;border:1px solid #dadce0;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.gate-google:active{background:#f1f3f4}
+.gate-google svg{width:19px;height:19px;flex:none}
+.gate-or{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:12px;margin:2px 0}
+.gate-or::before,.gate-or::after{content:"";flex:1;height:1px;background:var(--line,rgba(255,255,255,.12))}
 .auth-err{min-height:18px;color:var(--danger);font-size:13px;font-weight:600;padding-left:2px}
 .gate-note{margin-top:20px;color:var(--faint);font-size:12.5px;line-height:1.6}
 .gate-note a{color:#a78bfa;cursor:pointer;text-decoration:underline}
@@ -1459,6 +1466,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <h2 id="authTitle">Konto erstellen</h2>
     <p class="gate-sub" id="authSub">14 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
+      <button class="gate-google" id="authGoogle" data-noi18n style="display:none">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        <span id="authGoogleTxt">Mit Google fortfahren</span>
+      </button>
+      <div class="gate-or" id="authOr" style="display:none"><span>oder mit E-Mail</span></div>
       <input type="text" id="auName" placeholder="Vorname" maxlength="30" autocomplete="given-name">
       <input type="text" id="auLast" placeholder="Nachname" maxlength="40" autocomplete="family-name">
       <input type="text" id="auEmail" placeholder="E-Mail-Adresse" maxlength="80" autocomplete="email" inputmode="email">
@@ -1472,6 +1484,22 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="kidJoinLink" style="margin-top:4px;font-weight:700">Ich habe einen Einladungscode</button>
     </div>
     <p class="gate-note">🔒 Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
+  </div>
+</div>
+
+<!-- Altersnachweis nach Google-Anmeldung: Google liefert kein Geburtsdatum, die 18+-Pflicht
+     gilt aber unabhaengig vom Anmeldeweg. Erscheint nur, wenn noch keins hinterlegt ist. -->
+<div id="ageGate" class="gate">
+  <div class="gate-box">
+    <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
+    <h2>Noch eine Angabe</h2>
+    <p class="gate-sub">Effyra-Konten gibt es ab 18 Jahren. Bitte gib dein Geburtsdatum an – wir speichern es nur zur Altersprüfung.</p>
+    <div class="gate-fields">
+      <input type="date" id="ageBirth" autocomplete="bday">
+      <div class="auth-err" id="ageErr"></div>
+      <button class="btn btn-primary gate-cta" id="ageGo">Weiter</button>
+      <button class="gate-reset" id="ageCancel">Abmelden</button>
+    </div>
   </div>
 </div>
 
@@ -5280,6 +5308,9 @@ async function callClaudeHosted(payload) {
     if (data.error === 'quota_exceeded' || res.status === 402) { applyServerUsage(data.ai_used, data.ai_limit); throw new Error('KI-Kontingent aufgebraucht – nachbestellen oder eigenen Schlüssel eingeben.'); }
     if (data.error === 'not_premium') throw new Error('Echte KI ist eine Premium-Funktion.');
     if (data.error === 'server_not_configured') throw new Error('Die gehostete KI ist noch nicht fertig eingerichtet (Server-Schlüssel fehlt).');
+    /* Bei diesen beiden hat der Server die Credits bereits zurückgebucht. */
+    if (data.error === 'ai_empty') throw new Error('Die KI hat nichts zurückgegeben. Versuch es bitte noch einmal.');
+    if (data.error === 'ai_timeout') throw new Error('Die KI antwortet gerade nicht. Versuch es bitte gleich noch einmal.');
     throw new Error('KI-Anfrage fehlgeschlagen.' + (data.detail ? ' (' + data.detail + ')' : ''));
   }
   applyServerUsage(data.ai_used, data.ai_limit);
@@ -5299,7 +5330,19 @@ async function callAudioHosted(payload) {
     });
   } catch (e) { throw new Error('Keine Verbindung zur Sprach-KI. Bist du online?'); }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || data.error || 'Sprach-Anfrage fehlgeschlagen.');
+  if (!res.ok) {
+    /* Server-Codes in verständliche Sätze übersetzen – sonst stand hier wörtlich
+       „ai_empty". Deutsche Literale, die das Wörterbuch mitübersetzt.
+       In allen diesen Fällen erstattet der Server die Credits bereits zurück. */
+    const c = data.error || '';
+    if (c === 'ai_empty' && payload.op === 'transcribe') throw new Error('Ich habe nichts verstanden. Sprich bitte noch einmal.');
+    if (c === 'ai_empty') throw new Error('Die KI hat nichts zurückgegeben. Versuch es bitte noch einmal.');
+    if (c === 'ai_timeout') throw new Error('Die KI antwortet gerade nicht. Versuch es bitte gleich noch einmal.');
+    if (c === 'too_large') throw new Error('Die Aufnahme ist zu lang. Nimm bitte etwas kürzer auf.');
+    if (c === 'rate_limited') throw new Error('Zu viele Anfragen in kurzer Zeit. Versuch es bitte später noch einmal.');
+    if (c === 'server_error') throw new Error('Da ist etwas schiefgegangen. Deine Credits wurden nicht belastet.');
+    throw new Error(data.detail || data.error || 'Sprach-Anfrage fehlgeschlagen.');
+  }
   applyServerUsage(data.ai_used, data.ai_limit);
   return data;
 }
@@ -5308,6 +5351,11 @@ async function callAudioHosted(payload) {
 function gate() {
   const loggedIn = !!(account && account.loggedIn);
   $('#auth').classList.toggle('on', !loggedIn);
+  /* Altersnachweis nachholen: ueber Google angemeldet, aber noch kein Geburtsdatum.
+     Blockiert alles Weitere, damit die 18+-Pflicht auf jedem Anmeldeweg gilt. */
+  const braucheAlter = ageGateNeeded();
+  const ag = $('#ageGate'); if (ag) ag.classList.toggle('on', braucheAlter);
+  if (braucheAlter) { if (curLang !== 'de') sweepNow(ag); return; }
   const expired = loggedIn && isTrialExpired();
   $('#paywall').classList.toggle('on', expired);
   /* SKIP_SEL überspringt geschlossene Overlays (.gate:not(.on)). Der MutationObserver
@@ -5395,8 +5443,11 @@ async function cloudSession(session, fallbackName) {
   account = {
     cloud: true,
     uid: user.id,   // Supabase-User-ID – stabile Identität über Geräte (für Familienmitglied-Zuordnung)
-    name: (p && p.name) || fallbackName || meta.name || '',
-    lastName: meta.last_name || '',
+    /* Google liefert given_name/family_name, die eigene Registrierung name/last_name.
+       Beide Wege muessen im selben Feld landen, sonst steht bei Google-Konten der
+       volle Name im Vornamen-Feld. */
+    name: (p && p.name) || fallbackName || meta.name || meta.given_name || '',
+    lastName: meta.last_name || meta.family_name || '',
     birthday: meta.birthday || '',
     role: 'owner',
     email: user.email,
@@ -5424,6 +5475,84 @@ async function cloudSession(session, fallbackName) {
   if (account.name && !store.name) { store.name = account.name; save(); }
   await pullConsents();   // Einwilligungen dieses Kontos laden (personenbezogen statt geräteweit)
   if (!switched) statePull();   // Nicht-Wechsel: Hintergrund-Abgleich wie bisher
+}
+
+/* ---------------------------------------------------------------------------
+   Google-Anmeldung.
+   Missbrauchsschutz der Testphase: eine Wegwerf-Adresse ist in Sekunden erfunden,
+   ein Google-Konto nicht – Google verlangt bei gehaeufter Anlage Telefonverifikation
+   und hat eigene Missbrauchserkennung. Ausserdem ist die Adresse damit bereits
+   verifiziert (siehe handle_new_user in supabase-trial-schutz.sql).
+   Laeuft in der TWA ueber Custom Tabs; eingebettete WebViews sperrt Google fuer
+   OAuth, Custom Tabs sind der ausdruecklich zugelassene Weg.
+--------------------------------------------------------------------------- */
+/* Knopf nur zeigen, wenn der Anbieter in Supabase auch wirklich freigeschaltet ist.
+   Sonst landet der Nutzer beim Klick auf einer rohen JSON-Fehlerseite von Supabase –
+   signInWithOAuth meldet den Fehler nicht zurueck, es leitet einfach weiter.
+   Dadurch erscheint der Knopf nach dem Freischalten von selbst, ohne Codeaenderung. */
+async function googleProbe() {
+  if (!CLOUD) return;
+  const btn = $('#authGoogle'), or = $('#authOr');
+  if (!btn) return;
+  try {
+    const r = await fetch(SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: SUPABASE_ANON_KEY } });
+    const s = await r.json();
+    if (s && s.external && s.external.google) { btn.style.display = ''; if (or) or.style.display = ''; }
+  } catch (e) { /* offline o.ae.: Knopf bleibt aus, E-Mail-Weg funktioniert weiterhin */ }
+}
+
+async function googleSignIn() {
+  const err = $('#authErr');
+  if (err) err.textContent = '';
+  if (!CLOUD) { if (err) err.textContent = 'Die Google-Anmeldung braucht das Cloud-Backend.'; return; }
+  const btn = $('#authGoogle');
+  if (btn) btn.disabled = true;
+  try {
+    const r = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: location.origin + location.pathname }
+    });
+    if (r.error) {
+      if (err) err.textContent = /provider.*not enabled|unsupported/i.test(r.error.message || '')
+        ? 'Die Google-Anmeldung ist noch nicht freigeschaltet. Bitte melde dich mit E-Mail an.'
+        : mapAuthError(r.error.message);
+    }
+    /* Erfolgsfall: der Browser wird zu Google weitergeleitet. Nach der Rueckkehr
+       findet der Boot-Pfad die Session und ruft cloudSession auf. */
+  } catch (e) {
+    if (err) err.textContent = 'Keine Verbindung zum Server. Bist du online?';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/* Altersnachweis nachholen (18+), wenn ueber Google angemeldet wurde. */
+function ageGateNeeded() {
+  return !!(account && account.cloud && account.loggedIn && !account.kidMode && !account.birthday);
+}
+async function ageGateSubmit() {
+  const err = $('#ageErr');
+  err.textContent = '';
+  const bday = $('#ageBirth').value || '';
+  if (!bday) { err.textContent = 'Bitte gib dein Geburtsdatum an.'; return; }
+  const age = ageFrom(bday);
+  if (age == null || age < 0 || age > 120) { err.textContent = 'Bitte ein gültiges Geburtsdatum angeben.'; return; }
+  if (age < 18) { err.textContent = 'Konten gibt es erst ab 18. Kinderkonten legt ein Erwachsener in der Familienzentrale an.'; return; }
+  $('#ageGo').disabled = true;
+  try {
+    const r = await sb.auth.updateUser({ data: { birthday: bday } });
+    if (r.error) { err.textContent = 'Konnte nicht gespeichert werden. Bitte erneut versuchen.'; return; }
+    account.birthday = bday;
+    saveAccount();
+    $('#ageGate').classList.remove('on');
+    gate();
+    if (!isTrialExpired() && !store.onboarded) { $('#onboarding').classList.add('on'); obShow(0); $('#obName').value = store.name || account.name || ''; }
+    refresh();
+  } catch (e) {
+    err.textContent = 'Keine Verbindung zum Server.';
+  } finally {
+    $('#ageGo').disabled = false;
+  }
 }
 
 async function cloudAuth(pass, err) {
@@ -5693,6 +5822,10 @@ async function activatePremium(code, errEl) {
 }
 
 $('#authGo').addEventListener('click', submitAuth);
+if ($('#authGoogle')) $('#authGoogle').addEventListener('click', googleSignIn);
+if ($('#ageGo')) $('#ageGo').addEventListener('click', ageGateSubmit);
+if ($('#ageBirth')) $('#ageBirth').addEventListener('keydown', e => { if (e.key === 'Enter') ageGateSubmit(); });
+if ($('#ageCancel')) $('#ageCancel').addEventListener('click', logout);
 if ($('#kidJoinLink')) $('#kidJoinLink').addEventListener('click', kidJoinOpen);
 $('#auPass').addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
 $('#authReset').addEventListener('click', async () => {
@@ -9654,13 +9787,32 @@ async function famAuth() {
     return !!s;
   } catch (e) { return false; }
 }
-async function famPush() { if (isKidMode() || !store.family.code || !CLOUD) return; await famAuth(); try { await sb.rpc('save_family', { p_data: famPayload() }); } catch (e) {} }
+async function famPush() {
+  if (isKidMode() || !store.family.code || !CLOUD) return;
+  await famAuth();
+  /* Den von save_family gemeldeten Stand übernehmen: sonst hielte der nächste
+     Poll die eigene Änderung für fremd und lüde den Blob unnötig komplett neu. */
+  try { const r = await sb.rpc('save_family', { p_data: famPayload() }); if (r && r.data && r.data.updated_at) famLastTs = r.data.updated_at; } catch (e) {}
+}
+/* Stand der zuletzt geladenen Familie (updated_at). Erlaubt dem Server, beim
+   Hintergrund-Poll nur "unverändert" zu antworten, statt jedes Mal den
+   kompletten Familien-Blob zu schicken. Absichtlich nicht persistiert: nach
+   einem Neustart wird einmal voll geladen, das ist gewollt. */
+let famLastTs = null;
+/* Ist supabase-optimierung.sql noch nicht eingespielt, fehlt get_family_since.
+   Dann einmal fehlschlagen, merken und dauerhaft get_family nutzen – sonst
+   kostete jeder Poll zwei Roundtrips statt einem. */
+let famSinceOk = true;
 async function famPull() {
   if (!store.family.code || !CLOUD) return false;
   await famAuth();
   try {
-    const r = await sb.rpc('get_family');
+    let r = (famSinceOk && famLastTs) ? await sb.rpc('get_family_since', { p_since: famLastTs }) : null;
+    if (r && r.error) { famSinceOk = false; r = null; }
+    if (!r) r = await sb.rpc('get_family');
     if (r.error || !r.data) return false;
+    if (r.data.unchanged) { famLastTs = r.data.updated_at || famLastTs; return false; }
+    famLastTs = r.data.updated_at || null;
     const d = r.data.data || {};
     const before = JSON.stringify(famPayload());
     store.family.members = d.members || [];
@@ -14473,6 +14625,7 @@ if (CLOUD && store.family && store.family.code) famPull().then(c => { if (c && c
 if (CLOUD) {
   account = null;   /* lokales Konto ignorieren – Cloud entscheidet */
   gate();
+  googleProbe();    /* Google-Knopf nur zeigen, wenn der Anbieter freigeschaltet ist */
   sb.auth.getSession().then(async (r) => {
     if (!r.data.session) return;
     if (r.data.session.user && r.data.session.user.is_anonymous) { await kidResume(r.data.session); return; }   // Kind (anonym)
@@ -14505,12 +14658,28 @@ checkMedReminders();                          // Medikamenten-Erinnerungen: beim
 setInterval(checkMedReminders, 60000);        // … und dann jede Minute (solange die App geöffnet ist)
 
 /* Familien-Sync im Hintergrund pollen → neu zugewiesene Aufgaben erreichen den Empfänger zeitnah (Pop-up + Signal). */
+const FAM_POLL_MIN = 45000, FAM_POLL_MAX = 240000;
+let famPollMs = FAM_POLL_MIN, famPollTimer = null;
 function famBgPull() {
-  if (!(CLOUD && store.family && store.family.code) || document.visibilityState !== 'visible') return;
-  famPull().then(ch => { if (ch && (currentView === 'family' || currentView === 'dashboard')) RENDERERS[currentView] && RENDERERS[currentView](); });
+  if (!(CLOUD && store.family && store.family.code) || document.visibilityState !== 'visible') return famPollNext();
+  famPull().then(ch => {
+    if (ch && (currentView === 'family' || currentView === 'dashboard')) RENDERERS[currentView] && RENDERERS[currentView]();
+    /* Solange sich nichts ändert, seltener fragen; bei einer Änderung sofort
+       wieder auf den kurzen Takt. Die eigentliche Sofort-Zustellung neuer
+       Aufgaben läuft ohnehin über Web-Push, nicht über dieses Polling. */
+    famPollMs = ch ? FAM_POLL_MIN : Math.min(Math.round(famPollMs * 1.5), FAM_POLL_MAX);
+  }).catch(() => {}).then(famPollNext);
 }
-setInterval(famBgPull, 45000);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') famBgPull(); });
+function famPollNext() {
+  clearTimeout(famPollTimer);
+  famPollTimer = setTimeout(famBgPull, famPollMs);
+}
+famPollNext();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  famPollMs = FAM_POLL_MIN;   // zurück im Vordergrund → wieder aufmerksam
+  famBgPull();
+});
 
 /* Web Push: nach dem Boot Abo sicherstellen (falls Benachrichtigungen erlaubt + in Familie). */
 setTimeout(() => { try { subscribeFamilyPush(); } catch (e) {} }, 2500);

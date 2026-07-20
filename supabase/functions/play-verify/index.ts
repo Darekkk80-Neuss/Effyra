@@ -16,6 +16,7 @@
 //    Service-Account einmal getestet werden (siehe GOOGLE_PLAY_SETUP.md, Schritt 2/5).
 // ----------------------------------------------------------------------------
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { fetchT } from '../_shared/util.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -41,7 +42,13 @@ function pemToDer(pem: string) {
   const body = pem.replace(/-----BEGIN [^-]+-----/, '').replace(/-----END [^-]+-----/, '').replace(/\s+/g, '');
   return Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
 }
+// Zugriffstoken je Instanz zwischenspeichern. Es gilt eine Stunde; vorher wurde
+// bei JEDER Kaufprüfung neu RS256-signiert und ein Token-Call an Google gemacht –
+// also zwei Google-Roundtrips statt einem.
+let tokenCache: { value: string; expMs: number } | null = null;
+
 async function googleAccessToken(): Promise<string> {
+  if (tokenCache && tokenCache.expMs > Date.now() + 60000) return tokenCache.value;
   const sa = JSON.parse(SA_JSON);
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: 'RS256', typ: 'JWT' };
@@ -58,12 +65,14 @@ async function googleAccessToken(): Promise<string> {
     { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(unsigned));
   const jwt = unsigned + '.' + b64url(sig);
-  const res = await fetch('https://oauth2.googleapis.com/token', {
+  const res = await fetchT('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=' + jwt,
-  });
+  }, 10000);
   const t = await res.json();
   if (!t.access_token) throw new Error('google_token_failed');
+  const ttl = Math.max(60, Number(t.expires_in) || 3600) * 1000;
+  tokenCache = { value: t.access_token as string, expMs: Date.now() + ttl };
   return t.access_token as string;
 }
 
@@ -74,7 +83,7 @@ async function verifyPurchase(sku: string, token: string, type: string): Promise
   const url = type === 'subs'
     ? `${base}/purchases/subscriptions/${sku}/tokens/${token}`
     : `${base}/purchases/products/${sku}/tokens/${token}`;
-  const res = await fetch(url, { headers: { authorization: 'Bearer ' + at } });
+  const res = await fetchT(url, { headers: { authorization: 'Bearer ' + at } }, 10000);
   if (!res.ok) return { ok: false, expiryMs: 0 };
   const d = await res.json();
   if (type === 'subs') {

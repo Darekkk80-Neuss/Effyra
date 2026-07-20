@@ -94,7 +94,10 @@ begin
       f_used  := f_used + from_month;
       f_extra := f_extra - (p_n - from_month);
       update public.families set ai_used = f_used, ai_extra = f_extra, ai_month = cur_month where id = v_fid;
-      return json_build_object('ok', true, 'scope', 'family', 'ai_used', f_used, 'ai_limit', base + f_extra);
+      -- from_month/from_extra: Aufteilung der Abbuchung. refund_ai kann sie sonst
+      -- nicht rekonstruieren und wuerde gekaufte Credits in Monats-Credits verwandeln.
+      return json_build_object('ok', true, 'scope', 'family', 'ai_used', f_used, 'ai_limit', base + f_extra,
+                               'from_month', from_month, 'from_extra', p_n - from_month);
     end if;
 
     -- Fall B: persönlicher Premium-Zähler
@@ -111,7 +114,8 @@ begin
     p.ai_used  := p.ai_used + from_month;
     p.ai_extra := coalesce(p.ai_extra, 0) - (p_n - from_month);
     update public.profiles set usage_month = cur_month, ai_used = p.ai_used, ai_extra = p.ai_extra where id = p_user;
-    return json_build_object('ok', true, 'scope', 'personal', 'ai_used', p.ai_used, 'ai_limit', base + p.ai_extra);
+    return json_build_object('ok', true, 'scope', 'personal', 'ai_used', p.ai_used, 'ai_limit', base + p.ai_extra,
+                             'from_month', from_month, 'from_extra', p_n - from_month);
   end if;
 
   -- ================= FREE-TESTPHASE (100 Credits / 14 Tage) + gekaufte Credits =================
@@ -135,7 +139,8 @@ begin
   p.ai_used  := p.ai_used + from_month;
   p.ai_extra := coalesce(p.ai_extra, 0) - (p_n - from_month);
   update public.profiles set usage_month = cur_month, ai_used = p.ai_used, ai_extra = p.ai_extra where id = p_user;
-  return json_build_object('ok', true, 'ai_used', p.ai_used, 'ai_limit', base + p.ai_extra);
+  return json_build_object('ok', true, 'scope', 'personal', 'ai_used', p.ai_used, 'ai_limit', base + p.ai_extra,
+                           'from_month', from_month, 'from_extra', p_n - from_month);
 end;
 $$;
 revoke execute on function public.consume_ai(uuid, int) from public, anon, authenticated;
