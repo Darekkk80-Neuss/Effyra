@@ -17,7 +17,7 @@
 // ----------------------------------------------------------------------------
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-import { fetchT, pageAll, pMap } from '../_shared/util.ts';
+import { fetchT, pageAll, pMap, pushEndpointOk } from '../_shared/util.ts';
 
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
 
@@ -56,7 +56,10 @@ Deno.serve(async (req) => {
 
   // 1) Abos nach Standort bündeln – aus N Abos werden M Standorte (M ≪ N).
   const byLoc = new Map<string, any[]>();
-  for (const s of subs) {
+  // Zieladresse pruefen, BEVOR gesendet wird. Der Nutzer darf seine eigene
+  // Abo-Zeile schreiben (RLS), also auch den endpoint - ohne diese Pruefung
+  // POSTet der Cron mit Service-Role an eine frei gewaehlte Adresse.
+  for (const s of subs.filter((s: any) => pushEndpointOk(s.sub) && pushEndpointOk(s))) {
     if (s.warn_lat == null || s.warn_lon == null) continue;
     const k = locKey(s.warn_lat, s.warn_lon);
     const list = byLoc.get(k);

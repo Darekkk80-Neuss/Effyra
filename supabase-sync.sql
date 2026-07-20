@@ -34,8 +34,8 @@ create policy "user_state_update_own" on public.user_state
 -- bei jedem Gerätestart komplett herunter.
 -- NOT VALID: bereits zu grosse Bestandszeilen sollen diesen Lauf nicht
 -- abbrechen. Für INSERT und UPDATE greift die Prüfung trotzdem sofort.
-do $ begin
+do $$ begin
   alter table public.user_state
     add constraint user_state_data_size_chk
     check (octet_length(data::text) <= 2 * 1024 * 1024) not valid;
-exception when duplicate_object then null; end $;
+exception when duplicate_object then null; end $$;

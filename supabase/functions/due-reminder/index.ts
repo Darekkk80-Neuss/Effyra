@@ -21,7 +21,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-import { chunk, pageAll, pMap, reqId, safeErr } from '../_shared/util.ts';
+import { chunk, pageAll, pMap, reqId, safeErr, pushEndpointOk } from '../_shared/util.ts';
 
 function json(o: unknown, s = 200) {
   return new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
@@ -131,7 +131,10 @@ Deno.serve(async (req) => {
     await pMap(chunk(uids, 300), 4, async (part) => {
       const subs = await pageAll<any>(() => admin
         .from('push_subscriptions').select('user_id,endpoint,sub').in('user_id', part).order('endpoint'));
-      for (const s of subs) {
+      // Zieladresse pruefen, BEVOR gesendet wird. Der Nutzer darf seine eigene
+      // Abo-Zeile schreiben (RLS), also auch den endpoint - ohne diese Pruefung
+      // POSTet der Cron mit Service-Role an eine frei gewaehlte Adresse.
+      for (const s of subs.filter((s: any) => pushEndpointOk(s.sub) && pushEndpointOk(s))) {
         const list = subsByUser.get(s.user_id);
         if (list) list.push(s); else subsByUser.set(s.user_id, [s]);
       }

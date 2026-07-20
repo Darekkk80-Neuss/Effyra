@@ -230,7 +230,7 @@ create or replace function public.ai_usage_track(
   p_op text, p_model text, p_credits int,
   p_in bigint, p_out bigint, p_reason bigint, p_ok boolean,
   p_cached bigint default 0)
-returns void language sql security definer set search_path = public as $
+returns void language sql security definer set search_path = public as $$
   insert into public.ai_usage_daily as u
     (day, op, model, calls, credits, prompt_tokens, completion_tokens, reasoning_tokens, cached_tokens, failures)
   values ((now() at time zone 'utc')::date, coalesce(p_op, '?'), coalesce(p_model, '?'), 1,
@@ -247,8 +247,7 @@ returns void language sql security definer set search_path = public as $
     -- OpenAI die beiden Werte einmal inkonsistent, würde die Differenz in
     -- ai_kosten sonst negativ und die Kosten kleiner als null.
     cached_tokens     = u.cached_tokens + least(coalesce(p_cached, 0), coalesce(p_in, 0)),
-    failures          = u.failures + case when p_ok then 0 else 1 end;
-$;
+    failures          = u.failures + case when p_ok then 0 else 1 end; $$;
 
 revoke execute on function public.ai_usage_track(text, text, int, bigint, bigint, bigint, boolean, bigint)
   from public, anon, authenticated;
@@ -277,7 +276,7 @@ drop function if exists public.ai_kosten(numeric, numeric);
 
 create or replace function public.ai_kosten(p_in_preis numeric, p_out_preis numeric, p_cache_preis numeric default 0)
 returns table (op text, calls bigint, credits bigint, fehler bigint, kosten numeric, kosten_je_credit numeric)
-language sql security definer set search_path = public as $
+language sql security definer set search_path = public as $$
   with k as (
     select u.op,
            sum(u.calls)::bigint                                   as calls,
@@ -293,8 +292,7 @@ language sql security definer set search_path = public as $
          round(k.kosten, 4),
          round(k.kosten / nullif(k.credits, 0), 6)
     from k
-   order by k.kosten desc;
-$;
+   order by k.kosten desc; $$;
 -- Auch angemeldeten Nutzern entziehen: das sind Betriebszahlen, keine Nutzerdaten.
 revoke execute on function public.ai_kosten(numeric, numeric, numeric) from public, anon, authenticated;
 

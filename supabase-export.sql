@@ -83,7 +83,10 @@ begin
     v_meid := v_me->>'id';
 
     select json_build_object(
-      'code',            f.code,
+      -- 'code' bewusst NICHT: der Familien-Beitrittscode ist ein Zugangsgeheimnis.
+      -- join_family(code) braucht sonst nichts weiter – wer die Exportdatei in die
+      -- Haende bekaeme (Mail, Cloud, Support-Ticket), koennte der Familie beitreten
+      -- und den gesamten Blob lesen und ueberschreiben.
       'beigetreten_am',  fm.joined_at,
       'rolle',           fm.role,
       'plan',            f.plan,

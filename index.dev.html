@@ -10041,7 +10041,11 @@ function famWrite(p) {
    offline fehlgeschlagen war (der Fehler wurde verschluckt).
    Rückgabe: true, wenn noch Ungesendetes offen ist. */
 function famAdopt(d) {
-  const pend = famBase ? famOps(famBase, famPayload()) : null;
+  /* Ohne bestaetigte Basis (frischer App-Start) gegen eine LEERE Basis rechnen
+     statt gar nicht: das erzeugt ausschliesslich Upserts, nie Deletes. Vorher
+     ging alles offline Erfasste beim ersten erfolgreichen Pull wortlos
+     verloren – ohne Angreifer, bei ganz normaler Nutzung. */
+  const pend = famOps(famBase || { members: [], occasions: [], tasks: [], shopping: [], shopAssign: null, events: [], tidy: null }, famPayload());
   famWrite(d.data || {});
   famBase = JSON.parse(JSON.stringify(famPayload()));   // exakt der vom Server bestätigte Stand
   famLastTs = d.updated_at || null;
@@ -14918,6 +14922,26 @@ async function exportAllData() {
   }
   const lokal = JSON.parse(JSON.stringify(store));
   delete lokal._ts;   // interner Sync-Zeitstempel, kein Nutzdatum
+  /* Familienbereich auf den EIGENEN Anteil zurueckbauen. Der lokale Speicher
+     haelt die Daten der ganzen Familie: Namen und Geburtsdaten aller Mitglieder,
+     deren Aufgaben – und Medikamente, die eine memberId tragen und damit
+     Gesundheitsdaten ANDERER Personen sind (Art. 9). Die gingen bisher alle mit,
+     unter dem Hinweis unten, der ausdruecklich das Gegenteil zusichert.
+     Art. 20 Abs. 4 DSGVO: die Rechte anderer duerfen nicht beeintraechtigt werden.
+     Der Familiencode faellt ebenfalls weg – er ist ein Zugangsgeheimnis, kein
+     Auskunftsdatum: wer ihn hat, kommt per join_family in die Familie. */
+  if (lokal.family) {
+    const meAuth = (account && account.uid) || (typeof famSelfId === 'function' ? famSelfId() : null);
+    const meMem = (store.family.members || []).find(m => m && m.authId && m.authId === meAuth) || null;
+    const meId = meMem && meMem.id;
+    lokal.family = {
+      mein_mitgliedseintrag: meMem,
+      meine_aufgaben: (store.family.tasks || []).filter(t => t && (t.by === meAuth || (meId && t.assignee === meId))),
+      meine_medikamente: meId ? (store.family.meds || []).filter(m => m && m.memberId === meId) : [],
+      meine_einnahmen: meId ? (store.family.medTaken || []).filter(x => x && (x.memberId === meId || String(x.id || '').indexOf(meId) === 0)) : [],
+      hinweis: 'Gemeinsame Listen (Einkauf, Anlaesse, Termine der Familie) und die Eintraege anderer Mitglieder sind bewusst nicht enthalten.',
+    };
+  }
   const daten = {
     format: 'effyra-datenexport',
     version: 1,
@@ -14927,6 +14951,7 @@ async function exportAllData() {
     konto: account ? { email: account.email || '', name: account.name || '', uid: account.uid || null } : null,
     lokal: lokal,
     nurAufDiesemGeraet: ['emergency', 'budget', 'docs', 'vault', 'contracts', 'waste', 'checkups', 'fit', 'chat', 'family.meds', 'family.medTaken'],
+    nichtEnthalten: ['Familien-Beitrittscode (Zugangsgeheimnis)', 'Daten anderer Familienmitglieder', 'gemeinsame Listen der Familie', 'eigener API-Schluessel'],
     inDieCloudGespiegelt: SYNC_KEYS,
     server: server,
     serverFehler: serverFehler

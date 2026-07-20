@@ -213,7 +213,7 @@ async function handleRequest(req: Request, box: RefundBox, rid: string): Promise
       // Im Fehlerfall bewusst ZU. Bei tts_greeting bleibt eine unbeantwortbare
       // Frage offen, weil dort Betreiberkosten in Cent-Höhe stehen; hier steht
       // das teuerste Modell des Systems dahinter.
-      if (eerr) { console.error('rt_tier_failed', JSON.stringify({ uid, op, msg: eerr.message })); return json({ error: 'quota_error' }, 500); }
+      if (eerr) { console.error('rt_tier_failed', JSON.stringify({ rid, id: await logId(uid), op, msg: safeErr(eerr) })); return json({ error: 'quota_error' }, 500); }
       if (eff !== 'premium') return json({ error: 'not_premium' }, 402);
     }
     // Zwei getrennte Zähler mit verschiedenen Aufgaben: Minuten bremsen den
@@ -221,11 +221,11 @@ async function handleRequest(req: Request, box: RefundBox, rid: string): Promise
     // höchstens eine Sitzung aufbauen). rate_take zählt jeden VERSUCH – auch
     // einen, der gleich danach an consume_ai scheitert; das ist gewollt.
     const { data: okMin, error: mrr } = await admin.rpc('rate_take', { p_user: uid, p_op: 'realtime_min', p_max: RT_MIN_PER_DAY });
-    if (mrr) { console.error('rt_rate_failed', JSON.stringify({ uid, op, msg: mrr.message })); return json({ error: 'quota_error' }, 500); }
+    if (mrr) { console.error('rt_rate_failed', JSON.stringify({ rid, id: await logId(uid), op, msg: safeErr(mrr) })); return json({ error: 'quota_error' }, 500); }
     if (okMin === false) return json({ error: 'rate_limited' }, 429);
     if (op === 'realtime_token') {
       const { data: okSess, error: srr } = await admin.rpc('rate_take', { p_user: uid, p_op: 'realtime_sess', p_max: RT_SESSIONS_PER_DAY });
-      if (srr) { console.error('rt_rate_failed', JSON.stringify({ uid, op, msg: srr.message })); return json({ error: 'quota_error' }, 500); }
+      if (srr) { console.error('rt_rate_failed', JSON.stringify({ rid, id: await logId(uid), op, msg: safeErr(srr) })); return json({ error: 'quota_error' }, 500); }
       if (okSess === false) return json({ error: 'rate_limited' }, 429);
     }
   }
@@ -300,7 +300,11 @@ async function handleRequest(req: Request, box: RefundBox, rid: string): Promise
   //    Im Vorstart (ENFORCE_TIERS=false) ist die KI für jede angemeldete Person freigeschaltet.
   let usage: { ai_used: number; ai_limit: number } = { ai_used: 0, ai_limit: 1000000 };
   if (ENFORCE_TIERS && op !== 'tts_greeting') {   // Start-Begrüßung geht auf Betreiber-Kosten – NIE Nutzer-Credits
-    const cost = OP_COST[op] || 1;   // Credits je nach Operation
+    // op MUSS bekannt sein. Ohne diese Pruefung war der Preis frei waehlbar:
+    // ein Rechnungs-Scan als op:'question' geschickt kostete 1 statt 10
+    // Credits, bei identischem Modell und identischem Ergebnis.
+    if (!(op in OP_COST)) return json({ error: 'bad_op' }, 400);
+    const cost = OP_COST[op];   // Credits je nach Operation
     const admin = adminC();
     const { data: consumed, error: cerr } = await admin.rpc('consume_ai', { p_user: uid, p_n: cost });
     if (cerr) return json({ error: 'quota_error' }, 500);

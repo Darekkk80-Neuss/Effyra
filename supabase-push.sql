@@ -36,7 +36,7 @@ alter table public.push_subscriptions add column if not exists warn_last text;
 -- Der abschliessende Schraegstrich im Muster ist tragend: ohne ihn passierten
 -- https://fcm.googleapis.com@angreifer.tld/ und
 -- https://fcm.googleapis.com.angreifer.tld/ die Pruefung.
-do $
+do $$
 begin
   alter table public.push_subscriptions
     add constraint push_endpoint_known check (
@@ -45,7 +45,7 @@ begin
       and length(endpoint) between 30 and 700
     ) not valid;
 exception when duplicate_object then null;   -- schon vorhanden
-end $;
+end $$;
 
 -- Zweite Haelfte derselben Luecke: geprueft wird oben die Spalte `endpoint`,
 -- gesendet wird aber an `sub->>'endpoint'`. Ohne erzwungene Gleichheit traegt
@@ -54,7 +54,7 @@ end $;
 -- (delete ... eq('endpoint', ...)) traefe die falsche Zeile.
 -- coalesce() ist noetig, weil ein CHECK bei NULL als ERFUELLT gilt -- ein
 -- fehlendes keys-Objekt haette die Pruefung sonst einfach uebersprungen.
-do $
+do $$
 begin
   alter table public.push_subscriptions
     add constraint push_sub_matches_endpoint check (
@@ -65,14 +65,14 @@ begin
       and coalesce(length(sub #>> '{keys,auth}'), 0) between 10 and 100
     ) not valid;
 exception when duplicate_object then null;
-end $;
+end $$;
 
 -- NOT VALID heisst: neue und geaenderte Zeilen werden geprueft, bestehende
 -- nicht. Das ist Absicht -- ein hartes ADD CONSTRAINT scheitert auf der
 -- Produktions-DB an einer einzigen Altzeile, und dann liefe diese Datei gar
 -- nicht mehr durch. Der folgende Block holt die Nachpruefung nach und meldet,
 -- was im Weg steht, statt den Lauf abzubrechen.
-do $
+do $$
 declare v_bad int;
 begin
   begin
@@ -84,7 +84,7 @@ begin
         or (sub ->> 'endpoint') is distinct from endpoint;
     raise warning 'push_subscriptions: % Altzeile(n) mit unbekanntem oder abweichendem Endpoint. NEUE Zeilen sind bereits gesperrt. Bitte ansehen und loeschen, danach diese Datei erneut ausfuehren: select user_id, endpoint from public.push_subscriptions where endpoint !~ ''^https://([a-z0-9-]+\.)*(googleapis\.com|push\.services\.mozilla\.com|push\.apple\.com|notify\.windows\.com)/'';', v_bad;
   end;
-end $;
+end $$;
 
 alter table public.push_subscriptions enable row level security;
 
