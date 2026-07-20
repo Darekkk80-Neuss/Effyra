@@ -84,7 +84,14 @@ begin
   v_verified := (v_provider <> 'email') or (new.email_confirmed_at is not null);
 
   if new.email is null or new.email = '' then
-    v_start := now();                      -- anonyme Sessions (Kindermodus) unberuehrt lassen
+    -- Anonyme Sessions (Kindermodus): KEIN Trial.
+    -- Der gesamte Missbrauchsschutz haengt an der E-Mail-Adresse und greift bei
+    -- anonymen Konten per Definition nicht – jede anonyme Anmeldung erzeugte
+    -- sonst ein frisches Kontingent auf Betreiberkosten. Kinder brauchen es
+    -- ohnehin nicht: sie erben ihre Berechtigung ueber die Familie
+    -- (effective_tier/family_members), nicht ueber einen eigenen Trial.
+    -- Zusaetzlich weist claude-proxy anonyme Sessions inzwischen komplett ab.
+    v_start := timestamptz '2000-01-01';
   else
     v_hash := public.trial_id_hash(new.email);
     select first_seen into v_first from public.trial_ledger where id_hash = v_hash;

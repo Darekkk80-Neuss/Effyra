@@ -5309,6 +5309,8 @@ async function callClaudeHosted(payload) {
     if (data.error === 'not_premium') throw new Error('Echte KI ist eine Premium-Funktion.');
     if (data.error === 'server_not_configured') throw new Error('Die gehostete KI ist noch nicht fertig eingerichtet (Server-Schlüssel fehlt).');
     /* Bei diesen beiden hat der Server die Credits bereits zurückgebucht. */
+    if (data.error === 'ai_not_for_kids') throw new Error('Die KI steht im Kindermodus nicht zur Verfügung.');
+    if (data.error === 'too_large') throw new Error('Die Anfrage ist zu umfangreich. Bitte kürzer fassen oder weniger Bilder anhängen.');
     if (data.error === 'ai_empty') throw new Error('Die KI hat nichts zurückgegeben. Versuch es bitte noch einmal.');
     if (data.error === 'ai_timeout') throw new Error('Die KI antwortet gerade nicht. Versuch es bitte gleich noch einmal.');
     throw new Error('KI-Anfrage fehlgeschlagen.' + (data.detail ? ' (' + data.detail + ')' : ''));
@@ -5338,6 +5340,7 @@ async function callAudioHosted(payload) {
     if (c === 'ai_empty' && payload.op === 'transcribe') throw new Error('Ich habe nichts verstanden. Sprich bitte noch einmal.');
     if (c === 'ai_empty') throw new Error('Die KI hat nichts zurückgegeben. Versuch es bitte noch einmal.');
     if (c === 'ai_timeout') throw new Error('Die KI antwortet gerade nicht. Versuch es bitte gleich noch einmal.');
+    if (c === 'ai_not_for_kids') throw new Error('Die KI steht im Kindermodus nicht zur Verfügung.');
     if (c === 'too_large') throw new Error('Die Aufnahme ist zu lang. Nimm bitte etwas kürzer auf.');
     if (c === 'rate_limited') throw new Error('Zu viele Anfragen in kurzer Zeit. Versuch es bitte später noch einmal.');
     if (c === 'server_error') throw new Error('Da ist etwas schiefgegangen. Deine Credits wurden nicht belastet.');

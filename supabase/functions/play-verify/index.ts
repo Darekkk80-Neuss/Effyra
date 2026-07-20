@@ -80,9 +80,15 @@ async function googleAccessToken(): Promise<string> {
 async function verifyPurchase(sku: string, token: string, type: string): Promise<{ ok: boolean; expiryMs: number }> {
   const at = await googleAccessToken();
   const base = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE}`;
+  // encodeURIComponent: sku und token kommen ungefiltert aus dem Client-Body.
+  // Ohne Kodierung normalisiert fetch Segmente wie '../' weg und erlaubt GETs auf
+  // ANDERE androidpublisher-Endpunkte – mit dem Service-Account deines
+  // Play-Developer-Kontos.
+  const sk = encodeURIComponent(sku);
+  const tk = encodeURIComponent(token);
   const url = type === 'subs'
-    ? `${base}/purchases/subscriptions/${sku}/tokens/${token}`
-    : `${base}/purchases/products/${sku}/tokens/${token}`;
+    ? `${base}/purchases/subscriptions/${sk}/tokens/${tk}`
+    : `${base}/purchases/products/${sk}/tokens/${tk}`;
   const res = await fetchT(url, { headers: { authorization: 'Bearer ' + at } }, 10000);
   if (!res.ok) return { ok: false, expiryMs: 0 };
   const d = await res.json();

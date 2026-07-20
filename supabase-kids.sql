@@ -37,6 +37,17 @@ create table if not exists public.family_child_codes (
   created_at timestamptz not null default now(),
   revoked    boolean not null default false
 );
+-- Ablaufdatum. Ein Kindercode wird per Messenger geteilt und lag bisher
+-- unbefristet gültig herum: einmal weitergegeben, funktionierte er Jahre später
+-- und auf beliebig vielen Geräten. Es gab nur `revoked`, also einen manuellen
+-- Widerruf, den in der Praxis niemand auslöst.
+-- 14 Tage reichen zum Einrichten des Kinder-Handys; danach erzeugt ein
+-- Erwachsener bei Bedarf einen neuen (create_child_code rotiert ohnehin).
+alter table public.family_child_codes add column if not exists expires_at timestamptz;
+update public.family_child_codes
+   set expires_at = created_at + interval '14 days'
+ where expires_at is null;
+
 alter table public.family_child_codes enable row level security;
 revoke all on public.family_child_codes from anon, authenticated;   -- Zugriff nur über die Funktionen unten
 
@@ -57,7 +68,8 @@ begin
     exit when not exists (select 1 from public.family_child_codes where code = v_code);
     v_try := v_try + 1; if v_try > 30 then raise exception 'code generation failed'; end if;
   end loop;
-  insert into public.family_child_codes (code, family_id, member_id, created_by) values (v_code, v_fid, p_member_id, auth.uid());
+  insert into public.family_child_codes (code, family_id, member_id, created_by, expires_at)
+  values (v_code, v_fid, p_member_id, auth.uid(), now() + interval '14 days');
   return v_code;
 end; $$;
 
@@ -86,7 +98,9 @@ begin
   -- Beitrittsversuche begrenzen (siehe supabase-codes.sql): der Kindercode ist
   -- genauso lang wie der Familiencode und öffnet ebenfalls den Familien-Blob.
   if not public.join_rate_ok() then raise exception 'too many attempts'; end if;
-  select * into v_rec from public.family_child_codes where code = upper(trim(p_code)) and not revoked;
+  select * into v_rec from public.family_child_codes
+   where code = upper(trim(p_code)) and not revoked
+     and (expires_at is null or expires_at > now());   -- abgelaufene Codes gelten nicht mehr
   if v_rec.code is null then return null; end if;   -- ungültig/entwertet
   delete from public.family_members where user_id = auth.uid();   -- evtl. vorherige Bindung lösen
   insert into public.family_members (family_id, user_id, role, member_id)
