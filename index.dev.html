@@ -5011,7 +5011,7 @@ async function sha256Hex(s) {
 const TIER_RANK = { free: 0, medium: 1, premium: 2 };
 const TIER_LABEL = { free: 'Free', medium: 'Medium', premium: 'Premium' };
 const AI_MONTHLY_LIMIT = 500;
-const TRIAL_CREDITS = 50;           // kostenlose KI-Credits während der 7-Tage-Testphase (angehoben von 50: Dokument-/Rechnungsanalyse kostet 5–10 → mehr Erprobung). MUSS zu ai_trial_credits() in supabase-trial-and-play.sql passen.
+const TRIAL_CREDITS = 50;           // kostenlose KI-Credits während der 7-Tage-Testphase (Dokument-/Rechnungsanalyse kostet 5–10 → reicht fuer ca. 5-10 Analysen). MUSS zu ai_trial_credits() in supabase-trial-and-play.sql passen.
 const ENFORCE_AI_CREDITS = true;     // Trial-Credits verbindlich abziehen & KI sperren, wenn leer (Module bleiben offen)
 /* Module, die mindestens Medium brauchen (im 3-Tage-Free-Test gesperrt).
    Frei in jeder Stufe: dashboard, tasks, calendar, voice, docgen, chat, settings. */
