@@ -27,7 +27,7 @@ update public.profiles set trial_start = coalesce(trial_start, now()) where tria
 
 create or replace function public.ai_trial_credits() returns int language sql immutable as $$ select 100 $$;
 create or replace function public.ai_trial_days()    returns int language sql immutable as $$ select 14 $$;
-create or replace function public.ai_family_seat()   returns int language sql immutable as $$ select 800 $$;   -- Credits je Erwachsenem im Family-Abo (geteilt) – mehr als Einzel-Pro (500)
+create or replace function public.ai_family_seat()   returns int language sql immutable as $$ select 500 $$;   -- DEPRECATED (nicht mehr genutzt): Familien-Limit = 1600 Basis + 500 je Zusatz-Erwachsener (siehe consume_ai / get_entitlements)
 
 -- 2) consume_ai (ZUSAMMENGEFÜHRT — EINZIGE gültige Definition) --------------
 --    Deckt ALLE Fälle in EINER Funktion ab, damit es keine „letzte-Datei-gewinnt"-
@@ -84,7 +84,7 @@ begin
       select ai_used, coalesce(ai_extra, 0), ai_month into f_used, f_extra, f_month
         from public.families where id = v_fid for update;
       if f_month is distinct from cur_month then f_used := 0; f_month := cur_month; end if;   -- f_extra bleibt!
-      base  := v_seats * public.ai_family_seat();
+      base  := 1600 + greatest(v_seats - 2, 0) * 500;   -- Familien-Topf: Basis 1600 (2 Erw.) + 500 je ZUSAETZLICHEM Erwachsenen
       avail := greatest(0, base - f_used);
       if avail + f_extra < p_n then
         update public.families set ai_used = f_used, ai_extra = f_extra, ai_month = cur_month where id = v_fid;
