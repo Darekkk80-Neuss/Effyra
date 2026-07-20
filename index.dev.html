@@ -8947,7 +8947,7 @@ $('#fitRoot') && $('#fitRoot').addEventListener('change', e => {
 /* Rollenmodell (Client, Phase 1): owner=Administrator, adult=Erwachsen, child=Kind (<18).
    Kinder sind eingeschränkt (keine KI, kein API-Key, keine Ausgaben ohne Freigabe). Zahlung/serverseitiges Enforcement folgt in Phase 2. */
 const FAM_ROLE_META = { owner: { label: 'Administrator', icon: '👑' }, adult: { label: 'Erwachsen', icon: '🧑' }, child: { label: 'Kind', icon: '🧒' } };
-const FAMILY_AI_LIMIT = 1600;   // geteiltes Familien-KI-Kontingent/Monat (nur Erwachsene) = 2 × 800/Erw. (großzügiger als Einzel-Pro 500) – muss zu ai_family_seat() in der DB passen
+const FAMILY_AI_LIMIT = 1600;   // Basis-Familien-KI-Kontingent/Monat (enthaltene 2 Erwachsene, geteilt); je Zusatz-Erwachsener +500 – muss zur Formel in get_entitlements (DB) passen
 const FAMILY_MAX_ADULTS = 2, FAMILY_MAX_CHILDREN = 3;   // im Familienabo enthalten (weitere = kostenpflichtige Add-ons)
 /* Zusatzmitglieder als Google-Play-Billing-Abos. Kauf läuft nur in der Android-App (TWA) über die
    Digital Goods API; im Browser gibt es einen Hinweis. Produkt-IDs müssen in der Play Console angelegt sein. */
@@ -9871,12 +9871,13 @@ function creditTableHtml() {
 }
 function famAiPanel() {
   const adults = store.family.members.filter(m => m.role !== 'child');
-  const perAdult = Math.round(FAMILY_AI_LIMIT / FAMILY_MAX_ADULTS);   // 800/Erwachsener (Familie großzügiger als Einzel-Pro)
   /* GEMEINSAMER Familien-Topf (passt zum Server: families.ai_used): EIN Kontingent für alle
-     Erwachsenen. Größe = enthaltene Erwachsenen-Plätze × 500 (wächst mit Add-ons). Serverwerte
+     Erwachsenen. Größe = Basis 1600 + 500 je ZUSÄTZLICHEM Erwachsenen (Add-on). Serverwerte
      (account.familyAi*) bevorzugen, sonst lokal aus den Plätzen schätzen. */
   const seats = (typeof familyMaxAdults === 'function') ? familyMaxAdults() : FAMILY_MAX_ADULTS;
-  const limit = (account && typeof account.familyAiLimit === 'number') ? account.familyAiLimit : seats * perAdult;
+  const extraAdults = Math.max(0, seats - FAMILY_MAX_ADULTS);
+  const localLimit = FAMILY_AI_LIMIT + extraAdults * 500;   // 1600 Basis + 500 je Zusatz-Erwachsener
+  const limit = (account && typeof account.familyAiLimit === 'number') ? account.familyAiLimit : localLimit;
   const used = (account && typeof account.familyAiUsed === 'number') ? account.familyAiUsed : 0;
   const pct = limit ? Math.min(100, Math.round(used / limit * 100)) : 0;
   const reset = store.family.ai && store.family.ai.resetDate ? fmtDate(store.family.ai.resetDate) : '–';
@@ -9887,12 +9888,12 @@ function famAiPanel() {
     '<div class="fam-ai-row" style="margin-top:8px"><span>👥 Teilen sich das Kontingent</span><b>' + adults.length + '</b></div>' +
     '<div class="sub" style="margin-top:2px">' + names + '</div>';
   h += '<div class="sub" style="margin-top:6px">' + pickLang({
-      de: 'Alle Erwachsenen teilen sich EIN gemeinsames Kontingent (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' Credits/Monat, wächst mit jedem gebuchten Zusatz-Erwachsenen). Kinder haben keinen KI-Zugriff.',
-      en: 'All adults share ONE common quota (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' credits/month, growing with every additional adult booked). Children have no AI access.',
-      fr: 'Tous les adultes partagent UN quota commun (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' crédits/mois, qui augmente avec chaque adulte supplémentaire). Les enfants n’ont pas accès à l’IA.',
-      es: 'Todos los adultos comparten UNA cuota común (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' créditos/mes, crece con cada adulto adicional). Los niños no tienen acceso a la IA.',
-      it: 'Tutti gli adulti condividono UN unico contingente (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' crediti/mese, cresce con ogni adulto aggiuntivo). I bambini non hanno accesso all’IA.',
-      pl: 'Wszyscy dorośli dzielą JEDEN wspólny limit (' + seats + ' × ' + perAdult + ' = ' + (seats * perAdult) + ' kredytów/miesiąc, rośnie z każdym dokupionym dorosłym). Dzieci nie mają dostępu do AI.'
+      de: 'Alle Erwachsenen teilen sich EIN gemeinsames Kontingent (Basis ' + FAMILY_AI_LIMIT + ' + 500 je Zusatz-Erwachsener = ' + limit + ' Credits/Monat). Kinder haben keinen KI-Zugriff.',
+      en: 'All adults share ONE common quota (base ' + FAMILY_AI_LIMIT + ' + 500 per additional adult = ' + limit + ' credits/month). Children have no AI access.',
+      fr: 'Tous les adultes partagent UN quota commun (base ' + FAMILY_AI_LIMIT + ' + 500 par adulte supplémentaire = ' + limit + ' crédits/mois). Les enfants n’ont pas accès à l’IA.',
+      es: 'Todos los adultos comparten UNA cuota común (base ' + FAMILY_AI_LIMIT + ' + 500 por cada adulto adicional = ' + limit + ' créditos/mes). Los niños no tienen acceso a la IA.',
+      it: 'Tutti gli adulti condividono UN unico contingente (base ' + FAMILY_AI_LIMIT + ' + 500 per ogni adulto aggiuntivo = ' + limit + ' crediti/mese). I bambini non hanno accesso all’IA.',
+      pl: 'Wszyscy dorośli dzielą JEDEN wspólny limit (podstawa ' + FAMILY_AI_LIMIT + ' + 500 za każdego dodatkowego dorosłego = ' + limit + ' kredytów/miesiąc). Dzieci nie mają dostępu do AI.'
     }) + '</div>' +
     '<div class="fam-topup" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
     '<button class="btn btn-sm ' + (pct >= 90 ? 'btn-primary' : '') + '" data-fam="topupAi">➕ Credits zubuchen</button>' +

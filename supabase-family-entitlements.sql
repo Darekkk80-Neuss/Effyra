@@ -14,7 +14,7 @@
 --   get_entitlements() und consume_ai() nutzen ab jetzt effective_tier() – die App
 --   übernimmt das Ergebnis automatisch (syncEntitlements liest die 'tier').
 --   KI-KONTINGENT: ein GEMEINSAMER Familien-Zähler (families.ai_used) statt 500 je Kopf.
---   Limit = seats_adults × 500 (+ Familien-Nachbestellung) – alle Erwachsenen teilen sich EINEN Topf.
+--   Limit = 1600 Basis + 500 je ZUSAETZLICHEM Erwachsenen (Add-on) (+ Nachbestellung) – ein gemeinsamer Topf.
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -154,7 +154,8 @@ begin
     v_via := true;
     via_fam_ai := true;
     if fam_month is distinct from cur_month then fam_used := 0; fam_extra := 0; end if;   -- Monatswechsel: Anzeige auf 0
-    fam_limit := fam_seats * public.ai_family_seat() + coalesce(fam_extra, 0);
+    -- Familien-Topf: Basis 1600 (enthaltene 2 Erwachsene) + 500 je ZUSAETZLICHEM Erwachsenen (Add-on) + Nachbestellung.
+    fam_limit := 1600 + greatest(fam_seats - 2, 0) * 500 + coalesce(fam_extra, 0);
   end if;
 
   return json_build_object(
