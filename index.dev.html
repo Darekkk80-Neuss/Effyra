@@ -5840,6 +5840,16 @@ async function kidJoin(code, errEl) {
   if (errEl) errEl.textContent = 'Verbinde …';
   try {
     let sess = (await sb.auth.getSession()).data.session;
+    /* Eine NICHT-anonyme Sitzung zuerst beenden. Dieser Ablauf heisst
+       ausdruecklich "Kinder-Handy einrichten" – wer ihn waehlt, will das
+       Geraet dem Kind geben, nicht sein eigenes Konto behalten. Die Abmeldung
+       ist folgenlos: die Daten liegen in der Cloud, ein erneutes Anmelden holt
+       sie zurueck. Ohne diesen Schritt weist der Server ab (nur anonyme
+       Sessions duerfen als Kind beitreten) und niemand versteht warum. */
+    if (sess && sess.user && sess.user.is_anonymous !== true) {
+      try { await sb.auth.signOut(); } catch (e) {}
+      sess = null;
+    }
     if (!sess) { const a = await sb.auth.signInAnonymously(); if (a.error) throw new Error('anon'); sess = a.data.session; }
     const r = await sb.rpc('join_as_child', { p_code: code });
     if (r.error) throw new Error(r.error.message);
@@ -5854,7 +5864,14 @@ async function kidJoin(code, errEl) {
     showView('dashboard');
     toast('👦 Kindermodus – willkommen' + (account.name ? ', ' + account.name : '') + ' 👋');
   } catch (e) {
-    if (errEl) errEl.textContent = 'Beitritt fehlgeschlagen. Ist der Kinder-Zugang serverseitig eingerichtet (Anonymous sign-ins + supabase-kids.sql)?';
+    /* Die neuen Serverpruefungen melden sehr konkret, warum es nicht ging –
+       das gehoert weitergereicht statt in einer Sammelmeldung zu verschwinden. */
+    const m = String((e && e.message) || '');
+    if (errEl) errEl.textContent =
+      /only anonymous/i.test(m) ? 'Auf diesem Gerät ist noch ein Erwachsenen-Konto angemeldet. Bitte abmelden und erneut versuchen.'
+      : /adults cannot/i.test(m) ? 'Dieses Konto gehört einem Erwachsenen und kann nicht als Kind beitreten.'
+      : /too many attempts/i.test(m) ? 'Zu viele Versuche. Bitte morgen erneut versuchen oder einen neuen Code holen.'
+      : 'Beitritt fehlgeschlagen. Ist der Kinder-Zugang serverseitig eingerichtet (Anonymous sign-ins + supabase-kids.sql)?';
   }
 }
 /* Boot: anonyme Session = Kind → gespeicherten Kindermodus wiederherstellen */
