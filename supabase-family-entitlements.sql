@@ -2,7 +2,10 @@
 -- Effyra – Familienabo: Berechtigung an ALLE verbundenen Mitglieder vererben
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar (idempotent).
 -- Voraussetzungen: supabase-setup.sql, supabase-tiers.sql und supabase-family.sql
--- wurden bereits ausgeführt (profiles, families, family_members, get_entitlements, consume_ai).
+-- wurden bereits ausgeführt (profiles, families, family_members, ai_base_limit).
+-- get_entitlements und consume_ai stehen NICHT mehr in den Vorgängerdateien:
+-- get_entitlements wird ausschliesslich hier definiert, consume_ai ausschliesslich
+-- in supabase-trial-and-play.sql.
 --
 -- PROBLEM, das hier gelöst wird:
 --   Bisher gilt das Abo pro Konto (profiles.tier). Der 6-stellige Familiencode verbindet
@@ -126,6 +129,7 @@ declare
   v_fam_until timestamptz;
   fam_used  int; fam_extra int; fam_month text; fam_seats int; fam_seats_ch int;
   fam_limit int; via_fam_ai boolean := false;
+  v_fam_id  uuid; v_plan_by uuid; v_rank int;   -- für die Sitzrang-Prüfung, siehe unten
 begin
   if uid is null then raise exception 'not authenticated'; end if;
   select * into p from public.profiles where id = uid;
@@ -148,8 +152,8 @@ begin
   -- Aktive Familie? -> gilt für den INHABER (plan_by) GENAUSO wie für geerbte Mitglieder.
   -- (Vorher nur für Mitglieder OHNE eigenes Premium – dadurch sah der Family-Käufer sich
   --  fälschlich als „Premium", weil apply_family_purchase ihn zusätzlich persönlich premium setzt.)
-  select f.plan_until, f.ai_used, coalesce(f.ai_extra, 0), f.ai_month, coalesce(f.seats_adults, 2), coalesce(f.seats_children, 3)
-    into v_fam_until, fam_used, fam_extra, fam_month, fam_seats, fam_seats_ch
+  select f.id, f.plan_until, f.ai_used, coalesce(f.ai_extra, 0), f.ai_month, coalesce(f.seats_adults, 2), coalesce(f.seats_children, 3), f.plan_by
+    into v_fam_id, v_fam_until, fam_used, fam_extra, fam_month, fam_seats, fam_seats_ch, v_plan_by
     from public.family_members fm
     join public.families f on f.id = fm.family_id
    where fm.user_id = uid
@@ -158,10 +162,26 @@ begin
    limit 1;
   if fam_seats is not null then
     v_via := true;
-    via_fam_ai := true;
+    -- Aus dem Familien-Topf schöpft nur, wer wirklich auf einem bezahlten Erwachsenensitz sitzt.
+    -- consume_ai und effective_tier prüfen den Sitzrang, diese Funktion tat es nicht: Mitglieder
+    -- JENSEITS der Sitzplätze bekamen den Familien-Topf angezeigt, wurden aber persönlich
+    -- abgerechnet – angezeigter und tatsächlicher Stand liefen auseinander.
+    if uid = v_plan_by then
+      via_fam_ai := true;   -- der Zahler ist immer abgedeckt
+    else
+      -- Nur ERWACHSENE zaehlen (wie in effective_tier): Kinder stehen ebenfalls in
+      -- family_members und verbrauchten sonst Erwachsenensitze.
+      select count(*) into v_rank from public.family_members fm2
+        where fm2.family_id = v_fam_id
+          and coalesce(fm2.role, 'adult') <> 'child'
+          and fm2.joined_at <= (select joined_at from public.family_members
+                                 where family_id = v_fam_id and user_id = uid);
+      via_fam_ai := (v_rank <= fam_seats);
+    end if;
     -- Monatswechsel: nur der Verbrauch startet neu; fam_extra (gekaufte Credits) bleibt stehen.
     if fam_month is distinct from cur_month then fam_used := 0; end if;
     -- Familien-Topf: Basis 1600 (enthaltene 2 Erwachsene) + 500 je ZUSAETZLICHEM Erwachsenen (Add-on) + Nachbestellung.
+    -- MUSS mit der Formel in consume_ai (supabase-trial-and-play.sql, Fall A) identisch bleiben.
     fam_limit := 1600 + greatest(fam_seats - 2, 0) * 500 + coalesce(fam_extra, 0);
   end if;
 
@@ -172,7 +192,17 @@ begin
     'family_until',    v_fam_until,
     -- KI-Kontingent: bei Familien-Freischaltung der GEMEINSAME Topf, sonst das persönliche
     'ai_used',         case when via_fam_ai then fam_used  else p.ai_used end,
-    'ai_limit',        case when via_fam_ai then fam_limit else public.ai_base_limit() + coalesce(p.ai_extra, 0) end,
+    -- Sockel EXAKT wie in consume_ai (supabase-trial-and-play.sql), sonst widersprechen sich die
+    -- beiden Quellen: hier stand fest ai_base_limit() (=500) auch für Trial-Nutzer, während
+    -- consume_ai 50 abrechnet. Je nachdem, welcher Aufruf zuletzt kam, sprang die Anzeige.
+    -- Setzt ai_trial_days()/ai_trial_credits() und profiles.trial_start voraus → supabase-trial-and-play.sql
+    -- muss eingespielt sein (RUNBOOK Schritt 10).
+    'ai_limit',        case when via_fam_ai then fam_limit
+                            else (case when eff = 'premium' then public.ai_base_limit()
+                                       when p.tier = 'free'
+                                            and now() < coalesce(p.trial_start, now()) + (public.ai_trial_days() || ' days')::interval
+                                            then public.ai_trial_credits()
+                                       else 0 end) + coalesce(p.ai_extra, 0) end,
     'ai_scope',        case when via_fam_ai then 'family'  else 'personal' end,
     'family_ai_used',  fam_used,
     'family_ai_limit', fam_limit,

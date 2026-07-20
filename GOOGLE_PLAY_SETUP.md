@@ -64,8 +64,28 @@ Real-time Developer Notifications halten Abos aktuell (Verlängerung, Storno, R�
 - [ ] In **Google Cloud → Pub/Sub** ein Topic `play-rtdn` anlegen.
 - [ ] Play Console → *Monetarisierung → Monetarisierungs-Setup → Echtzeit-Benachrichtigungen*
       → Topic eintragen.
-- [ ] Pub/Sub-**Push-Abo** auf die URL der Verify-Function (Endpoint `?rtdn=1`) zeigen lassen.
-      (Die Function erkennt RTDN-Nachrichten und ruft dieselben Entitlement-Funktionen.)
+- [ ] Pub/Sub-**Push-Abo** auf die URL der Verify-Function zeigen lassen, Endpoint `?rtdn=1`.
+      **Kein Secret in die URL.** Ein Query-String landet in den Supabase-Function-Logs, in
+      der Abo-Konfiguration und in jedem Proxy-Log dazwischen.
+- [ ] **Authentifizierung des Push-Abos (das ist der Schutz der Function).**
+      Pub/Sub kann keine frei gewählten Header senden – der einzige kopfbasierte Weg ist das
+      OIDC-Token, das Pub/Sub als `authorization: Bearer <JWT>` mitschickt.
+      1. Dienstkonto anlegen, z. B. `effyra-rtdn-push@<projekt>.iam.gserviceaccount.com`.
+         Es braucht **keine** Rollen auf unserer Seite.
+      2. Dem Pub/Sub-Dienstagenten `service-<PROJEKTNUMMER>@gcp-sa-pubsub.iam.gserviceaccount.com`
+         auf diesem Konto die Rolle **`roles/iam.serviceAccountTokenCreator`** geben. Fehlt sie,
+         kann Pub/Sub kein Token prägen und liefert gar nicht mehr aus.
+      3. Im Push-Abo *Authentifizierung aktivieren* → Dienstkonto aus 1. →
+         **Zielgruppe/Audience ausdrücklich** `effyra-rtdn` eintragen. Bleibt das Feld leer,
+         setzt Google die Push-URL als `aud` ein — die ändert sich, sobald `&key=` aus der
+         URL fliegt, und die Prüfung kippt im ungünstigsten Moment.
+      4. In Supabase: `supabase secrets set RTDN_SA_EMAIL='<konto aus 1.>'`
+         und `supabase secrets set RTDN_AUDIENCE='effyra-rtdn'`.
+- [ ] **Ohne echten Kauf testen:** Play Console → *Echtzeit-Benachrichtigungen* →
+      *Testbenachrichtigung senden*. Die Function antwortet mit 200 und `rtdn_ignored`,
+      der Auth-Pfad wird dabei vollständig durchlaufen. In den Logs darf **kein**
+      `rtdn_forbidden` stehen; `rtdn_auth_legacy_key` verschwindet erst, wenn `&key=`
+      aus der Push-URL entfernt ist (Reihenfolge siehe RUNBOOK Abschnitt 5).
 
 ---
 

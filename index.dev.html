@@ -5043,15 +5043,38 @@ function moduleAllowed(view) {
 function aiMonthKey() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1); }
 function ensureAIQuota() {
   if (!account) return;
-  if (!account.ai) account.ai = { month: aiMonthKey(), used: 0, extra: 0 };
-  if (account.ai.month !== aiMonthKey()) { account.ai.month = aiMonthKey(); account.ai.used = 0; account.ai.extra = 0; saveAccount(); }   // Monatswechsel → Reset
+  /* limit = das vom Server gelieferte ai_limit, unverändert. extra ist nur noch Altlast aus
+     gespeicherten Konten und wird nicht mehr befüllt (siehe applyServerUsage). */
+  if (!account.ai) account.ai = { month: aiMonthKey(), used: 0, extra: 0, limit: null, limitTier: null };
+  /* Monatswechsel → Verbrauch auf 0. Das Server-Limit wird dabei VERWORFEN statt geraten:
+     der Monatstopf füllt sich neu, gekaufte Credits rollen über – welche Summe dabei
+     herauskommt, weiß nur der Server. Bis zum nächsten Sync gilt die Schätzung aiBase(). */
+  if (account.ai.month !== aiMonthKey()) { account.ai.month = aiMonthKey(); account.ai.used = 0; account.ai.extra = 0; account.ai.limit = null; account.ai.limitTier = null; saveAccount(); }
 }
-/* Basis-Kontingent je Stufe: Free/Trial = 50 Credits, zahlend = 500/Monat. Extra = nachgebuchte Credits. */
+/* Server-Limit, falls vorhanden. consume_ai/get_entitlements liefern ai_limit als FERTIGE Summe
+   aus Monatstopf + gekauften Credits; der Sockel ist je nach Fall 50 (Trial), 0 (Trial vorbei),
+   500 (Premium) oder 1600+ (Familie). Genau deshalb darf der Client daraus nichts zurückrechnen –
+   die alte Formel extra = limit - 500 machte gekaufte Credits von Trial-Nutzern zu 0. */
+function aiServerLimit() {
+  ensureAIQuota();
+  if (typeof account.ai.limit !== 'number' || !isFinite(account.ai.limit)) return null;
+  /* Nach einem Stufenwechsel (Trial kauft Premium) beschreibt das gemessene Limit die alte
+     Stufe und wäre bis zum nächsten Sync zu klein → lieber schätzen als falsch anzeigen. */
+  if (account.ai.limitTier && account.ai.limitTier !== currentTier()) return null;
+  return account.ai.limit;
+}
+/* Schätzung OHNE Serverkontakt (nur bis zum ersten Sync): Free/Trial = 50 Credits, zahlend = 500/Monat. */
 function aiBase() { return isPaid() ? AI_MONTHLY_LIMIT : TRIAL_CREDITS; }
-function aiLimit() { ensureAIQuota(); return aiBase() + (account.ai.extra || 0); }
-/* Testphase (Free) nach 7 Tagen vorbei → keine KI mehr, App bleibt ohne KI nutzbar. */
+function aiLimit() { ensureAIQuota(); const s = aiServerLimit(); return (s !== null) ? s : aiBase() + (account.ai.extra || 0); }
+/* Testphase (Free) nach 7 Tagen vorbei → keine KI mehr, App bleibt ohne KI nutzbar.
+   Ausnahme: gekaufte Credits verfallen nicht. consume_ai rechnet nach Trial-Ende weiter aus
+   ai_extra ab (Sockel 0), der Client sperrte trotzdem mit "Testphase abgelaufen" – wer den
+   KI-Boost gekauft hatte, kam an sein bezahltes Guthaben nicht mehr heran.
+   Nur ein WIRKLICH vom Server gemessenes Limit entsperrt; mit der Schätzung aiBase() (50)
+   wäre sonst jede abgelaufene Testphase wieder offen. */
 const aiTrialOver = () => ENFORCE_AI_CREDITS && !isPaid() && !!account &&
-  Date.now() > (account.trialStart || Date.now()) + TRIAL_DAYS * 864e5;
+  Date.now() > (account.trialStart || Date.now()) + TRIAL_DAYS * 864e5 &&
+  !(aiServerLimit() !== null && aiServerLimit() > aiUsed());
 function aiUsed() { ensureAIQuota(); return account.ai.used || 0; }
 const aiRemaining = () => Math.max(0, aiLimit() - aiUsed());
 function aiPct() { const l = aiLimit(); return l ? Math.min(100, Math.round(aiUsed() / l * 100)) : 0; }
@@ -5237,7 +5260,10 @@ function applyServerUsage(used, limit) {
   if (!account || typeof used !== 'number') return;
   ensureAIQuota();
   account.ai.used = used;
-  if (typeof limit === 'number') account.ai.extra = Math.max(0, limit - AI_MONTHLY_LIMIT);
+  /* ai_limit ist die fertige Summe aus Monatstopf und gekauften Credits – NICHT zurückrechnen.
+     Hier stand extra = limit - 500; bei Trial-Nutzern (ai_limit = 50 + gekauft) kam dabei 0
+     heraus, solange weniger als 450 Credits gekauft waren: bezahlte Credits waren unsichtbar. */
+  if (typeof limit === 'number' && isFinite(limit)) { account.ai.limit = Math.max(0, limit); account.ai.limitTier = currentTier(); }
   saveAccount();
   const pct = aiPct();
   if (aiRemaining() === 0) toast('⚠️ KI-Kontingent aufgebraucht. In den Einstellungen nachbestellen oder eigenen Schlüssel hinterlegen.');
@@ -5253,7 +5279,12 @@ async function syncEntitlements() {
     const r = await sb.rpc('get_entitlements');
     if (r && !r.error && r.data) {
       account.tier = r.data.tier || account.tier || 'free';
-      account.ai = { month: r.data.usage_month, used: r.data.ai_used || 0, extra: Math.max(0, (r.data.ai_limit || AI_MONTHLY_LIMIT) - AI_MONTHLY_LIMIT) };
+      /* Limit unverändert übernehmen (Begründung siehe applyServerUsage). Fehlt es, lieber null
+         als raten – dann greift die Schätzung in aiLimit(). account.tier ist eine Zeile vorher
+         bereits gesetzt, limitTier bezieht sich also schon auf die neue Stufe. */
+      account.ai = { month: r.data.usage_month, used: r.data.ai_used || 0, extra: 0,
+        limit: (typeof r.data.ai_limit === 'number' && isFinite(r.data.ai_limit)) ? Math.max(0, r.data.ai_limit) : null,
+        limitTier: currentTier() };
       account.premiumUntil = r.data.premium_until || null;
       account.viaFamily = !!r.data.via_family;          // Premium über das Familienabo eines Mitglieds geerbt
       account.familyUntil = r.data.family_until || null;

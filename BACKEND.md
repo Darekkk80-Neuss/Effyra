@@ -76,7 +76,7 @@ Damit läuft **Premium mit vom Anbieter gestelltem Schlüssel** sicher: Der echt
 > Der Client ist vorbereitet, aber standardmäßig **aus**: In `index.html` steht `const BACKEND_V2 = false;`. Erst nach den folgenden Schritten auf `true` setzen, committen, pushen.
 
 ## A. Datenbank erweitern
-SQL-Editor → **kompletten Inhalt** von [`supabase-tiers.sql`](supabase-tiers.sql) einfügen → **Run**. (Fügt Stufen-/Kontingent-Spalten und die RPCs `get_entitlements`, `consume_ai`, `apply_purchase` hinzu; setzt bestehende Premium-Nutzer auf `tier='premium'`.)
+SQL-Editor → **kompletten Inhalt** von [`supabase-tiers.sql`](supabase-tiers.sql) einfügen → **Run**. (Fügt Stufen-/Kontingent-Spalten und die RPCs `ai_base_limit`, `apply_purchase`, `set_stripe_customer`, `redeem_code` hinzu; setzt bestehende Premium-Nutzer auf `tier='premium'`.) `get_entitlements` kommt aus `supabase-family-entitlements.sql`, `consume_ai` aus `supabase-trial-and-play.sql` — verbindliche Reihenfolge: [RUNBOOK.md](RUNBOOK.md).
 
 ## B. Supabase CLI installieren & anmelden
 ```bash

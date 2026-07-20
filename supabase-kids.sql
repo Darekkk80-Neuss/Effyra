@@ -61,6 +61,11 @@ begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
   v_fid := public.my_family_id();
   if v_fid is null then raise exception 'no family'; end if;
+  -- Nur Erwachsene duerfen Zugangscodes verwalten (Muster wie in save_family).
+  -- Ohne die Prüfung konnte ein Kindergerät sich selbst neue Codes ausstellen
+  -- und beliebig viele weitere Geräte in die Familie holen.
+  if (select role from public.family_members where user_id = auth.uid() and family_id = v_fid) = 'child'
+    then raise exception 'children cannot manage access codes'; end if;
   -- alte Codes dieses Kindes in dieser Familie entwerten
   update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id and not revoked;
   loop
@@ -83,6 +88,10 @@ begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
   v_fid := public.my_family_id();
   if v_fid is null then return; end if;
+  -- Nur Erwachsene duerfen Zugangscodes verwalten (Muster wie in save_family).
+  -- Sonst könnte ein Kind den Zugang eines Geschwisterkinds beenden.
+  if (select role from public.family_members where user_id = auth.uid() and family_id = v_fid) = 'child'
+    then raise exception 'children cannot manage access codes'; end if;
   update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id;
   delete from public.family_members where family_id = v_fid and role = 'child' and member_id = p_member_id;
 end; $$;

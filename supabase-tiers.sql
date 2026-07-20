@@ -36,50 +36,24 @@ create or replace function public.ai_base_limit() returns int
   language sql immutable as $$ select 500 $$;
 
 -- ------------------------------------------------------------
--- 2) get_entitlements(): aktuellen Stand holen (mit Monats-Reset & Abo-Ablauf)
---    Vom angemeldeten Nutzer aufrufbar; liefert JSON.
+-- 2) get_entitlements() — HIER ENTFERNT (bewusst).
+--    ⚠️ Diese Datei definierte früher eine Fassung, die NUR profiles.tier kennt:
+--    ohne effective_tier(), ohne Familienvererbung, ohne den gemeinsamen
+--    Familien-Topf. Sie kann hier auch gar nicht richtig sein – families und
+--    effective_tier entstehen erst in supabase-family-entitlements.sql, also
+--    NACH dieser Datei. Wer tiers.sql einzeln nachlaufen liess (etwa wegen
+--    apply_purchase), setzte damit still auf die alte Fassung zurück:
+--    Familienmitglieder verloren die geerbte Premium-Stufe, und die Felder
+--    ai_scope/family_ai_limit/seats_adults fehlten in der Antwort, die der
+--    Client (syncEntitlements) erwartet.
+--    → Die EINE gültige Definition steht in **supabase-family-entitlements.sql**
+--      (dort Abschnitt 3) und wird dort auch berechtigt (revoke/grant).
+--    Die revoke/grant-Zeilen sind hier mit entfernt: ohne Definition würden sie
+--    auf einer frischen Datenbank mit „function does not exist" abbrechen.
+--    Reihenfolge: tiers → family-entitlements → trial-and-play (zuletzt).
+--    Gleiche Bereinigung wie zuvor bei consume_ai und save_family.
+--    ai_base_limit() bleibt in dieser Datei – die gültige Fassung ruft es auf.
 -- ------------------------------------------------------------
-create or replace function public.get_entitlements()
-returns json
-language plpgsql
-security definer set search_path = public
-as $$
-declare
-  uid uuid := auth.uid();
-  p public.profiles%rowtype;
-  cur_month text := to_char(now(), 'YYYY-MM');
-begin
-  if uid is null then raise exception 'not authenticated'; end if;
-  select * into p from public.profiles where id = uid;
-  if not found then raise exception 'no profile'; end if;
-
-  -- Monatswechsel -> NUR das Monatskontingent zurücksetzen.
-  -- ai_extra (gekaufte Credits) bleibt: es rollt über und verfällt nicht –
-  -- so, wie es consume_ai durchgängig behandelt und die Paywall es zusagt.
-  if p.usage_month is distinct from cur_month then
-    update public.profiles
-       set usage_month = cur_month, ai_used = 0
-     where id = uid
-     returning * into p;
-  end if;
-
-  -- Premium-Abo abgelaufen -> zurück auf Medium (App bleibt, KI weg)
-  if p.tier = 'premium' and p.premium_until is not null and p.premium_until < now() then
-    update public.profiles set tier = 'medium' where id = uid returning * into p;
-  end if;
-
-  return json_build_object(
-    'tier',         p.tier,
-    'ai_used',      p.ai_used,
-    'ai_limit',     public.ai_base_limit() + coalesce(p.ai_extra, 0),
-    'usage_month',  cur_month,
-    'premium_until', p.premium_until
-  );
-end;
-$$;
-
-revoke execute on function public.get_entitlements() from public, anon;
-grant  execute on function public.get_entitlements() to authenticated;
 
 -- ------------------------------------------------------------
 -- 3) consume_ai(user, n) — HIER ENTFERNT (bewusst).

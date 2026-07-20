@@ -49,7 +49,7 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 | 16 | `supabase-overdue.sql` | Cron überfällige Aufgaben |
 | 17 | `supabase-weather.sql` | Warn-Spalten + Cron Unwetter |
 | 18 | `supabase-monitoring.sql` | `cron_health()`, `cron_http_health()` |
-| 19 | `supabase/migrations/20260719_*.sql` | Rollenprüfung Kindercodes |
+| 19 | — | entfällt: `supabase/migrations/20260719_*.sql` enthält nur noch einen Hinweis, die Rollenprüfung steht jetzt in Schritt 6 (`supabase-kids.sql`) |
 
 ### Doppelt definierte Funktionen — bewusst bereinigt
 
@@ -57,7 +57,19 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 |---|---|---|
 | `consume_ai` | `supabase-trial-and-play.sql` | tiers, family-entitlements |
 | `save_family` | `supabase-kids.sql` | family.sql (auch aus der grant-Liste) |
-| `get_entitlements` | steht in **beiden** (tiers + family-entitlements) | — noch offen, family-entitlements gewinnt durch Reihenfolge |
+| `get_entitlements` | `supabase-family-entitlements.sql` | tiers.sql (auch die revoke/grant-Zeilen) |
+| `create_child_code`, `revoke_child_code` | `supabase-kids.sql` | `supabase/migrations/20260719_*.sql` (Rollenprüfung dorthin übernommen) |
+
+### Doppelt definierte Funktionen — bleiben doppelt
+
+Beide lassen sich nicht auflösen, ohne `supabase-setup.sql` auf einer frischen
+Datenbank unbrauchbar zu machen. **`supabase-setup.sql` deshalb nie einzeln
+nachlaufen lassen** — danach immer 7 (`tiers`) und 11 (`trial-schutz`) erneut.
+
+| Funktion | Gültig ist | Steht auch in |
+|---|---|---|
+| `handle_new_user` | `supabase-trial-schutz.sql` (Schritt 11) | `supabase-setup.sql` — dort ohne Trial-Missbrauchsschutz |
+| `redeem_code` | `supabase-tiers.sql` (Schritt 7) | `supabase-setup.sql` — dort ohne `tier`/`premium_until` |
 
 ---
 
@@ -83,7 +95,7 @@ supabase functions deploy due-reminder     --no-verify-jwt
 supabase functions deploy morning-push     --no-verify-jwt
 supabase functions deploy overdue-reminder --no-verify-jwt
 supabase functions deploy weather-push     --no-verify-jwt
-supabase functions deploy play-verify      --no-verify-jwt   # RTDN von Google Pub/Sub
+supabase functions deploy play-verify      --no-verify-jwt   # RTDN: OIDC-Token wird IM CODE geprueft, das Gateway darf den authorization-Header nicht anfassen
 supabase functions deploy stripe-webhook   --no-verify-jwt   # Signaturprüfung im Code
 ```
 
@@ -138,7 +150,9 @@ Zusätzlich in den Function-Logs nach diesen Zeichenketten suchen:
 | `OPENAI_MODEL_CHAIN` | claude-proxy (optional) | Default-Kette |
 | `GOOGLE_TTS_KEY`, `ELEVENLABS_API_KEY` | claude-proxy (optional) | still auf OpenAI-TTS |
 | `PLAY_PACKAGE_NAME`, `PLAY_SERVICE_ACCOUNT_JSON` | play-verify | 500 |
-| `RTDN_SECRET` | play-verify | fällt auf CRON_SECRET zurück |
+| `RTDN_SA_EMAIL` | play-verify (RTDN, Dienstkonto des Push-Abos) | OIDC-Weg aus, es zieht nur noch der alte `?key=`-Weg |
+| `RTDN_AUDIENCE` | play-verify (RTDN, optional) | `aud` wird nicht geprüft |
+| `RTDN_SECRET` | play-verify (RTDN, **Altweg `?key=`, wird abgeschafft**) | fällt auf CRON_SECRET zurück |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`, `APP_URL` | stripe-* | **Käufe werden nicht gutgeschrieben, nur im Stripe-Dashboard sichtbar** |
 | `PEXELS_KEY`, `SPOONACULAR_KEY`, `TANKERKOENIG_KEY` | jeweiliger Proxy | Widget zeigt „nicht eingerichtet" |
 
@@ -146,6 +160,17 @@ Zusätzlich in den Function-Logs nach diesen Zeichenketten suchen:
 schreiben (`supabase-due-reminder.sql`, `-morning.sql`, `-overdue.sql`,
 `-weather.sql` erneut ausführen). Zwischen beiden Schritten fallen alle Pushes
 aus.
+
+**RTDN-Umstellung (läuft):** play-verify akzeptiert übergangsweise beide
+Auth-Wege — das OIDC-Token im `authorization`-Header (neu) und `?key=` im
+Query-String (alt). Der alte Weg schrieb das Secret in Function-Logs, in die
+Pub/Sub-Konfiguration und in jedes Proxy-Log; weil `RTDN_SECRET` auf
+`CRON_SECRET` zurückfällt, lag dort im Regelfall das Cron-Secret. Solange
+`rtdn_auth_legacy_key` in den Function-Logs auftaucht, steht es noch in der
+Push-URL. Abschalten (in dieser Reihenfolge): `&key=` aus dem Pub/Sub-Push-Abo
+entfernen → mehrere Tage Logs beobachten → Legacy-Zweig in
+`play-verify/index.ts` löschen → `RTDN_SECRET` entfernen → **CRON_SECRET
+rotieren**, denn es stand in Logs und Console-Historie.
 
 ---
 

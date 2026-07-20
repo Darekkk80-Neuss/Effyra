@@ -1,42 +1,16 @@
-CREATE OR REPLACE FUNCTION public.create_child_code(p_member_id text)
- RETURNS text
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare v_fid uuid; v_code text; v_try int := 0;
-begin
-  if auth.uid() is null then raise exception 'not authenticated'; end if;
-  v_fid := public.my_family_id();
-  if v_fid is null then raise exception 'no family'; end if;
-  -- Nur Erwachsene duerfen Zugangscodes verwalten (Muster wie in save_family)
-  if (select role from public.family_members where user_id = auth.uid() and family_id = v_fid) = 'child'
-    then raise exception 'children cannot manage access codes'; end if;
-  -- alte Codes dieses Kindes in dieser Familie entwerten
-  update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id and not revoked;
-  loop
-    v_code := public.gen_family_code(8);   -- siehe supabase-codes.sql (CSPRNG, 31er-Alphabet)
-    exit when not exists (select 1 from public.family_child_codes where code = v_code);
-    v_try := v_try + 1; if v_try > 30 then raise exception 'code generation failed'; end if;
-  end loop;
-  insert into public.family_child_codes (code, family_id, member_id, created_by) values (v_code, v_fid, p_member_id, auth.uid());
-  return v_code;
-end; $function$;
-
-CREATE OR REPLACE FUNCTION public.revoke_child_code(p_member_id text)
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-declare v_fid uuid;
-begin
-  if auth.uid() is null then raise exception 'not authenticated'; end if;
-  v_fid := public.my_family_id();
-  if v_fid is null then return; end if;
-  -- Nur Erwachsene duerfen Zugangscodes verwalten (Muster wie in save_family)
-  if (select role from public.family_members where user_id = auth.uid() and family_id = v_fid) = 'child'
-    then raise exception 'children cannot manage access codes'; end if;
-  update public.family_child_codes set revoked = true where family_id = v_fid and member_id = p_member_id;
-  delete from public.family_members where family_id = v_fid and role = 'child' and member_id = p_member_id;
-end; $function$;
+-- ============================================================
+-- Effyra – Rollenprüfung Kindercodes: INHALT NACH supabase-kids.sql VERSCHOBEN.
+-- ============================================================
+-- ⚠️ Diese Datei definierte create_child_code und revoke_child_code ein ZWEITES
+--    Mal. Sie stand in RUNBOOK.md als LETZTER Schritt (19) und gewann damit
+--    gegen supabase-kids.sql (Schritt 6) – und ihre Fassung von
+--    create_child_code fügt OHNE expires_at ein. Nach einem vollständigen
+--    Durchlauf der Reihenfolge waren die Kindercodes deshalb wieder unbefristet:
+--    join_as_child lässt `expires_at is null` ausdrücklich zu, die 14-Tage-Frist
+--    aus kids.sql war wirkungslos. Beide Dateien hatten je eine Hälfte des
+--    richtigen Codes – die Rollenprüfung hier, die Ablauffrist dort.
+--    → Die EINE gültige Definition steht jetzt in **supabase-kids.sql**
+--      (Abschnitte 3 und 4), mit Rollenprüfung UND Ablauffrist.
+--    Diese Datei wird nicht mehr ausgeführt und bleibt nur als Beleg stehen.
+--    Gleiche Bereinigung wie zuvor bei consume_ai, save_family und get_entitlements.
+-- ============================================================

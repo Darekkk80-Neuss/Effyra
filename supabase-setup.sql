@@ -40,8 +40,18 @@ grant  update (name)        on public.profiles to authenticated;
 
 -- ------------------------------------------------------------
 -- 2) Automatik: Bei jeder Registrierung wird das Profil angelegt
---    und die 3-Tage-Testphase gestartet (serverseitig!)
+--    und die Testphase gestartet (serverseitig!)
 -- ------------------------------------------------------------
+-- ⚠️ handle_new_user wird in supabase-trial-schutz.sql ERNEUT definiert – dort
+--    steht die gültige Fassung mit dem Trial-Missbrauchsschutz (trial_ledger,
+--    gepfefferter E-Mail-Hash, kein Trial für anonyme Kinder-Sessions).
+--    Die Fassung hier ist das Minimum, damit der Trigger unten auf einer LEEREN
+--    Datenbank überhaupt angelegt werden kann; sie darf nicht entfallen.
+--    FOLGE: Wer diese Datei einzeln nachlaufen lässt, schaltet den kompletten
+--    Missbrauchsschutz still ab – jede gelöschte und neu angelegte Adresse
+--    bekommt wieder 50 frische Credits. Danach IMMER supabase-trial-schutz.sql
+--    (RUNBOOK Schritt 11) und supabase-tiers.sql (Schritt 7, wegen redeem_code)
+--    erneut ausführen.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
