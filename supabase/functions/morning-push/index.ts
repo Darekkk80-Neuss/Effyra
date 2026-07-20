@@ -55,20 +55,25 @@ Deno.serve(async (req) => {
   const deadEps: string[] = [];
   try {
     total = await pageEach<any>(
-      () => admin.from('push_subscriptions').select('user_id,endpoint,sub').eq('morning', true),
+      () => admin.from('push_subscriptions').select('user_id,endpoint,sub').eq('morning', true).order('endpoint'),
       async (page) => {
         // Sprache nur für die Nutzer DIESER Seite holen (zwei Buchstaben je
         // Nutzer statt des vollen Zustands-Blobs).
         const uids = [...new Set(page.map((s: any) => s.user_id))];
         const langBy = new Map<string, string>();
         try {
-          const states = await withFallback(
-            () => pageAll<any>(() => admin.from('user_state').select('user_id,lang:data->profile->>lang').in('user_id', uids)),
-            async () => (await pageAll<any>(() => admin.from('user_state').select('user_id,data').in('user_id', uids)))
-              .map((r) => ({ user_id: r.user_id, lang: r.data?.profile?.lang })),
-          );
-          for (const st of states) {
-            if (typeof st.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(st.lang)) langBy.set(st.user_id, st.lang);
+          // In Bloecke teilen: bis zu 500 UUIDs in einem .in() ergaeben einen
+          // Query-String von ~19 KB und damit ein HTTP 414 – der Fehler landete
+          // im catch unten und ALLE Nutzer bekaemen still den deutschen Text.
+          for (const part of chunk(uids, 200)) {
+            const states = await withFallback(
+              () => pageAll<any>(() => admin.from('user_state').select('user_id,lang:data->profile->>lang').in('user_id', part)),
+              async () => (await pageAll<any>(() => admin.from('user_state').select('user_id,data').in('user_id', part)))
+                .map((r) => ({ user_id: r.user_id, lang: r.data?.profile?.lang })),
+            );
+            for (const st of states) {
+              if (typeof st.lang === 'string' && /^(de|en|fr|es|it|pl)$/.test(st.lang)) langBy.set(st.user_id, st.lang);
+            }
           }
         } catch (_e) { /* Fallback de */ }
 

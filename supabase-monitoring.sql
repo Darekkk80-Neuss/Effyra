@@ -74,7 +74,7 @@ begin
    where r.created > now() - make_interval(hours => p_hours)
    group by 1, 4
    order by 2 desc;
-exception when undefined_table or insufficient_privilege then
+exception when undefined_table or undefined_function or invalid_schema_name or insufficient_privilege then
   -- pg_net nicht installiert oder Sicht nicht lesbar: leeres Ergebnis statt Fehler.
   return;
 end; $fn$;

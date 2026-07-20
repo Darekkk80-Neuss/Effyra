@@ -35,8 +35,8 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 | 2 | `supabase-sync.sql` | user_state (Geräte-Sync) |
 | 3 | `supabase-push.sql` | push_subscriptions |
 | 4 | `supabase-codes.sql` | `gen_family_code`, Beitritts-Rate-Limit |
-| 5 | `supabase-kids.sql` | Kinderprofile, **kanonische `save_family`** |
-| 6 | `supabase-family.sql` | Familien, Beitritt/Austritt (nach kids.sql!) |
+| 5 | `supabase-family.sql` | Familien, Beitritt/Austritt, Tabellen + Spalte `role` |
+| 6 | `supabase-kids.sql` | Kinderprofile, **kanonische `save_family`** (nach family.sql) |
 | 7 | `supabase-tiers.sql` | Stufen, `apply_purchase` |
 | 8 | `supabase-family-entitlements.sql` | `get_entitlements`, `effective_tier` |
 | 9 | `supabase-play-purchases.sql` | Play-Abo-Lebenszyklus, Sitzplätze |
@@ -56,7 +56,7 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 | Funktion | Gültige Definition | Aus welcher Datei entfernt |
 |---|---|---|
 | `consume_ai` | `supabase-trial-and-play.sql` | tiers, family-entitlements |
-| `save_family` | `supabase-kids.sql` | family.sql |
+| `save_family` | `supabase-kids.sql` | family.sql (auch aus der grant-Liste) |
 | `get_entitlements` | steht in **beiden** (tiers + family-entitlements) | — noch offen, family-entitlements gewinnt durch Reihenfolge |
 
 ---

@@ -54,7 +54,11 @@ export function chunk<T>(items: readonly T[], size: number): T[][] {
 /** Wie pageAll, gibt die Seiten aber EINZELN weiter, statt alles zu sammeln.
  *  Entscheidend, wenn die Zeilen groß sind (JSONB-Blobs): der Speicherbedarf
  *  bleibt bei einer Seite statt bei der ganzen Tabelle, und die 256-MB-Grenze
- *  der Edge Functions ist damit unabhängig von der Nutzerzahl. */
+ *  der Edge Functions ist damit unabhängig von der Nutzerzahl.
+ *
+ *  WICHTIG: Der Aufrufer MUSS eine stabile Sortierung setzen (.order(...)).
+ *  Ohne order by garantiert Postgres bei range()/OFFSET keine konsistente
+ *  Reihenfolge – Zeilen könnten übersprungen oder doppelt verarbeitet werden. */
 export async function pageEach<T = any>(
   build: () => any,
   onPage: (rows: T[]) => Promise<void> | void,

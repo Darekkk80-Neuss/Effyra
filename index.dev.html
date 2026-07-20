@@ -5718,7 +5718,7 @@ function kidJoinOpen() {
   ov.onclick = e => { if (e.target === ov) close(); };
   const inp = ov.querySelector('#kjCode');
   const errEl = ov.querySelector('#kjErr');
-  const norm = () => inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  const norm = () => inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
   inp.addEventListener('input', () => { inp.value = norm(); });
   const validCode = () => { const c = norm(); if (!/^[A-Z0-9]{6,8}$/.test(c)) { errEl.textContent = 'Bitte den Code vollstaendig eingeben.'; return null; } return c; };
   ov.querySelector('#kjChild').onclick = () => { const c = validCode(); if (c) kidJoin(c, errEl); };
@@ -10258,7 +10258,7 @@ function famSync() {
 /* Familiencode-Feld: Auto-Uppercase, Filter, Live-Validierung des „Verbinden"-Buttons */
 $('#famRoot').addEventListener('input', e => {
   const inp = e.target.closest('#joinCode'); if (!inp) return;
-  const v = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  const v = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
   if (inp.value !== v) inp.value = v;
   const btn = $('#famRoot #joinBtn'); if (btn) btn.disabled = !/^[A-Z0-9]{6,8}$/.test(v);
   joinStatus(v.length > 0 && v.length < 6 ? 'Noch ' + (6 - v.length) + ' Zeichen …' : '', 'busy');
@@ -10387,7 +10387,7 @@ $('#famRoot').addEventListener('click', e => {
     if (!navigator.clipboard || !navigator.clipboard.readText) { toast('Einfügen hier nicht möglich – bitte manuell eintippen.'); return; }
     navigator.clipboard.readText().then(txt => {
       const inp = q('#joinCode'); if (!inp) return;
-      inp.value = String(txt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+      inp.value = String(txt || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
       inp.dispatchEvent(new Event('input', { bubbles: true })); inp.focus();
     }).catch(() => toast('Einfügen nicht möglich – bitte manuell eintippen.'));
     return;

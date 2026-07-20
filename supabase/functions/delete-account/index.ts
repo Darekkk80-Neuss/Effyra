@@ -49,9 +49,10 @@ Deno.serve(async (req) => {
       const { data: mine } = await admin
         .from('family_members').select('family_id').eq('user_id', uid);
       for (const m of mine || []) {
+        // Nur die Existenz pruefen – der data-Blob wird hier nicht gebraucht.
         const { data: fam } = await admin
-          .from('families').select('data,created_by').eq('id', m.family_id).maybeSingle();
-        if (!fam || fam.created_by === uid) continue;   // eigene Familie wird unten komplett gelöscht
+          .from('families').select('id').eq('id', m.family_id).maybeSingle();
+        if (!fam) continue;
         await admin.rpc('scrub_member_from_family', { p_fid: m.family_id, p_user: uid });
       }
     } catch (e) { console.error('scrub_failed', String(e)); }
@@ -63,9 +64,11 @@ Deno.serve(async (req) => {
     // mitgelöscht, nur weil der Ersteller sein Konto aufgab.
     const { data: fams } = await admin.from('families').select('id').eq('created_by', uid);
     for (const f of fams || []) {
-      const { count } = await admin
+      const { count, error: cntErr } = await admin
         .from('family_members').select('user_id', { count: 'exact', head: true }).eq('family_id', f.id);
-      if ((count ?? 0) > 0) {
+      // Bei einem Fehler ist count null. Das als "leer" zu werten wuerde die
+      // Familie samt aller Partner- und Kinderdaten loeschen – im Zweifel behalten.
+      if (cntErr || count == null || count > 0) {
         // Andere nutzen sie weiter → nur die Urheberschaft lösen (FK ist ON DELETE SET NULL).
         await admin.from('families').update({ created_by: null }).eq('id', f.id);
         continue;

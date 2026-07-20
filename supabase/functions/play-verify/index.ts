@@ -141,23 +141,43 @@ Deno.serve(async (req) => {
     // Credits. Zusätzlich überschrieb der Upsert unten stillschweigend die
     // user_id, sodass ein fremder Token auf das eigene Konto umgeschrieben
     // werden konnte – samt aller künftigen RTDN-Verlängerungen.
-    const { data: known } = await admin
-      .from('play_purchases').select('user_id').eq('purchase_token', token).maybeSingle();
-    if (known && known.user_id !== uid) return json({ error: 'token_owned' }, 409);
-
     const v = await verifyPurchase(sku, token, type || 'subs');
     if (!v.ok) return json({ error: 'purchase_invalid' }, 402);
 
+    // Die Erstgewährung wird über einen ATOMAREN Insert entschieden, nicht über
+    // ein vorheriges select. Ein „erst lesen, dann handeln" wäre zwar seriell
+    // dicht, aber 100 gleichzeitige POSTs mit demselben Token läsen alle
+    // „unbekannt" und liefen alle in grant_play_purchase – das rechnet kumulativ
+    // (+32 Tage bzw. +1000 Credits je Aufruf). Nur der Aufruf, dessen Insert die
+    // Zeile wirklich anlegt, darf gewähren; alle anderen landen im sync-Pfad.
+    const { data: ins, error: insErr } = await admin
+      .from('play_purchases')
+      .upsert(
+        { purchase_token: token, user_id: uid, sku, ptype: type || 'subs', expiry_ms: v.expiryMs || null, updated_at: new Date().toISOString() },
+        { onConflict: 'purchase_token', ignoreDuplicates: true })
+      .select('purchase_token');
+    // Fail-CLOSED: bei einem Datenbankfehler lieber nichts gewähren, als über
+    // den Fehlerpfad in die kumulative Gewährung zu rutschen.
+    if (insErr) return json({ error: 'grant_failed', detail: insErr.message }, 500);
+    const isFirst = !!(ins && ins.length);
+
+    if (!isFirst) {
+      // Token existiert bereits. Gehört er jemand anderem? Dann abweisen –
+      // sonst wanderte die Zuordnung samt aller künftigen RTDN-Verlängerungen
+      // zum letzten Aufrufer.
+      const { data: known, error: knownErr } = await admin
+        .from('play_purchases').select('user_id').eq('purchase_token', token).maybeSingle();
+      if (knownErr) return json({ error: 'grant_failed', detail: knownErr.message }, 500);
+      if (!known || known.user_id !== uid) return json({ error: 'token_owned' }, 409);
+      // Eigener, bereits eingelöster Token → nur das Ablaufdatum fortschreiben.
+      await admin.from('play_purchases')
+        .update({ expiry_ms: v.expiryMs || null, updated_at: new Date().toISOString() })
+        .eq('purchase_token', token);
+    }
+
     // Bekannter Token → NIE erneut gewähren, nur den Ablauf synchronisieren.
     // sync_play_expiry SETZT das Datum (statt zu addieren) und ist damit idempotent.
-    const effMode = known ? 'sync' : mode;
-
-    // Kauf↔Nutzer merken (mit Ablaufdatum – für RTDN & Add-on-Sitzplätze).
-    // ignoreDuplicates greift nicht, weil expiry_ms fortgeschrieben werden muss;
-    // die Besitzerprüfung oben stellt sicher, dass user_id sich nie ändert.
-    await admin.from('play_purchases').upsert(
-      { purchase_token: token, user_id: uid, sku, ptype: type || 'subs', expiry_ms: v.expiryMs || null, updated_at: new Date().toISOString() },
-      { onConflict: 'purchase_token' });
+    const effMode = isFirst ? mode : 'sync';
 
     // Add-ons (Zusatz-Erwachsener/Kind): Sitzplätze idempotent neu berechnen (kein grant/sync).
     if (isAddon(sku)) {

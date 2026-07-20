@@ -26,6 +26,14 @@ create table if not exists public.family_members (
   primary key (family_id, user_id)
 );
 
+-- Rolle direkt hier anlegen, nicht erst in supabase-kids.sql.
+-- Sonst entsteht eine ZIRKULÄRE Abhängigkeit: kids.sql verweist auf
+-- public.families (entsteht hier), diese Datei schreibt aber `role` (entstand
+-- dort). Damit gab es auf einer frischen Datenbank KEINE gültige Reihenfolge –
+-- auf der bestehenden Produktions-DB fiel es nur nicht auf, weil beide Spalten
+-- längst existieren. kids.sql legt die Spalte weiterhin idempotent an.
+alter table public.family_members add column if not exists role text not null default 'adult';
+
 -- „Ein Nutzer, genau eine Familie" strukturell erzwingen.
 -- Der Primärschlüssel (family_id, user_id) lässt zwei Familien FÜR DENSELBEN
 -- Nutzer zu. Genau das passiert bei einem Doppelklick auf „Familie erstellen"
@@ -94,7 +102,7 @@ end; $$;
 -- ------------------------------------------------------------
 create or replace function public.join_family(p_code text)
 returns json language plpgsql security definer set search_path = public as $$
-declare v_id uuid; v_data jsonb; v_upd timestamptz; v_role text;
+declare v_id uuid; v_data jsonb; v_upd timestamptz; v_role text; v_old uuid;
 begin
   if auth.uid() is null then raise exception 'not authenticated'; end if;
 
@@ -116,8 +124,14 @@ begin
   if v_id is null then return null; end if;
 
   -- Bestehende Rolle bewahren – ein Wechsel der Familie darf niemanden befördern.
-  select role into v_role from public.family_members where user_id = auth.uid() limit 1;
+  select family_id, role into v_old, v_role
+    from public.family_members where user_id = auth.uid() limit 1;
+  if v_role = 'child' then raise exception 'children cannot switch families'; end if;
+
   delete from public.family_members where user_id = auth.uid();
+  -- Alte Familie bereinigen, BEVOR die neue gesetzt wird (siehe release_family).
+  perform public.release_family(v_old, auth.uid());
+
   insert into public.family_members (family_id, user_id, role)
   values (v_id, auth.uid(), coalesce(v_role, 'adult'))
   on conflict (family_id, user_id) do nothing;
@@ -152,29 +166,48 @@ end; $$;
 -- ------------------------------------------------------------
 -- Familie verlassen
 -- ------------------------------------------------------------
-create or replace function public.leave_family()
+-- Gemeinsame Bereinigung für JEDEN Weg aus einer Familie heraus.
+-- Muss von leave_family UND join_family aufgerufen werden: der Client wechselt
+-- die Familie über join_family und ruft leave_family dabei nie auf. Ohne den
+-- Aufruf an beiden Stellen bliebe das Abo-Karussell offen – Zahler wechselt
+-- die Familie, die alte behält plan_until 32 Tage lang, sync_play_expiry
+-- schreibt denselben Kauf in die neue.
+create or replace function public.release_family(p_fid uuid, p_user uuid)
 returns void language plpgsql security definer set search_path = public as $$
-declare v_fid uuid;
 begin
-  select family_id into v_fid from public.family_members where user_id = auth.uid() limit 1;
-  delete from public.family_members where user_id = auth.uid();
-  if v_fid is null then return; end if;
+  if p_fid is null or p_user is null then return; end if;
 
-  -- Verlässt der ZAHLER die Familie, muss der Plan mit ihm gehen. Vorher blieb
-  -- er bis plan_until stehen, während sync_play_expiry denselben Kauf beim
-  -- nächsten App-Start in die neue Familie schrieb: ein Abo schaltete so
-  -- nacheinander beliebig viele fremde Familien für je 32 Tage frei.
+  -- plan ist NOT NULL DEFAULT 'free' – ein null hier würde die ganze
+  -- Transaktion zurückrollen und den Austritt damit unmöglich machen.
   update public.families
-     set plan = null, plan_until = null, plan_by = null
-   where id = v_fid and plan_by = auth.uid();
+     set plan = 'free', plan_until = null, plan_by = null
+   where id = p_fid and plan_by = p_user;
 
   -- Sitzplätze der verlassenen Familie neu rechnen – Add-ons hängen am Käufer
-  -- und wandern mit ihm. Fehlt die Funktion (ältere Einspielreihenfolge),
-  -- bleibt der Austritt trotzdem gültig.
+  -- und wandern mit ihm.
   begin
-    perform public.recompute_family_seats_fid(v_fid);
+    perform public.recompute_family_seats_fid(p_fid);
   exception when others then null;
   end;
+end; $$;
+
+revoke execute on function public.release_family(uuid, uuid) from public, anon, authenticated;
+
+create or replace function public.leave_family()
+returns void language plpgsql security definer set search_path = public as $$
+declare v_fid uuid; v_role text;
+begin
+  select family_id, role into v_fid, v_role
+    from public.family_members where user_id = auth.uid() limit 1;
+
+  -- Kinder beenden ihren Zugang NICHT selbst. Sonst wäre der Rollenerhalt in
+  -- join_family umgehbar: austreten (Rolle weg) und mit dem bekannten
+  -- Familiencode als 'adult' wieder beitreten. Entwertet wird ein Kinderzugang
+  -- über revoke_child_code durch einen Erwachsenen.
+  if v_role = 'child' then raise exception 'children cannot leave on their own'; end if;
+
+  delete from public.family_members where user_id = auth.uid();
+  perform public.release_family(v_fid, auth.uid());
 end; $$;
 
 -- ------------------------------------------------------------
@@ -209,9 +242,10 @@ revoke execute on function public.scrub_member_from_family(uuid, uuid) from publ
 
 -- Ausführungsrechte: nur angemeldete Nutzer
 revoke execute on function public.create_family(), public.join_family(text), public.get_family(),
-  public.save_family(jsonb), public.leave_family(), public.my_family_id() from public, anon;
+  public.leave_family(), public.my_family_id() from public, anon;
 grant execute on function public.create_family(), public.join_family(text), public.get_family(),
-  public.save_family(jsonb), public.leave_family(), public.my_family_id() to authenticated;
+  public.leave_family(), public.my_family_id() to authenticated;
+-- save_family wird in supabase-kids.sql definiert UND dort berechtigt.
 
 -- ------------------------------------------------------------
 -- Migration für bereits bestehende Tabellen: created_by-FK auf ON DELETE SET NULL

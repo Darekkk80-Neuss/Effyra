@@ -132,6 +132,8 @@ end; $$;
 -- Ausführungsrechte
 revoke execute on function public.create_child_code(text), public.revoke_child_code(text), public.join_as_child(text) from public, anon;
 grant  execute on function public.create_child_code(text), public.revoke_child_code(text) to authenticated;   -- Erwachsene
+revoke execute on function public.save_family(jsonb) from public, anon;
+grant  execute on function public.save_family(jsonb) to authenticated;
 grant  execute on function public.join_as_child(text) to authenticated;                                       -- anonym angemeldete Kinder (Rolle 'authenticated')
 
 -- ------------------------------------------------------------

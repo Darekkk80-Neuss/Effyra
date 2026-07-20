@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     subs = await pageAll(() => admin
       .from('push_subscriptions')
       .select('endpoint,sub,warn_lat,warn_lon,warn_last')
-      .eq('warn', true));
+      .eq('warn', true).order('endpoint'));
   } catch (e: any) { return json({ error: 'db', detail: String(e?.message || e) }, 500); }
 
   const SEV = new Set(['moderate', 'severe', 'extreme']);   // reine 'minor'-Hinweise nicht pushen

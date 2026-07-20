@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
   // Zielauswahl unten gebraucht.
   const subsByUser = new Map<string, any[]>();
   try {
-    const allSubs = await pageAll<any>(() => admin.from('push_subscriptions').select('user_id,endpoint,sub'));
+    const allSubs = await pageAll<any>(() => admin.from('push_subscriptions').select('user_id,endpoint,sub').order('endpoint'));
     for (const s of allSubs) {
       const list = subsByUser.get(s.user_id);
       if (list) list.push(s); else subsByUser.set(s.user_id, [s]);
@@ -187,13 +187,13 @@ Deno.serve(async (req) => {
   let famCount = 0;
   try {
     famCount = await pageEach<any>(
-      () => admin.from('families').select('members:data->members,tasks:data->tasks'),
+      () => admin.from('families').select('members:data->members,tasks:data->tasks').order('id'),
       collect, 500);
   } catch (_e) {
     // Ältere PostgREST-Version ohne JSON-Pfad-Auswahl → voller Blob, ebenfalls seitenweise.
     try {
       famCount = await pageEach<any>(
-        () => admin.from('families').select('data'),
+        () => admin.from('families').select('data').order('id'),
         (rows) => collect(rows.map((f: any) => ({ members: f.data?.members, tasks: f.data?.tasks }))), 500);
     } catch (e: any) { return json({ error: 'db_error', detail: String(e?.message || e) }, 500); }
   }

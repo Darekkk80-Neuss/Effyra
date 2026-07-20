@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
   try {
     await pMap(chunk(uids, 300), 4, async (part) => {
       const subs = await pageAll<any>(() => admin
-        .from('push_subscriptions').select('user_id,endpoint,sub').in('user_id', part));
+        .from('push_subscriptions').select('user_id,endpoint,sub').in('user_id', part).order('endpoint'));
       for (const s of subs) {
         const list = subsByUser.get(s.user_id);
         if (list) list.push(s); else subsByUser.set(s.user_id, [s]);
