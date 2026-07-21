@@ -1753,6 +1753,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="a-sub">Effyra analysiert dein Dokument</div>
       </div>
       <div id="demoHintDocs"></div>
+      <div id="docSearchWrap" style="display:none;margin-bottom:12px;position:relative">
+        <input id="docSearch" type="search" class="inp" data-i18n-ph="Dokumente durchsuchen …" placeholder="Dokumente durchsuchen …" autocomplete="off" style="padding-right:74px">
+        <span id="docSearchCount" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;pointer-events:none"></span>
+      </div>
       <div id="docList"></div>
     </section>
 
@@ -7906,6 +7910,7 @@ const DOC_TPL = [
   { id: 'frei', cat: null, title: 'Freies Anliegen (mit KI)', fields: ['betreffFrei?', 'empfName?', 'empfAddr?', 'text'], labels: { text: 'Beschreibe dein Anliegen – Effyra formuliert daraus einen Brief' }, betreff: (v) => v.betreffFrei || 'Mein Anliegen', body: (v) => v.text || '' }
 ];
 
+let docQuery = '';   // Volltextsuche im Dokumentenarchiv
 let dgState = 'browse', dgActiveId = null, dgValues = {}, dgQuery = '', dgSign = true, dgOverrideBody = null, dgProfileOpen = false, dgKuendArt = null, dgKuendConfirmed = false;
 const curTpl = () => DOC_TPL.find(x => x.id === dgActiveId);
 
@@ -8515,6 +8520,57 @@ function lifeAddTasks(l) {
   toast(agentMsg({
     de: '{x} übernommen ✓', en: '{x} added ✓', fr: '{x} ajoutées ✓', es: '{x} añadidas ✓', it: '{x} aggiunte ✓', pl: '{x} dodano ✓'
   }, { x: countPhrase(n, { de: ['Aufgabe', 'Aufgaben'], en: ['task', 'tasks'], fr: ['tâche', 'tâches'], es: ['tarea', 'tareas'], it: ['attività', 'attività'], pl: ['zadanie', 'zadania'] }) }));
+}
+/* Anrede und Grußformel aus dem KI-Entwurf entfernen.
+   letterHTML() setzt beides selbst, dazu die Unterschrift. Der Entwurf bringt
+   sie ebenfalls mit – ungefiltert stünde im fertigen Brief zweimal
+   „Sehr geehrte Damen und Herren", zweimal „Mit freundlichen Grüßen" und der
+   Name doppelt. Übergeben wird deshalb nur der Rumpf.
+   Der Entwurf ist in der Sprache des Dokuments verfasst, darum auch die
+   gängigen fremdsprachigen Formeln. Greift keine, bleibt der Text unangetastet –
+   lieber eine doppelte Anrede als ein abgeschnittener Satz. */
+function entwurfOhneRahmen(text) {
+  let t = String(text || '').replace(/\r/g, '').trim();
+  t = t.replace(/^(sehr geehrte[rs]?\b[^\n]*|hallo\b[^\n]*|guten tag\b[^\n]*|liebe[rs]?\b[^\n]*|dear\b[^\n]*|madame\b[^\n]*|monsieur\b[^\n]*|estimad[oa]s?\b[^\n]*|gentili\b[^\n]*|egregi\b[^\n]*|szanowni\b[^\n]*)\n+/i, '');
+  /* Ab der Grußformel abschneiden: Was danach kommt, ist die Unterschrift,
+     die der Generator ohnehin aus dem Profil setzt. */
+  t = t.replace(/\n+[ \t]*(mit freundlichen gr[üu]ßen|freundliche gr[üu]ße|viele gr[üu]ße|beste gr[üu]ße|mit besten gr[üu]ßen|hochachtungsvoll|kind regards|best regards|yours sincerely|sincerely|cordialement|salutations distingu[ée]es|atentamente|un saludo|cordiali saluti|distinti saluti|z powa[żz]aniem|z wyrazami szacunku)\b[\s\S]*$/i, '');
+  return t.trim();
+}
+
+/* Aus einem analysierten Dokument einen fertigen Brief machen.
+   Bis hierher endete die Kette beim Kopieren des Entwurfs – der Nutzer musste
+   ihn selbst in ein Schreiben ueberfuehren, mit Anschrift, Datum, Betreff und
+   Unterschrift. Genau das kann der Briefgenerator bereits; er wusste nur nichts
+   von den Dokumenten. */
+function briefAusDokument(id) {
+  const d = (store.docs || []).find(x => x.id === id);
+  if (!d || !d.replyDraft) { toast(pickLang({ de: 'Für dieses Dokument gibt es keinen Antwortentwurf.', en: 'There is no draft reply for this document.', fr: 'Aucun projet de réponse pour ce document.', es: 'No hay borrador de respuesta para este documento.', it: 'Nessuna bozza di risposta per questo documento.', pl: 'Brak projektu odpowiedzi dla tego dokumentu.' })); return; }
+  dgActiveId = 'frei';
+  dgKuendArt = null; dgKuendConfirmed = false; dgSign = true;
+  /* Betreff und Empfaenger aus der Analyse uebernehmen; der Nutzer kann beides
+     im Formular noch aendern. */
+  dgValues = {
+    betreffFrei: d.title || '',
+    empfName: d.sender || '',
+    empfAddr: '',
+    /* Auch hier der bereinigte Text: Geht der Nutzer zurück ins Formular und
+       lässt neu erzeugen, entfällt dgOverrideBody und dieses Feld wird zum
+       Briefrumpf – mit dem Rohentwurf käme die Dopplung zurück. */
+    text: entwurfOhneRahmen(d.replyDraft)
+  };
+  /* Den Entwurf woertlich uebernehmen statt ihn erneut von der KI formulieren
+     zu lassen: Er ist bereits auf das Dokument bezogen, und ein zweiter Lauf
+     kostet Credits und kann ihn verschlechtern. Ueber "Mit KI verbessern"
+     bleibt die Ueberarbeitung jederzeit moeglich. */
+  dgOverrideBody = entwurfOhneRahmen(d.replyDraft);
+  dgProfileOpen = !profileComplete();
+  /* Sind die Absenderdaten vollstaendig, zeigen wir sofort den fertigen Brief –
+     das ist der Moment, auf den die ganze Kette hinauslaeuft. Fehlen sie, muss
+     erst das Formular ausgefuellt werden, sonst stuende ein Brief ohne Absender da. */
+  dgState = profileComplete() ? 'result' : 'form';
+  showView('docgen');
+  window.scrollTo(0, 0);
 }
 function openDocTemplate(id) {
   dgActiveId = id; dgValues = {}; dgOverrideBody = null; dgSign = true; dgProfileOpen = !profileComplete(); dgState = 'form';
@@ -13845,9 +13901,33 @@ RENDERERS.docs = function () {
   const lnkUp = $('#demoHintDocs [data-go-upgrade]');
   if (lnkUp) lnkUp.addEventListener('click', () => { try { showUpgrade(); } catch (e) {} });
 
-  const docs = store.docs.slice().reverse();
+  /* Suche ueber alles, was die Analyse hergibt – nicht nur ueber den Titel.
+     Wer nach "Jobcenter" sucht, meint selten den Titel, sondern den Absender;
+     wer nach "Widerspruch" sucht, meint den Fliesstext. */
+  const dq = (docQuery || '').trim().toLowerCase();
+  const docsAlle = store.docs.slice().reverse();
+  const docs = !dq ? docsAlle : docsAlle.filter(d => {
+    const heu = [d.title, d.sender, d.docType, d.explanation, d.summary,
+                 (d.keyPoints || []).join(' '), (d.keywords || []).join(' '),
+                 (d.recommendations || []).join(' '), d.ocrText, d.replyDraft]
+      .filter(Boolean).join(' ').toLowerCase();
+    /* Alle Suchbegriffe muessen vorkommen, ihre Reihenfolge ist egal:
+       "jobcenter bescheid" findet auch "Bescheid des Jobcenters". */
+    return dq.split(/\s+/).every(w => heu.indexOf(w) >= 0);
+  });
+  /* Suchfeld erst ab einer Menge zeigen, ab der Blaettern laestig wird. */
+  const sf = $('#docSearchWrap');
+  if (sf) {
+    sf.style.display = (docsAlle.length >= 5 || dq) ? '' : 'none';
+    const inp = $('#docSearch');
+    if (inp && inp.value !== docQuery) inp.value = docQuery;
+    const anz = $('#docSearchCount');
+    if (anz) anz.textContent = dq ? (docs.length + ' / ' + docsAlle.length) : '';
+  }
   $('#docList').innerHTML = !docs.length
-    ? '<div class="empty" style="margin-top:20px"><span class="big">📬</span>Noch keine Dokumente analysiert.<br>Fotografier deinen ersten Brief!</div>'
+    ? (dq
+        ? '<div class="empty" style="margin-top:20px"><span class="big">🔍</span>' + esc(pickLang({ de: 'Nichts gefunden zu „' + docQuery + '".', en: 'Nothing found for „' + docQuery + '".', fr: 'Aucun résultat pour „' + docQuery + '".', es: 'Sin resultados para „' + docQuery + '".', it: 'Nessun risultato per „' + docQuery + '".', pl: 'Brak wyników dla „' + docQuery + '".' })) + '</div>'
+        : '<div class="empty" style="margin-top:20px"><span class="big">📬</span>Noch keine Dokumente analysiert.<br>Fotografier deinen ersten Brief!</div>')
     : docs.map(d => {
       const dl = d.deadline ? dayDiff(d.deadline) : null;
       const dlClass = dl === null ? '' : dl < 0 ? 'late' : dl <= 7 ? 'warn' : 'ok';
@@ -13883,6 +13963,7 @@ RENDERERS.docs = function () {
         (d.replyDraft ? '<details class="doc-reply"><summary>✉️ Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div>' + (d.replyDraftTranslation ? '<div class="reply-text" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);opacity:.9"><b style="font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px">🌐 Übersetzung für dich</b><br>' + esc(d.replyDraftTranslation) + '</div>' : '') + '</details>' : '') +
         '<div class="doc-actions">' +
         '<button class="btn btn-sm" data-act="chatDoc"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Im Chat fragen</button>' +
+        (d.replyDraft ? '<button class="btn btn-sm btn-primary" data-act="docToBrief">✉️ ' + esc(pickLang({ de: 'Als Brief öffnen', en: 'Open as letter', fr: 'Ouvrir comme lettre', es: 'Abrir como carta', it: 'Apri come lettera', pl: 'Otwórz jako list' })) + '</button>' : '') +
         (d.replyDraft ? '<button class="btn btn-sm" data-act="copyReply"><svg viewBox="0 0 24 24"><use href="#icCopy"/></svg>Antwort kopieren</button>' : '') +
         (d.hasImage ? '<button class="btn btn-sm" data-act="docToVault">🔐 Im Tresor sichern</button><button class="btn btn-sm" data-act="docToPdf">📄 Als PDF speichern</button>' : '') +
         '</div></div></div></div>';
@@ -13927,11 +14008,27 @@ $('#docList').addEventListener('click', e => {
   if (act.dataset.act === 'chatDoc') { chatWithDoc(d); }
   if (act.dataset.act === 'docToVault') { saveDocToVault(d, false); }
   if (act.dataset.act === 'docToPdf') { exportDocPdf(d); }
+  if (act.dataset.act === 'docToBrief') { briefAusDokument(d.id); return; }
   if (act.dataset.act === 'copyReply' && d.replyDraft) {
     copyText(d.replyDraft).then(ok => toast(ok ? 'Antwort kopiert ✓' : 'Kopieren nicht möglich'));
   }
 });
 /* Auswahl (Checkbox) und Inline-Bearbeitung der erkannten Einträge */
+/* Suche im Dokumentenarchiv. Bewusst ohne Entprellung: Gefiltert wird ueber
+   store.docs im Speicher, das kostet nichts und fuehlt sich sofort an. */
+(() => {
+  const inp = $('#docSearch');
+  if (!inp) return;
+  inp.addEventListener('input', () => {
+    docQuery = inp.value || '';
+    RENDERERS.docs();
+    /* Nach dem Neuzeichnen ist das Feld ein anderes DOM-Element nicht – es liegt
+       ausserhalb von #docList und ueberlebt. Fokus bleibt, wo er war. */
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && docQuery) { docQuery = ''; inp.value = ''; RENDERERS.docs(); }
+  });
+})();
 $('#docList').addEventListener('change', e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const card = el.closest('.doc-card'); if (!card) return;
