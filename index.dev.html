@@ -11672,6 +11672,26 @@ const HOLIDAY_COUNTRIES = [
   { code: 'DE', name: '🇩🇪 Deutschland' }, { code: 'FR', name: '🇫🇷 France' }, { code: 'ES', name: '🇪🇸 España' },
   { code: 'IT', name: '🇮🇹 Italia' }, { code: 'PL', name: '🇵🇱 Polska' }, { code: 'GB', name: '🇬🇧 United Kingdom' },
 ];
+/* Regionen, die in den Nager-Daten tatsaechlich vorkommen (ISO 3166-2).
+   Gemessen fuer 2027: GB hat 8 von 13 Feiertagen regional (nur 5 landesweit –
+   selbst Neujahr ist je Landesteil gefuehrt), Spanien 22 von 32 auf 17 Regionen,
+   Italien genau einen (Suedtirol). Frankreich und Polen haben KEINE regionalen
+   Feiertage und brauchen darum auch keine Auswahl. */
+const HOLIDAY_REGIONS = {
+  GB: { 'GB-ENG': 'England', 'GB-WLS': 'Wales', 'GB-SCT': 'Scotland', 'GB-NIR': 'Northern Ireland' },
+  ES: { 'ES-AN': 'Andalucía', 'ES-AR': 'Aragón', 'ES-AS': 'Asturias', 'ES-CB': 'Cantabria',
+        'ES-CL': 'Castilla y León', 'ES-CM': 'Castilla-La Mancha', 'ES-CN': 'Canarias',
+        'ES-CT': 'Cataluña', 'ES-EX': 'Extremadura', 'ES-GA': 'Galicia', 'ES-IB': 'Illes Balears',
+        'ES-MC': 'Región de Murcia', 'ES-MD': 'Madrid', 'ES-NC': 'Navarra', 'ES-PV': 'País Vasco',
+        'ES-RI': 'La Rioja', 'ES-VC': 'Comunitat Valenciana' },
+  IT: { 'IT-32': 'Trentino-Alto Adige / Südtirol' }
+};
+/* Gewaehlte Region je Land – getrennt gemerkt, damit ein Landwechsel die
+   fruehere Wahl nicht vergisst. */
+function holidayRegion(c) {
+  const land = c || holidayCountry();
+  return (store.holidayRegion && store.holidayRegion[land]) || '';
+}
 function holidayCountry() {
   const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
   if (lang === 'de') return 'DE';   // Deutsch: immer deutsche Feiertage (Standard, kein Länder-Picker)
@@ -11688,27 +11708,55 @@ let holApiCache = (function () { try { return JSON.parse(localStorage.getItem('e
 function saveHolApi() { try { localStorage.setItem('effyra_hol_api', JSON.stringify(holApiCache)); } catch (e) {} }
 const _holFetching = {};
 async function fetchHolidayYear(country, y) {
-  const key = country + '_' + y;
+  const key = country + '_' + y + '_v2';   // v2: mit Regionsangaben
   if (holApiCache[key] || _holFetching[key]) return;
   _holFetching[key] = 1;
   try {
     const r = await fetch('https://date.nager.at/api/v3/PublicHolidays/' + y + '/' + country);
     if (r.ok) {
       const arr = await r.json(); const map = {};
-      (arr || []).forEach(h => { if (h.global !== false && h.date) map[h.date] = h.localName || h.name; });   // nur landesweite Feiertage
+      /* ALLES behalten, auch Regionales – vorher flog es hier raus und Grossbritannien
+         verlor 8 von 13 Feiertagen, Spanien 22 von 32. Je Datum eine Liste, weil an
+         einem Tag mehrere regionale Feiertage liegen koennen. c = null heisst landesweit. */
+      (arr || []).forEach(h => {
+        if (!h.date) return;
+        (map[h.date] = map[h.date] || []).push({
+          n: h.localName || h.name,
+          c: (h.global === false && Array.isArray(h.counties) && h.counties.length) ? h.counties : null
+        });
+      });
       holApiCache[key] = map; saveHolApi();
       try { if (currentView === 'dashboard') renderHolidays(); if (currentView === 'work' && RENDERERS.work) RENDERERS.work(); } catch (e) {}
     }
   } catch (e) {}
   delete _holFetching[key];
 }
+/* Aus den gespeicherten Eintraegen die fuer DIESE Region gueltigen herausziehen.
+   Ohne gewaehlte Region gelten die landesweiten – PLUS die, die ohnehin in allen
+   Regionen des Landes gefuehrt sind. Sonst verloere Grossbritannien selbst
+   Neujahr, weil Nager es je Landesteil auffuehrt. */
+function holFilter(eintraege, region, alleRegionen) {
+  const out = {};
+  Object.keys(eintraege || {}).forEach(d => {
+    const liste = Array.isArray(eintraege[d]) ? eintraege[d] : [{ n: eintraege[d], c: null }];
+    const passend = liste.filter(h => {
+      if (!h.c) return true;                                            // landesweit
+      if (region) return h.c.indexOf(region) >= 0;                      // gewaehlte Region
+      return alleRegionen.length > 0 && alleRegionen.every(r => h.c.indexOf(r) >= 0);
+    });
+    if (passend.length) out[d] = passend.map(h => h.n).join(' / ');
+  });
+  return out;
+}
 function curHolMap(y) {
   const country = holidayCountry();
   if (country === 'DE') { const st = store.work.settings.state || '', key = 'DE_' + y + '_' + st; if (!holCache[key]) holCache[key] = holidaysDE(+y, st); return holCache[key]; }
-  const key = country + '_' + y;
-  if (holApiCache[key]) return holApiCache[key];
-  fetchHolidayYear(country, y);   // async nachladen → re-render
-  return {};
+  const roh = holApiCache[country + '_' + y + '_v2'];
+  if (!roh) { fetchHolidayYear(country, y); return {}; }   // async nachladen → re-render
+  const region = holidayRegion(country);
+  const key = country + '_' + y + '_' + (region || '-');
+  if (!holCache[key]) holCache[key] = holFilter(roh, region, Object.keys(HOLIDAY_REGIONS[country] || {}));
+  return holCache[key];
 }
 function holMap(iso) { return curHolMap(iso.slice(0, 4)); }
 const isHoliday = (iso) => !!holMap(iso)[iso];
@@ -11831,6 +11879,10 @@ function brueckenRegion() {
      die weitergeleitet wird und nach der jemand seinen Urlaub plant. */
   const land = HOLIDAY_COUNTRIES.filter(x => x.code === c)[0];
   const name = land ? land.name.replace(/^[^ ]+ /, '') : c;
+  const reg = holidayRegion(c), tab = HOLIDAY_REGIONS[c];
+  if (reg && tab && tab[reg]) return tab[reg] + ' (' + name + ')';
+  /* Ohne gewaehlte Region nur das landesweit Gueltige – das gehoert dazugesagt,
+     gerade in einer Nachricht, nach der jemand seinen Urlaub plant. */
   return name + ' (' + pickLang({ de: 'landesweite Feiertage', en: 'nationwide holidays', fr: 'jours fériés nationaux', es: 'festivos nacionales', it: 'festività nazionali', pl: 'święta ogólnokrajowe' }) + ')';
 }
 function brueckenShareMessage(jahr) {
@@ -11921,6 +11973,18 @@ function renderHolidays() {
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v13M8 7l4-4 4 4"/></svg></button>'
     : '';
   let h = '<section class="card dash-info-card"><div class="di-head"><span class="di-ic">🎉</span><b>Feiertage &amp; Brückentage</b>' + teilenIc + picker + '</div>';
+  /* Regionsauswahl fuer Laender, die ueberhaupt regionale Feiertage haben
+     (GB, ES, IT). Eigene Zeile: 17 spanische Regionsnamen passen nicht in die
+     Kopfzeile. Frankreich und Polen bekommen gar keine Auswahl – dort gibt es
+     nichts Regionales, ein leeres Menue waere nur Verwirrung. */
+  const regionen = HOLIDAY_REGIONS[country];
+  if (regionen) {
+    const gew = holidayRegion(country);
+    h += '<div style="margin-bottom:8px"><select class="di-country" data-holregion data-noi18n aria-label="Region" style="max-width:100%">'
+      + '<option value=""' + (gew ? '' : ' selected') + '>' + esc(pickLang({ de: '— Region wählen —', en: '— choose region —', fr: '— choisir la région —', es: '— elegir región —', it: '— scegli regione —', pl: '— wybierz region —' })) + '</option>'
+      + Object.keys(regionen).map(k => '<option value="' + k + '"' + (k === gew ? ' selected' : '') + '>' + esc(regionen[k]) + '</option>').join('')
+      + '</select></div>';
+  }
   if (!list.length) {
     // Nicht-DE: Daten werden noch geladen; DE hat immer Feiertage → Widget bliebe leer
     if (country === 'DE') { box.innerHTML = ''; return; }
@@ -11960,8 +12024,16 @@ if ($('#holidaysWidget')) $('#holidaysWidget').addEventListener('click', e => {
   if (e.target.closest('[data-hol="share"]')) { shareBruecken(); }
 });
 if ($('#holidaysWidget')) $('#holidaysWidget').addEventListener('change', e => {
+  const reg = e.target.closest('[data-holregion]');
+  if (reg) {
+    store.holidayRegion = store.holidayRegion || {};
+    store.holidayRegion[holidayCountry()] = reg.value; save();
+    Object.keys(holCache).forEach(x => delete holCache[x]);   // gefilterte Jahre verwerfen
+    renderHolidays(); return;
+  }
   const sel = e.target.closest('[data-holcountry]'); if (!sel) return;
   store.holidayCountry = sel.value; save();
+  Object.keys(holCache).forEach(x => delete holCache[x]);
   ensureHolidayData(); renderHolidays();
 });
 /* ============================== UNWETTERWARNUNGEN (DWD via Bright Sky) – nur im Hintergrund, Pop-up/Push nur bei echter Warnung ============================== */
