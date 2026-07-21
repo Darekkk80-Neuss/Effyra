@@ -106,6 +106,28 @@ returns int language sql security definer set search_path = public as $$
 $$;
 revoke execute on function public.tts_cache_prune() from public, anon, authenticated;
 
+-- Die Funktion allein raeumt nichts auf – sie muss jemand aufrufen. Bis zum
+-- 21.07.2026 tat das niemand: geschrieben, aber nie verdrahtet. Damit waere die
+-- 60-Tage-Regel eine Absichtserklaerung geblieben, waehrend die Tabelle
+-- unbegrenzt gewachsen waere. Das Audio enthaelt den Vornamen und ist damit
+-- personenbezogen; ohne Loeschung waere Art. 5 Abs. 1 lit. e verletzt.
+--
+-- Kein Secret und kein HTTP noetig: Der Job ruft die Datenbankfunktion direkt.
+create extension if not exists pg_cron;
+
+do $$
+begin
+  perform cron.unschedule('effyra-tts-cache-aufraeumen')
+    where exists (select 1 from cron.job where jobname = 'effyra-tts-cache-aufraeumen');
+
+  perform cron.schedule(
+    'effyra-tts-cache-aufraeumen',
+    '15 4 * * 0',   -- woechentlich, Sonntag 04:15 UTC
+    'select public.tts_cache_prune();'
+  );
+  raise notice 'effyra-tts-cache-aufraeumen geplant (woechentlich, So 04:15 UTC).';
+end $$;
+
 -- ------------------------------------------------------------
 -- Rezept-Übersetzungen („Gericht des Tages")
 -- ------------------------------------------------------------
