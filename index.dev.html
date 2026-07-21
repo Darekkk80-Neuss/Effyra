@@ -2309,6 +2309,10 @@ let syncApplying = false, _pushTimer = null;
 function stateSnapshot() {
   const s = { _ts: store._ts || Date.now() };
   SYNC_KEYS.forEach(k => { if (store[k] !== undefined) s[k] = store[k]; });
+  /* Familien-Termine NICHT mit hochladen: sie gehoeren der Familie und kommen
+     ueber famPull. Im Geraete-Sync wuerden sie zwischen den Geraeten hin- und
+     herwandern und beim naechsten famPush als fremde Loeschungen erscheinen. */
+  if (Array.isArray(s.events)) s.events = s.events.filter(e => !e || e.source !== 'family');
   try { s.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}   // Zeitzone für serverseitige Fälligkeits-Erinnerungen (due-reminder)
   return s;
 }
@@ -2337,7 +2341,18 @@ async function statePull() {
     const d = r.data && r.data.data;
     if (!d || typeof d._ts !== 'number' || d._ts <= (store._ts || 0)) return;   // nur wenn Cloud neuer ist
     syncApplying = true;
+    /* Die lokalen Familien-Termine VOR der Schleife sichern: die Schleife setzt
+       store.events = d.events, und d.events traegt die Familien-Termine nicht
+       (stateSnapshot laedt sie bewusst nicht hoch). Ohne dieses Sichern waeren
+       sie nach der Schleife verloren und der naechste famPush meldete sie fuer
+       ALLE Mitglieder als geloescht. */
+    const famEv = (store.events || []).filter(e => e && e.source === 'family');
     SYNC_KEYS.forEach(k => { if (d[k] !== undefined) store[k] = d[k]; });
+    /* Familien-Termine gehoeren der FAMILIE, nicht dem Geraet: die eigenen
+       bleiben, aus dem Cloud-Stand kommen nur die uebrigen. */
+    if (d.events !== undefined) {
+      store.events = famEv.concat((d.events || []).filter(e => !e || e.source !== 'family'));
+    }
     store._ts = d._ts;
     save();
     syncApplying = false;
@@ -5085,7 +5100,7 @@ function currentTier() {
 const tierRank = () => TIER_RANK[currentTier()] || 0;
 const isPremium = () => currentTier() === 'premium';
 const isPaid = () => tierRank() >= 1;
-/* Nur die Free-Stufe hat ein Zeitlimit (3 Tage). */
+/* Nur die Free-Stufe hat ein Zeitlimit (TRIAL_DAYS, aktuell 7 Tage). */
 const isTrialExpired = () => ENFORCE_TIERS && currentTier() === 'free' && !!account &&
   Date.now() > (account.trialStart || Date.now()) + TRIAL_DAYS * 864e5;
 function trialDaysLeft() {
@@ -5747,6 +5762,8 @@ async function logout() {
   if (CLOUD) {
     try { await sb.auth.signOut(); } catch (e) {}
     try { localStorage.removeItem(ACC_KEY); } catch (e) {}   // evtl. gespeicherten Kindermodus-Account entfernen
+    try { localStorage.removeItem(FAM_BASE_KEY); } catch (e) {}   // Vergleichsgrundlage gilt nur fuer DIESES Konto
+    famBase = null; famLastTs = null;
     account = null;
     gate();
     return;
@@ -5847,7 +5864,11 @@ async function kidJoin(code, errEl) {
        sie zurueck. Ohne diesen Schritt weist der Server ab (nur anonyme
        Sessions duerfen als Kind beitreten) und niemand versteht warum. */
     if (sess && sess.user && sess.user.is_anonymous !== true) {
-      try { await sb.auth.signOut(); } catch (e) {}
+      /* scope 'local' ist hier zwingend: signOut() meldet standardmaessig
+         GLOBAL ab und wuerde das Elternteil auf ALLEN seinen Geraeten
+         ausloggen – Telefon, Tablet, Rechner – nur weil dieses eine Geraet
+         zum Kinder-Handy wird. */
+      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
       sess = null;
     }
     if (!sess) { const a = await sb.auth.signInAnonymously(); if (a.error) throw new Error('anon'); sess = a.data.session; }
@@ -9221,7 +9242,28 @@ async function bookAddon(kind) {
           console.warn('[Effyra addon already owned]', p.id);
           if (CLOUD && sb) {
             const s = (await sb.auth.getSession()).data.session;
-            if (s) await fetch(FN_URL('play-verify'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ sku: p.id, token: mine.purchaseToken, type: 'subs', mode: 'sync' }) });
+            if (s) {
+              /* Antwort AUSWERTEN: ein erstatteter Kauf liefert hier 402
+                 purchase_revoked. Verworfen wie bisher meldete die App
+                 "Sitzplatz wird freigeschaltet", obwohl nichts freigeschaltet
+                 wurde – und die Nutzerin wartete vergeblich darauf. */
+              const rr = await fetch(FN_URL('play-verify'), { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + s.access_token }, body: JSON.stringify({ sku: p.id, token: mine.purchaseToken, type: 'subs', mode: 'sync' }) });
+              const dd = await rr.json().catch(() => ({}));
+              /* JEDEN Fehler abfangen, nicht nur purchase_revoked. Sonst meldet
+                 der Pfad unten "Sitzplatz wird freigeschaltet", obwohl der Server
+                 gar nichts freigeschaltet hat. */
+              if (!rr.ok || (dd && dd.error)) {
+                const meld = (dd && dd.error === 'purchase_revoked')
+                    ? 'Dieser Kauf wurde erstattet und lässt sich nicht erneut freischalten. Bitte buche „' + p.label + '" neu.'
+                  : (dd && dd.error === 'addon_no_family')
+                    ? 'Bitte lege zuerst eine Familie an oder tritt einer bei – dann wird „' + p.label + '" freigeschaltet.'
+                  : (dd && dd.error === 'token_owned')
+                    ? 'Dieser Kauf gehört zu einem anderen Konto und lässt sich hier nicht freischalten.'
+                    : 'Der Sitzplatz konnte gerade nicht freigeschaltet werden. Bitte versuche es später noch einmal.';
+                toast(meld, 9000);
+                return;
+              }
+            }
           }
           try { await syncEntitlements(); } catch (e) {}
           try { await famDiscover(); if (currentView === 'family') RENDERERS.family(); } catch (e) {}
@@ -10062,13 +10104,23 @@ function famAdopt(d) {
      statt gar nicht: das erzeugt ausschliesslich Upserts, nie Deletes. Vorher
      ging alles offline Erfasste beim ersten erfolgreichen Pull wortlos
      verloren – ohne Angreifer, bei ganz normaler Nutzung. */
+  /* Dieselbe Zeile wie in famPush: die zuletzt bestaetigte Basis ueberlebt den
+     Kaltstart in localStorage. Ohne sie rechnete famAdopt gegen eine leere
+     Basis und schriebe den GESAMTEN Altbestand als Upsert zurueck – auch
+     Eintraege, die ein anderes Mitglied inzwischen geloescht hat. Sie kaemen
+     damit wieder. */
+  if (!famBase) famBase = famBaseLoad();
   const pend = famOps(famBase || { members: [], occasions: [], tasks: [], shopping: [], shopAssign: null, events: [], tidy: null }, famPayload());
   famWrite(d.data || {});
   famBase = JSON.parse(JSON.stringify(famPayload()));   // exakt der vom Server bestätigte Stand
   famLastTs = d.updated_at || null;
-  famBaseSave();   // ueberlebt den naechsten Kaltstart
   if (pend) famWrite(famMergeOps(famPayload(), pend));
-  save();
+  /* save() ZUERST, famBaseSave() danach: schlaegt save() fehl (Speicher voll),
+     laege sonst eine Basis im Speicher, die zu einem lokal gar nicht
+     vorhandenen Stand gehoert – und der naechste Push meldete alles dazwischen
+     als geloescht. */
+  try { save(); famBaseSave(); }
+  catch (e) { try { localStorage.removeItem(FAM_BASE_KEY); } catch (e2) {} }
   return !!pend;
 }
 async function famPush() {
@@ -10168,9 +10220,22 @@ const FAM_BASE_KEY = 'effyra_fam_base';
 function famBaseLoad() {
   try {
     const o = JSON.parse(localStorage.getItem(FAM_BASE_KEY) || 'null');
-    if (o && o.code && store.family && o.code === store.family.code) { famLastTs = o.ts || null; return o.base; }
-  } catch (e) {}
+    if (o && o.code && store.family && o.code === store.family.code && famBaseOk(o.base)) {
+      famLastTs = o.ts || null;
+      return o.base;
+    }
+    /* Nicht verwertbar? Dann WEG damit. Ein beschaedigter oder von einer
+       aelteren Fassung stammender Eintrag wuerde sonst als gueltige
+       Vergleichsgrundlage dienen – und famOps rechnete Loeschungen aus Muell. */
+    if (o) localStorage.removeItem(FAM_BASE_KEY);
+  } catch (e) { try { localStorage.removeItem(FAM_BASE_KEY); } catch (e2) {} }
   return null;
+}
+/* Eine Basis taugt nur, wenn JEDE Liste wirklich eine Liste ist – famOps
+   ruft .forEach darauf und wuerfe sonst mitten im Sendevorgang. */
+function famBaseOk(b) {
+  if (!b || typeof b !== 'object') return false;
+  return FAM_LISTS.every(k => b[k] === undefined || Array.isArray(b[k]));
 }
 function famBaseSave() {
   try {
@@ -10221,6 +10286,9 @@ async function famDiscover() {
     if (r && !r.error && r.data && r.data.code) {
       ensureFamily();
       store.family.code = r.data.code; save();
+      /* Neue Familie gefunden: eine evtl. noch im Speicher liegende Basis gilt
+         fuer eine ANDERE Familie und darf hier nicht als Vergleich dienen. */
+      famBase = null; famLastTs = null;
       await famPull();                 // Daten + Selbst-Mitgliedschaft nachziehen
       return true;
     }
@@ -10278,7 +10346,17 @@ async function famJoin(code) {
     /* Bestätigten Stand der ALTEN Familie verwerfen. Bliebe er stehen, würde der
        erste Push den kompletten Inhalt der alten Familie als Neuanlage in die
        neue schreiben – und deren Einträge nebenbei als "gelöscht" melden. */
-    store.family.code = r.data.code; famBase = null; famLastTs = null; famBaseSave(); save();
+    store.family.code = r.data.code; famBase = null; famLastTs = null;
+    /* Den lokalen Bestand der ALTEN Familie verwerfen, BEVOR famPull die neue
+       laedt. famAdopt rechnet sonst gegen die leere Basis und erfasst Mitglieder,
+       Aufgaben, Einkaeufe und Termine der alten Familie als Neuanlagen – und der
+       erste Push traegt sie in die neue Familie ein (Datenvermischung ueber
+       Familiengrenzen). Nur der Familienanteil von store.events faellt; private
+       Termine bleiben. */
+    store.family.members = []; store.family.occasions = []; store.family.tasks = [];
+    store.family.shopping = []; store.family.shopAssign = null; store.family.tidy = null;
+    store.events = (store.events || []).filter(e => !e || e.source !== 'family');
+    famBaseSave(); save();
     await famPull();
     RENDERERS.family();
     askFamNotify();
@@ -10290,6 +10368,9 @@ async function famLeave() {
   await famAuth();
   try { await sb.rpc('leave_family'); } catch (e) {}
   store.family.code = null; famBase = null; famLastTs = null; famBaseSave();   // bestätigter Stand gilt nur für DIESE Familie
+  /* Familien-Termine dieser (jetzt verlassenen) Familie entfernen. Blieben sie
+     liegen, traege der naechste famPush sie in die NAECHSTE Familie ein. */
+  store.events = (store.events || []).filter(e => !e || e.source !== 'family');
   save();
   RENDERERS.family();
   toast('Verbindung getrennt');
@@ -14983,11 +15064,45 @@ async function exportAllData() {
      Auskunftsdatum: wer ihn hat, kommt per join_family in die Familie. */
   if (lokal.family) {
     const meAuth = (account && account.uid) || (typeof famSelfId === 'function' ? famSelfId() : null);
-    const meMem = (store.family.members || []).find(m => m && m.authId && m.authId === meAuth) || null;
+    let meMem = (store.family.members || []).find(m => m && m.authId && m.authId === meAuth) || null;
+    if (!meMem) {
+      /* Die gespeicherte Mitglieds-Id (Kindermodus) ist eine ECHTE Zuordnung und
+         darf immer gelten. Der Rueckfall auf den Inhaber dagegen NUR ohne
+         Cloud-Konto: mit meAuth und ohne Treffer bin ich nicht der Inhaber,
+         sondern gar nicht (mehr) in dieser Familie – dann exportierte der
+         Rueckfall die Daten einer FREMDEN Person als meine eigenen. */
+      /* Der Rueckfall auf den Inhaber ist nur dann unbedenklich, wenn NIEMAND
+         sonst in dieser Familie ein Konto hat – dann kann der Eintrag niemandem
+         anderen gehoeren. Sobald ein anderes Mitglied eine authId traegt, ist
+         der Inhaber moeglicherweise eine fremde Person, und der Export gaebe
+         deren Daten als meine aus. Ohne Treffer bleibt meMem dann null und die
+         betroffenen Felder werden leer exportiert – lieber unvollstaendig als
+         fremd. */
+      const fremdeKonten = (store.family.members || []).some(m => m && m.authId && m.authId !== meAuth);
+      meMem = ((account && account.memberId) ? (store.family.members || []).find(m => m && m.id === account.memberId) : null)
+           || (!fremdeKonten ? (store.family.members || []).find(m => m && m.role === 'owner') : null)
+           || null;
+    }
     const meId = meMem && meMem.id;
     lokal.family = {
       mein_mitgliedseintrag: meMem,
-      meine_aufgaben: (store.family.tasks || []).filter(t => t && (t.by === meAuth || (meId && t.assignee === meId))),
+      /* Nullwerte beidseitig ausschliessen: sonst gilt t.by === meAuth auch,
+         wenn beide null sind. Und den Ersteller zusaetzlich ueber die
+         Mitglieds-Id zulassen – Aufgaben aus der Zeit vor der ersten Anmeldung
+         tragen by:null und fielen sonst ganz aus dem Export. */
+      meine_aufgaben: (store.family.tasks || []).filter(t => t && ((meAuth && t.by === meAuth) || (meId && (t.assignee === meId || t.by === meId)))),
+      /* Zuordnungslose Aufgaben NUR, wenn niemand sonst mit eigenem Konto in der
+         Familie ist – dann kann keine davon jemand anderem gehoeren. Am Code
+         festzumachen waere falsch: wer allein eine Familie angelegt hat, verloere
+         sonst seine eigenen Aufgaben aus dem Export. In einer echten
+         Mehrpersonen-Familie waeren es fremde Daten (Art. 20 Abs. 4 DSGVO). */
+      /* Nur wenn KEIN fremdes Konto in der Familie ist (gleiche Pruefung wie beim
+         owner-Rueckfall). Die Zahl aller Konten zu nehmen war falsch: ein Kind
+         (meAuth null) sah nur EIN Konto – das des Elternteils – und haette dessen
+         zuordnungslose Aufgabe als eigene exportiert. */
+      aufgaben_ohne_zuordnung: (!(store.family.members || []).some(m => m && m.authId && m.authId !== meAuth)
+        ? (store.family.tasks || []).filter(t => t && !t.by && !t.assignee)
+        : []),
       meine_medikamente: meId ? (store.family.meds || []).filter(m => m && m.memberId === meId) : [],
       /* medTaken ist ein OBJEKT {'medId|HH:MM|YYYY-MM-DD': ts}, kein Array –
          also ueber die Schluessel filtern. Zugeordnet wird ueber die eigenen
@@ -15009,7 +15124,7 @@ async function exportAllData() {
     version: 1,
     erstelltAm: new Date().toISOString(),
     verantwortlicher: 'Gonsoft labs – Darius Gonschior',
-    hinweis: 'Export nach Art. 20 DSGVO. "lokal" liegt ausschließlich auf diesem Gerät, "server" stammt aus der Datenbank. Daten anderer Familienmitglieder sind bewusst nicht enthalten (Art. 20 Abs. 4 DSGVO). Der eigene API-Schlüssel ist als Zugangsgeheimnis ausgenommen.',
+    hinweis: 'Export nach Art. 20 DSGVO. "lokal" liegt ausschließlich auf diesem Gerät, "server" stammt aus der Datenbank. Aus dem gemeinsamen Familienbereich sind nur die eigenen Einträge enthalten (Art. 20 Abs. 4 DSGVO); der Familien-Beitrittscode und der eigene API-Schlüssel sind als Zugangsgeheimnisse ausgenommen. Die übrigen lokalen Bereiche (z. B. Kinderprofile, Notfalldaten, Dokumente) sind eigene Aufzeichnungen dieses Geräts und vollständig enthalten – sie können Angaben zu Angehörigen umfassen.',
     konto: account ? { email: account.email || '', name: account.name || '', uid: account.uid || null } : null,
     lokal: lokal,
     nurAufDiesemGeraet: ['emergency', 'budget', 'docs', 'vault', 'contracts', 'waste', 'checkups', 'fit', 'chat', 'family.meds', 'family.medTaken'],
@@ -15089,10 +15204,28 @@ function deleteAccount() {
   ov.querySelector('#delGo').onclick = async () => { ov.classList.remove('on'); await performAccountDeletion(); };
 }
 async function performAccountDeletion() {
+  /* Ohne Cloud-Verbindung, aber mit angemeldetem Konto: NICHT loeschen und
+     NICHTS behaupten. Sonst wuerde der lokale Speicher geleert und "geloescht"
+     gemeldet, waehrend das Konto serverseitig unberuehrt weiterbesteht. */
+  if (account && account.loggedIn && (typeof CLOUD === 'undefined' || !CLOUD || typeof sb === 'undefined' || !sb)) {
+    toast('⚠️ Keine Verbindung zum Server – dein Konto wurde NICHT gelöscht. Bitte versuche es später erneut.', 8000);
+    return;
+  }
   toast('Konto wird gelöscht …');
   try {
     if (CLOUD && typeof sb !== 'undefined' && sb) {
-      const s = (await sb.auth.getSession()).data.session;
+      let s = (await sb.auth.getSession()).data.session;
+      /* Sitzung erneuern, bevor wir aufgeben: ein bloss abgelaufenes Token ist
+         kein geloeschtes Konto. */
+      if (!s) { try { s = (await sb.auth.refreshSession()).data.session; } catch (e) {} }
+      if (!s) {
+        /* OHNE Sitzung darf hier NICHTS als erledigt gelten. Vorher wurde der
+           Serveraufruf stillschweigend uebersprungen und die App meldete
+           anschliessend "Konto und Daten geloescht" – der lokale Speicher war
+           weg, das Konto samt aller Daten aber noch da. */
+        toast('⚠️ Du bist gerade nicht angemeldet. Bitte melde dich neu an und versuche es dann noch einmal – dein Konto wurde NICHT gelöscht.', 8000);
+        return;
+      }
       if (s) {
         /* Antwort AUSWERTEN. Vorher lag der Aufruf in einem leeren catch und die
            App meldete anschliessend unbedingt "Konto und Daten geloescht" – auch
@@ -15100,20 +15233,39 @@ async function performAccountDeletion() {
            das Konto samt aller Daten aber noch da, und die Nutzerin hatte keinen
            Anhaltspunkt. Bei einer Loeschung nach Art. 17 ist das die schlechteste
            aller Rueckmeldungen. */
-        let ok = false;
+        let ok = false, jErr = '';
         try {
           const r = await fetch(FN_URL('delete-account'), { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token } });
           const j = await r.json().catch(() => ({}));
           ok = !!(r.ok && j && j.ok === true);
-        } catch (e) { ok = false; }
+          /* KEINE Sonderbehandlung von 401 oder 'invalid_user' mehr. Beides sagt
+             nur "dieses Token taugt nicht" – das kann ein abgelaufenes Token,
+             eine verstellte Uhr oder eine anderswo beendete Sitzung sein, bei
+             voellig intaktem Konto. Als Erfolg gewertet waere die Nutzerin ihre
+             lokalen Daten los und glaubte, ihr Konto sei geloescht. Nur ok:true
+             von der Function zaehlt. */
+          if (!ok) jErr = String((j && j.error) || r.status || '');
+        } catch (e) { ok = false; jErr = 'offline'; }
         if (!ok) {
-          toast('⚠️ Die Löschung konnte nicht bestätigt werden. Deine Daten sind noch da – bitte später erneut versuchen oder uns schreiben.', 8000);
+          /* Nicht "deine Daten sind noch da" behaupten: die Function loescht
+             Push-Anmeldungen, Geraete-Stand und Mitgliedschaften, BEVOR sie an
+             einem spaeteren Schritt scheitern kann. Der Fehlercode gehoert mit
+             in die Meldung, sonst ist ein Support-Fall nicht zuzuordnen. */
+          toast('⚠️ Die Löschung ist unvollständig geblieben' + (jErr ? ' (' + jErr + ')' : '') + '. Bitte versuche es später noch einmal oder schreib uns – dein Konto besteht möglicherweise noch.', 9000);
           return;
         }
       }
       try { await sb.auth.signOut(); } catch (e) {}
     }
-  } catch (e) {}
+  } catch (e) {
+    /* NICHT verschlucken. Vorher sprang jeder Fehler vor dem fetch hierher,
+       uebersprang damit auch das return – und die App loeschte anschliessend den
+       lokalen Speicher und meldete "Konto und Daten geloescht", waehrend Konto,
+       Familie, Profil und Abo vollstaendig bestehen blieben. */
+    console.error('[Effyra delete]', e && e.message);
+    toast('⚠️ Die Löschung konnte nicht ausgeführt werden. Dein Konto wurde NICHT gelöscht – bitte versuche es später noch einmal.', 9000);
+    return;
+  }
   try { Object.keys(localStorage).forEach(k => { if (/^effyra|^nexa|^sb-.*-auth/.test(k)) localStorage.removeItem(k); }); } catch (e) {}
   try { if (typeof indexedDB !== 'undefined') indexedDB.deleteDatabase('effyra-vault'); } catch (e) {}
   toast('Konto und Daten gelöscht.');
@@ -15188,6 +15340,7 @@ $('#btnWipe').addEventListener('click', async () => {
   try {
     localStorage.removeItem(DATA_KEY);
     localStorage.removeItem(KEY_KEY);
+    localStorage.removeItem(FAM_BASE_KEY);   // sonst erbt das naechste Konto die Vergleichsgrundlage
     if (!CLOUD) localStorage.removeItem(ACC_KEY);
   } catch (e) {}
   if (CLOUD) { try { await sb.auth.signOut(); } catch (e) {} }

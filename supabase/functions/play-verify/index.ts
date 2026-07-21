@@ -214,8 +214,13 @@ Deno.serve(async (req) => {
       const sn = msg?.subscriptionNotification;
       if (sn && sn.purchaseToken) {
         const token = String(sn.purchaseToken);
-        const { data: pp } = await admin.from('play_purchases').select('user_id,sku').eq('purchase_token', token).maybeSingle();
+        const { data: pp } = await admin.from('play_purchases').select('user_id,sku,revoked_at').eq('purchase_token', token).maybeSingle();
         if (!pp) return json({ ok: true, note: 'rtdn_unknown_token' });
+        // Erstattet? Dann NICHTS mehr fortschreiben. Google widerruft den Zugang
+        // bei einer Erstattung nicht automatisch, subscriptions.get liefert also
+        // weiter ein Datum in der Zukunft – ohne diese Sperre stellte der
+        // naechste Lauf das erstattete Abo wieder her.
+        if (pp.revoked_at) return json({ ok: true, note: 'rtdn_revoked' });
         const useSku = String(sn.subscriptionId || pp.sku);
         const v = await verifyPurchase(useSku, token, 'subs');                 // Googles aktueller Stand
         // NICHTS schreiben, wenn Google gerade nicht antwortet. Vorher lief ein
@@ -234,12 +239,18 @@ Deno.serve(async (req) => {
       const vd = msg?.voidedPurchaseNotification;
       if (vd && vd.purchaseToken) {
         const vtok = String(vd.purchaseToken);
-        const { data: vpp } = await admin.from('play_purchases').select('user_id,sku').eq('purchase_token', vtok).maybeSingle();
-        if (!vpp) return json({ ok: true, note: 'void_unknown_token' });
-        const { error: rerr } = await admin.rpc('revoke_play_purchase', { p_user: vpp.user_id, p_sku: vpp.sku });
-        if (rerr) { console.error('void_failed', JSON.stringify({ sku: vpp.sku, msg: rerr.message })); return json({ error: 'revoke_failed' }, 500); }
-        await admin.from('play_purchases').update({ expiry_ms: 0, updated_at: new Date().toISOString() }).eq('purchase_token', vtok);
-        return json({ ok: true, note: 'void_revoked', sku: vpp.sku });
+        // Der GESAMTE Ablauf – Zeile sperren, entwerten, Marke setzen, entziehen –
+        // steckt in void_play_purchase und ist damit EINE Transaktion. Scheitert
+        // der Entzug, rollt das raise dort Marke und expiry_ms mit zurueck; hier
+        // gibt es keinen Zwischenzustand mehr, der haengenbleiben koennte. Der
+        // vorherige Weg brauchte einen eigenen Ruecknahme-Schritt, und schlug DER
+        // fehl, blieb der Kauf entwertet, ohne dass je etwas entzogen wurde.
+        const { data: vres, error: rerr } = await admin.rpc('void_play_purchase', { p_token: vtok });
+        if (rerr || !vres || (vres as any).ok !== true) {
+          console.error('void_failed', JSON.stringify({ msg: rerr?.message || 'rpc_false' }));
+          return json({ error: 'revoke_failed' }, 500);
+        }
+        return json({ ok: true, note: (vres as any).note, sku: (vres as any).sku });
       }
       return json({ ok: true, note: 'rtdn_ignored' });                          // Test-Notifications
     }
@@ -287,13 +298,20 @@ Deno.serve(async (req) => {
       // sonst wanderte die Zuordnung samt aller künftigen RTDN-Verlängerungen
       // zum letzten Aufrufer.
       const { data: known, error: knownErr } = await admin
-        .from('play_purchases').select('user_id').eq('purchase_token', token).maybeSingle();
+        .from('play_purchases').select('user_id,revoked_at').eq('purchase_token', token).maybeSingle();
       if (knownErr) return json({ error: 'grant_failed', detail: knownErr.message }, 500);
+      // Erstatteter Kauf ODER Tombstone (user_id=null): der App-Start darf ihn
+      // nicht wiederbeleben. revoked_at ZUERST pruefen, sonst meldete ein
+      // Tombstone faelschlich 'token_owned' statt 'purchase_revoked'.
+      if (known && known.revoked_at) return json({ error: 'purchase_revoked' }, 402);
       if (!known || known.user_id !== uid) return json({ error: 'token_owned' }, 409);
       // Eigener, bereits eingelöster Token → nur das Ablaufdatum fortschreiben.
+      // .is('revoked_at', null): kam zwischen dem Lesen oben und hier ein Void
+      // durch, trifft dieses Update keine Zeile – der Sitzplatz wird nicht
+      // wiederbelebt. Ein PostgREST-Update ohne Treffer ist kein Fehler.
       await admin.from('play_purchases')
         .update({ expiry_ms: v.expiryMs || null, updated_at: new Date().toISOString() })
-        .eq('purchase_token', token);
+        .eq('purchase_token', token).is('revoked_at', null);
     }
 
     // Bekannter Token → NIE erneut gewähren, nur den Ablauf synchronisieren.
@@ -316,7 +334,11 @@ Deno.serve(async (req) => {
     }
 
     // Erstkauf (Premium/Family/Top-up): Entitlement anlegen/gewähren
-    const { data: granted, error } = await admin.rpc('grant_play_purchase', { p_user: uid, p_sku: sku });
+    // p_token mitgeben: grant_play_purchase schreibt den Vermerk (credited_fid,
+    // credited_scope, prev_tier) in DERSELBEN Transaktion wie die Gewaehrung.
+    // Damit gibt es keinen zweiten Schritt mehr, der fehlschlagen und die
+    // spaetere Erstattung auf den falschen Topf schicken koennte.
+    const { data: granted, error } = await admin.rpc('grant_play_purchase', { p_user: uid, p_sku: sku, p_token: token });
     if (error) return json({ error: 'grant_failed', detail: error.message }, 500);
     return json({ ok: true, granted });
   } catch (e) {

@@ -69,12 +69,18 @@ create or replace function public.ai_base_limit() returns int
 --    NUR vom Stripe-Webhook (service_role) aufrufbar.
 --    kind: 'medium' (einmalig) | 'premium' (Abo, +32 Tage) | 'topup' (+500)
 -- ------------------------------------------------------------
+-- stripe_until: Ablaufdatum eines ueber Stripe (Web) bezahlten Premium-Abos.
+-- premium_until speist sich aus Play UND Stripe; ohne diese Trennung kappte
+-- eine Play-Erstattung auch die noch bezahlten Stripe-Tage (der Entzug
+-- rekonstruierte premium_until rein aus Play-Kaeufen).
+alter table public.profiles add column if not exists stripe_until timestamptz;
+
 create or replace function public.apply_purchase(p_user uuid, p_kind text)
 returns void
 language plpgsql
 security definer set search_path = public
 as $$
-declare cur_month text := to_char(now(), 'YYYY-MM');
+declare cur_month text := to_char(now(), 'YYYY-MM'); v_stripe timestamptz;
 begin
   if p_kind = 'medium' then
     update public.profiles
@@ -82,9 +88,15 @@ begin
      where id = p_user;
 
   elsif p_kind = 'premium' then
+    -- Stripe-eigene Frist fortschreiben ...
+    update public.profiles
+       set stripe_until = greatest(coalesce(stripe_until, now()), now()) + interval '32 days'
+     where id = p_user
+    returning stripe_until into v_stripe;
+    -- ... und premium_until auf das spaetere von (bisher, Stripe) heben.
     update public.profiles
        set tier = 'premium', plan = 'premium', premium_since = coalesce(premium_since, now()),
-           premium_until = greatest(coalesce(premium_until, now()), now()) + interval '32 days',
+           premium_until = greatest(coalesce(premium_until, now()), v_stripe),
            usage_month = cur_month
      where id = p_user;
 

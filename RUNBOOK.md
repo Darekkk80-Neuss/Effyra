@@ -41,8 +41,8 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 | 6 | `supabase-kids.sql` | Kinderprofile, **kanonische `save_family`** (nach family.sql) |
 | 7 | `supabase-tiers.sql` | Stufen, `apply_purchase` |
 | 8 | `supabase-family-entitlements.sql` | `get_entitlements`, `effective_tier` |
-| 9 | `supabase-play-purchases.sql` | Play-Abo-Lebenszyklus, Sitzplätze |
-| 10 | `supabase-trial-and-play.sql` | **`consume_ai` – muss NACH 7–9 laufen** |
+| 9 | `supabase-play-purchases.sql` | Play-Abo-Lebenszyklus, Sitzplätze, `void_play_purchase` (Erstattung) |
+| 10 | `supabase-trial-and-play.sql` | **`consume_ai` – muss NACH 7–9 laufen**; `grant_play_purchase` vermerkt Topf + vorherigen Rang |
 | 11 | `supabase-trial-schutz.sql` | Missbrauchsschutz Testphase |
 | 12 | `supabase-optimierung.sql` | Indizes, `refund_ai`, Statistik, Caches |
 | 13 | `supabase-due-reminder.sql` | reminder_log + Cron (alle 15 Min) |
@@ -54,6 +54,68 @@ Funktionen; die zuletzt ausgeführte gewinnt.
 | 19 | `supabase-family-merge.sql` | `apply_family_ops` – Familiendaten als Delta statt Voll-Blob (nach 5+6) |
 | 20 | `supabase-export.sql` | Datenexport Art. 20 DSGVO – als LETZTE, liest u. a. `families.plan` |
 | 21 | — | entfällt: `supabase/migrations/20260719_*.sql` enthält nur noch einen Hinweis, die Rollenprüfung steht jetzt in Schritt 6 (`supabase-kids.sql`) |
+
+### Erstattungen (voidedPurchaseNotification)
+
+`play-verify` ruft **`void_play_purchase(p_token)`** — eine einzige Transaktion, die
+die Zeile sperrt, `expiry_ms = 0` und `revoked_at` setzt und dann entzieht. Schlägt
+der Entzug fehl, rollt das `raise` alles mit zurück; Pub/Sub bekommt kein 200 und
+stellt erneut zu. Es gibt keinen Zwischenzustand, in dem ein Kauf entwertet ist,
+ohne dass etwas entzogen wurde.
+
+**`revoked_at` ist ein Sperrvermerk, kein bloßes Protokollfeld.** Google widerruft
+den Zugang bei einer Erstattung nicht von selbst — `subscriptions.get` liefert
+weiter ein Datum in der Zukunft. Ohne die Sperre stellte der nächste RTDN-Lauf oder
+App-Start das erstattete Abo wieder her. Beide Pfade prüfen die Spalte.
+
+**Rang-Nachbewertung beim Entzug:** `revoke_play_purchase` bestimmt Rang und
+`premium_until` nach dem Entzug einer premium-gebenden Leistung (premium/family/
+lifetime) **zentral am Ende** aus dem, was noch gilt — nicht mehr pro Zweig
+(drei divergente Kopien hatten hier wiederholt Fehler erzeugt): läuft noch ein
+Premium-/Family-Abo, gilt dessen echtes Google-Ablaufdatum (gestapelte Zusatztage
+eines erstatteten Abos fallen weg); sonst wird `premium_until` gekappt und der Rang
+auf den beim Kauf vermerkten `prev_tier` zurückgesetzt. Ein **natürlicher** Ablauf
+läuft hier nicht durch (kein Void) und behält die bewusste „abgelaufen → medium"-
+Landung in `effective_tier`. Damit behält ein `free`-Nutzer nach Erstattung nichts,
+während ein separat per **Stripe** oder Dauerlizenz erworbenes `medium` erhalten
+bleibt.
+
+**`credited_fid` / `credited_scope` / `prev_tier`** schreibt `grant_play_purchase`
+beim Kauf **in derselben Transaktion** wie die Gewährung (der Token wird als
+`p_token` durchgereicht) — in welchen Credit-Topf gebucht wurde (`credited_scope`
+= `'family'` \| `'personal'`), welche Familie (`credited_fid`) und welchen Rang der
+Nutzer vorher hatte (`prev_tier`, für premium/family/lifetime). `prev_tier` ist der
+**dauerhafte Boden**: bei einem gestapelten Kauf wird er vom ältesten noch aktiven
+Play-Entitlement geerbt, nicht aus dem schon angehobenen `tier` neu gelesen — sonst
+konservierte ein Folgekauf den Rang der zuerst erstatteten Leistung (P+L bei
+Erstattung in Kauf-Reihenfolge blieb sonst `medium` statt `free`).
+
+**`profiles.stripe_until`** trennt die über **Stripe** (Web) bezahlte
+Premium-Frist von der Play-abgeleiteten `premium_until`. `apply_purchase('premium')`
+(Stripe-Webhook) schreibt `stripe_until` und hebt `premium_until` auf das spätere
+von beiden; die zentrale Rang-Nachbewertung im Play-Entzug berücksichtigt beide
+Quellen. Ohne diese Trennung kappte eine Play-Erstattung auch die noch bezahlten
+Stripe-Tage eines Nutzers, der Web **und** App mischt (Stripe ist der Web-Bezahlweg,
+in der Play-App per Policy nie genutzt). Der Entzug nimmt genau das zurück, statt aus dem
+heutigen Zustand zu raten. **`credited_scope` löst die Zweideutigkeit von
+`credited_fid = null`** (persönlich gebucht ≠ kein Vermerk): ein persönlich
+gebuchter Boost würde sonst beim Entzug einem aktiven Familientopf zugerechnet und
+zöge dort bezahlte Credits ab. Käufe von **vor** dieser Änderung tragen die Spalten
+nicht (`credited_scope = null`); für sie fällt der Entzug auf die alte Heuristik
+zurück und kann den falschen Topf treffen.
+
+**Tombstone:** Wird ein Token erstattet, **bevor** ihn je eine Verifikation angelegt
+hat (Absturz/offline direkt nach dem Kauf), legt `void_play_purchase` eine
+`revoked_at`-Zeile mit `user_id = null` und `sku = 'unknown'` an. Ein später doch
+eintreffender Erstkauf trifft per `onConflict` diese Zeile, läuft nicht in `isFirst`
+und kann den erstatteten Kauf nicht nachträglich gewähren. Dafür ist
+`play_purchases.user_id` **nullable**.
+
+**Signatur-Reihenfolge (wichtig beim erneuten Einspielen):** `revoke_play_purchase`
+und `grant_play_purchase` haben zusätzliche Default-Parameter bekommen. Die Dateien
+`drop`en alle früheren Signaturen (2-/4-stellig bzw. 2-stellig), **bevor** die neue
+Fassung greift — sonst wäre der Aufruf mehrdeutig (`ambiguous function call`). Die
+Dateien bleiben mehrfach ausführbar.
 
 ### Doppelt definierte Funktionen — bewusst bereinigt
 

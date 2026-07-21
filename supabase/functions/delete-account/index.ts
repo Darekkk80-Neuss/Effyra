@@ -37,8 +37,14 @@ Deno.serve(async (req) => {
 
   try {
     // 1) Personenbezogene Zeilen des Nutzers entfernen (service_role umgeht RLS)
-    await admin.from('push_subscriptions').delete().eq('user_id', uid);
-    await admin.from('user_state').delete().eq('user_id', uid);
+    // Jeden Schritt auswerten. Vorher meldete die Function ok:true, ohne zu
+    // pruefen, ob ueberhaupt etwas geloescht wurde – und der Client raeumte
+    // daraufhin den lokalen Speicher. Bei einer Loeschung nach Art. 17 ist eine
+    // unbelegte Erfolgsmeldung das Schlimmste, was passieren kann.
+    const { error: psErr } = await admin.from('push_subscriptions').delete().eq('user_id', uid);
+    if (psErr) return json({ ok: false, error: 'push_delete_failed', detail: psErr.message }, 500);
+    const { error: usErr } = await admin.from('user_state').delete().eq('user_id', uid);
+    if (usErr) return json({ ok: false, error: 'state_delete_failed', detail: usErr.message }, 500);
 
     // Familien, in denen der Nutzer nur MITGLIED ist: seinen Personenbezug aus
     // dem gemeinsamen Blob entfernen, bevor die Mitgliedschaft gelöscht wird.
@@ -46,13 +52,21 @@ Deno.serve(async (req) => {
     // unbefristet in families.data stehen – Art. 17 DSGVO war damit nicht
     // erfüllt, und nach dem Löschen der Mitgliedschaft war die Zeile nicht
     // einmal mehr auffindbar.
+    // Der Lesevorgang MUSS ausgewertet werden: faellt er aus, ist mine null, kein
+    // einziger Scrub laeuft, und die Mitgliedschaft wird trotzdem geloescht –
+    // Name und Geburtsdatum blieben unauffindbar im Blob stehen.
+    const { data: mine, error: mineErr } = await admin
+      .from('family_members').select('family_id').eq('user_id', uid);
+    if (mineErr) return json({ ok: false, error: 'members_read_failed', detail: mineErr.message }, 500);
     try {
-      const { data: mine } = await admin
-        .from('family_members').select('family_id').eq('user_id', uid);
       for (const m of mine || []) {
         // Nur die Existenz pruefen – der data-Blob wird hier nicht gebraucht.
-        const { data: fam } = await admin
+        const { data: fam, error: famErr } = await admin
           .from('families').select('id').eq('id', m.family_id).maybeSingle();
+        // Nur eine bestaetigt NICHT vorhandene Familie darf uebersprungen werden.
+        // Bei einem Lesefehler ist fam ebenfalls null – der Scrub fiele still aus
+        // und Name und Geburtsdatum blieben im Blob stehen.
+        if (famErr) return json({ ok: false, error: 'family_read_failed', detail: famErr.message }, 500);
         if (!fam) continue;
         const { error: scrubErr } = await admin.rpc('scrub_member_from_family', { p_fid: m.family_id, p_user: uid });
         // .rpc() wirft bei Postgres-Fehlern NICHT. Bisher wurde der Rückgabewert
@@ -65,26 +79,49 @@ Deno.serve(async (req) => {
         // Protokoll ausgerechnet die Loeschung. Die family_id bleibt ohnehin in
         // der Datenbank und ist die einzige Angabe, mit der sich der Rest von
         // Hand entfernen laesst.
-        if (scrubErr) console.error('scrub_failed', JSON.stringify({ fid: m.family_id, msg: safeErr(scrubErr) }));
+        if (scrubErr) {
+          console.error('scrub_failed', JSON.stringify({ fid: m.family_id, msg: safeErr(scrubErr) }));
+          // ABBRECHEN, nicht nur protokollieren. Die Mitgliedschaft darf erst
+          // fallen, wenn der Blob nachweislich sauber ist – sonst bestaetigt die
+          // Function eine Loeschung, die gar nicht stattgefunden hat.
+          return json({ ok: false, error: 'scrub_failed' }, 500);
+        }
       }
-    } catch (e) { console.error('scrub_threw', JSON.stringify({ msg: safeErr(e) })); }
+    } catch (e) {
+      console.error('scrub_threw', JSON.stringify({ msg: safeErr(e) }));
+      return json({ ok: false, error: 'scrub_failed' }, 500);
+    }
 
     /* Plan raeumen, BEVOR die Mitgliedschaft faellt: war der Loeschende der
        Zahler, blieben plan/plan_until/plan_by sonst stehen – die Familie waere
        bis zum Ablauf weiter Premium, und derselbe Kauf koennte ueber
        sync_play_expiry die naechste Familie freischalten. Gleiche Bereinigung
        wie bei leave_family und join_family. */
-    try {
-      const { data: mine2 } = await admin.from('family_members').select('family_id').eq('user_id', uid);
-      for (const m of mine2 || []) await admin.rpc('release_family', { p_fid: m.family_id, p_user: uid });
-    } catch (e) { console.error('release_threw', JSON.stringify({ msg: safeErr(e) })); }
+    // Mitgliedschaften MERKEN, dann loeschen, DANN raeumen – in dieser
+    // Reihenfolge, wie in leave_family. release_family ruft
+    // recompute_family_seats_fid, und das zaehlt ueber family_members: stuende
+    // der Austretende dort noch, wuerden SEINE Add-on-Sitze der Familie
+    // weiterhin zugerechnet.
+    // Auch hier auswerten: mit leerer Liste liefe kein release_family, und der
+    // Plan des Zahlers bliebe stehen – dieselbe Familie waere weiter Premium.
+    const { data: mine2, error: mine2Err } = await admin
+      .from('family_members').select('family_id').eq('user_id', uid);
+    if (mine2Err) return json({ ok: false, error: 'members_read_failed', detail: mine2Err.message }, 500);
+    const meineFamilien: any[] = mine2 || [];
 
-    await admin.from('family_members').delete().eq('user_id', uid);
+    const { error: memErr } = await admin.from('family_members').delete().eq('user_id', uid);
+    if (memErr) return json({ ok: false, error: 'members_delete_failed', detail: memErr.message }, 500);
+
+    for (const m of meineFamilien) {
+      const { error: relErr } = await admin.rpc('release_family', { p_fid: m.family_id, p_user: uid });
+      if (relErr) console.error('release_failed', JSON.stringify({ msg: safeErr(relErr) }));
+    }
 
     // Vom Nutzer erstellte Familien: nur löschen, wenn NIEMAND sonst mehr drin
     // ist. Vorher wurde die Familie samt aller Daten von Partner und Kindern
     // mitgelöscht, nur weil der Ersteller sein Konto aufgab.
-    const { data: fams } = await admin.from('families').select('id').eq('created_by', uid);
+    const { data: fams, error: famsErr } = await admin.from('families').select('id').eq('created_by', uid);
+    if (famsErr) return json({ ok: false, error: 'families_read_failed', detail: famsErr.message }, 500);
     for (const f of fams || []) {
       const { count, error: cntErr } = await admin
         .from('family_members').select('user_id', { count: 'exact', head: true })
@@ -93,17 +130,26 @@ Deno.serve(async (req) => {
       // Familie samt aller Partner- und Kinderdaten loeschen – im Zweifel behalten.
       if (cntErr || count == null || count > 0) {
         // Andere nutzen sie weiter → nur die Urheberschaft lösen (FK ist ON DELETE SET NULL).
-        await admin.from('families').update({ created_by: null }).eq('id', f.id);
+        const { error: upErr } = await admin.from('families').update({ created_by: null }).eq('id', f.id);
+        // Bleibt created_by stehen, zeigt die Familie weiter auf ein geloeschtes
+        // Konto – der FK ist ON DELETE SET NULL, aber nur wenn das Update greift.
+        if (upErr) return json({ ok: false, error: 'family_detach_failed', detail: upErr.message }, 500);
         continue;
       }
-      await admin.from('family_child_codes').delete().eq('family_id', f.id);
-      await admin.from('families').delete().eq('id', f.id);
+      const { error: ccErr } = await admin.from('family_child_codes').delete().eq('family_id', f.id);
+      if (ccErr) return json({ ok: false, error: 'child_codes_delete_failed', detail: ccErr.message }, 500);
+      // Auswerten: schlaegt das fehl, bliebe der gesamte families.data-Blob mit
+      // Aufgaben, Terminen und Mitgliedsangaben stehen – und die Function
+      // meldete trotzdem ok:true.
+      const { error: fdErr } = await admin.from('families').delete().eq('id', f.id);
+      if (fdErr) return json({ ok: false, error: 'family_delete_failed', detail: fdErr.message }, 500);
     }
 
     // photo_cache hat KEINE user_id (nur key/data/updated_at) – der frühere
     // Aufruf lief ins Leere. Die Tabelle enthält reine Pexels-Fotos ohne
     // Personenbezug, es gibt hier also nichts zu löschen.
-    await admin.from('profiles').delete().eq('id', uid);
+    const { error: prErr } = await admin.from('profiles').delete().eq('id', uid);
+    if (prErr) return json({ ok: false, error: 'profile_delete_failed', detail: prErr.message }, 500);
 
     // 2) Auth-Nutzer endgueltig loeschen
     const { error: delErr } = await admin.auth.admin.deleteUser(uid);

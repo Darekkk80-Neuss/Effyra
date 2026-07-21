@@ -150,13 +150,29 @@ revoke execute on function public.consume_ai(uuid, int) from public, anon, authe
 
 -- 3) grant_play_purchase(user, sku): vom play-verify-Webhook (service_role) --
 --    Mappt die Play-Produkt-ID auf das passende Entitlement.
-create or replace function public.grant_play_purchase(p_user uuid, p_sku text)
+create or replace function public.grant_play_purchase(p_user uuid, p_sku text, p_token text default null)
 returns json
 language plpgsql
 security definer set search_path = public
 as $$
-declare v_res json; v_fid uuid;
+declare v_res json; v_fid uuid; v_prev text; v_scope text;
 begin
+  -- prev_tier = der DAUERHAFTE Boden: der Rang, den der Nutzer behaelt, wenn ALLE
+  -- Play-Leistungen wegfallen. Haelt er bereits eine Play-Leistung, hat DEREN
+  -- Zeile den Boden von VOR dem ersten Play-Kauf gespeichert – den erben, statt
+  -- den inzwischen play-angehobenen tier neu zu lesen (sonst konserviert ein
+  -- gestapelter Kauf den Rang der zuerst erstatteten Leistung). Die eigene Zeile
+  -- des aktuellen Kaufs hat prev_tier noch NULL (play-verify legt sie per Upsert
+  -- an, BEVOR es grant ruft; geschrieben wird prev_tier erst am Ende) und faellt
+  -- durch 'prev_tier is not null' heraus.
+  select coalesce(
+           (select pp.prev_tier from public.play_purchases pp
+             where pp.user_id = p_user
+               and pp.sku in ('effyra_premium', 'effyra_family', 'effyra_lifetime')
+               and pp.revoked_at is null and pp.prev_tier is not null
+             order by pp.updated_at asc limit 1),
+           (select tier from public.profiles where id = p_user)
+         ) into v_prev;
   if p_sku = 'effyra_premium' then
     update public.profiles
        set tier = 'premium', plan = 'premium',
@@ -170,7 +186,7 @@ begin
     update public.profiles set lifetime = true,
            tier = case when tier = 'premium' then 'premium' else 'medium' end
      where id = p_user;
-    v_res := json_build_object('ok', true, 'kind', 'lifetime');
+    v_res := json_build_object('ok', true, 'kind', 'lifetime', 'prev_tier', v_prev);
   elsif p_sku = 'effyra_ai_boost' then
     -- KI-Boost: +1000 Credits, die ÜBERROLLEN (kein Monats-Verfall).
     -- Landen im Topf, aus dem der Nutzer wirklich schöpft: aktives Family-Abo → Familien-Topf, sonst persönlich.
@@ -185,18 +201,31 @@ begin
          set ai_extra = coalesce(ai_extra, 0) + 1000,
              ai_month = to_char(now(), 'YYYY-MM')
        where id = v_fid;
+      v_scope := 'family';
     else
       update public.profiles set ai_extra = coalesce(ai_extra, 0) + 1000 where id = p_user;
+      v_scope := 'personal';   -- eindeutig: der Entzug trifft spaeter genau das Profil
     end if;
-    v_res := json_build_object('ok', true, 'kind', 'topup');
+    -- credited_fid zurueckmelden: der Entzug muss denselben Topf treffen, auch
+    -- wenn das Familienabo bis dahin abgelaufen ist.
+    v_res := json_build_object('ok', true, 'kind', 'topup', 'credited_fid', v_fid);
   else
     -- Add-ons (effyra_adult / effyra_child) → über die Family-Seat-Funktion
     v_res := json_build_object('ok', false, 'reason', 'sku_not_handled_here', 'sku', p_sku);
   end if;
+  -- Den Vermerk in DERSELBEN Transaktion schreiben wie die Gewaehrung. Vorher
+  -- lief er als zweiter Schritt in play-verify und wurde bei Fehler nur
+  -- geloggt – dann traf eine spaetere Erstattung den falschen Topf.
+  if p_token is not null then
+    update public.play_purchases
+       set credited_fid = v_fid, credited_scope = v_scope, prev_tier = v_prev
+     where purchase_token = p_token;
+  end if;
   return v_res;
 end;
 $$;
-revoke execute on function public.grant_play_purchase(uuid, text) from public, anon, authenticated;
+revoke execute on function public.grant_play_purchase(uuid, text, text) from public, anon, authenticated;
+drop function if exists public.grant_play_purchase(uuid, text);   -- alte 2-stellige Fassung
 
 -- 4) OPTIONAL – get_entitlements um Trial-Infos ergänzen ---------------------
 --    Nur einbauen, wenn du die Trial-Restanzeige serverseitig (statt clientseitig)
