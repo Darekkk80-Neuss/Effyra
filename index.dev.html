@@ -5300,12 +5300,15 @@ function showMailHinweis(art, adresse) {
     '<p style="color:var(--faint);font-size:12px;line-height:1.5;margin-bottom:14px">' + esc(T.spam) + '</p>' +
     '<div class="fam-alert-btns"><button class="btn btn-sm btn-primary" id="mailHintOk">' + esc(T.ok) + '</button></div></div>';
   ov.classList.add('on');
-  const zu = () => ov.classList.remove('on');
+  /* Schliessen raeumt IMMER den Tasten-Zuhoerer mit ab. Haenge ich ihn nur beim
+     Escape-Fall aus, sammeln sich bei jedem erneuten Oeffnen weitere an. */
+  function beiTaste(e) { if (e.key === 'Escape') zu(); }
+  const zu = () => { ov.classList.remove('on'); document.removeEventListener('keydown', beiTaste); };
+  document.addEventListener('keydown', beiTaste);
   ov.querySelector('#mailHintOk').onclick = zu;
   /* Klick auf den Hintergrund und Escape schliessen ebenfalls – der Dialog
      haelt keine Entscheidung fest, er informiert nur. */
   ov.onclick = (e) => { if (e.target === ov) zu(); };
-  document.addEventListener('keydown', function esc2(e) { if (e.key === 'Escape') { zu(); document.removeEventListener('keydown', esc2); } });
   setTimeout(() => { const b = ov.querySelector('#mailHintOk'); if (b) b.focus(); }, 50);
 }
 function showAiConsent(onGrant) {
@@ -5602,17 +5605,27 @@ function setupAuthForm() {
   $('#authErr').textContent = '';
   if (CLOUD) {
     const isReg = cloudAuthMode === 'reg';
-    $('#auName').style.display = isReg ? '' : 'none';
-    regFieldsShow(isReg);
+    const isReset = cloudAuthMode === 'reset';
+    /* Zuruecksetzen braucht genau ein Feld. Bleibt das Passwortfeld stehen,
+       fragt sich der Nutzer, was er dort eintragen soll – das alte, das er
+       vergessen hat, oder ein neues? Beides ist falsch. */
+    $('#auName').style.display = (isReg && !isReset) ? '' : 'none';
+    regFieldsShow(isReg && !isReset);
     $('#auEmail').style.display = '';
-    $('#authTitle').textContent = isReg ? 'Konto erstellen' : 'Anmelden';
-    $('#authSub').textContent = isReg
-      ? '7 Tage kostenlos testen – alle Funktionen inklusive.'
-      : 'Schön, dass du wieder da bist!';
-    $('#authGo').textContent = isReg ? 'Kostenlos starten' : 'Anmelden';
+    $('#auPass').style.display = isReset ? 'none' : '';
+    $('#authTitle').textContent = isReset ? 'Passwort zurücksetzen' : (isReg ? 'Konto erstellen' : 'Anmelden');
+    $('#authSub').textContent = isReset
+      ? 'Gib deine E-Mail-Adresse ein – wir schicken dir einen Link zum Zurücksetzen.'
+      : (isReg
+        ? '7 Tage kostenlos testen – alle Funktionen inklusive.'
+        : 'Schön, dass du wieder da bist!');
+    $('#authGo').textContent = isReset ? 'Link senden' : (isReg ? 'Kostenlos starten' : 'Anmelden');
     $('#authToggle').style.display = '';
-    $('#authToggle').textContent = isReg ? 'Schon ein Konto? Hier anmelden' : 'Neu hier? Konto kostenlos erstellen';
-    $('#authReset').style.display = isReg ? 'none' : '';
+    $('#authToggle').textContent = isReset
+      ? '‹ Zurück zur Anmeldung'
+      : (isReg ? 'Schon ein Konto? Hier anmelden' : 'Neu hier? Konto kostenlos erstellen');
+    /* Im Reset-Modus waere „Passwort vergessen?" sinnlos – man ist ja schon dort. */
+    $('#authReset').style.display = (isReg || isReset) ? 'none' : '';
     $('#authReset').textContent = 'Passwort vergessen?';
     return;
   }
@@ -5785,6 +5798,23 @@ async function cloudAuth(pass, err) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; return; }
   $('#authGo').disabled = true;
   try {
+    if (cloudAuthMode === 'reset') {
+      /* Ergebnis bewusst unabhaengig davon, ob es das Konto gibt – sonst
+         waere das Formular eine Auskunftsstelle darueber, wer registriert ist. */
+      try { await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); } catch (e) {}
+      showMailHinweis('passwort', email);
+      cloudAuthMode = 'login';
+      setupAuthForm();
+      $('#authSub').textContent = pickLang({
+        de: '📬 Falls ein Konto mit dieser E-Mail existiert, ist ein Link zum Zurücksetzen unterwegs.',
+        en: '📬 If an account exists for this e-mail, a reset link is on its way.',
+        fr: '📬 Si un compte existe pour cet e-mail, un lien de réinitialisation est en route.',
+        es: '📬 Si existe una cuenta con este correo, el enlace de restablecimiento está en camino.',
+        it: '📬 Se esiste un account con questa e-mail, il link è in arrivo.',
+        pl: '📬 Jeśli istnieje konto z tym e-mailem, link jest w drodze.'
+      });
+      return;
+    }
     if (cloudAuthMode === 'reg') {
       const name = $('#auName').value.trim();
       const last = ($('#auLast') && $('#auLast').value.trim()) || '';
@@ -5843,6 +5873,11 @@ async function cloudAuth(pass, err) {
 async function submitAuth() {
   const err = $('#authErr');
   err.textContent = '';
+  /* Zurücksetzen braucht kein Passwort. Die Prüfung darunter würde hier immer
+     fehlschlagen, weil das Feld ausgeblendet und damit leer ist – der Knopf
+     täte dann gar nichts. cloudAuth prüft als Erstes die E-Mail-Adresse und
+     erledigt danach den Reset-Zweig. */
+  if (CLOUD && cloudAuthMode === 'reset') { await cloudAuth('', err); return; }
   const pass = $('#auPass').value;
   if (pass.length < 6) { err.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; return; }
   const isReg = CLOUD ? (cloudAuthMode === 'reg') : !account;
@@ -6086,29 +6121,12 @@ if ($('#kidJoinLink')) $('#kidJoinLink').addEventListener('click', kidJoinOpen);
 $('#auPass').addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
 $('#authReset').addEventListener('click', async () => {
   if (CLOUD) {
-    const email = $('#auEmail').value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      $('#authErr').textContent = pickLang({
-        de: 'Gib oben deine E-Mail-Adresse ein – dann schicken wir dir einen Link.',
-        en: 'Enter your e-mail address above – then we will send you a link.',
-        fr: 'Saisis ton adresse e-mail ci-dessus – nous t’enverrons un lien.',
-        es: 'Introduce tu dirección de correo arriba y te enviaremos un enlace.',
-        it: 'Inserisci il tuo indirizzo e-mail qui sopra – ti invieremo un link.',
-        pl: 'Podaj wyżej swój adres e-mail – wyślemy Ci link.'
-      });
-      return;
-    }
-    try { await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); } catch (e) {}
+    /* Nicht sofort senden, sondern in den Reset-Modus wechseln: ein Feld,
+       ein Knopf, ein Weg zurueck. Die bereits getippte Adresse bleibt stehen. */
+    cloudAuthMode = 'reset';
+    setupAuthForm();
     $('#authErr').textContent = '';
-    $('#authSub').textContent = pickLang({
-      de: '📬 Falls ein Konto mit dieser E-Mail existiert, ist ein Link zum Zurücksetzen unterwegs.',
-      en: '📬 If an account exists for this e-mail, a reset link is on its way.',
-      fr: '📬 Si un compte existe pour cet e-mail, un lien de réinitialisation est en route.',
-      es: '📬 Si existe una cuenta con este correo, el enlace de restablecimiento está en camino.',
-      it: '📬 Se esiste un account con questa e-mail, il link è in arrivo.',
-      pl: '📬 Jeśli istnieje konto z tym e-mailem, link jest w drodze.'
-    });
-    showMailHinweis('passwort', email);
+    setTimeout(() => { const f = $('#auEmail'); if (f) f.focus(); }, 60);
     return;
   }
   if (!confirm(pickLang({ de: 'Konto zurücksetzen? Du kannst dich danach neu registrieren. Aufgaben, Termine und Dokumente bleiben erhalten, die Testphase läuft weiter.', en: 'Reset account? You can register again afterwards. Tasks, events and documents are kept; the trial keeps running.', fr: 'Réinitialiser le compte ? Tu pourras te réinscrire ensuite. Tâches, rendez-vous et documents sont conservés, l’essai continue.', es: '¿Restablecer la cuenta? Después podrás registrarte de nuevo. Tareas, citas y documentos se conservan; la prueba sigue activa.', it: 'Reimpostare l’account? Potrai registrarti di nuovo. Attività, appuntamenti e documenti restano; la prova continua.', pl: 'Zresetować konto? Potem możesz zarejestrować się ponownie. Zadania, terminy i dokumenty zostaną zachowane, okres próbny trwa dalej.' }))) return;
@@ -6117,7 +6135,11 @@ $('#authReset').addEventListener('click', async () => {
   setupAuthForm();
 });
 $('#authToggle').addEventListener('click', () => {
-  cloudAuthMode = cloudAuthMode === 'reg' ? 'login' : 'reg';
+  /* Aus dem Zuruecksetzen fuehrt der Knopf zurueck zur Anmeldung – dort kam
+     man her. Ohne diesen Fall landete man in der Registrierung, obwohl
+     „Zurueck zur Anmeldung" darauf steht. */
+  cloudAuthMode = cloudAuthMode === 'reset' ? 'login'
+    : (cloudAuthMode === 'reg' ? 'login' : 'reg');
   setupAuthForm();
 });
 if (CLOUD) {
