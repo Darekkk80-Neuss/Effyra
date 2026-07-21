@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Fälligkeitsprüfung IN DER DATENBANK
+-- Ordela – Fälligkeitsprüfung IN DER DATENBANK
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.
 -- Voraussetzung: supabase-due-reminder.sql (reminder_log), supabase-push.sql
 -- (push_subscriptions) und supabase-sync.sql (user_state) wurden ausgeführt.

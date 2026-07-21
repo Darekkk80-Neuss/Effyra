@@ -1,7 +1,7 @@
 -- ============================================================
--- Effyra – Morgen-Briefing-Push (täglicher Cron, 5:00 UTC)
+-- Ordela – Morgen-Briefing-Push (täglicher Cron, 5:00 UTC)
 -- SELBST-KONFIGURIEREND: das CRON_SECRET wird automatisch aus einem
--- bestehenden Effyra-Cron übernommen – du musst nichts eintippen.
+-- bestehenden Ordela-Cron übernommen – du musst nichts eintippen.
 -- Voraussetzung: supabase-push.sql (push_subscriptions), Function "morning-push"
 -- ist deployt. Im Supabase SQL-Editor ausführen ("Run"). Mehrfach ausführbar.
 -- ============================================================

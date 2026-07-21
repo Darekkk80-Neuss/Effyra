@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Datenexport Art. 20 DSGVO (serverseitiger Teil)
+-- Ordela – Datenexport Art. 20 DSGVO (serverseitiger Teil)
 -- Im Supabase SQL-Editor ausführen. Mehrfach ausführbar.
 -- Reihenfolge: als LETZTE Datei, nach 1–11 (siehe RUNBOOK.md).
 -- Liest Spalten, die erst dort entstehen: profiles.tier/ai_used (tiers),

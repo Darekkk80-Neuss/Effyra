@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Effyra AI – Dokument-Scan Demo</title>
+<title>Ordela AI – Dokument-Scan Demo</title>
 <style>
   :root{
     --a1:#8b5cf6; --a2:#06b6d4; --cyan:#22d3ee; --ink:#0d1019; --ink-soft:#5a6273;
@@ -169,7 +169,7 @@
         <circle cx="256" cy="256" r="20" fill="#22d3ee"/>
         <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
       </svg>
-      <b>Effyra AI</b><span class="st"><i></i>scannt…</span>
+      <b>Ordela AI</b><span class="st"><i></i>scannt…</span>
     </div>
 
     <div class="banner"><span class="bt">✓</span> Automatisch erstellt</div>
@@ -233,7 +233,7 @@
 
   <div class="hud">
     <button class="btn" id="restart">↻ Demo neu starten</button>
-    <span class="hint">Vorführung: Effyra AI scannt eine Rechnung und erstellt daraus automatisch Rechnung &amp; Termin. Läuft in Schleife — zum Abfilmen Vollbild + Bildschirmaufnahme (9:16).</span>
+    <span class="hint">Vorführung: Ordela AI scannt eine Rechnung und erstellt daraus automatisch Rechnung &amp; Termin. Läuft in Schleife — zum Abfilmen Vollbild + Bildschirmaufnahme (9:16).</span>
   </div>
 
 <script>
@@ -244,7 +244,7 @@
   // Phasen-Dauer (ms): 0 leer · 1 Rechnung · 2 Scan · 3 Felder · 4 Extraktion · 5 tuck+Karte1 · 6 Karte2+Werte · 7 Banner/Halt
   const DUR = [500, 1000, 2300, 1900, 1300, 1800, 2300, 1900];
   const CAP = {
-    2: ['Effyra AI scannt dein Dokument', '<i></i>scannt…'],
+    2: ['Ordela AI scannt dein Dokument', '<i></i>scannt…'],
     3: ['Erkennt <b>Betrag, Frist &amp; Absender</b>', '<i></i>analysiert…'],
     5: ['Erstellt <b>Rechnung &amp; Termin</b> – automatisch', '<i></i>erstellt…'],
     7: ['Fertig – ganz ohne Tippen.', '<i></i>fertig ✓']

@@ -1,4 +1,4 @@
-// Effyra – Stripe-Checkout (Supabase Edge Function)
+// Ordela – Stripe-Checkout (Supabase Edge Function)
 // Erstellt eine Stripe-Checkout-Session für Medium (einmalig), Premium (Abo)
 // oder Top-up (+500, einmalig) und gibt die Checkout-URL zurück.
 //

@@ -1,4 +1,4 @@
-# Effyra – Betriebshandbuch
+# Ordela – Betriebshandbuch
 
 Die einzige verbindliche Quelle für **Reihenfolge** und **Deploy-Flags**.
 Beides war bisher nur in Kommentarköpfen von 20 Dateien verstreut dokumentiert,

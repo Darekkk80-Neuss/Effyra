@@ -1,4 +1,4 @@
-// Effyra – Stripe-Webhook (Supabase Edge Function)
+// Ordela – Stripe-Webhook (Supabase Edge Function)
 // Setzt nach erfolgreicher Zahlung die Stufe / das Kontingent (service_role).
 // In Stripe als Webhook-Endpoint eintragen; diese Function OHNE JWT-Prüfung
 // deployen (Signatur wird über STRIPE_WEBHOOK_SECRET verifiziert):

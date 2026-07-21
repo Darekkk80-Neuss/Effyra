@@ -1,7 +1,7 @@
 -- ============================================================
--- Effyra – Unwetter-Push: Spalten + Cron (alle 30 Min)
+-- Ordela – Unwetter-Push: Spalten + Cron (alle 30 Min)
 -- SELBST-KONFIGURIEREND: das CRON_SECRET wird automatisch aus einem
--- bestehenden Effyra-Cron übernommen – du musst nichts eintippen.
+-- bestehenden Ordela-Cron übernommen – du musst nichts eintippen.
 -- Voraussetzung: Edge Function "weather-push" ist deployt, supabase-push.sql
 -- (push_subscriptions) wurde ausgeführt.
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.

@@ -1,4 +1,4 @@
-// Effyra – Sanfte Erinnerung an überfällige, zugewiesene Familienaufgaben (per Cron)
+// Ordela – Sanfte Erinnerung an überfällige, zugewiesene Familienaufgaben (per Cron)
 // ---------------------------------------------------------------------------------
 // Läuft STÜNDLICH (pg_cron), agiert aber nur, wenn es in Europa/Berlin gerade 9 Uhr ist
 // (DST-sicher, kein Sommer-/Winter-Drift). Für jede überfällige, einer Person mit Konto

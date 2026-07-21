@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Beitrittscodes härten
+-- Ordela – Beitrittscodes härten
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.
 -- ZUERST ausführen, DANN die Dateien, die gen_family_code() benutzen
 -- (supabase-family.sql, supabase-kids.sql, supabase-play-purchases.sql,

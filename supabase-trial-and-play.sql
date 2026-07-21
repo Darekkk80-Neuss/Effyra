@@ -1,5 +1,5 @@
 -- ============================================================================
--- Effyra – Trial (50 Credits / 7 Tage) serverseitig + Google-Play-Entitlements
+-- Ordela – Trial (50 Credits / 7 Tage) serverseitig + Google-Play-Entitlements
 -- ----------------------------------------------------------------------------
 -- Im Supabase SQL-Editor ausführen. MUSS als LETZTE der drei Tier-Dateien laufen
 -- (Reihenfolge: tiers → family-entitlements → DIESE). Setzt voraus, dass

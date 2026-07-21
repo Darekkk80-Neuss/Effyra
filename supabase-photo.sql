@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Server-Cache für EffyraFit-Fotos (Pexels), OPTIONAL.
+-- Ordela – Server-Cache für OrdelaFit-Fotos (Pexels), OPTIONAL.
 -- Ohne dieses Script funktioniert der Foto-Proxy trotzdem (holt dann jedes Mal frisch,
 -- der Client cached wöchentlich). Mit der Tabelle wird Pexels nur ~1×/Woche für ALLE
 -- Nutzer angefragt → skaliert auch bei vielen Nutzern.

@@ -1,4 +1,4 @@
-// Effyra – Konto- & Datenlöschung (Supabase Edge Function) — Art. 17 DSGVO
+// Ordela – Konto- & Datenlöschung (Supabase Edge Function) — Art. 17 DSGVO
 // ----------------------------------------------------------------------------
 // Löscht das Konto des AUFRUFENDEN Nutzers (per JWT identifiziert) samt seiner
 // personenbezogenen Daten und anschliessend den Auth-Nutzer selbst.

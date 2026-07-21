@@ -1,4 +1,4 @@
-// Effyra – Aufräumung inaktiver Konten (Art. 5 Abs. 1 lit. e DSGVO)
+// Ordela – Aufräumung inaktiver Konten (Art. 5 Abs. 1 lit. e DSGVO)
 // ----------------------------------------------------------------------------
 // Führt die festgelegte Löschfrist aus:
 //   nach 23 Monaten Inaktivität -> Vorwarnung per E-Mail, 30 Tage Frist
@@ -29,14 +29,14 @@ import { safeErr } from '../_shared/util.ts';
 const json = (o: unknown, s = 200) =>
   new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' } });
 
-const ABSENDER = { name: 'Effyra', email: 'info@gonsoft-labs.de' };
+const ABSENDER = { name: 'Ordela', email: 'info@gonsoft-labs.de' };
 
 function warnMail(anrede: string) {
   const hallo = anrede ? `Hallo ${anrede},` : 'Hallo,';
   return {
-    subject: 'Dein Effyra-Konto wird in 30 Tagen gelöscht',
+    subject: 'Dein Ordela-Konto wird in 30 Tagen gelöscht',
     html: `<p>${hallo}</p>
-<p>dein Effyra-Konto wurde seit <b>23 Monaten</b> nicht mehr genutzt. Wir speichern
+<p>dein Ordela-Konto wurde seit <b>23 Monaten</b> nicht mehr genutzt. Wir speichern
 Daten nur so lange, wie sie gebraucht werden – deshalb löschen wir Konten nach
 <b>24 Monaten ohne Aktivität</b>.</p>
 <p><b>In 30 Tagen wird dein Konto mit allen darin gespeicherten Daten endgültig
@@ -45,7 +45,7 @@ gelöscht.</b> Das lässt sich danach nicht rückgängig machen.</p>
 das genügt, die Frist beginnt von vorn.</p>
 <p>Du möchtest sofort löschen? In der App unter „Einstellungen → Konto endgültig
 löschen".</p>
-<p>Viele Grüße<br>Effyra · Gonsoft labs</p>
+<p>Viele Grüße<br>Ordela · Gonsoft labs</p>
 <p style="color:#888;font-size:12px">Diese Nachricht geht dir aufgrund unserer
 Löschfrist zu (Art. 5 Abs. 1 lit. e DSGVO). Fragen: info@gonsoft-labs.de</p>`,
   };

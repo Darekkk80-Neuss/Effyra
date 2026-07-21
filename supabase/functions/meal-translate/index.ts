@@ -1,4 +1,4 @@
-// Effyra – Rezept-Uebersetzung (serverseitig, gecacht, fuer den Nutzer kostenlos).
+// Ordela – Rezept-Uebersetzung (serverseitig, gecacht, fuer den Nutzer kostenlos).
 //
 // Warum es diese Funktion gibt: Die Zubereitung ist Fliesstext und laesst sich
 // nicht ueber die eingebaute Wortliste uebersetzen (anders als Titel und Zutaten).

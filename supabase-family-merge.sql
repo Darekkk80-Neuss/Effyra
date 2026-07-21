@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Familiendaten nebenläufig schreiben (Delta statt Voll-Blob)
+-- Ordela – Familiendaten nebenläufig schreiben (Delta statt Voll-Blob)
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Idempotent (mehrfach ausführbar).
 -- REIHENFOLGE: NACH supabase-family.sql (#5) und supabase-kids.sql (#6).
 --

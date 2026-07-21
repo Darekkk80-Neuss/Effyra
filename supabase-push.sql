@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Web-Push-Abos (Hintergrund-Benachrichtigungen)
+-- Ordela – Web-Push-Abos (Hintergrund-Benachrichtigungen)
 -- Einmalig im Supabase SQL-Editor ausführen ("Run").
 -- Kann gefahrlos mehrfach ausgeführt werden.
 -- ============================================================

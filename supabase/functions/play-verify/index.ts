@@ -1,4 +1,4 @@
-// Effyra – Google Play Purchase Verify (Supabase Edge Function)
+// Ordela – Google Play Purchase Verify (Supabase Edge Function)
 // ----------------------------------------------------------------------------
 // Zweck: Einen Play-Kauf fälschungssicher bei Google prüfen und das passende
 //        Entitlement setzen (RPC grant_play_purchase, service_role).

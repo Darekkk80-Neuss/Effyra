@@ -1,7 +1,7 @@
 -- ============================================================
--- Effyra – Fälligkeits-Erinnerungen: Log-Tabelle + Cron (alle 15 Min)
+-- Ordela – Fälligkeits-Erinnerungen: Log-Tabelle + Cron (alle 15 Min)
 -- SELBST-KONFIGURIEREND: das CRON_SECRET wird automatisch aus einem
--- bestehenden Effyra-Cron übernommen – du musst nichts eintippen.
+-- bestehenden Ordela-Cron übernommen – du musst nichts eintippen.
 -- Voraussetzung: Edge Function "due-reminder" ist deployt; supabase-push.sql
 -- (push_subscriptions) und supabase-sync.sql (user_state) wurden ausgeführt.
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.

@@ -1,4 +1,4 @@
-// Effyra – Fälligkeits-Erinnerungen (per Cron, serverseitig)
+// Ordela – Fälligkeits-Erinnerungen (per Cron, serverseitig)
 //   • Termine (events mit Datum+Uhrzeit): ~30 Minuten vorher
 //   • Aufgaben (tasks mit Fälligkeitsdatum, offen): am Fälligkeitstag ab 8 Uhr lokal
 //

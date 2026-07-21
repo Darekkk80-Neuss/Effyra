@@ -1,4 +1,4 @@
-// Effyra – Spritpreis-Proxy (Supabase Edge Function) — Tankerkönig
+// Ordela – Spritpreis-Proxy (Supabase Edge Function) — Tankerkönig
 // ----------------------------------------------------------------------------
 // Hält den Tankerkönig-API-Key serverseitig (nie im Client) und liefert die
 // günstigste Tankstelle je Kraftstoff (E5/E10/Diesel) im Umkreis.

@@ -1,4 +1,4 @@
-# Google Play – Setup & Billing-Verschmelzung (Effyra)
+# Google Play – Setup & Billing-Verschmelzung (Ordela)
 
 Diese Checkliste ist so gebaut, dass du sie **von oben nach unten** abarbeitest, sobald du im
 Google-Play-Konto bist. Der Code (Client + Server) ist bereits darauf vorbereitet – die

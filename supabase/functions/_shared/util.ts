@@ -1,4 +1,4 @@
-// Effyra – gemeinsame Helfer für alle Edge Functions
+// Ordela – gemeinsame Helfer für alle Edge Functions
 // ----------------------------------------------------------------------------
 // Ordner mit führendem "_" wird von Supabase nicht als eigene Function deployt,
 // sondern in die importierenden Functions hineingebündelt.

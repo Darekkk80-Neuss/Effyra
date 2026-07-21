@@ -1,4 +1,4 @@
-// Effyra – Web-Push senden (Supabase Edge Function)
+// Ordela – Web-Push senden (Supabase Edge Function)
 // Der Sender ruft diese Funktion mit seinem JWT auf; sie schickt eine
 // System-Benachrichtigung an das/​die Gerät(e) des Empfängers – auch wenn dessen
 // App geschlossen ist. Sicherheit: Sender & Empfänger müssen dieselbe Familie teilen.
@@ -24,8 +24,8 @@ function json(o: unknown, s = 200) {
 
 // Titel kommen ausschliesslich von hier. Frei formulierte Titel aus dem Client
 // erlaubten es jedem Familienmitglied, eine Push zu bauen, die auf dem
-// Sperrbildschirm des anderen wie eine Meldung von Effyra selbst aussieht
-// ("Effyra: Konto bestaetigen") -- Phishing innerhalb der Familie.
+// Sperrbildschirm des anderen wie eine Meldung von Ordela selbst aussieht
+// ("Ordela: Konto bestaetigen") -- Phishing innerhalb der Familie.
 // Der beschreibende Text bleibt frei, "Aufgabe zugewiesen" braucht ihn.
 // Sprache ist die des EMPFAENGERS: bisher kam der Titel in der Sprache des
 // Absenders an, was in einer Familie ueber Landesgrenzen hinweg unlesbar war.
@@ -34,7 +34,7 @@ const TITLES: Record<string, Record<string, string>> = {
   task:     { de: '\u{1F46A} Neue Aufgabe für dich', en: '\u{1F46A} A new task for you', fr: '\u{1F46A} Une nouvelle tâche pour toi', es: '\u{1F46A} Una nueva tarea para ti', it: '\u{1F46A} Un nuovo compito per te', pl: '\u{1F46A} Nowe zadanie dla Ciebie' },
   shopping: { de: '\u{1F6D2} Einkaufsliste für dich', en: '\u{1F6D2} Shopping list for you', fr: '\u{1F6D2} Liste de courses pour toi', es: '\u{1F6D2} Lista de la compra para ti', it: '\u{1F6D2} Lista della spesa per te', pl: '\u{1F6D2} Lista zakupów dla Ciebie' },
   done:     { de: '\u{1F389} Gute Nachricht', en: '\u{1F389} Good news', fr: '\u{1F389} Bonne nouvelle', es: '\u{1F389} Buenas noticias', it: '\u{1F389} Buone notizie', pl: '\u{1F389} Dobra wiadomość' },
-  test:     { de: '\u{1F514} Effyra-Test', en: '\u{1F514} Effyra test', fr: '\u{1F514} Test Effyra', es: '\u{1F514} Prueba de Effyra', it: '\u{1F514} Test Effyra', pl: '\u{1F514} Test Effyra' },
+  test:     { de: '\u{1F514} Ordela-Test', en: '\u{1F514} Ordela test', fr: '\u{1F514} Test Ordela', es: '\u{1F514} Prueba de Ordela', it: '\u{1F514} Test Ordela', pl: '\u{1F514} Test Ordela' },
 };
 
 /** Freitext aus dem Client, der ungefiltert auf dem Sperrbildschirm eines

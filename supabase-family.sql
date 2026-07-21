@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Familien-Synchronisierung (Partner-Sync)
+-- Ordela – Familien-Synchronisierung (Partner-Sync)
 -- Einmalig im Supabase SQL-Editor ausführen ("Run").
 -- Erwartetes Ergebnis: "Success. No rows returned"
 -- Nur nötig, wenn Familien MIT dem Partner synchronisiert werden sollen.

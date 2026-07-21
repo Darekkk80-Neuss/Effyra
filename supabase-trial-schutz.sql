@@ -1,5 +1,5 @@
 -- ============================================================================
--- Effyra – Trial-Missbrauchsschutz
+-- Ordela – Trial-Missbrauchsschutz
 -- ----------------------------------------------------------------------------
 -- Schliesst zwei Luecken:
 --   A) Konto loeschen und mit DERSELBEN Adresse neu anmelden gab bisher einen

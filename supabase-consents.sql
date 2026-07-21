@@ -1,4 +1,4 @@
--- Effyra – Einwilligungs-Log (Art. 5 Abs. 2 DSGVO Rechenschaftspflicht)
+-- Ordela – Einwilligungs-Log (Art. 5 Abs. 2 DSGVO Rechenschaftspflicht)
 -- Im Supabase SQL-Editor ausführen. Der Client schreibt hier per syncConsentServer().
 create table if not exists public.consents (
   user_id    uuid not null references auth.users(id) on delete cascade,

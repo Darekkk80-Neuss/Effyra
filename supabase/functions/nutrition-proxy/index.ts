@@ -1,4 +1,4 @@
-// Effyra – Nährwerte-Proxy (Spoonacular). Versteckt den API-Key serverseitig.
+// Ordela – Nährwerte-Proxy (Spoonacular). Versteckt den API-Key serverseitig.
 // Der Client ruft die Funktion mit seinem JWT auf; die Funktion schätzt die Nährwerte
 // eines Gerichts anhand des (englischen) Gerichtnamens über Spoonacular „guessNutrition"
 // (~1 Punkt, gratis 150/Tag) und gibt kcal/Eiweiß/KH/Fett je Portion zurück.

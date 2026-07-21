@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Familienabo: Berechtigung an ALLE verbundenen Mitglieder vererben
+-- Ordela – Familienabo: Berechtigung an ALLE verbundenen Mitglieder vererben
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar (idempotent).
 -- Voraussetzungen: supabase-setup.sql, supabase-tiers.sql und supabase-family.sql
 -- wurden bereits ausgeführt (profiles, families, family_members, ai_base_limit).

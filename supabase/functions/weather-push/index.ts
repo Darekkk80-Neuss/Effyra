@@ -1,4 +1,4 @@
-// Effyra – Unwetter-Push (Supabase Edge Function, per Cron)
+// Ordela – Unwetter-Push (Supabase Edge Function, per Cron)
 // ----------------------------------------------------------------------------
 // Prüft für jedes Gerät mit aktiviertem Warn-Push (push_subscriptions.warn = true)
 // die amtlichen DWD-Warnungen (Bright Sky) für den gespeicherten Standort und

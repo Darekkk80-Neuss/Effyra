@@ -1,4 +1,4 @@
--- Effyra – Cloud-State-Sync (Mehrgeräte-Backup pro Nutzer)
+-- Ordela – Cloud-State-Sync (Mehrgeräte-Backup pro Nutzer)
 -- Einmal im Supabase SQL-Editor ausführen (Projekt ocnlrxmosbbtsczjyvxb).
 -- Speichert pro Nutzer einen JSON-Zustand; RLS erlaubt jedem NUR die eigene Zeile.
 -- Sensible Bereiche (Notfall, Budget) und Dokumente bleiben clientseitig ausgeschlossen.

@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Kinder-Zugang (Kindermodus auf dem Kinder-Handy)
+-- Ordela – Kinder-Zugang (Kindermodus auf dem Kinder-Handy)
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Idempotent (mehrfach ausführbar).
 -- Voraussetzungen: supabase-setup.sql + supabase-family.sql (families, family_members, RPCs).
 --

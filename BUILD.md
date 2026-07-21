@@ -1,4 +1,4 @@
-# Effyra – Build
+# Ordela – Build
 
 Die App ist eine einzelne HTML-Datei. Für schnelleres Laden wird die
 ausgelieferte `index.html` **minifiziert** (nur inline-JS und -CSS).

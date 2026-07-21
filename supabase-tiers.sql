@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Phase 2: Stufen (Free/Medium/Premium) + KI-Kontingent + Stripe
+-- Ordela – Phase 2: Stufen (Free/Medium/Premium) + KI-Kontingent + Stripe
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.
 -- Voraussetzung: supabase-setup.sql wurde bereits ausgeführt (profiles-Tabelle).
 -- ============================================================

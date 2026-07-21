@@ -1,11 +1,11 @@
-# Effyra als Android‑App (TWA) im Google Play Store
+# Ordela als Android‑App (TWA) im Google Play Store
 
-Effyra ist eine Web‑App. Für **Google Play (inkl. Play Billing)** wird sie in eine
+Ordela ist eine Web‑App. Für **Google Play (inkl. Play Billing)** wird sie in eine
 **TWA** (Trusted Web Activity) verpackt – ein dünner Android‑Wrapper, der die
 Live‑Web‑App (`https://darekkk80-neuss.github.io/Effyra/`) im Vollbild lädt.
 
 > **Wichtig:** Diese Schritte laufen auf **deinem** Rechner mit Android‑Toolchain
-> und **deinem** Google‑Play‑Konto. Effyra selbst muss dafür nichts weiter tun –
+> und **deinem** Google‑Play‑Konto. Ordela selbst muss dafür nichts weiter tun –
 > die App ist bereits eine installierbare PWA (Manifest + Service Worker sind drin).
 
 ---
@@ -31,7 +31,7 @@ Play/Bubblewrap brauchen ein **512×512‑PNG** (SVG reicht nicht als Launcher�
 ```bash
 bubblewrap init --manifest https://darekkk80-neuss.github.io/Effyra/manifest.webmanifest
 ```
-Fragen: **packageId** z. B. `app.effyra.twa`, App‑Name `Effyra`, Start‑URL `/Effyra/`.
+Fragen: **packageId** z. B. `app.effyra.twa`, App‑Name `Ordela`, Start‑URL `/Effyra/`.
 (Die mitgelieferte `twa-manifest.json` ist eine Referenz – Bubblewrap legt seine
 eigene an.)
 
@@ -82,12 +82,12 @@ Damit Android die TWA ohne Browser‑Adressleiste vertraut, muss unter der
 https://darekkk80-neuss.github.io/.well-known/assetlinks.json
 ```
 
-⚠️ **GitHub‑Pages‑Falle:** Das Effyra‑Repo bedient nur `…/Effyra/…`, **nicht** die
+⚠️ **GitHub‑Pages‑Falle:** Das Ordela‑Repo bedient nur `…/Effyra/…`, **nicht** die
 Domain‑Wurzel `darekkk80-neuss.github.io/`. Die Wurzel gehört einem Repo namens
 **`darekkk80-neuss.github.io`** (User/Org‑Pages‑Site). Lösungen:
 - **(empfohlen)** Ein Repo `darekkk80-neuss.github.io` anlegen und dort
   `/.well-known/assetlinks.json` ablegen, **oder**
-- eine **eigene Domain** für Effyra verwenden und dort die Datei hosten.
+- eine **eigene Domain** für Ordela verwenden und dort die Datei hosten.
 
 Fingerprint holen und Datei erzeugen:
 ```bash
@@ -119,7 +119,7 @@ musst ihn **zusätzlich** in `sha256_cert_fingerprints` eintragen.
 Digitale Abos/Käufe **müssen** in Play‑Apps über **Play Billing** laufen
 (Stripe ist dafür nicht erlaubt). In einer TWA geht das über die
 **Digital Goods API + PaymentRequest**:
-1. In der Play Console die Produkte anlegen, passend zu Effyra:
+1. In der Play Console die Produkte anlegen, passend zu Ordela:
    - Abo `effyra_premium` – 4,99 €/Monat
    - Abo `effyra_family` – 14,99 €/Monat
    - Abo `effyra_adult` – 3,99 €/Monat · `effyra_child` – 0,99 €/Monat
@@ -142,7 +142,7 @@ Digitale Abos/Käufe **müssen** in Play‑Apps über **Play Billing** laufen
 
 ---
 
-## Was bereits erledigt ist (Effyra‑Seite)
+## Was bereits erledigt ist (Ordela‑Seite)
 - ✅ Installierbare **PWA**: `manifest.webmanifest` + **Service Worker** (`sw.js`,
   Netzwerk‑zuerst, offline‑fähig) + Icons verlinkt.
 - ✅ Live‑App unter `https://darekkk80-neuss.github.io/Effyra/`.

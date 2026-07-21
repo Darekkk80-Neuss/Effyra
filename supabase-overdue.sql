@@ -1,7 +1,7 @@
 -- ============================================================
--- Effyra – Sanfte Erinnerung an überfällige Familienaufgaben (Cron, stündlich)
+-- Ordela – Sanfte Erinnerung an überfällige Familienaufgaben (Cron, stündlich)
 -- SELBST-KONFIGURIEREND: das CRON_SECRET wird automatisch aus einem
--- bestehenden Effyra-Cron übernommen – du musst nichts eintippen.
+-- bestehenden Ordela-Cron übernommen – du musst nichts eintippen.
 -- Voraussetzung: supabase-push.sql (push_subscriptions), supabase-family.sql
 --   (families); Edge Function "overdue-reminder" ist deployt.
 -- Im Supabase SQL-Editor ausführen ("Run"). Mehrfach ausführbar.

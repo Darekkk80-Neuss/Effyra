@@ -1,5 +1,5 @@
 -- ============================================================================
--- Effyra – Löschfrist für inaktive Konten (Art. 5 Abs. 1 lit. e DSGVO)
+-- Ordela – Löschfrist für inaktive Konten (Art. 5 Abs. 1 lit. e DSGVO)
 -- ============================================================================
 -- Anlass: Bis 21.07.2026 gab es KEINE Frist. In DATENFLUSS.md stand der nie
 -- ersetzte Platzhalter "X Monate nach Kündigung/Inaktivität", und die

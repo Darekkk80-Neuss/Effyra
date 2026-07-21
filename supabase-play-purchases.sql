@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Play-Abo-Lebenszyklus: Kauf↔Nutzer-Zuordnung + idempotente Ablauf-Sync
+-- Ordela – Play-Abo-Lebenszyklus: Kauf↔Nutzer-Zuordnung + idempotente Ablauf-Sync
 -- Für: (1) Re-Verifikation beim App-Start, (3) RTDN-Verlängerung/Storno.
 -- Voraussetzung: profiles/families vorhanden (tiers/family-entitlements/trial-and-play).
 -- Im Supabase SQL-Editor ausführen. Mehrfach ausführbar.

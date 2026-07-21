@@ -1,8 +1,8 @@
 {
-  "name": "Effyra – gewinnt dir Zeit zurück",
-  "short_name": "Effyra",
+  "name": "Ordela – gewinnt dir Zeit zurück",
+  "short_name": "Ordela",
   "id": "/Effyra/",
-  "description": "Effyra – dein persönlicher KI-Alltagshelfer. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.",
+  "description": "Ordela – dein persönlicher KI-Alltagshelfer. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

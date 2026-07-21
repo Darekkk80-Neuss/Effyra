@@ -1,4 +1,4 @@
-// Effyra – Morgen-Briefing-Push (per Cron, serverseitig)
+// Ordela – Morgen-Briefing-Push (per Cron, serverseitig)
 // Wird täglich von pg_cron aufgerufen und schickt allen Geräten mit dem Opt-in
 // (push_subscriptions.morning = true) einen generischen „Guten Morgen"-Push.
 // Der eigentliche, personalisierte Tagesüberblick wird beim Öffnen der App
@@ -38,11 +38,11 @@ Deno.serve(async (req) => {
   (webpush as any).setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
   const MSG: Record<string, { title: string; body: string }> = {
-    de: { title: '☀️ Guten Morgen!', body: 'Dein Tagesüberblick wartet in Effyra – Termine, Aufgaben, Medikamente und Fristen auf einen Blick.' },
-    en: { title: '☀️ Good morning!', body: 'Your daily overview is waiting in Effyra – appointments, tasks, medication and deadlines at a glance.' },
-    fr: { title: '☀️ Bonjour !', body: 'Ton aperçu du jour t’attend dans Effyra – rendez-vous, tâches, médicaments et échéances en un coup d’œil.' },
-    es: { title: '☀️ ¡Buenos días!', body: 'Tu resumen del día te espera en Effyra: citas, tareas, medicamentos y plazos de un vistazo.' },
-    it: { title: '☀️ Buongiorno!', body: 'La tua panoramica del giorno ti aspetta in Effyra: appuntamenti, attività, farmaci e scadenze a colpo d’occhio.' },
+    de: { title: '☀️ Guten Morgen!', body: 'Dein Tagesüberblick wartet in Ordela – Termine, Aufgaben, Medikamente und Fristen auf einen Blick.' },
+    en: { title: '☀️ Good morning!', body: 'Your daily overview is waiting in Ordela – appointments, tasks, medication and deadlines at a glance.' },
+    fr: { title: '☀️ Bonjour !', body: 'Ton aperçu du jour t’attend dans Ordela – rendez-vous, tâches, médicaments et échéances en un coup d’œil.' },
+    es: { title: '☀️ ¡Buenos días!', body: 'Tu resumen del día te espera en Ordela: citas, tareas, medicamentos y plazos de un vistazo.' },
+    it: { title: '☀️ Buongiorno!', body: 'La tua panoramica del giorno ti aspetta in Ordela: appuntamenti, attività, farmaci e scadenze a colpo d’occhio.' },
     pl: { title: '☀️ Dzień dobry!', body: 'Twój przegląd dnia czeka w Effyrze – terminy, zadania, leki i terminy płatności w jednym miejscu.' },
   };
   // Seitenweise verarbeiten und sofort zustellen. Vorher wurden erst ALLE Abos

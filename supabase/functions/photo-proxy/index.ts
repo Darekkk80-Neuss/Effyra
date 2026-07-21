@@ -1,4 +1,4 @@
-// Effyra – Foto-Proxy (Pexels) für EffyraFit-Hero-Bilder.
+// Ordela – Foto-Proxy (Pexels) für OrdelaFit-Hero-Bilder.
 // Versteckt den PEXELS_KEY serverseitig und liefert einen kleinen Vorrat an Fitness-Fotos.
 // ZENTRALES CACHING (skaliert bei vielen Nutzern): der Vorrat wird in der Tabelle photo_cache
 // gespeichert und nur ~1×/Woche bei Pexels neu geholt – alle Nutzer bekommen den Cache. Die

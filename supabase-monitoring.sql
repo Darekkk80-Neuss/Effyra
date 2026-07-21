@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Betriebsüberwachung der Cron-Jobs
+-- Ordela – Betriebsüberwachung der Cron-Jobs
 -- Im Supabase SQL-Editor komplett ausführen ("Run"). Mehrfach ausführbar.
 -- ============================================================
 --

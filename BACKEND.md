@@ -1,4 +1,4 @@
-# Effyra – Backend einrichten (Supabase, kostenlos)
+# Ordela – Backend einrichten (Supabase, kostenlos)
 
 Mit dem Backend werden Nutzer **zentral verwaltet**: Du siehst alle Konten in einem Dashboard, die 7-Tage-Testphase startet serverseitig (nicht manipulierbar), und Premium-Codes sind einmalig einlösbar. Der kostenlose Tarif reicht für bis zu **50.000 monatlich aktive Nutzer**.
 

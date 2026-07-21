@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Skalierungs-Optimierungen
+-- Ordela – Skalierungs-Optimierungen
 -- Einmalig im Supabase SQL-Editor ausführen ("Run").
 -- Erwartetes Ergebnis: "Success. No rows returned"
 -- Das Script ist idempotent und kann gefahrlos mehrfach laufen.

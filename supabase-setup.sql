@@ -1,5 +1,5 @@
 -- ============================================================
--- Effyra – Supabase-Backend-Setup  (Version 2, wiederholbar)
+-- Ordela – Supabase-Backend-Setup  (Version 2, wiederholbar)
 -- Kompletten Inhalt im Supabase SQL-Editor ausführen ("Run").
 -- Erwartetes Ergebnis unten: "Success. No rows returned"
 -- Das Script kann gefahrlos mehrfach ausgeführt werden.
