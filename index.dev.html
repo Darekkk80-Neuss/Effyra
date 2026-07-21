@@ -8562,6 +8562,38 @@ function wGrad(c, day) {
 }
 function pollenLevel(v) { if (v <= 0) return 'Keiner'; if (v < 10) return 'Gering'; if (v < 50) return 'Mäßig'; if (v < 100) return 'Hoch'; return 'Sehr hoch'; }
 
+/* Bundeslandname -> Kuerzel. Toleriert Schreibweisen (Umlaute, Bindestriche). */
+function stateCodeVonName(name) {
+  const norm = (x) => String(x || '').toLowerCase().replace(/[\s\-–_.]/g, '')
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss');
+  const n = norm(name); if (!n) return '';
+  const treffer = Object.keys(DE_STATES).filter(k => norm(DE_STATES[k]) === n);
+  return treffer.length ? treffer[0] : '';
+}
+/* Bundesland aus dem gewaehlten Wetter-Standort uebernehmen.
+   NUR, solange der Nutzer es nicht selbst eingestellt hat (stateAuto === false).
+   Wichtig, weil man das Wetter auch mal fuer den Urlaubsort nachschaut – dann
+   waere ein stilles Umstellen der Feiertage schlicht falsch. */
+function stateAusStandort(regionName, laendercode) {
+  try {
+    if (String(laendercode || 'DE').toUpperCase() !== 'DE') return;
+    const w = store.work && store.work.settings; if (!w) return;
+    if (w.stateAuto === false) return;                       // bewusste Wahl des Nutzers achten
+    const code = stateCodeVonName(regionName);
+    if (!code || code === w.state) return;
+    w.state = code; save();
+    Object.keys(holCache).forEach(x => delete holCache[x]);   // Feiertage neu berechnen
+    toast('🎉 ' + pickLang({
+      de: 'Feiertage jetzt für ' + DE_STATES[code],
+      en: 'Holidays now for ' + DE_STATES[code],
+      fr: 'Jours fériés pour ' + DE_STATES[code],
+      es: 'Festivos para ' + DE_STATES[code],
+      it: 'Festività per ' + DE_STATES[code],
+      pl: 'Święta dla ' + DE_STATES[code]
+    }), 5000);
+    try { renderHolidays(); } catch (e) {}
+  } catch (e) { console.error('[Effyra bundesland]', e && e.message); }
+}
 function getWeatherLoc() { return (store.weatherLoc && store.weatherLoc.lat != null) ? store.weatherLoc : null; }
 
 function buildWeather(loc, wx, aq) {
@@ -8623,9 +8655,10 @@ async function setWeatherByCity(city, silent) {
     const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=de&format=json').then(x => x.json());
     if (!r.results || !r.results.length) { if (!silent) toast('Ort nicht gefunden'); weatherEditing = false; renderWeather(); return; }
     const g = r.results[0];
-    store.weatherLoc = { name: g.name, lat: g.latitude, lon: g.longitude };
+    store.weatherLoc = { name: g.name, lat: g.latitude, lon: g.longitude, region: g.admin1 || '', land: g.country_code || 'DE' };
     store.weather = null; save();
     weatherEditing = false;
+    stateAusStandort(g.admin1, g.country_code);
     fetchWeather(store.weatherLoc);
   } catch (e) { if (!silent) toast('Keine Verbindung'); weatherEditing = false; renderWeather(); }
 }
@@ -8634,13 +8667,16 @@ function setWeatherByGPS() {
   toast('Standort wird ermittelt …');
   navigator.geolocation.getCurrentPosition(async pos => {
     const lat = pos.coords.latitude, lon = pos.coords.longitude;
-    let name = 'Aktueller Standort';
+    let name = 'Aktueller Standort', region = '', land = 'DE';
     try {
       const rg = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=de').then(x => x.json());
       name = rg.city || rg.locality || name;
+      region = rg.principalSubdivision || '';   // fuer DE das Bundesland
+      land = rg.countryCode || 'DE';
     } catch (e) {}
-    store.weatherLoc = { name, lat, lon };
+    store.weatherLoc = { name, lat, lon, region: region, land: land };
     store.weather = null; save();
+    stateAusStandort(region, land);
     weatherEditing = false;
     fetchWeather(store.weatherLoc);
   }, () => toast('Standort-Zugriff abgelehnt'), { timeout: 8000 });
@@ -8659,9 +8695,10 @@ async function weatherSearch(city) {
   } catch (e) { toast('Keine Verbindung'); weatherResults = null; weatherEditing = true; renderWeather(); }
 }
 function pickWeatherResult(g) {
-  store.weatherLoc = { name: g.name, lat: g.latitude, lon: g.longitude };
+  store.weatherLoc = { name: g.name, lat: g.latitude, lon: g.longitude, region: g.admin1 || '', land: g.country_code || 'DE' };
   store.weather = null; save();
   weatherEditing = false; weatherResults = null;
+  stateAusStandort(g.admin1, g.country_code);
   fetchWeather(store.weatherLoc);
 }
 function weatherPickHTML(results) {
@@ -9553,8 +9590,16 @@ async function startPlayPurchase(product) {
       // Kauf ok bei Google, aber Freischaltung hakte -> Selbstheilung anstoßen und EHRLICH melden (kein falsches „aktiviert“).
       try { await reverifyActivePurchases(); } catch (e) {}
     }
-    try { await syncEntitlements(); } catch (e) {}
+    /* sync ALLEIN reicht nicht: gate() blendet Paywall und Sperren aus, und die
+       Ansicht muss neu gezeichnet werden – sonst sieht der Nutzer trotz
+       bezahltem Abo weiter die Free-Oberflaeche. Gleiches Muster wie beim
+       Stripe-Rueckweg, inklusive Nachschlag: die serverseitige Freischaltung
+       (grant_play_purchase) kann dem Kaufabschluss um Sekunden hinterherlaufen. */
+    try { await syncEntitlements(); gate(); refresh(); if (currentView === 'settings') RENDERERS.settings(); } catch (e) {}
     if (product === 'family') { try { await famDiscover(); if (currentView === 'family') RENDERERS.family(); } catch (e) {} }   // Familien-Code nach dem Kauf sofort anzeigen
+    setTimeout(async () => {
+      try { await syncEntitlements(); gate(); refresh(); if (currentView === 'settings') RENDERERS.settings(); } catch (e) {}
+    }, 4000);
     const pw = $('#paywall'); if (pw) pw.classList.remove('on');
     toast(verifyOk === false
       ? '✓ Kauf erhalten – die Freischaltung wird abgeschlossen. Falls nicht sofort sichtbar, App in ~1 Min neu öffnen.'
@@ -12980,7 +13025,9 @@ $('#workRoot').addEventListener('change', e => {
   if (t.dataset.ws) {
     const k = t.dataset.ws, s = store.work.settings;
     if (k === 'autoBreak') s.autoBreak = t.checked;
-    else if (k === 'state') { s.state = t.value; Object.keys(holCache).forEach(x => delete holCache[x]); }
+    /* stateAuto=false: ab jetzt bewusste Wahl des Nutzers – der Wetter-Standort
+       darf sie nicht mehr ueberschreiben. */
+    else if (k === 'state') { s.state = t.value; s.stateAuto = false; Object.keys(holCache).forEach(x => delete holCache[x]); }
     else if (k === 'weeklyHours' || k === 'hoursPerDay') s[k] = Math.max(0, +t.value || 0);
     else s[k] = Math.max(0, Math.round(+t.value || 0));
     save(); RENDERERS.work(); return;
