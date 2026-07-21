@@ -51,4 +51,43 @@ if (m[1] !== soll) {
   process.exit(1);
 }
 
+/* Zusaetzlich: parst das ausgelieferte JavaScript ueberhaupt?
+ *
+ * Der Fingerabdruck oben sagt nur "aus dieser Quelle gebaut" – nicht "laeuft".
+ * Ein Syntaxfehler in index.dev.html haette hier bisher fehlerfrei bestanden und
+ * waere ausgeliefert worden: der Browser bricht dann den GESAMTEN Skriptblock ab,
+ * die Seite rendert noch (statisches HTML), aber keine einzige Funktion existiert.
+ * Genau dieser Ausfall ist von aussen kaum von einem Logikfehler zu unterscheiden.
+ * Ein Parser-Durchlauf kostet Millisekunden und schliesst das aus.
+ */
+let esbuild;
+try { esbuild = (await import('esbuild')).default ?? (await import('esbuild')); }
+catch { esbuild = null; }
+
+if (esbuild) {
+  let geprueft = 0, kaputt = 0;
+  for (const [name, html] of [[OUT, out], [SRC, src.toString('utf8')]]) {
+    // Nur Inline-Bloecke (mit src= laedt der Browser separat).
+    const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+    let m2, nr = 0;
+    while ((m2 = re.exec(html))) {
+      nr++;
+      const code = m2[1];
+      if (!code.trim()) continue;
+      geprueft++;
+      try { esbuild.transformSync(code, { loader: 'js' }); }
+      catch (e) {
+        kaputt++;
+        console.error(`check-build: SYNTAXFEHLER in ${name}, Skriptblock ${nr}`);
+        console.error(`  ${String(e.message).split('\n')[0]}`);
+      }
+    }
+  }
+  if (kaputt) {
+    console.error('  -> Diese Fassung wuerde im Browser GAR NICHT laufen. Nicht ausliefern.');
+    process.exit(1);
+  }
+  console.log(`check-build: ${geprueft} Inline-Skripte parsen sauber.`);
+}
+
 console.log(`check-build: index.html passt zur Quelle (${soll}).`);

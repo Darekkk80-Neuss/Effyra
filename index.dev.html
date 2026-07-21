@@ -2340,22 +2340,33 @@ async function statePull() {
     const r = await sb.from('user_state').select('data').eq('user_id', u.id).maybeSingle();
     const d = r.data && r.data.data;
     if (!d || typeof d._ts !== 'number' || d._ts <= (store._ts || 0)) return;   // nur wenn Cloud neuer ist
+    /* syncApplying MUSS ueber finally zurueckgesetzt werden. Blieb es haengen
+       (irgendein Fehler in diesem Block, vom aeusseren catch verschluckt), dann
+       ueberspringt save() dauerhaft den Zeitstempel UND den Upload – das Geraet
+       sichert nichts mehr, und beim naechsten Start haelt statePull die Cloud
+       fuer neuer und ueberschreibt store.profile samt gewaehlter Sprache. Das
+       war die Ursache dafuer, dass sich die Sprache im angemeldeten Zustand
+       nicht mehr umstellen liess. */
     syncApplying = true;
-    /* Die lokalen Familien-Termine VOR der Schleife sichern: die Schleife setzt
-       store.events = d.events, und d.events traegt die Familien-Termine nicht
-       (stateSnapshot laedt sie bewusst nicht hoch). Ohne dieses Sichern waeren
-       sie nach der Schleife verloren und der naechste famPush meldete sie fuer
-       ALLE Mitglieder als geloescht. */
-    const famEv = (store.events || []).filter(e => e && e.source === 'family');
-    SYNC_KEYS.forEach(k => { if (d[k] !== undefined) store[k] = d[k]; });
-    /* Familien-Termine gehoeren der FAMILIE, nicht dem Geraet: die eigenen
-       bleiben, aus dem Cloud-Stand kommen nur die uebrigen. */
-    if (d.events !== undefined) {
-      store.events = famEv.concat((d.events || []).filter(e => !e || e.source !== 'family'));
-    }
-    store._ts = d._ts;
-    save();
-    syncApplying = false;
+    try {
+      /* Die lokalen Familien-Termine VOR der Schleife sichern: die Schleife setzt
+         store.events = d.events, und d.events traegt die Familien-Termine nicht
+         (stateSnapshot laedt sie bewusst nicht hoch). Ohne dieses Sichern waeren
+         sie nach der Schleife verloren und der naechste famPush meldete sie fuer
+         ALLE Mitglieder als geloescht. */
+      const famEv = (store.events || []).filter(e => e && e.source === 'family');
+      SYNC_KEYS.forEach(k => { if (d[k] !== undefined) store[k] = d[k]; });
+      /* Familien-Termine gehoeren der FAMILIE, nicht dem Geraet: die eigenen
+         bleiben, aus dem Cloud-Stand kommen nur die uebrigen. Array-Pruefung,
+         damit ein unerwarteter Cloud-Wert hier nicht die ganze Uebernahme
+         sprengt. */
+      if (d.events !== undefined) {
+        const cloudEv = Array.isArray(d.events) ? d.events : [];
+        store.events = famEv.concat(cloudEv.filter(e => !e || e.source !== 'family'));
+      }
+      store._ts = d._ts;
+      save();
+    } finally { syncApplying = false; }
     try { refresh(); } catch (e) {}
     toast('☁️ Daten von deinem anderen Gerät geladen');
   } catch (e) { /* Tabelle evtl. noch nicht angelegt */ }
@@ -2569,7 +2580,11 @@ function applyLang(code, opts) {
   document.documentElement.lang = l.code;
   document.documentElement.dir = l.rtl ? 'rtl' : 'ltr';
   applyHeadLang();
-  if ((!opts || opts.persist !== false) && store.profile) {
+  if (!opts || opts.persist !== false) {
+    /* store.profile notfalls anlegen: kam es aus der Cloud als null herein,
+       wurde die Sprache vorher STILL nicht gespeichert – die Umstellung sah aus,
+       als haette sie nicht funktioniert. */
+    if (!store.profile || typeof store.profile !== 'object') store.profile = {};
     store.profile.lang = l.code; store.profile.country = l.country; store.profile.region = l.region;
     store.profile.locale = l.locale; store.profile.rtl = !!l.rtl;
     try { store.profile.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
@@ -5571,10 +5586,11 @@ async function cloudSession(session, fallbackName) {
   const switched = store._acct && store._acct !== account.uid;
   if (switched) {
     syncApplying = true;   // _ts nicht durch save() überschreiben lassen
-    SYNC_KEYS.forEach(k => { store[k] = JSON.parse(JSON.stringify(STORE_DEFAULTS[k])); });
-    store.consents = {}; store._acct = account.uid; store._ts = 0;
-    try { localStorage.setItem(DATA_KEY, JSON.stringify(store)); } catch (e) {}
-    syncApplying = false;
+    try {
+      SYNC_KEYS.forEach(k => { store[k] = JSON.parse(JSON.stringify(STORE_DEFAULTS[k])); });
+      store.consents = {}; store._acct = account.uid; store._ts = 0;
+      try { localStorage.setItem(DATA_KEY, JSON.stringify(store)); } catch (e) {}
+    } finally { syncApplying = false; }   // sonst blieben Zeitstempel und Upload dauerhaft aus
     try { await statePull(); } catch (e) {}   // Cloud-Daten DIESES Kontos laden (falls vorhanden)
   } else {
     store._acct = account.uid;   // Konto merken (für künftige Wechsel-Erkennung) – OHNE _ts zu ändern,
