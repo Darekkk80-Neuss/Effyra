@@ -412,3 +412,38 @@ enabled = true
 # declarative_schema_path = "./database"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# ---------------------------------------------------------------------------
+# verify_jwt je Function – festgeschrieben am 22.07.2026, damit ein Deploy die
+# Einstellung nicht mehr auf den Default (true) zurücksetzt und die per pg_cron
+# aufgerufenen Functions dann still mit 401 sterben. false = Cron/intern (Aufruf
+# ohne JWT, Berechtigung über x-cron-secret bzw. Service-Role), true = per JWT.
+# Deploy IMMER einzeln je Function – NIE bare `supabase functions deploy`,
+# sonst würden stripe-checkout/stripe-webhook (bewusst nicht deployt) aktiviert.
+# ---------------------------------------------------------------------------
+[functions.account-cleanup]
+verify_jwt = false
+[functions.claude-proxy]
+verify_jwt = false
+[functions.delete-account]
+verify_jwt = true
+[functions.due-reminder]
+verify_jwt = false
+[functions.fuel-proxy]
+verify_jwt = true
+[functions.meal-translate]
+verify_jwt = true
+[functions.morning-push]
+verify_jwt = false
+[functions.nutrition-proxy]
+verify_jwt = false
+[functions.overdue-reminder]
+verify_jwt = false
+[functions.photo-proxy]
+verify_jwt = false
+[functions.play-verify]
+verify_jwt = false
+[functions.push-send]
+verify_jwt = false
+[functions.weather-push]
+verify_jwt = false
