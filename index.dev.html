@@ -11662,6 +11662,146 @@ function brueckentagTip(iso) {
   if (dow === 1 || dow === 5) return pickLang({ de: '💡 Fällt auf ' + (dow === 1 ? 'Montag' : 'Freitag') + ' → automatisch langes Wochenende.', en: '💡 Falls on ' + (dow === 1 ? 'Monday' : 'Friday') + ' → automatically a long weekend.', fr: '💡 Tombe un ' + (dow === 1 ? 'lundi' : 'vendredi') + ' → week-end prolongé automatique.', es: '💡 Cae en ' + (dow === 1 ? 'lunes' : 'viernes') + ' → fin de semana largo automático.', it: '💡 Cade di ' + (dow === 1 ? 'lunedì' : 'venerdì') + ' → weekend lungo automatico.', pl: '💡 Wypada w ' + (dow === 1 ? 'poniedziałek' : 'piątek') + ' → automatycznie długi weekend.' });
   return '';
 }
+/* ============================== BRUECKENTAG-JAHRESPLAN ==============================
+   Der Mehrwert ist NICHT die Feiertagsliste – die findet jeder in zehn Sekunden.
+   Wertvoll ist die RECHNUNG: welche Urlaubstage den groessten Hebel haben.
+
+   Verfahren: alle freien Tage des Jahres markieren (Wochenenden + Feiertage des
+   gewaehlten Landes bzw. Bundeslands). Was dazwischen an Arbeitstagen uebrig
+   bleibt, bildet Bloecke. Jeder Block, der KUERZER als eine normale Arbeitswoche
+   ist, entstand durch einen Feiertag – genau das ist eine Bruecke. Nimmt man ihn
+   frei, waechst er mit den freien Tagen links und rechts zu einem langen Stueck
+   zusammen.
+
+   Effizienz = freie Tage am Stueck / eingesetzte Urlaubstage. Eine ganze
+   Urlaubswoche bringt 9 Tage fuer 5 (Faktor 1,8) – das ist die Messlatte, alles
+   darueber ist echter Gewinn. Bloecke ab 5 Arbeitstagen fliegen deshalb raus. */
+function brueckenPlan(jahr) {
+  const frei = (d) => { const w = d.getDay(); return w === 0 || w === 6 || isHoliday(toISO(d)); };
+  const ende = new Date(jahr + 1, 0, 31);
+  const bruecken = [];
+  /* Ab Dezember des Vorjahres, damit die Weihnachten/Neujahr-Bruecke nicht am
+     Jahreswechsel abgeschnitten wird. */
+  let d = new Date(jahr - 1, 11, 1);
+  let schutz = 0;
+  while (d <= ende && schutz++ < 800) {
+    if (frei(d)) { d.setDate(d.getDate() + 1); continue; }
+    const von = new Date(d);
+    let kosten = 0;
+    while (d <= ende && !frei(d)) { kosten++; d.setDate(d.getDate() + 1); }
+    const bis = new Date(d); bis.setDate(bis.getDate() - 1);
+    /* Nur ECHTE Bruecken: 1-2 Arbeitstage. Ab 3 Tagen heisst der Rat nur noch
+       "nimm die ganze Woche frei" - das sieht jeder selbst, es fuellt die Liste
+       mit Selbstverstaendlichem und laesst die Schlagzeile auf einen kompletten
+       Jahresurlaub anwachsen. Der Wert steckt im 1-Tages-Hebel. */
+    if (kosten > 2) continue;
+    if (von.getFullYear() !== jahr && bis.getFullYear() !== jahr) continue;
+    /* Freien Zeitraum nach beiden Seiten ausdehnen – das ist das Ergebnis, das
+       der Nutzer tatsaechlich bekommt. */
+    let vorher = 0, a = new Date(von); a.setDate(a.getDate() - 1);
+    while (frei(a) && vorher < 30) { vorher++; a.setDate(a.getDate() - 1); }
+    let nachher = 0, b = new Date(bis); b.setDate(b.getDate() + 1);
+    while (frei(b) && nachher < 30) { nachher++; b.setDate(b.getDate() + 1); }
+    /* Feiertage benennen, die in diesem Zeitraum liegen – das macht den Vorschlag
+       nachvollziehbar. */
+    const namen = [];
+    const sp = new Date(von); sp.setDate(sp.getDate() - vorher);
+    for (let i = 0; i < vorher + kosten + nachher; i++) {
+      const n = holidayName(toISO(sp)); if (n && namen.indexOf(n) < 0) namen.push(n);
+      sp.setDate(sp.getDate() + 1);
+    }
+    if (!namen.length) continue;                    // ohne Feiertag ist es keine Bruecke
+    const spanVon = new Date(von); spanVon.setDate(spanVon.getDate() - vorher);
+    const spanBis = new Date(bis); spanBis.setDate(spanBis.getDate() + nachher);
+    bruecken.push({
+      von: toISO(von), bis: toISO(bis),
+      spanVon: toISO(spanVon), spanBis: toISO(spanBis),
+      kosten: kosten, ertrag: vorher + kosten + nachher,
+      effizienz: (vorher + kosten + nachher) / kosten,
+      anlass: namen.join(', ')
+    });
+  }
+  return bruecken;
+}
+/* Nur was noch kommt – Vergangenes hilft niemandem. */
+function brueckenKommend(jahr) {
+  const heute = todayISO();
+  return brueckenPlan(jahr).filter(b => b.bis >= heute)
+    .sort((x, y) => y.effizienz - x.effizienz || x.von.localeCompare(y.von));
+}
+/* Welches Jahr ist interessant? Gegen Jahresende bringt das laufende nichts mehr. */
+function brueckenJahr() {
+  const y = +todayISO().slice(0, 4);
+  return brueckenKommend(y).length >= 2 ? y : y + 1;
+}
+/* Summe EHRLICH rechnen: zwei Bruecken koennen sich dasselbe Wochenende teilen.
+   Deshalb die Vereinigungsmenge der Tage zaehlen statt die Ertraege zu addieren –
+   sonst stuende in der Nachricht eine Zahl, die es so nicht gibt. */
+function brueckenSumme(liste) {
+  const tage = new Set(); let urlaub = 0;
+  liste.forEach(b => {
+    urlaub += b.kosten;
+    const d = new Date(b.spanVon + 'T12:00:00');
+    const bis = new Date(b.spanBis + 'T12:00:00');
+    let schutz = 0;
+    while (d <= bis && schutz++ < 60) { tage.add(toISO(d)); d.setDate(d.getDate() + 1); }
+  });
+  return { urlaubstage: urlaub, freieTage: tage.size };
+}
+/* Fuer welche Region gilt das? MUSS in der Nachricht stehen: deutsche Feiertage
+   unterscheiden sich je Bundesland (Fronleichnam, Allerheiligen, Reformationstag).
+   Ohne diese Angabe plant der Empfaenger womoeglich mit fremden Feiertagen. */
+function brueckenRegion() {
+  const c = holidayCountry();
+  if (c === 'DE') {
+    const st = (store.work && store.work.settings && store.work.settings.state) || '';
+    return st && DE_STATES[st] ? DE_STATES[st] : pickLang({ de: 'Deutschland (bundesweite Feiertage)', en: 'Germany (nationwide holidays)', fr: 'Allemagne (jours fériés nationaux)', es: 'Alemania (festivos nacionales)', it: 'Germania (festività nazionali)', pl: 'Niemcy (święta ogólnokrajowe)' });
+  }
+  const land = HOLIDAY_COUNTRIES.filter(x => x.code === c)[0];
+  return land ? land.name.replace(/^[^ ]+ /, '') : c;
+}
+function brueckenShareMessage(jahr) {
+  const liste = brueckenKommend(jahr).slice(0, 8);
+  if (!liste.length) return null;
+  const sum = brueckenSumme(liste);
+  const z = [];
+  z.push('🎉 ' + pickLang({ de: 'Brückentage', en: 'Bridge days', fr: 'Ponts', es: 'Puentes', it: 'Ponti', pl: 'Długie weekendy' }) + ' ' + jahr + ' – ' + brueckenRegion());
+  z.push('');
+  z.push(pickLang({
+    de: '🎯 Mit ' + sum.urlaubstage + ' Urlaubstagen bekommst du ' + sum.freieTage + ' Tage frei.',
+    en: '🎯 With ' + sum.urlaubstage + ' days of leave you get ' + sum.freieTage + ' days off.',
+    fr: '🎯 Avec ' + sum.urlaubstage + ' jours de congé, tu obtiens ' + sum.freieTage + ' jours libres.',
+    es: '🎯 Con ' + sum.urlaubstage + ' días de vacaciones consigues ' + sum.freieTage + ' días libres.',
+    it: '🎯 Con ' + sum.urlaubstage + ' giorni di ferie ottieni ' + sum.freieTage + ' giorni liberi.',
+    pl: '🎯 Biorąc ' + sum.urlaubstage + ' dni urlopu, masz ' + sum.freieTage + ' dni wolnego.'
+  }));
+  z.push('');
+  liste.sort((a, b) => a.von.localeCompare(b.von)).forEach(b => {
+    const urlaubTxt = b.kosten + ' ' + (b.kosten === 1
+      ? pickLang({ de: 'Urlaubstag', en: 'day of leave', fr: 'jour de congé', es: 'día de vacaciones', it: 'giorno di ferie', pl: 'dzień urlopu' })
+      : pickLang({ de: 'Urlaubstage', en: 'days of leave', fr: 'jours de congé', es: 'días de vacaciones', it: 'giorni di ferie', pl: 'dni urlopu' }));
+    const freiTxt = b.ertrag + ' ' + pickLang({ de: 'Tage frei', en: 'days off', fr: 'jours libres', es: 'días libres', it: 'giorni liberi', pl: 'dni wolnego' });
+    const zeitraum = (b.von === b.bis) ? fmtDate(b.von) : fmtDate(b.von) + '–' + fmtDate(b.bis);
+    z.push('• ' + zeitraum + ' · ' + urlaubTxt + ' → ' + freiTxt + '  (' + b.anlass + ')');
+  });
+  z.push('');
+  z.push(pickLang({ de: 'Berechnet mit Effyra – dein Familien-Organizer', en: 'Calculated with Effyra – your family organiser', fr: 'Calculé avec Effyra – ton organiseur familial', es: 'Calculado con Effyra: tu organizador familiar', it: 'Calcolato con Effyra – il tuo organizer per la famiglia', pl: 'Obliczone w Effyra – organizer dla rodziny' }));
+  z.push(SHARE_TARGET_URL.replace('ref=rezept', 'ref=brueckentage'));
+  return z.join('\n');
+}
+async function shareBruecken() {
+  const jahr = brueckenJahr();
+  const text = brueckenShareMessage(jahr);
+  if (!text) { toast(pickLang({ de: 'Keine Brückentage gefunden.', en: 'No bridge days found.', fr: 'Aucun pont trouvé.', es: 'No hay puentes.', it: 'Nessun ponte trovato.', pl: 'Nie znaleziono długich weekendów.' })); return; }
+  const titel = '🎉 ' + pickLang({ de: 'Brückentage', en: 'Bridge days', fr: 'Ponts', es: 'Puentes', it: 'Ponti', pl: 'Długie weekendy' }) + ' ' + jahr;
+  if (navigator.share) {
+    try { await navigator.share({ title: titel, text: text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const ok = await copyText(text);
+  toast(ok ? pickLang({ de: 'Brückentage kopiert – jetzt einfügen ✓', en: 'Bridge days copied – paste them ✓', fr: 'Ponts copiés – colle-les ✓', es: 'Puentes copiados: pégalos ✓', it: 'Ponti copiati – incollali ✓', pl: 'Skopiowano – wklej ✓' })
+            : pickLang({ de: 'Teilen nicht möglich', en: 'Sharing not possible', fr: 'Partage impossible', es: 'No se puede compartir', it: 'Condivisione non possibile', pl: 'Udostępnianie niemożliwe' }));
+}
 function renderHolidays() {
   const box = $('#holidaysWidget'); if (!box) return;
   const country = holidayCountry();
@@ -11684,10 +11824,31 @@ function renderHolidays() {
   if (tip) h += '<div class="di-tip">' + tip + '</div>';
   if (list.length > 1) h += '<div class="di-list">' + list.slice(1).map(x => '<span>📅 ' + esc(x.name) + ' · ' + fmtDate(x.iso) + '</span>').join('') + '</div>';
   if (country === 'DE' && !(store.work && store.work.settings && store.work.settings.state)) h += '<div class="di-note">Tipp: Bundesland in der Arbeitszeit-Einstellung wählen → exakte regionale Feiertage.</div>';
+  /* Die Jahresrechnung – der eigentliche Mehrwert gegenueber einer Feiertagsliste. */
+  try {
+    const bJahr = brueckenJahr(), bListe = brueckenKommend(bJahr).slice(0, 8);
+    if (bListe.length) {
+      const bSum = brueckenSumme(bListe);
+      h += '<div class="di-tip">' + esc(pickLang({
+        de: '🎯 ' + bJahr + ': Mit ' + bSum.urlaubstage + ' Urlaubstagen ' + bSum.freieTage + ' Tage frei – ' + brueckenRegion(),
+        en: '🎯 ' + bJahr + ': ' + bSum.urlaubstage + ' days of leave → ' + bSum.freieTage + ' days off – ' + brueckenRegion(),
+        fr: '🎯 ' + bJahr + ' : ' + bSum.urlaubstage + ' jours de congé → ' + bSum.freieTage + ' jours libres – ' + brueckenRegion(),
+        es: '🎯 ' + bJahr + ': ' + bSum.urlaubstage + ' días de vacaciones → ' + bSum.freieTage + ' días libres – ' + brueckenRegion(),
+        it: '🎯 ' + bJahr + ': ' + bSum.urlaubstage + ' giorni di ferie → ' + bSum.freieTage + ' giorni liberi – ' + brueckenRegion(),
+        pl: '🎯 ' + bJahr + ': ' + bSum.urlaubstage + ' dni urlopu → ' + bSum.freieTage + ' dni wolnego – ' + brueckenRegion()
+      })) + '</div>';
+      h += '<div class="di-list">' + bListe.slice().sort((a, b) => a.von.localeCompare(b.von)).slice(0, 4).map(b =>
+        '<span>🎯 ' + esc(fmtDate(b.von) + (b.von === b.bis ? '' : '–' + fmtDate(b.bis))) + ' · ' + b.kosten + ' → ' + b.ertrag + ' ' + esc(pickLang({ de: 'Tage frei', en: 'days off', fr: 'jours libres', es: 'días libres', it: 'giorni liberi', pl: 'dni wolnego' })) + '</span>').join('') + '</div>';
+      h += '<div style="margin-top:10px"><button class="btn btn-sm" data-hol="share">📤 ' + esc(pickLang({ de: 'Brückentage teilen', en: 'Share bridge days', fr: 'Partager les ponts', es: 'Compartir puentes', it: 'Condividi i ponti', pl: 'Udostępnij' })) + '</button></div>';
+    }
+  } catch (e) { console.error('[Effyra brueckentage]', e && e.message); }
   h += '</section>';
   box.innerHTML = h;
 }
 /* Länderauswahl im Feiertags-Widget → Land merken, Daten laden, neu rendern. */
+if ($('#holidaysWidget')) $('#holidaysWidget').addEventListener('click', e => {
+  if (e.target.closest('[data-hol="share"]')) { shareBruecken(); }
+});
 if ($('#holidaysWidget')) $('#holidaysWidget').addEventListener('change', e => {
   const sel = e.target.closest('[data-holcountry]'); if (!sel) return;
   store.holidayCountry = sel.value; save();
