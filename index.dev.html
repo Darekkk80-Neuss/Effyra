@@ -2595,7 +2595,15 @@ function applyLang(code, opts) {
     document.body.classList.add('lang-switching');
     setTimeout(() => document.body.classList.remove('lang-switching'), 320);
   }
-  refresh();
+  /* refresh() MUSS abgesichert sein. Es ruft ungeschuetzt den Renderer der
+     aktuellen Ansicht (`function refresh() { RENDERERS[currentView]() }`), und
+     angemeldet wird dort deutlich mehr gerendert als abgemeldet. Wirft dabei
+     irgendetwas, brach applyLang GENAU HIER ab – und alles Folgende blieb aus:
+     startI18nObserver()/scheduleSweep() (also die eigentliche Uebersetzung des
+     DOM) und in selectLang auch closeLangPicker(). Das Ergebnis sah aus wie
+     „die Sprache laesst sich nicht umstellen": Waehler blieb offen, Oberflaeche
+     blieb deutsch. Ein Renderfehler darf die Sprachumstellung nicht verhindern. */
+  try { refresh(); } catch (e) { console.error('[Effyra applyLang] refresh:', (e && e.message) || e); }
   try { ensureHolidayData(); } catch (e) {}   // Feiertags-Land folgt der Sprache (falls nicht explizit gewählt) → Daten laden
   if (curLang === 'de') { stopI18nObserver(); restoreGerman(document.body); }
   else { startI18nObserver(); scheduleSweep(); }
