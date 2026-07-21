@@ -13329,6 +13329,8 @@ async function aiAnalyze(dataUrl) {
     '- family: {"type":"family","title":"...","date":"YYYY-MM-DD|null"}\n' +
     '- life: {"type":"life","title":"...","category":"..."}\n' +
     '- emergency (Blutgruppe/Allergien/Medikamente): {"type":"emergency","title":"...","category":"blutgruppe|allergien|medikamente|vorerkrankungen|notiz"}\n' +
+    '- vertrag (laufender Vertrag oder Abo – NUR wenn das Dokument einen solchen betrifft, z. B. Police, Mobilfunk-, Strom-, Streaming- oder Fitnessvertrag; NICHT bei einer einzelnen Rechnung): {"type":"vertrag","title":"Vertragsname","provider":"Anbieter","category":"versicherung|mobilfunk|internet|streaming|fitness|energie|kfz|sonstiges","amount":Zahl (Kosten je Zahlung),"interval":"monat|jahr","date":"YYYY-MM-DD = SPÄTESTES Kündigungsdatum, sonst null","notice":"Kündigungsfrist im Klartext, z. B. 3 Monate zum Laufzeitende"}\n' +
+    'Beim Kündigungsdatum: Rechne aus Laufzeitende und Frist das späteste Datum aus, an dem noch gekündigt werden kann. Ist eines von beiden unbekannt, date:null – lieber keine Frist als eine falsche.\n' +
     '- note: {"type":"note","title":"..."}\n' +
     'Erfinde nichts – nur real Vorhandenes. Fehlende Felder = null/leer.';
   const text = await aiCall({
@@ -13841,6 +13843,30 @@ const FINDING_TYPES = {
   family:    { icon: '👪', group: 'Familie', val: 'date', apply: f => addEvent(f.title, f.date || todayISO(), f.time || null, '', 'family') },
   life:      { icon: '📂', group: 'Lebenslagen', val: 'text', apply: f => addTask('Einsortieren: ' + f.title + (f.category ? ' (' + f.category + ')' : ''), null, 'low', 'doc') },
   emergency: { icon: '🚨', group: 'Notfall', val: 'text', consent: true, apply: f => { store.emergency = store.emergency || { contacts: [], phones: [], medical: {}, insurances: [], checkDone: {} }; store.emergency.medical = store.emergency.medical || {}; const k = EM_MED_KEYS[(f.category || '').toLowerCase()] || 'notes'; store.emergency.medical[k] = (k === 'notes' && store.emergency.medical.notes ? store.emergency.medical.notes + '\n' : '') + f.title; } },
+  /* Vertraege und Abos. Der Nutzen liegt nicht im Erfassen, sondern in der
+     Frist: Wer den Vertrag im Modul hat, sieht sie im Dashboard-Radar und
+     bekommt rechtzeitig eine Aufgabe – so wie beim TÜV. */
+  vertrag:   { icon: '📑', group: 'Verträge', val: 'date', apply: f => {
+    store.contracts = store.contracts || [];
+    const erlaubt = ['versicherung', 'mobilfunk', 'internet', 'streaming', 'fitness', 'energie', 'kfz'];
+    const c = {
+      id: uid(),
+      name: f.title,
+      provider: f.provider || '',
+      /* Unbekannte Kategorie faellt in ctCat() ohnehin auf 'sonstiges' –
+         hier trotzdem sauber setzen, damit die Auswahl im Formular passt. */
+      cat: erlaubt.indexOf(f.category) >= 0 ? f.category : 'sonstiges',
+      cost: f.amount != null ? +f.amount : 0,
+      interval: f.interval === 'jahr' ? 'jahr' : 'monat',
+      cancelBy: f.date || '',
+      notice: f.notice || '',
+      done: false, createdAt: Date.now()
+    };
+    store.contracts.push(c);
+    /* Vierzehn Tage Vorlauf wie beim TÜV. Eine Frist, die erst am Stichtag
+       auffaellt, ist keine Hilfe – bei Kuendigungen ist sie dann vorbei. */
+    if (c.cancelBy) addTask('📑 ' + pickLang({ de: 'Kündigungsfrist', en: 'Notice period', fr: 'Délai de résiliation', es: 'Plazo de baja', it: 'Termine di disdetta', pl: 'Termin wypowiedzenia' }) + ': ' + c.name, addDays(c.cancelBy, -14), 'high', 'ct');
+  } },
   note:      { icon: '📝', group: 'Hinweis', val: 'text', apply: () => {} }
 };
 function applyFinding(f) {
@@ -13855,6 +13881,9 @@ function normalizeFindings(arr, fallbackPrio) {
     date: (f.date && /^\d{4}-\d{2}-\d{2}$/.test(f.date)) ? f.date : null,
     time: f.time || null, category: f.category || '', from: f.from || null, to: f.to || null,
     subtype: f.subtype || '', vehicleName: f.vehicleName || '', childName: f.childName || '', apptKind: f.apptKind || '', km: f.km != null ? +f.km : null,
+    /* Fuer Vertraege: Anbieter, Zahlungsintervall und die Frist im Klartext.
+       Ohne diese drei Felder kaeme aus der Analyse nur ein Name an. */
+    provider: f.provider || '', interval: f.interval === 'jahr' ? 'jahr' : (f.interval === 'monat' ? 'monat' : ''), notice: f.notice ? String(f.notice).slice(0, 80) : '',
     schedule: (f.schedule && typeof f.schedule === 'object') ? f.schedule : null, start: (f.start && typeof f.start === 'object') ? f.start : null,
     shifts: Array.isArray(f.shifts) ? f.shifts.slice(0, 62) : null,
     recurring: !!f.recurring, priority: f.priority || fallbackPrio || 'mittel',
