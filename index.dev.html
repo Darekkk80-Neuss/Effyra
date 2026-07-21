@@ -5277,6 +5277,37 @@ function trStr(s) { try { return (curLang === 'de') ? s : (lookupTr(String(s).tr
 /* onGrant: wird NACH erteilter Einwilligung aufgerufen. Damit kann der Aufrufer
    genau dort weitermachen, wo er unterbrochen wurde – etwa mit dem bereits
    aufgenommenen Foto. Gleiches Muster wie showKidsConsent(). */
+/* Hinweis, dass eine E-Mail unterwegs ist. art: 'bestaetigung' | 'passwort' */
+function showMailHinweis(art, adresse) {
+  let ov = document.getElementById('mailHintOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'mailHintOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  const bestaetigung = art === 'bestaetigung';
+  const T = {
+    head: bestaetigung
+      ? pickLang({ de: '📬 Bestätige deine E-Mail-Adresse', en: '📬 Confirm your e-mail address', fr: '📬 Confirme ton adresse e-mail', es: '📬 Confirma tu dirección de correo', it: '📬 Conferma il tuo indirizzo e-mail', pl: '📬 Potwierdź swój adres e-mail' })
+      : pickLang({ de: '📬 Link zum Zurücksetzen ist unterwegs', en: '📬 Your reset link is on its way', fr: '📬 Ton lien de réinitialisation arrive', es: '📬 Tu enlace de restablecimiento está en camino', it: '📬 Il link per reimpostare è in arrivo', pl: '📬 Link do zresetowania jest w drodze' }),
+    text: bestaetigung
+      ? pickLang({ de: 'Wir haben dir eine E-Mail geschickt. Klick auf den Link darin – danach kannst du dich anmelden.', en: 'We have sent you an e-mail. Click the link inside, then you can sign in.', fr: 'Nous t’avons envoyé un e-mail. Clique sur le lien qu’il contient, puis connecte-toi.', es: 'Te hemos enviado un correo. Haz clic en el enlace y luego inicia sesión.', it: 'Ti abbiamo inviato un’e-mail. Clicca sul link e poi accedi.', pl: 'Wysłaliśmy Ci e-mail. Kliknij link w środku, a potem zaloguj się.' })
+      : pickLang({ de: 'Falls ein Konto mit dieser Adresse besteht, ist ein Link zum Zurücksetzen unterwegs.', en: 'If an account exists for this address, a reset link is on its way.', fr: 'Si un compte existe pour cette adresse, un lien de réinitialisation est en route.', es: 'Si existe una cuenta con esta dirección, el enlace de restablecimiento está en camino.', it: 'Se esiste un account con questo indirizzo, il link è in arrivo.', pl: 'Jeśli istnieje konto z tym adresem, link jest w drodze.' }),
+    an: pickLang({ de: 'Gesendet an', en: 'Sent to', fr: 'Envoyé à', es: 'Enviado a', it: 'Inviato a', pl: 'Wysłano na' }),
+    spam: pickLang({ de: 'Nichts angekommen? Sieh im Spam-Ordner nach – und prüfe, ob die Adresse oben stimmt.', en: 'Nothing arrived? Check your spam folder – and whether the address above is correct.', fr: 'Rien reçu ? Regarde dans les indésirables – et vérifie l’adresse ci-dessus.', es: '¿No llegó nada? Mira en la carpeta de spam y comprueba la dirección de arriba.', it: 'Non è arrivato nulla? Controlla la posta indesiderata e verifica l’indirizzo qui sopra.', pl: 'Nic nie dotarło? Sprawdź folder spam i czy adres powyżej się zgadza.' }),
+    ok: pickLang({ de: 'Verstanden', en: 'Got it', fr: 'Compris', es: 'Entendido', it: 'Ho capito', pl: 'Rozumiem' })
+  };
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="mailHintH" data-noi18n style="max-width:420px;text-align:left">' +
+    '<h3 id="mailHintH" style="margin-bottom:8px">' + T.head + '</h3>' +
+    '<p style="color:var(--muted);font-size:13px;line-height:1.55;margin-bottom:10px">' + esc(T.text) + '</p>' +
+    (adresse ? '<p style="font-size:13px;margin-bottom:10px"><span style="color:var(--faint)">' + esc(T.an) + '</span> <b style="word-break:break-all">' + esc(adresse) + '</b></p>' : '') +
+    '<p style="color:var(--faint);font-size:12px;line-height:1.5;margin-bottom:14px">' + esc(T.spam) + '</p>' +
+    '<div class="fam-alert-btns"><button class="btn btn-sm btn-primary" id="mailHintOk">' + esc(T.ok) + '</button></div></div>';
+  ov.classList.add('on');
+  const zu = () => ov.classList.remove('on');
+  ov.querySelector('#mailHintOk').onclick = zu;
+  /* Klick auf den Hintergrund und Escape schliessen ebenfalls – der Dialog
+     haelt keine Entscheidung fest, er informiert nur. */
+  ov.onclick = (e) => { if (e.target === ov) zu(); };
+  document.addEventListener('keydown', function esc2(e) { if (e.key === 'Escape') { zu(); document.removeEventListener('keydown', esc2); } });
+  setTimeout(() => { const b = ov.querySelector('#mailHintOk'); if (b) b.focus(); }, 50);
+}
 function showAiConsent(onGrant) {
   let ov = document.getElementById('aiConsentOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'aiConsentOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
@@ -5766,7 +5797,15 @@ async function cloudAuth(pass, err) {
         /* E-Mail-Bestätigung ist aktiviert: erst bestätigen, dann anmelden */
         cloudAuthMode = 'login';
         setupAuthForm();
-        $('#authSub').textContent = '📬 Fast geschafft! Bestätige deine E-Mail-Adresse und melde dich dann hier an.';
+        $('#authSub').textContent = pickLang({
+          de: '📬 Fast geschafft! Bestätige deine E-Mail-Adresse und melde dich dann hier an.',
+          en: '📬 Almost there! Confirm your e-mail address, then sign in here.',
+          fr: '📬 Presque fini ! Confirme ton adresse e-mail, puis connecte-toi ici.',
+          es: '📬 ¡Casi listo! Confirma tu dirección de correo y luego inicia sesión aquí.',
+          it: '📬 Ci siamo quasi! Conferma il tuo indirizzo e-mail, poi accedi qui.',
+          pl: '📬 Już prawie! Potwierdź swój adres e-mail, a potem zaloguj się tutaj.'
+        });
+        showMailHinweis('bestaetigung', email);
         return;
       }
       await cloudSession(r.data.session, name);
@@ -6049,12 +6088,27 @@ $('#authReset').addEventListener('click', async () => {
   if (CLOUD) {
     const email = $('#auEmail').value.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-      $('#authErr').textContent = 'Gib oben deine E-Mail-Adresse ein – dann schicken wir dir einen Link.';
+      $('#authErr').textContent = pickLang({
+        de: 'Gib oben deine E-Mail-Adresse ein – dann schicken wir dir einen Link.',
+        en: 'Enter your e-mail address above – then we will send you a link.',
+        fr: 'Saisis ton adresse e-mail ci-dessus – nous t’enverrons un lien.',
+        es: 'Introduce tu dirección de correo arriba y te enviaremos un enlace.',
+        it: 'Inserisci il tuo indirizzo e-mail qui sopra – ti invieremo un link.',
+        pl: 'Podaj wyżej swój adres e-mail – wyślemy Ci link.'
+      });
       return;
     }
     try { await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); } catch (e) {}
     $('#authErr').textContent = '';
-    $('#authSub').textContent = '📬 Falls ein Konto mit dieser E-Mail existiert, ist ein Link zum Zurücksetzen unterwegs.';
+    $('#authSub').textContent = pickLang({
+      de: '📬 Falls ein Konto mit dieser E-Mail existiert, ist ein Link zum Zurücksetzen unterwegs.',
+      en: '📬 If an account exists for this e-mail, a reset link is on its way.',
+      fr: '📬 Si un compte existe pour cet e-mail, un lien de réinitialisation est en route.',
+      es: '📬 Si existe una cuenta con este correo, el enlace de restablecimiento está en camino.',
+      it: '📬 Se esiste un account con questa e-mail, il link è in arrivo.',
+      pl: '📬 Jeśli istnieje konto z tym e-mailem, link jest w drodze.'
+    });
+    showMailHinweis('passwort', email);
     return;
   }
   if (!confirm(pickLang({ de: 'Konto zurücksetzen? Du kannst dich danach neu registrieren. Aufgaben, Termine und Dokumente bleiben erhalten, die Testphase läuft weiter.', en: 'Reset account? You can register again afterwards. Tasks, events and documents are kept; the trial keeps running.', fr: 'Réinitialiser le compte ? Tu pourras te réinscrire ensuite. Tâches, rendez-vous et documents sont conservés, l’essai continue.', es: '¿Restablecer la cuenta? Después podrás registrarte de nuevo. Tareas, citas y documentos se conservan; la prueba sigue activa.', it: 'Reimpostare l’account? Potrai registrarti di nuovo. Attività, appuntamenti e documenti restano; la prova continua.', pl: 'Zresetować konto? Potem możesz zarejestrować się ponownie. Zadania, terminy i dokumenty zostaną zachowane, okres próbny trwa dalej.' }))) return;
