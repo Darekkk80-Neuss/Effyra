@@ -8932,7 +8932,10 @@ function mealCardHTML(m) {
         : '') +
       '<div class="meal-sec-t" style="margin-top:14px">👩‍🍳 Zubereitung</div><p class="meal-instr">' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>';
   }
-  h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">🛒 Zutaten auf die Liste</button>';
+  h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">🛒 Zutaten auf die Liste</button>'
+    /* Beschriftung ueber pickLang statt fest deutsch: der DOM-Sweep uebersetzt
+       nur, was im Woerterbuch steht – so ist es in jeder Sprache sicher richtig. */
+    + '<button class="btn btn-sm" data-meal="share">📤 ' + esc(pickLang({ de: 'Rezept teilen', en: 'Share recipe', fr: 'Partager la recette', es: 'Compartir receta', it: 'Condividi ricetta', pl: 'Udostępnij przepis' })) + '</button>';
   if (members.length >= 2) h += '<div class="meal-assign"><select id="mealAssignSel">' + members.map(x => '<option value="' + x.id + '">' + esc(x.name) + '</option>').join('') + '</select><button class="btn btn-sm" data-meal="assign">+ zuweisen</button></div>';
   h += '</div></div></div>';
   return h;
@@ -8962,6 +8965,57 @@ function mealAddToList() {
   });
   return added;
 }
+/* ===== Rezept teilen =====
+   Bewusst ueber die Web Share API: sie oeffnet das native Teilen-Menue des
+   Geraets (WhatsApp, Signal, E-Mail, …) – ein Knopf statt einer Leiste voller
+   Dienst-Links, und immer die Apps, die der Nutzer wirklich hat. Ohne Share-API
+   (Desktop) faellt es auf die Zwischenablage zurueck, wie bei shareInvite().
+   Bewusst NUR Text und Link, kein Bild: das Foto liegt bei TheMealDB, eine
+   mitgeschickte Bilddatei wuerfe Lizenzfragen auf, die reiner Text nicht hat –
+   und navigator.share mit Dateien wird laengst nicht ueberall unterstuetzt. */
+function mealShareUrl() {
+  /* ?ref=rezept: so laesst sich spaeter in der Statistik ablesen, ob das Teilen
+     tatsaechlich Nutzer bringt – sonst raet man. */
+  try { return location.origin + location.pathname.replace(/index\.html$/i, '') + '?ref=rezept'; }
+  catch (e) { return ''; }
+}
+function buildMealShareMessage(m) {
+  const L = mealLocalize(m);
+  /* Portionen des Nutzers mitrechnen – sonst verschickt er Mengen, die zu
+     seiner eigenen Ansicht nicht passen. */
+  const ppl = (store.meal && store.meal.servings) || 2, factor = ppl / 2;
+  const z = [];
+  z.push('🍽️ ' + L.title);
+  z.push(pickLang({ de: 'Für ' + ppl + ' Portionen', en: 'For ' + ppl + ' servings', fr: 'Pour ' + ppl + ' portions', es: 'Para ' + ppl + ' raciones', it: 'Per ' + ppl + ' porzioni', pl: 'Na ' + ppl + ' porcji' }));
+  z.push('');
+  z.push(pickLang({ de: '🧺 Zutaten', en: '🧺 Ingredients', fr: '🧺 Ingrédients', es: '🧺 Ingredientes', it: '🧺 Ingredienti', pl: '🧺 Składniki' }));
+  (m.ingredients || []).forEach((ing, i) => {
+    const menge = mealScaleQty(ing.measure, factor);
+    z.push('• ' + ((L.names && L.names[i]) || ing.en) + (menge ? ' – ' + menge : ''));
+  });
+  if (L.instr) {
+    z.push('');
+    z.push(pickLang({ de: '👩‍🍳 Zubereitung', en: '👩‍🍳 Preparation', fr: '👩‍🍳 Préparation', es: '👩‍🍳 Preparación', it: '👩‍🍳 Preparazione', pl: '👩‍🍳 Przygotowanie' }));
+    z.push(L.instr);
+  }
+  z.push('');
+  z.push(pickLang({ de: 'Gefunden mit Effyra – dein Familien-Organizer', en: 'Found with Effyra – your family organiser', fr: 'Trouvé avec Effyra – ton organiseur familial', es: 'Encontrado con Effyra: tu organizador familiar', it: 'Trovato con Effyra – il tuo organizer per la famiglia', pl: 'Znalezione w Effyra – organizer dla rodziny' }));
+  const url = mealShareUrl(); if (url) z.push(url);
+  z.push(pickLang({ de: 'Rezept: TheMealDB', en: 'Recipe: TheMealDB', fr: 'Recette : TheMealDB', es: 'Receta: TheMealDB', it: 'Ricetta: TheMealDB', pl: 'Przepis: TheMealDB' }));
+  return z.join('\n');
+}
+async function shareMeal() {
+  const m = store.meal && store.meal.today;
+  if (!m) { toast(pickLang({ de: 'Noch kein Gericht geladen.', en: 'No dish loaded yet.', fr: 'Aucun plat chargé.', es: 'Aún no hay plato cargado.', it: 'Nessun piatto caricato.', pl: 'Nie wczytano jeszcze dania.' })); return; }
+  const text = buildMealShareMessage(m);
+  if (navigator.share) {
+    try { await navigator.share({ title: '🍽️ ' + mealLocalize(m).title, text: text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }   // Nutzer hat abgebrochen – kein Rueckfall
+  }
+  const ok = await copyText(text);
+  toast(ok ? pickLang({ de: 'Rezept kopiert – jetzt einfügen ✓', en: 'Recipe copied – paste it ✓', fr: 'Recette copiée – colle-la ✓', es: 'Receta copiada: pégala ✓', it: 'Ricetta copiata – incollala ✓', pl: 'Przepis skopiowany – wklej ✓' })
+            : pickLang({ de: 'Teilen nicht möglich', en: 'Sharing not possible', fr: 'Partage impossible', es: 'No se puede compartir', it: 'Condivisione non possibile', pl: 'Udostępnianie niemożliwe' }));
+}
 if ($('#mealWidget')) $('#mealWidget').addEventListener('click', e => {
   const b = e.target.closest('[data-meal]'); if (!b) return;
   store.meal = store.meal || {}; const M = store.meal, a = b.dataset.meal;
@@ -8970,6 +9024,7 @@ if ($('#mealWidget')) $('#mealWidget').addEventListener('click', e => {
   if (a === 'pminus') { M.servings = Math.max(1, (M.servings || 2) - 1); save(); renderMeal(); return; }
   if (a === 'hide') { M.hiddenDate = todayISO(); M.open = false; save(); renderMeal(); toast('Für heute ausgeblendet – morgen gibt es einen neuen Vorschlag 🍽️'); return; }
   if (a === 'addlist') { const n = mealAddToList(); if (n) { shopChanged(); toast('🛒 ' + n + ' ' + pickLang({ de: 'Zutaten auf der Einkaufsliste ✓', en: 'ingredients on the shopping list ✓', fr: 'ingrédients sur la liste de courses ✓', es: 'ingredientes en la lista de la compra ✓', it: 'ingredienti nella lista della spesa ✓', pl: 'składników na liście zakupów ✓' })); } else toast('Zutaten sind schon auf der Liste'); return; }
+  if (a === 'share') { shareMeal(); return; }
   if (a === 'assign') {
     const sel = $('#mealAssignSel'), mid = sel ? sel.value : '';
     mealAddToList();
