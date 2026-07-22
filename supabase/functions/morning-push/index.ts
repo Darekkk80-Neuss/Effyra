@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     fr: { title: '☀️ Bonjour !', body: 'Ton aperçu du jour t’attend dans Ordela – rendez-vous, tâches, médicaments et échéances en un coup d’œil.' },
     es: { title: '☀️ ¡Buenos días!', body: 'Tu resumen del día te espera en Ordela: citas, tareas, medicamentos y plazos de un vistazo.' },
     it: { title: '☀️ Buongiorno!', body: 'La tua panoramica del giorno ti aspetta in Ordela: appuntamenti, attività, farmaci e scadenze a colpo d’occhio.' },
-    pl: { title: '☀️ Dzień dobry!', body: 'Twój przegląd dnia czeka w Effyrze – terminy, zadania, leki i terminy płatności w jednym miejscu.' },
+    pl: { title: '☀️ Dzień dobry!', body: 'Twój przegląd dnia czeka w Ordeli – terminy, zadania, leki i terminy płatności w jednym miejscu.' },
   };
   // Seitenweise verarbeiten und sofort zustellen. Vorher wurden erst ALLE Abos
   // gesammelt und danach verschickt – das hielt unnötig viel im Speicher und,
