@@ -4050,6 +4050,9 @@ const TDICT_SRC = {
   'Einstellungen': { en: 'Settings', fr: 'Paramètres', es: 'Ajustes', it: 'Impostazioni', pl: 'Ustawienia' },
   'Aufgaben': { en: 'Tasks', fr: 'Tâches', es: 'Tareas', it: 'Attività', pl: 'Zadania' },
   'Wetter & Pollenflug': { en: 'Weather & pollen', fr: 'Météo et pollen', es: 'Tiempo y polen', it: 'Meteo e pollini', pl: 'Pogoda i pyłki' },
+  /* Schluessel MIT Nadel – der deutsche Text ist der Woerterbuchschluessel,
+     ohne sie fielen die fuenf anderen Sprachen auf Deutsch zurueck. */
+  '📍 Meinen Standort verwenden': { en: '📍 Use my location', fr: '📍 Utiliser ma position', es: '📍 Usar mi ubicación', it: '📍 Usa la mia posizione', pl: '📍 Użyj mojej lokalizacji' },
   'Meinen Standort verwenden': { en: 'Use my location', fr: 'Utiliser ma position', es: 'Usar mi ubicación', it: 'Usa la mia posizione', pl: 'Użyj mojej lokalizacji' },
   'Mitteilungen': { en: 'Notices', fr: 'Avis', es: 'Avisos', it: 'Comunicazioni', pl: 'Powiadomienia' },
   'Leeren': { en: 'Clear', fr: 'Vider', es: 'Vaciar', it: 'Svuota', pl: 'Wyczyść' },
@@ -9130,22 +9133,24 @@ function weatherSetupHTML(hasLoc) {
   const preset = hasLoc && store.weatherLoc ? (store.weatherLoc.name || '') : ((store.profile && store.profile.city) || '');
   return '<div class="wx-setup"><h3>Wetter &amp; Pollenflug</h3><p>Für welchen Ort möchtest du Wetter und Pollen sehen?</p>' +
     '<div class="row"><input type="text" id="wxCity" placeholder="Stadt (z. B. Neuss)" maxlength="60" value="' + esc(preset) + '"><button class="btn btn-primary" data-wx="find">Anzeigen</button></div>' +
-    '<button class="btn btn-sm" data-wx="gps" style="margin-top:8px">Meinen Standort verwenden</button>' +
+    '<button class="btn btn-sm" data-wx="gps" style="margin-top:8px">📍 Meinen Standort verwenden</button>' +
     (hasLoc ? '<button class="btn btn-sm btn-ghost" data-wx="cancel" style="margin-top:8px">Abbrechen</button>' : '') + '</div>';
 }
 function weatherCardHTML(d) {
-  return '<div class="wx-card wx-' + d.grad + '"><button class="wx-edit" data-wx="edit" title="Ort ändern" aria-label="Ort ändern"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPen"/></svg></button>' +
+  /* Standortnadel, nicht Stift: An dieser Stelle setzt man den Ort – ein
+     Stiftsymbol las sich wie "Text bearbeiten" und war nicht wiederzuerkennen. */
+  return '<div class="wx-card wx-' + d.grad + '"><button class="wx-edit" data-wx="edit" title="Ort ändern" aria-label="Ort ändern"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPin"/></svg></button>' +
     '<div class="wx-top"><div class="wx-main"><div class="wx-temp">' + d.temp + '°</div>' +
     '<div class="wx-cond">' + esc(d.text) + '</div>' +
-    '<div class="wx-loc">' + esc(d.name) + agentMsg({
+    '<div class="wx-loc">📍 ' + esc(d.name) + agentMsg({
       de: ' · gefühlt {f}°', en: ' · feels like {f}°', fr: ' · ressenti {f} °',
       es: ' · sensación {f}°', it: ' · percepita {f}°', pl: ' · odczuwalna {f}°'
     }, { f: d.feels }) + '</div></div>' +
     '<div class="wx-icon">' + d.icon + '</div></div>' +
     '<div class="wx-pills">' +
-    '<div class="wx-pill"><span></span><b>' + (d.rain != null ? d.rain + '%' : '–') + '</b><small>Regen</small></div>' +
-    '<div class="wx-pill"><span></span><b>' + esc(d.pollen) + '</b><small>' + esc(d.pollenSub) + '</small></div>' +
-    '<div class="wx-pill"><span></span><b>' + d.hi + '° / ' + d.lo + '°</b><small>Höchst / Tief</small></div>' +
+    '<div class="wx-pill"><span>💧</span><b>' + (d.rain != null ? d.rain + '%' : '–') + '</b><small>Regen</small></div>' +
+    '<div class="wx-pill"><span>🌸</span><b>' + esc(d.pollen) + '</b><small>' + esc(d.pollenSub) + '</small></div>' +
+    '<div class="wx-pill"><span>🌡️</span><b>' + d.hi + '° / ' + d.lo + '°</b><small>Höchst / Tief</small></div>' +
     '</div></div>';
 }
 
