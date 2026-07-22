@@ -12393,9 +12393,12 @@ function renderHolidays() {
     if (bListe.length) bSum = brueckenSumme(bListe);
   } catch (e) { console.error('[Ordela brueckentage]', e && e.message); }
   /* Länderauswahl nur, wenn die App NICHT auf Deutsch läuft (Deutsch = deutsche Feiertage als Standard). */
+  /* Auf Deutsch stand hier frueher ein "Arbeitszeit"-Link. Der hatte mit
+     Feiertagen nichts zu tun und fuellte nur den Platz, den sonst die
+     Laenderauswahl einnimmt – auf Deutsch bleibt die Ecke jetzt leer. */
   const picker = (curLang !== 'de')
     ? '<select class="di-country" data-holcountry data-noi18n aria-label="Land">' + HOLIDAY_COUNTRIES.map(c => '<option value="' + c.code + '"' + (c.code === country ? ' selected' : '') + '>' + c.name + '</option>').join('') + '</select>'
-    : '<button class="di-go" data-go="work">Arbeitszeit ›</button>';
+    : '';
   const teilenIc = bListe.length
     ? '<button class="di-share" data-hol="share" title="' + esc(pickLang({ de: 'Brückentage teilen', en: 'Share bridge days', fr: 'Partager les ponts', es: 'Compartir puentes', it: 'Condividi i ponti', pl: 'Udostępnij' })) + '" aria-label="' + esc(pickLang({ de: 'Brückentage teilen', en: 'Share bridge days', fr: 'Partager les ponts', es: 'Compartir puentes', it: 'Condividi i ponti', pl: 'Udostępnij' })) + '">'
       + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v13M8 7l4-4 4 4"/></svg></button>'
