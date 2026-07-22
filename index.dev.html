@@ -535,13 +535,26 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .di-list{margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
 .di-note{margin-top:8px;font-size:11.5px;color:var(--faint);line-height:1.4}
 .di-ok{font-size:13.5px;color:#7FE3AE;font-weight:600}
-.fuel-row{padding:7px 0;border-bottom:1px solid rgba(127,127,127,.14)}
+/* Jede Zeile fuehrt zum Routenplaner, deshalb ein echtes <a> statt eines
+   klickbaren <div>: Langdruck, „in neuem Tab", Vorlesen – alles inbegriffen.
+   Der Innenabstand haelt das Tippziel bei ~52 px, auch wenn der Text kurz ist. */
+.fuel-row{display:flex;align-items:center;gap:10px;padding:9px 8px;margin:0 -8px;
+  border-bottom:1px solid rgba(127,127,127,.14);border-radius:12px;
+  color:inherit;text-decoration:none;transition:background .16s ease,transform .16s ease}
 .fuel-row:last-of-type{border-bottom:none}
-.fuel-top{display:flex;align-items:baseline;gap:8px}
-.fuel-type{font-weight:700;font-size:12px;min-width:46px;flex:none;color:var(--muted)}
-.fuel-name{flex:1;min-width:0;font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fuel-price{flex:none;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;color:var(--text)}
-.fuel-addr{margin-left:54px;margin-top:1px;font-size:12px;color:var(--muted);line-height:1.35}
+.fuel-row:hover{background:rgba(127,127,127,.09)}
+.fuel-row:active{transform:scale(.985)}
+.fuel-row:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.fuel-type{font-weight:700;font-size:12px;min-width:44px;flex:none;color:var(--muted)}
+.fuel-mid{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+.fuel-name{font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fuel-price{flex:none;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
+.fuel-addr{margin-top:1px;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Der Pfeil ist die einzige Ankuendigung, dass die Zeile irgendwohin fuehrt –
+   deshalb sichtbar, aber leise, damit er nicht mit dem Preis konkurriert. */
+.fuel-nav{flex:none;width:17px;height:17px;color:var(--accent-ink);opacity:.75}
+.fuel-row:hover .fuel-nav{opacity:1}
+@media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} }
 .warn-row{border-left:3px solid #f59e0b;padding:5px 0 5px 10px;margin-bottom:7px;display:flex;flex-direction:column;gap:1px}
 .warn-row b{font-size:13.5px;line-height:1.25}
 .warn-row span{font-size:12px;color:var(--muted);line-height:1.35}
@@ -2504,6 +2517,9 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <symbol id="icMoon" viewBox="0 0 24 24"><path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icPin" viewBox="0 0 24 24"><path d="M12 21.2s6.4-6.1 6.4-10.6a6.4 6.4 0 1 0-12.8 0C5.6 15.1 12 21.2 12 21.2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="10.4" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
     <symbol id="icPhone" viewBox="0 0 24 24"><path d="M8 3.6H5.6A2.6 2.6 0 0 0 3 6.3C3 14.4 9.6 21 17.7 21a2.6 2.6 0 0 0 2.6-2.6V16l-4.4-1.7-2 2.1a13.3 13.3 0 0 1-5.7-5.7l2.1-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <!-- Richtungspfeil fuer "hinfahren" (Spritpreise). Bewusst NICHT die
+         Standortnadel: die sagt "hier ist etwas", nicht "bring mich hin". -->
+    <symbol id="icNav" viewBox="0 0 24 24"><path d="M20.6 3.4 3.9 10.4l7 2.7 2.7 7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -12629,16 +12645,62 @@ function startWeatherWatch() {
 let _fuelCache = { at: 0, html: '', key: '' };
 function fuelCard(inner, loc) { return '<section class="card dash-info-card"><div class="di-head"><b>Spritpreise</b>' + (loc ? '<span class="di-loc">' + esc(loc.name || '') + '</span>' : '') + '</div>' + inner + '</section>'; }
 function fuelSetupHTML() { return fuelCard('<div class="di-note">Noch einzurichten: kostenlosen <b>Tankerkönig-API-Key</b> holen und die Function <code>fuel-proxy</code> deployen (Secret <code>TANKERKOENIG_KEY</code>). Danach erscheinen hier die günstigsten Tankstellen in der Nähe.</div>'); }
+/* Wortvergleich fuer den Namensputz unten: Umlaute und die vielen Schreibweisen
+   von „Straße" auf eine Form bringen, alles andere wegwerfen. */
+function fuelNorm(s) {
+  return String(s || '').toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/stra(ss)?e/g, 'str').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+/* Tankerkoenig schreibt die Adresse oft schon IN den Stationsnamen
+   („JET NEUSS BERGHEIMER STR. 100"). Zusammen mit der Adresszeile darunter
+   stand dadurch jede Strasse zweimal in der Karte. Hier fliegen deshalb genau
+   die Woerter aus dem Namen, die ohnehin schon als Adresse dastehen – wortweise
+   verglichen, damit „Str."/„Straße" und Umlaute zusammenfinden.
+   Bleibt nichts uebrig (Name WAR nur die Adresse), traegt die Marke den Platz. */
+function fuelShortName(st) {
+  const weg = new Set(['tankstelle', 'station', 'automat']);
+  [st.street, st.houseNumber, st.place, st.postCode].forEach(t => {
+    fuelNorm(t).split(' ').forEach(w => { if (w) weg.add(w); });
+  });
+  const kurz = String(st.name || '').split(/\s+/)
+    .filter(w => { const n = fuelNorm(w); return n && !weg.has(n); })
+    .join(' ').replace(/^[\s,\-–·]+|[\s,\-–·]+$/g, '').trim();
+  return kurz || String(st.brand || '').trim() || 'Tankstelle';
+}
+/* Ziel fuer den Routenplaner. Die universelle Google-Maps-Adresse faengt unter
+   Android und iOS die Karten-App ab und oeffnet am Rechner den Browser – ein
+   geo:-Link zeigte zwar die App-Auswahl, liefe am Rechner aber ins Leere.
+   Der Startpunkt bleibt bewusst offen: die Karten-App nimmt dann den aktuellen
+   Standort, und Ordela muss ihn nicht in die Adresse schreiben.
+   Koordinaten sind genauer als eine Adresse (Autobahntankstellen haben oft gar
+   keine Hausnummer), kommen aber erst mit der naechsten fuel-proxy-Fassung. */
+function fuelRouteURL(st) {
+  const ziel = (st.lat != null && st.lng != null && !isNaN(st.lat) && !isNaN(st.lng))
+    ? st.lat + ',' + st.lng
+    : [[st.street, st.houseNumber].filter(Boolean).join(' '), [st.postCode, st.place].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+  return 'https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=' + encodeURIComponent(ziel);
+}
 function fuelRow(label, st) {
   if (!st || st.price == null) return '';
   const price = Number(st.price).toFixed(2).replace('.', ',') + ' €';
-  const addr = [st.street, st.houseNumber].filter(Boolean).join(' ').trim();
-  const distTxt = (st.dist != null && !isNaN(st.dist)) ? ('' + Number(st.dist).toFixed(1).replace('.', ',') + ' km') : '';
-  const nm = esc(st.name || st.brand || 'Tankstelle');
-  const sub = [esc(addr), distTxt].filter(Boolean).join(' · ');
-  return '<div class="fuel-row"><div class="fuel-top"><span class="fuel-type">' + label + '</span>' +
-    '<span class="fuel-name">' + nm + '</span><span class="fuel-price">' + price + '</span></div>' +
-    (sub ? '<div class="fuel-addr">' + sub + '</div>' : '') + '</div>';
+  const strasse = [st.street, st.houseNumber].filter(Boolean).join(' ').trim();
+  const distTxt = (st.dist != null && !isNaN(st.dist)) ? (Number(st.dist).toFixed(1).replace('.', ',') + ' km') : '';
+  const nm = fuelShortName(st);
+  /* Oben WO getankt wird, unten WIE WEIT es ist – der Ort gehoert nach unten,
+     sonst steht er neben einer Strasse, die ohnehin in diesem Ort liegt. */
+  const kopf = [nm, strasse].filter(Boolean).map(esc).join(' · ');
+  const fuss = [esc(st.place || ''), distTxt].filter(Boolean).join(' · ');
+  const ziel = agentMsg({
+    de: 'Route zu {n}, {a}', en: 'Directions to {n}, {a}', fr: 'Itinéraire vers {n}, {a}',
+    es: 'Ruta a {n}, {a}', it: 'Percorso per {n}, {a}', pl: 'Trasa do {n}, {a}'
+  }, { n: nm, a: [strasse, st.place].filter(Boolean).join(', ') });
+  return '<a class="fuel-row" href="' + esc(fuelRouteURL(st)) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(ziel) + '">' +
+    '<span class="fuel-type">' + label + '</span>' +
+    '<span class="fuel-mid"><span class="fuel-name">' + kopf + '</span>' +
+    (fuss ? '<span class="fuel-addr">' + fuss + '</span>' : '') + '</span>' +
+    '<span class="fuel-price">' + price + '</span>' +
+    '<svg class="fuel-nav" viewBox="0 0 24 24" aria-hidden="true"><use href="#icNav"/></svg></a>';
 }
 async function renderFuel() {
   const box = $('#fuelWidget'); if (!box) return;

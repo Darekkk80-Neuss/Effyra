@@ -60,9 +60,13 @@ Deno.serve(async (req) => {
       for (const s of j.stations) {
         const p = s[fuel];
         if (typeof p === 'number' && p > 0 && (s.isOpen !== false)) {
+          // lat/lng gehen mit, damit die Karten-App exakt auf die Zapfsäule
+          // routet. Autobahntankstellen haben oft keine Hausnummer – eine
+          // Adresse allein landet dort auf der Straßenmitte.
           if (!best || p < best.price) best = {
             name: s.name, brand: s.brand, price: p, dist: s.dist,
             street: s.street, houseNumber: s.houseNumber, place: s.place, postCode: s.postCode,
+            lat: s.lat, lng: s.lng,
           };
         }
       }
