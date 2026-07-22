@@ -12556,15 +12556,40 @@ async function renderFuel() {
   const key = (+loc.lat).toFixed(3) + ',' + (+loc.lon).toFixed(3);
   if (_fuelCache.key === key && Date.now() - _fuelCache.at < 6e5 && _fuelCache.html) { box.innerHTML = _fuelCache.html; return; }
   if (!_fuelCache.html) box.innerHTML = fuelCard('<div class="di-note">Preise werden geladen …</div>', loc);
-  try {
+  /* Ein Aufruf mit dem aktuellen Token. Ausgelagert, damit er nach einer
+     Auffrischung ohne Umstand wiederholt werden kann. */
+  const holen = async () => {
     const s = (await sb.auth.getSession()).data.session;
     const r = await fetch(FN_URL('fuel-proxy'), { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + (s ? s.access_token : '') }, body: JSON.stringify({ lat: loc.lat, lng: loc.lon, rad: 5 }) });
-    const j = await r.json().catch(() => ({}));
-    if (!j || !j.ok) { box.innerHTML = fuelSetupHTML(); return; }
+    return await r.json().catch(() => ({}));
+  };
+  try {
+    let j = await holen();
+    /* Abgelaufenes Token: EINMAL auffrischen und erneut versuchen. Genau das
+       war die Ursache dafuer, dass das Widget „mal geht, mal nicht" wirkte –
+       fuel-proxy prueft das JWT, und ein abgelaufenes ergab auth_invalid. */
+    if (j && !j.ok && (j.error === 'auth_invalid' || j.error === 'auth_required')) {
+      try { await sb.auth.refreshSession(); j = await holen(); } catch (e) {}
+    }
+    if (!j || !j.ok) {
+      /* Fehlerarten auseinanderhalten. Vorher zeigte JEDER Fehlschlag die
+         Einrichtungsmeldung – die App behauptete also, der API-Schluessel
+         fehle, obwohl er laengst hinterlegt war. */
+      if (j && j.error === 'not_configured') { box.innerHTML = fuelSetupHTML(); return; }
+      const txt = (j && (j.error === 'auth_invalid' || j.error === 'auth_required'))
+        ? pickLang({ de: 'Anmeldung abgelaufen – bitte einmal neu laden.', en: 'Session expired – please reload.', fr: 'Session expirée – recharge la page.', es: 'Sesión caducada: vuelve a cargar.', it: 'Sessione scaduta: ricarica.', pl: 'Sesja wygasła – odśwież stronę.' })
+        : pickLang({ de: 'Spritpreise gerade nicht abrufbar. Ich versuche es später erneut.', en: 'Fuel prices unavailable right now. I will retry later.', fr: 'Prix des carburants indisponibles. Nouvel essai plus tard.', es: 'Precios no disponibles ahora. Lo intentaré más tarde.', it: 'Prezzi non disponibili ora. Riprovo più tardi.', pl: 'Ceny paliw chwilowo niedostępne. Spróbuję później.' });
+      if (!_fuelCache.html) box.innerHTML = fuelCard('<div class="di-note">' + txt + '</div>', loc);
+      return;
+    }
     const inner = fuelRow('E5', j.e5) + fuelRow('E10', j.e10) + fuelRow('Diesel', j.diesel) + '<div class="di-note">Quelle: Tankerkönig (CC BY 4.0)</div>';
     _fuelCache = { at: Date.now(), html: fuelCard(inner, loc), key: key };
     if (currentView === 'dashboard') box.innerHTML = _fuelCache.html;
-  } catch (e) { if (!_fuelCache.html) box.innerHTML = fuelSetupHTML(); }
+  } catch (e) {
+    /* Netzfehler ist kein Einrichtungsfehler. */
+    if (!_fuelCache.html) box.innerHTML = fuelCard('<div class="di-note">' +
+      pickLang({ de: 'Spritpreise gerade nicht abrufbar. Ich versuche es später erneut.', en: 'Fuel prices unavailable right now. I will retry later.', fr: 'Prix des carburants indisponibles. Nouvel essai plus tard.', es: 'Precios no disponibles ahora. Lo intentaré más tarde.', it: 'Prezzi non disponibili ora. Riprovo più tardi.', pl: 'Ceny paliw chwilowo niedostępne. Spróbuję później.' }) + '</div>', loc);
+  }
 }
 /* ============================== VERTRÄGE & ABOS ============================== */
 const CONTRACT_CATS = {
