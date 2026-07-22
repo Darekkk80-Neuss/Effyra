@@ -466,8 +466,52 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .di-head-tx small{font-size:12.5px;color:var(--muted);margin-top:2px}
 .di-arrow{font-size:24px;line-height:1;padding:0 4px;opacity:.65;min-height:0}
 .di-arrow:hover{opacity:1}
-/* Die Tageskarte traegt einen Hauch Akzent, bleibt aber im Kartensystem. */
+/* Die Tageskarte traegt einen Hauch Akzent, bleibt aber im Kartensystem.
+   Der Farbton folgt der Tageszeit – dieselben Grenzen wie beim Motiv oben,
+   damit Karte, Begruessung und Bild nicht auseinanderlaufen. */
 .brief-card{background:linear-gradient(160deg,rgba(77,124,255,.14),rgba(77,124,255,.05) 55%,transparent),var(--card)}
+.brief-card.brief-morgen{background:linear-gradient(160deg,rgba(255,168,102,.13),rgba(255,168,102,.04) 55%,transparent),var(--card)}
+.brief-card.brief-tag{background:linear-gradient(160deg,rgba(255,193,84,.12),rgba(62,201,255,.04) 55%,transparent),var(--card)}
+.brief-card.brief-abend{background:linear-gradient(160deg,rgba(255,124,74,.13),rgba(122,92,255,.05) 55%,transparent),var(--card)}
+.brief-card.brief-nacht{background:linear-gradient(160deg,rgba(122,92,255,.15),rgba(62,201,255,.045) 55%,transparent),var(--card)}
+
+/* Tageskarte, Symbol: Das Strichbild in getoenter Kachel war austauschbar – es
+   haette auf jeder Karte stehen koennen und blieb blau, auch nachts um drei.
+   Stattdessen eine kleine HIMMELSSCHEIBE in einer vertieften Mulde. Sie ist
+   gefuellt statt gezeichnet, hat Lichtkante und Schein und wirkt dadurch wie
+   ein Koerper, nicht wie ein Piktogramm. Und sie traegt eine Aussage: Morgens
+   steht dort eine warme, tief stehende Sonne, mittags eine helle, abends eine
+   rote – nachts eine Mondsichel. Gezeichnet in CSS wie das Motiv oben: nichts
+   nachzuladen, in jeder Aufloesung scharf, in der Farbwelt der App. */
+.brief-ic{position:relative;flex:none;width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle at 50% 118%,rgba(255,255,255,.10),rgba(4,8,20,.5));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),inset 0 -2px 4px rgba(0,0,0,.4)}
+/* Der Schein liegt UNTER der Scheibe: die Nachtmaske wuerde ihn sonst mit
+   abschneiden, weil eine Maske auch den Aussenschatten erfasst. */
+.brief-ic::before{content:"";position:absolute;inset:-1px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,rgba(255,193,90,.5),transparent 62%)}
+.brief-ic::after{content:"";position:absolute;left:50%;top:50%;
+  width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#FFF6D8,#FFC24D 56%,#EF9A24)}
+.brief-morgen .brief-ic::before{background:radial-gradient(circle at 50% 50%,rgba(255,150,92,.46),transparent 62%)}
+.brief-morgen .brief-ic::after{width:20px;height:20px;margin:-10px 0 0 -10px;
+  background:radial-gradient(circle at 34% 28%,#FFE9C4,#FFAB63 56%,#EE7A4A)}
+.brief-abend .brief-ic::before{background:radial-gradient(circle at 50% 50%,rgba(255,116,64,.5),transparent 62%)}
+.brief-abend .brief-ic::after{width:21px;height:21px;margin:-10.5px 0 0 -10.5px;
+  background:radial-gradient(circle at 36% 30%,#FFD3A2,#FF884A 54%,#D5502C)}
+/* Nacht: aus derselben Scheibe wird per Maske eine Sichel. */
+.brief-nacht .brief-ic::before{background:radial-gradient(circle at 50% 50%,rgba(168,196,255,.4),transparent 62%)}
+.brief-nacht .brief-ic::after{width:21px;height:21px;margin:-10.5px 0 0 -10.5px;
+  background:radial-gradient(circle at 38% 32%,#FFFFFF,#DDE6FF 54%,#A6B8E2);
+  -webkit-mask-image:radial-gradient(circle at 116% 18%,transparent 53%,#000 54%);
+          mask-image:radial-gradient(circle at 116% 18%,transparent 53%,#000 54%);
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+/* Auf hellem Grund bleibt die Mulde dunkel: die Scheibe braucht einen tiefen
+   Hintergrund, sonst verliert sie den Schein und wird wieder flach. Der Rand
+   haelt sie gegen die helle Karte ab. */
+:root[data-theme="light"] .brief-ic{
+  background:radial-gradient(circle at 50% 116%,#26355F,#0C1530 72%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 2px 6px rgba(15,23,42,.18)}
 /* Kein automatischer Pfeil per ::after – mehrere Beschriftungen tragen ihn
    bereits im Text ("Arbeitszeit ›") und bekaemen sonst zwei. */
 .di-go{border:none;background:none;color:#4D7CFF;font-size:12.5px;font-weight:600;cursor:pointer;flex:none;padding:0}
@@ -7421,9 +7465,9 @@ RENDERERS.dashboard = function () {
   /* Stimmungsmotiv passend zur Tageszeit. Die Grenzen folgen der Begruessung
      oben, damit Bild und Text nicht auseinanderlaufen – nur der spaete Abend
      kippt schon vor Mitternacht auf Nacht. */
+  const tagesZeit = H < 5 ? 'nacht' : H < 11 ? 'morgen' : H < 18 ? 'tag' : H < 22 ? 'abend' : 'nacht';
   const heroArt = $('#dashHeroArt');
-  if (heroArt) heroArt.className = 'dash-hero-art ' +
-    (H < 5 ? 'nacht' : H < 11 ? 'morgen' : H < 18 ? 'tag' : H < 22 ? 'abend' : 'nacht');
+  if (heroArt) heroArt.className = 'dash-hero-art ' + tagesZeit;
 
   const today = todayISO();
   const evTodayList = eventsOn(today);
@@ -7557,8 +7601,8 @@ RENDERERS.dashboard = function () {
   /* Tageskarte: Symbol links in eigener Flaeche, grosser Titel, Pfeil rechts.
      Nutzt die .di-*-Klassen statt Inline-Stilen – so folgt sie automatisch dem
      Kartensystem (Verlauf, Innenabstand, Radius) statt eigene Werte zu setzen. */
-  $('#briefWidget').innerHTML = '<section class="dash-section brief-card">' +
-    '<div class="di-head"><span class="di-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icSun"/></svg></span>' +
+  $('#briefWidget').innerHTML = '<section class="dash-section brief-card brief-' + tagesZeit + '">' +
+    '<div class="di-head"><span class="brief-ic" aria-hidden="true"></span>' +
     '<div class="di-head-tx"><b>Dein Tag heute</b><small>' + esc(dstr) + '</small></div>' +
     '<button class="di-go di-arrow" data-go="calendar" aria-label="Kalender öffnen">›</button></div>' +
     '<p style="margin:0' + (_bChips.length ? ' 0 12px' : '') + ';font-size:15px">' + esc(_bLine) + '</p>' +
