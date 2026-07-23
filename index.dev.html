@@ -617,21 +617,18 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
           mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
   filter:drop-shadow(0 0 2px rgba(233,199,102,.5))}
 .fuel-row:hover .fuel-go{transform:scale(1.08)}
-/* „Günstig tanken" in Gold mit wanderndem Glanz – ein heller Streifen laeuft
-   ueber die goldene Schrift. Auf dunklem Grund kraeftig lesbar (~10:1). */
+/* „Günstig tanken" in ruhigem Gold: metallischer Verlauf mit hellem Kern, aber
+   OHNE Bewegung – wanderndes Gold wirkt billig, ruhendes edel. Auf dunklem
+   Grund kraeftig lesbar (~10:1). */
 .fuel-title{
-  background:linear-gradient(100deg,#9C7519 0%,#E9C766 30%,#FFF7DA 48%,#E9C766 64%,#9C7519 100%);
-  background-size:230% 100%;-webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
-  animation:goldShimmer 4.5s linear infinite}
-@keyframes goldShimmer{to{background-position:-230% 0}}
-/* Hell: Gold auf Weiss ist unlesbar. Dunklere Bronze-Toene halten den Kontrast
-   (auch der hellste Streifen bleibt lesbar), der Glanz wandert weiter. */
-:root[data-theme="light"] .fuel-title{
-  background:linear-gradient(100deg,#5A4410 0%,#6B5214 30%,#8A6D1E 48%,#6B5214 64%,#5A4410 100%);
-  background-size:230% 100%;-webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(100deg,#B8860B 0%,#E9C766 34%,#FFF7DA 52%,#E9C766 68%,#9C7519 100%);
+  -webkit-background-clip:text;background-clip:text;
   -webkit-text-fill-color:transparent;color:transparent}
-@media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} .fuel-title{animation:none} }
+/* Hell: Gold auf Weiss ist unlesbar. Dunklere Bronze-Toene halten den Kontrast. */
+:root[data-theme="light"] .fuel-title{
+  background:linear-gradient(100deg,#5A4410 0%,#6B5214 36%,#8A6D1E 52%,#6B5214 68%,#5A4410 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+@media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} }
 .warn-row{border-left:3px solid #f59e0b;padding:5px 0 5px 10px;margin-bottom:7px;display:flex;flex-direction:column;gap:1px}
 .warn-row b{font-size:13.5px;line-height:1.25}
 .warn-row span{font-size:12px;color:var(--muted);line-height:1.35}
