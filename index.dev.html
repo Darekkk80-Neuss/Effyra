@@ -7341,6 +7341,19 @@ function behLoad() {
 const behAnliegen = () => (_behData && _behData.anliegen) || [];
 const behById = (id) => behAnliegen().find(x => x.id === id);
 const BEH_GEWAEHR = 'Orientierung, keine rechtsverbindliche Auskunft – ohne Gewähr. Zuständigkeiten, Unterlagen, Fristen und Gebühren können je nach Bundesland/Kommune abweichen und sich ändern. Für Verbindliches die offizielle Servicesuche bzw. die Behörde prüfen.';
+/* Pflicht-Hinweis fuer Google Play (Richtlinie „irrefuehrende Behauptungen"):
+   klar sagen, dass Ordela KEINE Behoerde ist, plus offizielle Quelle verlinken.
+   pickLang statt TDICT – so ist die Uebersetzung sofort korrekt (kein Sweep noetig). */
+function behAmtHint() {
+  return '<div class="beh-note">' + esc(pickLang({
+    de: 'Hinweis: Ordela ist eine private App und steht in keiner Verbindung zu Behörden oder staatlichen Stellen. Offizielle Quelle:',
+    en: 'Note: Ordela is a private app and is not affiliated with any government authority. Official source:',
+    fr: 'Remarque : Ordela est une application privée et n\'est affiliée à aucune administration. Source officielle :',
+    es: 'Aviso: Ordela es una app privada y no está afiliada a ninguna administración pública. Fuente oficial:',
+    it: 'Nota: Ordela è un\'app privata e non è collegata ad alcun ente pubblico. Fonte ufficiale:',
+    pl: 'Uwaga: Ordela to prywatna aplikacja i nie jest powiązana z żadnym urzędem. Oficjalne źródło:'
+  })) + ' <a href="https://www.servicesuche.bund.de" target="_blank" rel="noopener">servicesuche.bund.de</a></div>';
+}
 const BEH_LAGE_ICON = { 'Umzug': '', 'Ausweise & Dokumente': '', 'Fahrzeug & Mobilität': '', 'Gewerbe & Selbstständigkeit': '', 'Familie & Partnerschaft': '', 'Trauerfall': '' };
 function behMapsSearch(amtstyp) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(amtstyp + ' ' + (behState.plz || 'in der Nähe')); }
 function behOfficialLink(a) { const base = a.offizielleSuche || (_behData && _behData.offizielleSucheBasis) || 'https://servicesuche.bund.de'; return base + '?query=' + encodeURIComponent(a.titel + (behState.plz ? ' ' + behState.plz : '')); }
@@ -7411,6 +7424,7 @@ function behBrowseHTML() {
   let h = '<div class="view-head"><h1>Wegweiser</h1><p>Zeigt dir den Weg: was du brauchst, welches Amt zuständig ist und wo das nächste in deiner Nähe liegt.</p></div>';
   h += '<div class="beh-search"><span aria-hidden="true"></span><input type="search" id="behSearch" placeholder="Anliegen suchen (z. B. „Auto anmelden”) …" value="' + esc(behState.q) + '" autocomplete="off" aria-label="Anliegen suchen"></div>';
   h += '<div class="beh-note">ℹ' + esc(BEH_GEWAEHR) + '</div>';
+  h += behAmtHint();
   if (!hits.length) { h += '<div class="dsec-empty">Nichts gefunden. Tipp: „Ausweis", „Umzug", „Gewerbe".</div>'; return h; }
   const lagen = []; hits.forEach(a => { if (lagen.indexOf(a.lebenslage) < 0) lagen.push(a.lebenslage); });
   lagen.forEach(lage => {
@@ -7428,6 +7442,7 @@ function behDetailHTML() {
     es: 'Competente: <b>{amt}</b> · {ll}', it: 'Competente: <b>{amt}</b> · {ll}', pl: 'Właściwy urząd: <b>{amt}</b> · {ll}'
   }, { amt: esc(a.amtstyp), ll: esc(a.lebenslage) }) + '</p></div>';
   h += '<div class="beh-note">' + esc(BEH_GEWAEHR) + '</div>';
+  h += behAmtHint();
   h += '<div class="card"><h3>Benötigte Unterlagen</h3><ul class="beh-list">' + (a.unterlagen || []).map(u => '<li>' + esc(u) + '</li>').join('') + '</ul><button class="btn btn-sm" data-beh="toTasks" data-id="' + a.id + '">Unterlagen in Aufgaben übernehmen</button></div>';
   h += '<div class="card"><h3>Schritte</h3><ol class="beh-steps">' + (a.schritte || []).map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></div>';
   if (a.hinweise && a.hinweise.length) h += '<div class="card"><h3>Gut zu wissen</h3><ul class="beh-list">' + a.hinweise.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
@@ -8513,7 +8528,7 @@ function letterPlaceLine(p, today) {
 /* Sagt offen, welchem Recht die angezeigten Vorlagen folgen. Ohne das könnte ein
    Nutzer in Warschau einen Brief nach deutschem Recht für verbindlich halten. */
 function letterJurisdictionHTML() {
-  if (curLang === 'de') return '';
+  if (curLang === 'de') return '<div class="note-box" style="margin:10px 0;font-size:12.5px">Vorlagen zur Orientierung – keine Rechtsberatung. Ordela ist eine private App und steht in keiner Verbindung zu Behörden. Gesetzestexte offiziell: <a href="https://www.gesetze-im-internet.de" target="_blank" rel="noopener">gesetze-im-internet.de</a></div>';
   const pack = letterPack();
   if (pack && pack.land && pack.land !== 'INT') {
     return '<div class="note-box" style="margin:10px 0;font-size:12.5px">' + esc(agentMsg({
