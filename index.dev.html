@@ -9223,7 +9223,22 @@ function briefAusDokument(id) {
    Russisch. Nur die KI-Ausgabe wird uebersetzt; das Ergebnis haengt am Dokument
    (d.translation) und ueberlebt so das Neuzeichnen und einen Neustart. Kostet wie
    jede KI-Aktion Credits – daher dasselbe Gate wie beim Scan. */
-async function translateDocSummary(id, code) {
+const DOC_TRANS_KINDS = {
+  summary: {
+    field: 'translation',
+    src: d => [d.explanation, (d.summary && d.summary !== d.explanation) ? d.summary : ''].filter(x => x && x.trim()).join('\n\n'),
+    ph: { de: 'Zusammenfassung übersetzen …', en: 'Translate summary …', fr: 'Traduire le résumé …', es: 'Traducir el resumen …', it: 'Traduci il riassunto …', pl: 'Przetłumacz podsumowanie …' },
+    empty: { de: 'Für dieses Dokument gibt es keine Zusammenfassung zum Übersetzen.', en: 'There is no summary to translate for this document.', fr: 'Aucun résumé à traduire pour ce document.', es: 'No hay resumen que traducir para este documento.', it: 'Nessun riassunto da tradurre per questo documento.', pl: 'Brak podsumowania do przetłumaczenia dla tego dokumentu.' }
+  },
+  reply: {
+    field: 'replyTranslation',
+    src: d => (d.replyDraft || '').trim(),
+    ph: { de: 'Antwortentwurf übersetzen …', en: 'Translate draft reply …', fr: 'Traduire le projet de réponse …', es: 'Traducir el borrador …', it: 'Traduci la bozza …', pl: 'Przetłumacz projekt odpowiedzi …' },
+    empty: { de: 'Für dieses Dokument gibt es keinen Antwortentwurf zum Übersetzen.', en: 'There is no draft reply to translate for this document.', fr: 'Aucun projet de réponse à traduire pour ce document.', es: 'No hay borrador de respuesta que traducir para este documento.', it: 'Nessuna bozza di risposta da tradurre per questo documento.', pl: 'Brak projektu odpowiedzi do przetłumaczenia dla tego dokumentu.' }
+  }
+};
+async function translateDoc(id, code, kind) {
+  const cfg = DOC_TRANS_KINDS[kind]; if (!cfg) return;
   const d = (store.docs || []).find(x => x.id === id);
   if (!d) return;
   const tgt = DOC_TRANSLATE_TARGETS.find(l => l.code === code);
@@ -9237,19 +9252,15 @@ async function translateDocSummary(id, code) {
     else requireAI();
     RENDERERS.docs(); return;
   }
-  const src = [d.explanation, (d.summary && d.summary !== d.explanation) ? d.summary : '']
-    .filter(x => x && x.trim()).join('\n\n');
-  if (!src) {
-    toast(pickLang({ de: 'Für dieses Dokument gibt es keine Zusammenfassung zum Übersetzen.', en: 'There is no summary to translate for this document.', fr: 'Aucun résumé à traduire pour ce document.', es: 'No hay resumen que traducir para este documento.', it: 'Nessun riassunto da tradurre per questo documento.', pl: 'Brak podsumowania do przetłumaczenia dla tego dokumentu.' }));
-    return;
-  }
-  d._translating = tgt.code;
+  const src = cfg.src(d);
+  if (!src) { toast(pickLang(cfg.empty)); return; }
+  d._translating = kind;
   RENDERERS.docs();
   try {
     const out = await aiCall({
       op: 'question',
       model: store.settings.model,
-      max_tokens: 900,
+      max_tokens: 1400,
       messages: [{ role: 'user', content: [{ type: 'text', text:
         'Übersetze den folgenden Text vollständig und originalgetreu ins ' + tgt.native + '. Gib AUSSCHLIESSLICH die Übersetzung zurück – ohne Anführungszeichen, ohne Vorbemerkung, ohne Erklärung. Behalte die Absätze bei. Verändere niemals Zahlen, Beträge, Namen, Daten oder Fristen.\n\nTEXT:\n' + src
       }] }]
@@ -9257,7 +9268,7 @@ async function translateDocSummary(id, code) {
     const clean = (out || '').trim();
     if (!clean) throw new Error(pickLang({ de: 'Die KI hat nichts zurückgegeben. Versuch es bitte noch einmal.', en: 'The AI returned nothing. Please try again.', fr: 'L\'IA n\'a rien renvoyé. Réessaie.', es: 'La IA no devolvió nada. Inténtalo de nuevo.', it: 'L\'IA non ha restituito nulla. Riprova.', pl: 'AI nic nie zwróciło. Spróbuj ponownie.' }));
     delete d._translating;
-    d.translation = { code: tgt.code, native: tgt.native, flag: tgt.flag, text: clean };
+    d[cfg.field] = { code: tgt.code, native: tgt.native, flag: tgt.flag, text: clean };
     save(); RENDERERS.docs();
   } catch (e) {
     delete d._translating;
@@ -9269,23 +9280,25 @@ async function translateDocSummary(id, code) {
    Erklaerung. Die aktuelle App-Sprache faellt aus der Liste – sie steht schon
    oben. Flaggen rendern auf Android/dem Ziel-Handy; im Desktop-Browser ggf. als
    Laendercode – der native Sprachname daneben traegt die Auswahl. */
-function docTransControlHTML(d) {
-  const busy = !!d._translating;
+function docTransControlHTML(d, kind) {
+  const cfg = DOC_TRANS_KINDS[kind]; if (!cfg) return '';
+  const cur = d[cfg.field];
+  const busy = d._translating === kind;
   const opts = DOC_TRANSLATE_TARGETS
     .filter(l => l.code !== curLang)
-    .map(l => '<option value="' + l.code + '"' + (d.translation && d.translation.code === l.code ? ' selected' : '') + '>' + l.flag + ' ' + esc(l.native) + '</option>')
+    .map(l => '<option value="' + l.code + '"' + (cur && cur.code === l.code ? ' selected' : '') + '>' + l.flag + ' ' + esc(l.native) + '</option>')
     .join('');
   const ph = busy
     ? pickLang({ de: 'Wird übersetzt …', en: 'Translating …', fr: 'Traduction …', es: 'Traduciendo …', it: 'Traduzione …', pl: 'Tłumaczenie …' })
-    : pickLang({ de: 'Zusammenfassung übersetzen …', en: 'Translate summary …', fr: 'Traduire le résumé …', es: 'Traducir el resumen …', it: 'Traduci il riassunto …', pl: 'Przetłumacz podsumowanie …' });
+    : pickLang(cfg.ph);
   let h = '<div class="doc-trans-ctl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>' +
-    '<select class="doc-trans-sel" data-act="docTransLang" data-id="' + d.id + '"' + (busy ? ' disabled' : '') + '>' +
+    '<select class="doc-trans-sel" data-act="docTransLang" data-kind="' + kind + '" data-id="' + d.id + '"' + (busy ? ' disabled' : '') + '>' +
     '<option value="">' + esc(ph) + '</option>' + opts + '</select></div>';
-  if (d.translation && d.translation.text) {
+  if (cur && cur.text) {
     h += '<div class="doc-translated"><div class="doc-tr-head"><span class="doc-tr-lang">' +
-      (d.translation.flag ? d.translation.flag + ' ' : '') + esc(d.translation.native) +
-      '</span><button data-act="clearDocTrans" data-id="' + d.id + '" aria-label="' + esc(pickLang({ de: 'Übersetzung ausblenden', en: 'Hide translation', fr: 'Masquer la traduction', es: 'Ocultar traducción', it: 'Nascondi traduzione', pl: 'Ukryj tłumaczenie' })) + '">✕</button></div>' +
-      '<div class="doc-tr-text">' + esc(d.translation.text) + '</div></div>';
+      (cur.flag ? cur.flag + ' ' : '') + esc(cur.native) +
+      '</span><button data-act="clearDocTrans" data-kind="' + kind + '" data-id="' + d.id + '" aria-label="' + esc(pickLang({ de: 'Übersetzung ausblenden', en: 'Hide translation', fr: 'Masquer la traduction', es: 'Ocultar traducción', it: 'Nascondi traduzione', pl: 'Ukryj tłumaczenie' })) + '">✕</button></div>' +
+      '<div class="doc-tr-text">' + esc(cur.text) + '</div></div>';
   }
   return h;
 }
@@ -14801,7 +14814,7 @@ RENDERERS.docs = function () {
         '<div class="doc-main"><h3>' + esc(d.title) + '</h3>' +
         (d.sender ? '<div class="doc-sender">' + t('doc.from', { s: esc(d.sender) }) + '</div>' : '') +
         '<div class="doc-explain"><b>IN EINFACHEN WORTEN</b>' + esc(d.explanation) + '</div>' +
-        (!d.demo && d.explanation ? docTransControlHTML(d) : '') +
+        (!d.demo && d.explanation ? docTransControlHTML(d, 'summary') : '') +
         (d.needsConfirmation && d.clarifyingQuestion ? '<div class="doc-confirm"><b>Kurze Rückfrage:</b> ' + esc(d.clarifyingQuestion) + '</div>' : '') +
         (d.deadline ? '<div class="deadline-row ' + dlClass + '"><svg viewBox="0 0 24 24" width="17" height="17"><use href="#icClock"/></svg>' +
           esc(t('doc.deadline', { date: fmtDate(d.deadline), rel: dl < 0 ? t('doc.expired') : relDay(d.deadline) })) + '</div>' : '') +
@@ -14819,7 +14832,7 @@ RENDERERS.docs = function () {
             '</div></details>' : '') +
         (d.rawStructured ? '<details class="doc-ai"><summary>Vollständige Extraktion (Originalsprache)</summary><pre class="doc-raw">' + esc(d.rawStructured) + '</pre></details>' : '') +
         (d.keywords && d.keywords.length ? '<div class="doc-tags">' + d.keywords.slice(0, 8).map(k => '<span class="doc-tag">#' + esc(k) + '</span>').join('') + '</div>' : '') +
-        (d.replyDraft ? '<details class="doc-reply"><summary>Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div>' + (d.replyDraftTranslation ? '<div class="reply-text" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);opacity:.9"><b style="font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px">Übersetzung für dich</b><br>' + esc(d.replyDraftTranslation) + '</div>' : '') + '</details>' : '') +
+        (d.replyDraft ? '<details class="doc-reply"><summary>Antwortentwurf ansehen</summary><div class="reply-text">' + esc(d.replyDraft) + '</div>' + (d.replyDraftTranslation ? '<div class="reply-text" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);opacity:.9"><b style="font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.3px">Übersetzung für dich</b><br>' + esc(d.replyDraftTranslation) + '</div>' : '') + (!d.demo ? docTransControlHTML(d, 'reply') : '') + '</details>' : '') +
         '<div class="doc-actions">' +
         '<button class="btn btn-sm" data-act="chatDoc"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Im Chat fragen</button>' +
         (d.replyDraft ? '<button class="btn btn-sm btn-primary" data-act="docToBrief">' + esc(pickLang({ de: 'Als Brief öffnen', en: 'Open as letter', fr: 'Ouvrir comme lettre', es: 'Abrir como carta', it: 'Apri come lettera', pl: 'Otwórz jako list' })) + '</button>' : '') +
@@ -14871,7 +14884,7 @@ $('#docList').addEventListener('click', e => {
   if (act.dataset.act === 'copyReply' && d.replyDraft) {
     copyText(d.replyDraft).then(ok => toast(ok ? 'Antwort kopiert ✓' : 'Kopieren nicht möglich'));
   }
-  if (act.dataset.act === 'clearDocTrans') { delete d.translation; save(); RENDERERS.docs(); return; }
+  if (act.dataset.act === 'clearDocTrans') { delete d[act.dataset.kind === 'reply' ? 'replyTranslation' : 'translation']; save(); RENDERERS.docs(); return; }
 });
 /* Auswahl (Checkbox) und Inline-Bearbeitung der erkannten Einträge */
 /* Suche im Dokumentenarchiv. Bewusst ohne Entprellung: Gefiltert wird ueber
@@ -14893,7 +14906,7 @@ $('#docList').addEventListener('change', e => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const card = el.closest('.doc-card'); if (!card) return;
   const d = store.docs.find(x => x.id === card.dataset.id); if (!d) return;
-  if (el.dataset.act === 'docTransLang') { if (el.value) translateDocSummary(d.id, el.value); return; }
+  if (el.dataset.act === 'docTransLang') { if (el.value) translateDoc(d.id, el.value, el.dataset.kind || 'summary'); return; }
   const f = (d.findings || []).find(x => x.id === el.dataset.fid); if (!f) return;
   if (el.dataset.act === 'toggleFnd') { f.selected = el.checked; save(); return; }
   if (el.dataset.act === 'editFnd') {
