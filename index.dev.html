@@ -604,20 +604,34 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
    Glanz – derselbe Blickfang wie der Ordela-AI-Knopf unten, damit die Route klar
    als „das kannst du antippen" heraussticht. Dunkle Mulde in BEIDEN Themen, weil
    Gold Tiefe braucht (auf Weiss verliert es den Schein). */
-.fuel-go{position:relative;flex:none;width:34px;height:34px;border-radius:50%;
+.fuel-go{position:relative;flex:none;width:26px;height:26px;border-radius:50%;
   display:grid;place-items:center;
   background:radial-gradient(circle at 50% 118%,#3A3320,#171320 78%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 6px rgba(15,23,42,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 1px 4px rgba(15,23,42,.2);
   transition:transform .16s ease}
-.fuel-go svg{width:16px;height:16px;color:#F0D48A;filter:drop-shadow(0 0 3px rgba(233,199,102,.35))}
-.fuel-go::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+.fuel-go svg{width:12px;height:12px;color:#F0D48A;filter:drop-shadow(0 0 2px rgba(233,199,102,.35))}
+.fuel-go::after{content:"";position:absolute;inset:-1.5px;border-radius:50%;pointer-events:none;
   background:conic-gradient(from 0deg,#8A6A1E,#E9C766 12%,#FFF7DA 25%,#E9C766 38%,#9C7519 50%,#E9C766 62%,#FFF7DA 75%,#E9C766 88%,#8A6A1E);
-  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2.5px));
-          mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2.5px));
-  filter:drop-shadow(0 0 3px rgba(233,199,102,.5));
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
+  filter:drop-shadow(0 0 2px rgba(233,199,102,.5));
   animation:goldSpin 4s linear infinite;will-change:transform}
-.fuel-row:hover .fuel-go{transform:scale(1.06)}
-@media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} .fuel-go::after{animation:none} }
+.fuel-row:hover .fuel-go{transform:scale(1.08)}
+/* „Günstig tanken" in Gold mit wanderndem Glanz – ein heller Streifen laeuft
+   ueber die goldene Schrift. Auf dunklem Grund kraeftig lesbar (~10:1). */
+.fuel-title{
+  background:linear-gradient(100deg,#9C7519 0%,#E9C766 30%,#FFF7DA 48%,#E9C766 64%,#9C7519 100%);
+  background-size:230% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  animation:goldShimmer 4.5s linear infinite}
+@keyframes goldShimmer{to{background-position:-230% 0}}
+/* Hell: Gold auf Weiss ist unlesbar. Dunklere Bronze-Toene halten den Kontrast
+   (auch der hellste Streifen bleibt lesbar), der Glanz wandert weiter. */
+:root[data-theme="light"] .fuel-title{
+  background:linear-gradient(100deg,#5A4410 0%,#6B5214 30%,#8A6D1E 48%,#6B5214 64%,#5A4410 100%);
+  background-size:230% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent}
+@media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} .fuel-go::after{animation:none} .fuel-title{animation:none} }
 .warn-row{border-left:3px solid #f59e0b;padding:5px 0 5px 10px;margin-bottom:7px;display:flex;flex-direction:column;gap:1px}
 .warn-row b{font-size:13.5px;line-height:1.25}
 .warn-row span{font-size:12px;color:var(--muted);line-height:1.35}
@@ -9270,9 +9284,14 @@ async function setWeatherByCity(city, silent) {
     fetchWeather(store.weatherLoc);
   } catch (e) { if (!silent) toast('Keine Verbindung'); weatherEditing = false; renderWeather(); }
 }
-function setWeatherByGPS() {
-  if (!navigator.geolocation) { toast('Standort nicht verfügbar'); return; }
-  toast('Standort wird ermittelt …');
+/* opts.silent = keine Toasts (fuer die automatische Frage beim ersten Start);
+   opts.onFail = Ausweg, wenn kein GPS/abgelehnt (z. B. auf die Profil-Stadt
+   zurueckfallen), statt nur einen Fehler-Toast zu zeigen. */
+function setWeatherByGPS(opts) {
+  opts = opts || {};
+  const fail = (msg) => { if (opts.onFail) opts.onFail(); else if (!opts.silent) toast(msg); };
+  if (!navigator.geolocation) { fail('Standort nicht verfügbar'); return; }
+  if (!opts.silent) toast('Standort wird ermittelt …');
   navigator.geolocation.getCurrentPosition(async pos => {
     const lat = pos.coords.latitude, lon = pos.coords.longitude;
     let name = 'Aktueller Standort', region = '', land = 'DE';
@@ -9287,7 +9306,7 @@ function setWeatherByGPS() {
     stateAusStandort(region, land);
     weatherEditing = false;
     fetchWeather(store.weatherLoc);
-  }, () => toast('Standort-Zugriff abgelehnt'), { timeout: 8000 });
+  }, () => fail('Standort-Zugriff abgelehnt'), { timeout: 8000 });
 }
 
 /* Stadtsuche: mehrere Treffer → Auswahlliste, damit der Nutzer die richtige Stadt wählt
@@ -9349,8 +9368,25 @@ function renderWeather() {
   if (weatherResults && weatherResults.length) { w.innerHTML = weatherPickHTML(weatherResults); return; }   // Stadt-Auswahl offen
   const loc = getWeatherLoc();
   if (weatherEditing || !loc) {
-    if (!loc && !weatherEditing && store.profile && store.profile.city && !weatherAutoTried) {
-      weatherAutoTried = true; w.innerHTML = weatherLoadingHTML(); setWeatherByCity(store.profile.city, true); return;
+    if (!loc && !weatherEditing && !weatherAutoTried) {
+      weatherAutoTried = true;
+      /* Ausweg, wenn kein GPS: still die im Profil hinterlegte Stadt nehmen,
+         sonst die Ortsabfrage zeigen. */
+      const stadtFallback = () => {
+        if (store.profile && store.profile.city) { w.innerHTML = weatherLoadingHTML(); setWeatherByCity(store.profile.city, true); }
+        else w.innerHTML = weatherSetupHTML(false);
+      };
+      /* Beim ALLERERSTEN Start einmalig nach dem Standort fragen (der Browser
+         zeigt seine eigene Erlaubnis-Abfrage – nichts passiert heimlich). Danach
+         nie wieder automatisch (store.geoAsked gemerkt), damit die Abfrage nicht
+         bei jedem Start nervt. Abgelehnt/kein GPS → Profil-Stadt. */
+      if (!store.geoAsked && navigator.geolocation) {
+        store.geoAsked = 1; save();
+        w.innerHTML = weatherLoadingHTML();
+        setWeatherByGPS({ silent: true, onFail: stadtFallback });
+        return;
+      }
+      stadtFallback(); return;
     }
     w.innerHTML = weatherSetupHTML(!!loc); return;
   }
@@ -12742,7 +12778,7 @@ function fuelCard(inner, loc) {
     ? agentMsg({ de: 'Beste Preise in {o}', en: 'Best prices in {o}', fr: 'Meilleurs prix à {o}', es: 'Mejores precios en {o}', it: 'Prezzi migliori a {o}', pl: 'Najlepsze ceny w {o}' }, { o: loc.name })
     : pickLang({ de: 'Beste Preise in deiner Nähe', en: 'Best prices near you', fr: 'Meilleurs prix près de toi', es: 'Mejores precios cerca de ti', it: 'Prezzi migliori vicino a te', pl: 'Najlepsze ceny w pobliżu' });
   return '<section class="card dash-info-card"><div class="di-head">' +
-    '<div class="di-head-tx"><b>' + esc(titel) + '</b><small>' + esc(sub) + '</small></div></div>' +
+    '<div class="di-head-tx"><b class="fuel-title">' + esc(titel) + '</b><small>' + esc(sub) + '</small></div></div>' +
     inner + '</section>';
 }
 function fuelSetupHTML() { return fuelCard('<div class="di-note">Noch einzurichten: kostenlosen <b>Tankerkönig-API-Key</b> holen und die Function <code>fuel-proxy</code> deployen (Secret <code>TANKERKOENIG_KEY</code>). Danach erscheinen hier die günstigsten Tankstellen in der Nähe.</div>'); }
