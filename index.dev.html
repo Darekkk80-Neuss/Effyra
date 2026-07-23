@@ -227,6 +227,19 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .tab-center .bubble::before{content:"";position:absolute;inset:-5px;border-radius:50%;
   background:conic-gradient(from 140deg,#4D7CFF,#7A5CFF,#3EC9FF,#4D7CFF);
   opacity:.55;filter:blur(6px);z-index:-1}
+/* Goldrahmen mit umlaufendem Glanz – der Blickfang. Ein Konus-Verlauf aus
+   Gold mit zwei hellen Baendern dreht sich fortlaufend; eine radiale Maske
+   laesst nur den aeusseren Ring stehen, sodass der Glanz WIE POLIERTES METALL
+   um den Knopf wandert statt die Flaeche zu fuellen. drop-shadow gibt dem Rand
+   einen weichen Goldschein. Nur am Nav-Knopf (:not(.tab-mic)) – der
+   Mikrofon-Zustand traegt eigene Bewegung. */
+.tab-center:not(.tab-mic) .bubble::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,#8A6A1E,#E9C766 12%,#FFF7DA 25%,#E9C766 38%,#9C7519 50%,#E9C766 62%,#FFF7DA 75%,#E9C766 88%,#8A6A1E);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+  filter:drop-shadow(0 0 4px rgba(233,199,102,.55));
+  animation:goldSpin 4s linear infinite;will-change:transform}
+@keyframes goldSpin{to{transform:rotate(360deg)}}
 .tab-center .bubble:active{transform:scale(.96)}
 .tab-center .bubble svg{width:29px;height:29px}
 .tab-center.active .bubble{box-shadow:0 11px 34px rgba(122,92,255,.68),0 0 0 4px rgba(7,11,23,.85)}
@@ -261,6 +274,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
   .tab:active,.tab-center .bubble:active,.btn:active{transform:none}
   .tab-mic.rec .bubble{animation:none}
   .tab-center:not(.tab-mic) .bubble svg{animation:none}   /* kein Blinzeln bei reduzierter Bewegung */
+  .tab-center:not(.tab-mic) .bubble::after{animation:none}   /* Goldrahmen bleibt, dreht sich aber nicht */
 }
 
 /* Sidebar (desktop) */
