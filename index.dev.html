@@ -215,20 +215,33 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .tab.active{color:var(--text)}
 /* Aktives Symbol bekommt einen sanften Schein statt einer harten Farbe. */
 .tab.active svg{color:var(--accent-ink);filter:drop-shadow(0 0 8px rgba(77,124,255,.55))}
-.tab-center{position:relative;top:-18px;flex:none;width:64px}
+/* Der Ordela-AI-Knopf steht bewusst ueber der Reihe und ist groesser als die
+   anderen Tabs – er ist der Einstieg, nicht ein Ziel unter vielen. */
+.tab-center{position:relative;top:-21px;flex:none;width:66px}
 /* Leuchtender Ring um den Ordela-AI-Knopf: eigene Ebene, damit der Schein
    nicht mit dem Schatten der Leiste verrechnet wird. */
-.tab-center .bubble{position:relative;width:56px;height:56px;flex:none;border-radius:50%;
+.tab-center .bubble{position:relative;width:60px;height:60px;flex:none;border-radius:50%;
   background:var(--grad-ai);display:flex;align-items:center;justify-content:center;color:#fff;
-  box-shadow:0 8px 26px rgba(122,92,255,.48),0 0 0 4px rgba(7,11,23,.85);
+  box-shadow:0 9px 28px rgba(122,92,255,.5),0 0 0 4px rgba(7,11,23,.85);
   transition:transform .22s var(--ease-spring),box-shadow .22s ease}
 .tab-center .bubble::before{content:"";position:absolute;inset:-5px;border-radius:50%;
   background:conic-gradient(from 140deg,#4D7CFF,#7A5CFF,#3EC9FF,#4D7CFF);
   opacity:.55;filter:blur(6px);z-index:-1}
 .tab-center .bubble:active{transform:scale(.96)}
-.tab-center .bubble svg{width:26px;height:26px}
-.tab-center.active .bubble{box-shadow:0 10px 32px rgba(122,92,255,.66),0 0 0 4px rgba(7,11,23,.85)}
+.tab-center .bubble svg{width:29px;height:29px}
+.tab-center.active .bubble{box-shadow:0 11px 34px rgba(122,92,255,.68),0 0 0 4px rgba(7,11,23,.85)}
 .tab-center span{margin-top:4px}
+/* „Blinzeln": der Funke zwinkert in langen Abstaenden – kurz zu, dann hell auf,
+   dazu ein weicher Lichtschein. Der Rest der Zeit ruht er, damit es edel wirkt
+   statt zappelig. Nur am NAV-Knopf (:not(.tab-mic)) – der Mikrofon-Zustand
+   traegt eigene Bewegung und darf nicht auch noch blinzeln. */
+.tab-center:not(.tab-mic) .bubble svg{animation:aiBlink 5.4s ease-in-out infinite;transform-origin:center;will-change:transform,filter}
+@keyframes aiBlink{
+  0%,85%,100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(255,255,255,0))}
+  89%{transform:scale(.8);filter:drop-shadow(0 0 2px rgba(255,255,255,.55))}
+  93%{transform:scale(1.14);filter:drop-shadow(0 0 8px rgba(255,255,255,.95))}
+  97%{transform:scale(1);filter:drop-shadow(0 0 2px rgba(255,255,255,.35))}
+}
 .tab[hidden]{display:none}   /* sonst gewaenne .tab{display:flex} gegen [hidden] */
 /* Der Sprechknopf in der Leiste: gleiche Huelle wie der Ordela-AI-Knopf, damit
    der Wechsel ruhig bleibt – nur der Inhalt und die Farbe wechseln. Waehrend
@@ -247,6 +260,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
   .tab,.tab-center .bubble,.btn{transition-duration:.01ms}
   .tab:active,.tab-center .bubble:active,.btn:active{transform:none}
   .tab-mic.rec .bubble{animation:none}
+  .tab-center:not(.tab-mic) .bubble svg{animation:none}   /* kein Blinzeln bei reduzierter Bewegung */
 }
 
 /* Sidebar (desktop) */
