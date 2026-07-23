@@ -231,9 +231,10 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
    Gold mit zwei hellen Baendern dreht sich fortlaufend; eine radiale Maske
    laesst nur den aeusseren Ring stehen, sodass der Glanz WIE POLIERTES METALL
    um den Knopf wandert statt die Flaeche zu fuellen. drop-shadow gibt dem Rand
-   einen weichen Goldschein. Nur am Nav-Knopf (:not(.tab-mic)) – der
-   Mikrofon-Zustand traegt eigene Bewegung. */
-.tab-center:not(.tab-mic) .bubble::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+   einen weichen Goldschein. Am Nav-Knopf UND am ruhenden Mikrofon-Knopf –
+   damit der Sprachassistent dasselbe Gold-Signal traegt. Bei Aufnahme (.rec)
+   und aktivem Zuhoeren (.vad) weicht der Rand der Farb-Rueckmeldung (s. u.). */
+.tab-center .bubble::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
   background:conic-gradient(from 0deg,#8A6A1E,#E9C766 12%,#FFF7DA 25%,#E9C766 38%,#9C7519 50%,#E9C766 62%,#FFF7DA 75%,#E9C766 88%,#8A6A1E);
   -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
           mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
@@ -259,7 +260,7 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 /* Der Sprechknopf in der Leiste: gleiche Huelle wie der Ordela-AI-Knopf, damit
    der Wechsel ruhig bleibt – nur der Inhalt und die Farbe wechseln. Waehrend
    der Aufnahme faellt der bunte Ring weg, sonst kaempfen zwei Leuchtfarben. */
-.tab-mic .bubble{background:var(--grad)}
+.tab-mic .bubble{background:var(--grad-ai)}
 .tab-mic.rec .bubble{background:linear-gradient(135deg,#dc2626,#FF6B6B);
   box-shadow:0 10px 30px rgba(220,38,38,.5),0 0 0 4px rgba(7,11,23,.85);
   animation:micPulse 1.3s ease-in-out infinite}
@@ -268,13 +269,13 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .tab-mic.vad .bubble{background:linear-gradient(135deg,#4D7CFF,#3b82f6);animation:none;
   box-shadow:0 0 0 calc(4px + var(--lvl,0) * 20px) rgba(143,176,255,.30),0 8px 26px rgba(77,124,255,.5);
   transition:box-shadow .08s linear}
-.tab-mic.rec .bubble::before,.tab-mic.vad .bubble::before{opacity:0}
+.tab-mic.rec .bubble::before,.tab-mic.vad .bubble::before,.tab-mic.rec .bubble::after,.tab-mic.vad .bubble::after{opacity:0}
 @media (prefers-reduced-motion:reduce){
   .tab,.tab-center .bubble,.btn{transition-duration:.01ms}
   .tab:active,.tab-center .bubble:active,.btn:active{transform:none}
   .tab-mic.rec .bubble{animation:none}
   .tab-center:not(.tab-mic) .bubble svg{animation:none}   /* kein Blinzeln bei reduzierter Bewegung */
-  .tab-center:not(.tab-mic) .bubble::after{animation:none}   /* Goldrahmen bleibt, dreht sich aber nicht */
+  .tab-center .bubble::after{animation:none}   /* Goldrahmen bleibt, dreht sich aber nicht */
 }
 
 /* Sidebar (desktop) */
@@ -1570,7 +1571,18 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 .va-status.va-done{color:#32D583}
 .va-row{display:flex;align-items:center;gap:10px}
 .va-row .chat-inputbar{flex:1;margin:0}
-.va-mic{flex:none;width:52px;height:52px;border-radius:50%;border:none;background:var(--grad);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(77,124,255,.42);cursor:pointer;transition:transform .15s}
+.va-mic{position:relative;flex:none;width:52px;height:52px;border-radius:50%;border:none;background:var(--grad-ai);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(122,92,255,.42);cursor:pointer;transition:transform .15s}
+/* Gleiche Gold-Optik wie der zentrale Ordela-AI-Knopf: rotierender Goldrand um
+   das ruhende Eingabemikrofon. Bei Aufnahme (.rec) und aktivem Zuhoeren (.vad)
+   weicht das Gold der Farb-Rueckmeldung (rot bzw. Pegel-Ring). */
+.va-mic::after{content:"";position:absolute;inset:-2px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 0deg,#8A6A1E,#E9C766 12%,#FFF7DA 25%,#E9C766 38%,#9C7519 50%,#E9C766 62%,#FFF7DA 75%,#E9C766 88%,#8A6A1E);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
+  filter:drop-shadow(0 0 4px rgba(233,199,102,.55));
+  animation:goldSpin 4s linear infinite;will-change:transform}
+.va-mic.rec::after,.va-mic.vad::after{opacity:0}
+@media(prefers-reduced-motion:reduce){ .va-mic::after{animation:none} }
 .va-mic svg{width:24px;height:24px}
 .va-mic:hover{transform:translateY(-1px)}
 .va-mic:active{transform:scale(.96)}
