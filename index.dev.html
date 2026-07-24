@@ -337,8 +337,8 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .btn-danger{color:var(--danger);border-color:rgba(248,113,113,.35)}
 .btn-ghost{background:none;border-color:transparent;color:var(--muted)}
 .btn-ghost:hover{color:var(--text)}
-input[type=text],input[type=password],input[type=date],input[type=time],select,textarea{
-  width:100%;padding:11px 14px;border-radius:16px;border:1px solid var(--border2);
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],input[type=search],select,textarea{
+  width:100%;padding:11px 14px;border-radius:16px;border:1px solid #808EA3;   /* Rahmen ≥3:1 in beiden Modi (WCAG 1.4.11) */
   background:rgba(0,0,0,.3);color:var(--text);outline:none;transition:.2s}
 input:focus,select:focus,textarea:focus{border-color:#4D7CFF;box-shadow:0 0 0 3px rgba(77,124,255,.22)}
 input::placeholder,textarea::placeholder{color:var(--faint)}
@@ -348,6 +348,23 @@ input[type=date],input[type=time]{color-scheme:dark}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:12px}
 button:focus-visible,a:focus-visible,[role=button]:focus-visible,[data-view]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
+/* Nur fuer Screenreader – visuell versteckt, aber vorlesbar (WCAG-Ansagen, Live-Regionen) */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+/* „Zum Inhalt springen" – erstes fokussierbares Element (WCAG 2.4.1) */
+.skip-link{position:fixed;top:0;left:0;z-index:99999;transform:translateY(-120%);background:var(--card);color:var(--text);padding:12px 18px;border:2px solid var(--focus);border-radius:0 0 12px 0;font-weight:700;transition:transform .15s}
+.skip-link:focus{transform:translateY(0)}
+/* View-Container ohne sichtbaren Fokusring (Fokus wird beim Ansichtswechsel nur zur Screenreader-Ansage gesetzt) */
+.view:focus,.view h1:focus,#view-dashboard:focus{outline:none}
+/* ===== In-App-Barrierefreiheit fuer Sehbehinderte (Textgroesse, Kontrast, Bewegung) ===== */
+.a11y-text-l #app,.a11y-text-l .gate,.a11y-text-l #onboarding{zoom:1.15}
+.a11y-text-xl #app,.a11y-text-xl .gate,.a11y-text-xl #onboarding{zoom:1.30}
+.a11y-reduce-motion *,.a11y-reduce-motion *::before,.a11y-reduce-motion *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.a11y-reduce-motion .orb{animation:none!important}
+/* Extra hoher Kontrast: maximaler Textkontrast, staerkere Rahmen */
+.a11y-contrast{--muted:#ffffff;--faint:#e6ecf7;--border:rgba(255,255,255,.5);--border2:rgba(255,255,255,.72)}
+.a11y-contrast[data-theme="light"]{--muted:#0a0f1a;--faint:#1a2230;--border:#5b6472;--border2:#3a4250;--accent-ink:#1e3a8a}
+.a11y-contrast input,.a11y-contrast select,.a11y-contrast textarea{border-color:currentColor!important}
+.a11y-contrast :focus-visible{outline-width:3px!important}
 /* Bewegung respektieren (WCAG 2.3.3) */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -361,7 +378,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   --bg:#F8FAFC; --bg2:#F1F5F9;
   --card:#FFFFFF; --card2:#F8FAFC; --surface-3:#F1F5F9;
   --border:#E2E8F0; --border2:#CBD5E1;
-  --text:#070B17; --muted:#475569; --faint:#64748B;
+  --text:#070B17; --muted:#475569; --faint:#5B697F;   /* faint auf 4,5:1+ auch auf hellsten Insets (WCAG 1.4.3) */
   /* Blau bleibt Akzent, nicht Fläche: Primäraktion, Auswahl, Fortschritt.
      Als TEXT auf Weiß ist #4D7CFF mit 4,7:1 grenzwertig, deshalb traegt die
      Textvariante das dunklere #3355C9 (11:1). Als FLAECHE mit weissem Glyph
@@ -370,7 +387,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
   --accent-tint:rgba(77,124,255,.10);
   --acc1:#4D7CFF; --acc2:#4D7CFF;
   --focus:#4D7CFF;
-  --ok:#22A96A; --warn:#B87418; --danger:#D93F45;
+  --ok:#047857; --warn:#9C5D0E; --danger:#C4282E;   /* dunkler: als Text auf Weiss AA (WCAG 1.4.3), weisser Text auf Flaeche AA */
   /* Die Verlaufs- und Glas-Token muessen auf Hell umgekehrt laufen: dort hellt
      ein weisser Schleier nichts auf, er braucht einen dunklen Hauch. */
   --grad-card:linear-gradient(160deg,rgba(7,11,23,.028),rgba(7,11,23,.006) 46%,transparent);
@@ -401,10 +418,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .tab-center .bubble{box-shadow:0 6px 22px rgba(77,124,255,.32),0 0 0 5px rgba(245,247,251,.95)}
 :root[data-theme="light"] .status-pill .dot{background:var(--faint)}
 /* Akzent-Texte lesbar auf Hell (violett/cyan/lavendel abdunkeln) */
-:root[data-theme="light"] .sec-title button,:root[data-theme="light"] .doc-reply summary,:root[data-theme="light"] .doc-ai>summary,:root[data-theme="light"] .bud-open,:root[data-theme="light"] .mini .mini-ic,:root[data-theme="light"] .doc-todos li svg,:root[data-theme="light"] .tab.active svg,:root[data-theme="light"] .snav button.active svg,:root[data-theme="light"] .up-code summary,:root[data-theme="light"] .v2p-hint summary{color:#4D7CFF}
-:root[data-theme="light"] .sec-title button:hover,:root[data-theme="light"] .doc-reply summary:hover{color:#4D7CFF}
+:root[data-theme="light"] .sec-title button,:root[data-theme="light"] .doc-reply summary,:root[data-theme="light"] .doc-ai>summary,:root[data-theme="light"] .bud-open,:root[data-theme="light"] .mini .mini-ic,:root[data-theme="light"] .doc-todos li svg,:root[data-theme="light"] .tab.active svg,:root[data-theme="light"] .snav button.active svg,:root[data-theme="light"] .up-code summary,:root[data-theme="light"] .v2p-hint summary{color:#3355C9}
+:root[data-theme="light"] .sec-title button:hover,:root[data-theme="light"] .doc-reply summary:hover{color:#3355C9}
 :root[data-theme="light"] .mini .mini-ic{background:#F1F5F9}
-:root[data-theme="light"] .doc-explain b,:root[data-theme="light"] .ls-tpl{color:#4D7CFF}
+:root[data-theme="light"] .doc-explain b,:root[data-theme="light"] .ls-tpl{color:#3355C9}
 :root[data-theme="light"] .ev .ev-time,:root[data-theme="light"] .l-time,:root[data-theme="light"] .ls-when{color:#0e7490}
 :root[data-theme="light"] .cal-day .dots i{background:#0891b2}
 :root[data-theme="light"] .b-demo,:root[data-theme="light"] .demo-hint{color:#0e7490}
@@ -416,7 +433,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .b-mahnung{color:#b91c1c}
 :root[data-theme="light"] .b-rechnung{color:#B87418}
 :root[data-theme="light"] .b-vertrag{color:#3E68E8}
-:root[data-theme="light"] .b-behoerde{color:#4D7CFF}
+:root[data-theme="light"] .b-behoerde{color:#3355C9}
 :root[data-theme="light"] .trial-pill b{color:#B87418}
 :root[data-theme="light"] .chip.done,:root[data-theme="light"] .task.done .tcheck{color:#047857}
 /* Login/Paywall/Sprachwähler bleiben fotobasiert-dunkel: dunkle Tokens im .gate re-assertieren */
@@ -437,7 +454,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .note-box,:root[data-theme="light"] .lesson{background:#f4f6fa}
 /* Restliche Akzent-Texte lesbar auf Hell */
 :root[data-theme="light"] .chip{color:#3355C9}
-:root[data-theme="light"] .dg-free,:root[data-theme="light"] .fnd-mod,:root[data-theme="light"] .fam-code{color:#4D7CFF}
+:root[data-theme="light"] .dg-free,:root[data-theme="light"] .fnd-mod,:root[data-theme="light"] .fam-code{color:#3355C9}
 :root[data-theme="light"] .wq-chip.clr{color:#dc2626}
 :root[data-theme="light"] .b-ok{color:#047857}
 :root[data-theme="light"] .b-soon{color:#B87418}
@@ -446,7 +463,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 :root[data-theme="light"] .trial-pill b{color:#92400e}
 :root[data-theme="light"] #accountCard .tier-pill.free{color:#475467}
 :root[data-theme="light"] #accountCard .tier-pill.medium{color:#0369a1}
-:root[data-theme="light"] #accountCard .tier-pill.premium,:root[data-theme="light"] #accountCard .b-premium{color:#4D7CFF}
+:root[data-theme="light"] #accountCard .tier-pill.premium,:root[data-theme="light"] #accountCard .b-premium{color:#3355C9}
 :root[data-theme="light"] #accountCard .b-trial{color:#B87418}
 :root[data-theme="light"] #accountCard .b-expired{color:#b91c1c}
 label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
@@ -514,7 +531,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .di-head-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.22}
 .di-head-tx b{font-size:18px;font-weight:700;letter-spacing:-.2px}
 .di-head-tx small{font-size:12.5px;color:var(--muted);margin-top:2px}
-.di-arrow{font-size:24px;line-height:1;padding:0 4px;opacity:.65;min-height:0}
+.di-arrow{font-size:24px;line-height:1;padding:0 4px;opacity:.65;min-width:24px;min-height:24px;display:inline-flex;align-items:center;justify-content:center}
 .di-arrow:hover{opacity:1}
 /* Die Tageskarte traegt einen Hauch Akzent, bleibt aber im Kartensystem.
    Der Farbton folgt der Tageszeit – dieselben Grenzen wie beim Motiv oben,
@@ -568,7 +585,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 /* #4D7CFF ergab auf dunklem Grund 3,02:1 – zu wenig fuer 12,5px. */
 @media(prefers-color-scheme:dark){.di-go{color:#8FB0FF}}
 :root[data-theme="dark"] .di-go{color:#8FB0FF}
-:root[data-theme="light"] .di-go{color:#4D7CFF}
+:root[data-theme="light"] .di-go{color:#3355C9}
 /* Teilen-Symbol in der Kopfzeile. Bewusst im Stil von .di-go statt des dunklen
    Kreises aus der Rezeptkarte – der funktioniert nur ueber einem Foto. */
 /* padding statt Groesse: das Symbol bleibt optisch klein, das TIPPZIEL waechst
@@ -640,7 +657,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .tr-line{flex:none;min-width:44px;font-weight:800;font-size:12.5px;color:#4D7CFF;background:rgba(77,124,255,.12);border-radius:12px;padding:2px 7px;text-align:center}
 .tr-dir{flex:1;min-width:0;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr-time{flex:none;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
-:root[data-theme="light"] .tr-line{color:#4D7CFF;background:#F1F5F9}
+:root[data-theme="light"] .tr-line{color:#3355C9;background:#F1F5F9}
 /* ---- Manuelle Dokument-Zuschneide-Funktion ---- */
 .crop-ov{position:fixed;inset:0;z-index:10000;background:rgba(6,8,14,.93);display:none;flex-direction:column;align-items:center;justify-content:center;gap:15px;padding:16px}
 .crop-ov.on{display:flex}
@@ -729,7 +746,7 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .fit-live .big{font-size:44px;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
 .fit-live-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
 .fit-startbtn{width:100%;padding:15px;border-radius:16px;border:none;background:var(--grad);color:#fff;font-size:16px;font-weight:800;cursor:pointer}
-.fit-stopbtn{width:100%;padding:15px;border-radius:16px;border:none;background:var(--danger);color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+.fit-stopbtn{width:100%;padding:15px;border-radius:16px;border:none;background:#C4282E;color:#fff;font-size:16px;font-weight:800;cursor:pointer}
 .fit-reward-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
 .fit-reward-ov.on{display:flex}
 .fit-reward{background:var(--card);border-radius:16px;padding:26px 22px;text-align:center;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4)}
@@ -1322,7 +1339,7 @@ body.store-safe [data-buy]{display:none!important}
   background:rgba(0,0,0,.28);border:1px solid var(--border);margin-bottom:6px}
 .l-time{font-size:12px;font-weight:700;color:#8FB0FF;min-width:92px;white-space:nowrap}
 .l-fach{flex:1;font-size:14px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.l-btn{background:none;border:none;color:var(--faint);padding:4px 6px;border-radius:12px;font-size:12px;display:flex;align-items:center;transition:.15s}
+.l-btn{background:none;border:none;color:var(--faint);padding:4px 6px;border-radius:12px;font-size:12px;display:flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;transition:.15s}
 .l-btn:hover{color:var(--text)}
 .l-btn.del:hover{color:var(--danger)}
 .l-pause{text-align:center;font-size:12px;color:var(--faint);padding:2px 0 8px;font-weight:600}
@@ -1949,9 +1966,13 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 <div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
 
 <!-- ============================== AUTH (erste Seite) ============================== -->
+<a class="skip-link" href="#main">Zum Hauptinhalt springen</a>
+<!-- Screenreader-Ansagen: Ansichtswechsel & sonstige Statusmeldungen (WCAG 4.1.3) -->
+<div id="a11yLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
 <div id="auth" class="gate">
   <div class="gate-box">
-    <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
+    <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#logoSym"/></svg>
     <h1 class="gate-brand font-head">Ordela</h1>
     <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
     <a class="gate-film" href="werbespot.html">Film ansehen</a>
@@ -1965,11 +1986,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div class="gate-or" id="authOr" style="display:none"><span>oder mit E-Mail</span></div>
       <input type="text" id="auName" placeholder="Vorname" maxlength="30" autocomplete="given-name">
       <input type="text" id="auLast" placeholder="Nachname" maxlength="40" autocomplete="family-name">
-      <input type="text" id="auEmail" placeholder="E-Mail-Adresse" maxlength="80" autocomplete="email" inputmode="email">
+      <input type="email" id="auEmail" placeholder="E-Mail-Adresse" maxlength="80" autocomplete="email" inputmode="email">
       <label class="auth-birth" id="auBirthLbl" for="auBirth">Geburtsdatum <span>(zur Altersprüfung – Konten ab 18)</span></label>
       <input type="date" id="auBirth" autocomplete="bday">
       <input type="password" id="auPass" placeholder="Passwort (mind. 6 Zeichen)" maxlength="80" autocomplete="current-password">
-      <div class="auth-err" id="authErr"></div>
+      <div class="auth-err" id="authErr" role="alert"></div>
       <button class="btn btn-primary gate-cta" id="authGo">Kostenlos starten</button>
       <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
@@ -1985,10 +2006,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   <div class="gate-box">
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
     <h2>Noch eine Angabe</h2>
-    <p class="gate-sub">Ordela-Konten gibt es ab 18 Jahren. Bitte gib dein Geburtsdatum an – wir speichern es nur zur Altersprüfung.</p>
+    <p class="gate-sub" id="ageHint">Ordela-Konten gibt es ab 18 Jahren. Bitte gib dein Geburtsdatum an – wir speichern es nur zur Altersprüfung.</p>
     <div class="gate-fields">
-      <input type="date" id="ageBirth" autocomplete="bday">
-      <div class="auth-err" id="ageErr"></div>
+      <label class="sr-only" for="ageBirth">Geburtsdatum (Konten ab 18 Jahren)</label>
+      <input type="date" id="ageBirth" autocomplete="bday" aria-describedby="ageHint">
+      <div class="auth-err" id="ageErr" role="alert"></div>
       <button class="btn btn-primary gate-cta" id="ageGo">Weiter</button>
       <button class="gate-reset" id="ageCancel">Abmelden</button>
     </div>
@@ -2027,7 +2049,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <details class="up-code"><summary>Ich habe einen Freischalt-Code</summary>
       <div class="gate-fields" style="margin-top:10px">
         <input type="text" id="pwCode" placeholder="Freischalt-Code eingeben" maxlength="20" autocomplete="off">
-        <div class="auth-err" id="pwErr"></div>
+        <div class="auth-err" id="pwErr" role="alert"></div>
         <button class="btn btn-primary gate-cta" id="pwGo">Code einlösen</button>
       </div>
     </details>
@@ -2100,8 +2122,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 <div id="app">
 
   <aside class="sidebar">
-    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b></a>
-    <nav class="snav">
+    <a class="brand" aria-hidden="true"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b></a>
+    <nav class="snav" aria-label="Hauptnavigation">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="nav.dashboard">Start</span></button>
       <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg><span data-i18n="nav.chat">Ordela AI Sprachassistent</span></button>
       <button data-view="docs"><svg viewBox="0 0 24 24"><use href="#icDoc"/></svg><span data-i18n="nav.docs">Ordela AI Dokumentenassistent</span></button>
@@ -2124,8 +2146,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button data-view="help"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg><span data-i18n="nav.help">Hilfe &amp; Anleitung</span></button>
       <button data-view="settings"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg><span data-i18n="nav.settings">Einstellungen</span></button>
     </nav>
-    <div class="foot">
-      <div class="status-pill" id="aiStatusSide"><span class="dot"></span><span class="lbl">Demo-Modus</span></div>
+    <div class="foot" role="contentinfo">
+      <div class="status-pill" id="aiStatusSide"><span class="dot" aria-hidden="true"></span><span class="lbl">Demo-Modus</span></div>
       <div>Ordela v1.0 · lokal &amp; privat</div>
     </div>
   </aside>
@@ -2135,7 +2157,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <div class="topbar-actions"><button class="icon-btn" id="btnTopHelp" title="Hilfe &amp; Anleitung" aria-label="Hilfe zum aktuellen Bereich"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg></button><button class="icon-btn" id="btnTopSettings" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button></div>
   </header>
 
-  <main>
+  <main id="main">
     <button class="back-btn" id="backBtn" aria-label="Zurück"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
 
     <!-- ============================== DASHBOARD ============================== -->
@@ -2199,7 +2221,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
       <div class="dropzone" id="dropzone">
         <div class="dz-ic"><svg viewBox="0 0 24 24"><use href="#icCam"/></svg></div>
-        <h3>Dokument fotografieren oder hochladen</h3>
+        <h3 aria-level="2">Dokument fotografieren oder hochladen</h3>
         <p>Brief, Rechnung, Vertrag – Ordela übersetzt Amtsdeutsch in einfache Worte.</p>
       </div>
       <input type="file" id="docInput" accept="image/*,application/pdf,.doc,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword">
@@ -2256,8 +2278,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="cal-head">
           <h2 id="calTitle"></h2>
           <div class="cal-nav">
-            <button class="icon-btn" id="calPrev"><svg viewBox="0 0 24 24"><use href="#icLeft"/></svg></button>
-            <button class="icon-btn" id="calNext"><svg viewBox="0 0 24 24"><use href="#icRight"/></svg></button>
+            <button class="icon-btn" id="calPrev" aria-label="Voriger Monat"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icLeft"/></svg></button>
+            <button class="icon-btn" id="calNext" aria-label="Nächster Monat"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icRight"/></svg></button>
           </div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
@@ -2456,13 +2478,13 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div class="card set-card" id="legalCard"></div>
 
       <div class="card set-card">
-        <h3 data-i18n="set.lang_title">Sprache &amp; Region</h3>
+        <h3 aria-level="2" data-i18n="set.lang_title">Sprache &amp; Region</h3>
         <p class="sub" id="langCardSub" data-noi18n></p>
         <button class="btn" id="btnChangeLang" data-i18n="set.change_lang">Sprache ändern</button>
       </div>
 
       <div class="card set-card">
-        <h3>Erscheinungsbild</h3>
+        <h3 aria-level="2">Erscheinungsbild</h3>
         <p class="sub">Hell, dunkel – oder automatisch nach der Uhrzeit (tagsüber hell, abends dunkel).</p>
         <div class="seg" id="themeSeg" style="margin-bottom:0">
           <button data-theme-set="auto">Auto</button>
@@ -2472,7 +2494,29 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Live-Sprachtempo</h3>
+        <h3 aria-level="2">Barrierefreiheit</h3>
+        <p class="sub">Größere Schrift, stärkerer Kontrast und weniger Bewegung – für angenehmeres Sehen.</p>
+        <label class="fld" style="margin-top:6px">Textgröße</label>
+        <div class="seg" id="a11yTextSeg" style="margin-bottom:12px">
+          <button data-a11ytext="normal">Normal</button>
+          <button data-a11ytext="l">Groß</button>
+          <button data-a11ytext="xl">Sehr groß</button>
+        </div>
+        <label class="fld">Kontrast</label>
+        <div class="seg" id="a11yContrastSeg" style="margin-bottom:12px">
+          <button data-a11ycontrast="0">Standard</button>
+          <button data-a11ycontrast="1">Hoch</button>
+        </div>
+        <label class="fld">Bewegung</label>
+        <div class="seg" id="a11yMotionSeg" style="margin-bottom:0">
+          <button data-a11ymotion="0">System</button>
+          <button data-a11ymotion="1">Reduziert</button>
+        </div>
+        <div class="note-box" style="margin-top:10px">Für die Bedienung per Screenreader (TalkBack, VoiceOver) musst du hier nichts einstellen – den aktivierst du in den Bedienungshilfen deines Geräts, Ordela unterstützt ihn automatisch.</div>
+      </div>
+
+      <div class="card set-card">
+        <h3 aria-level="2">Live-Sprachtempo</h3>
         <p class="sub">Wie schnell Ordela im Live-Gespräch antwortet, nachdem du aufgehört hast zu sprechen.</p>
         <div class="seg" id="rtSilSeg" style="margin-bottom:0">
           <button data-rtsil="450">Schnell</button>
@@ -2483,7 +2527,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Start-Erlebnis</h3>
+        <h3 aria-level="2">Start-Erlebnis</h3>
         <p class="sub">Beim Öffnen begrüßt dich Ordela mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.</p>
         <div class="seg" id="bootFxSeg" style="margin-bottom:0">
           <button data-bootfx="full">An mit Ton</button>
@@ -2493,7 +2537,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Dein Name</h3>
+        <h3 aria-level="2">Dein Name</h3>
         <p class="sub">So spricht Ordela dich an.</p>
         <div class="set-row">
           <input type="text" id="setName" placeholder="Vorname" maxlength="30">
@@ -2502,7 +2546,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Echte KI <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
+        <h3 aria-level="2">Echte KI <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
         <p class="sub">Die echte KI (Chat, Dokument- &amp; Bildanalyse) ist über den sicheren Ordela-Server aktiv – du brauchst dafür keinen eigenen Schlüssel. Optional kannst du einen eigenen OpenAI-Schlüssel hinterlegen, dann laufen die Anfragen direkt über dein Konto.</p>
         <div class="set-row">
           <input type="password" id="setKey" placeholder="sk-…" autocomplete="off">
@@ -2520,7 +2564,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Daten</h3>
+        <h3 aria-level="2">Daten</h3>
         <p class="sub">Beispieldaten zum Ausprobieren – oder alles zurücksetzen.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" id="btnDemoData"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg>Demo-Daten laden</button>
@@ -2530,7 +2574,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Aufräumen</h3>
+        <h3 aria-level="2">Aufräumen</h3>
         <p class="sub">Längst Erledigtes verschwindet nach einer Weile von selbst. Das hält eure Familiendaten klein – sie werden bei jeder Änderung komplett an alle Geräte übertragen.</p>
         <div class="set-row" style="align-items:center">
           <span style="flex:1;font-weight:600" id="tidyStatusLbl">Automatisch aufräumen</span>
@@ -2545,7 +2589,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Hilfe &amp; Einführung</h3>
+        <h3 aria-level="2">Hilfe &amp; Einführung</h3>
         <p class="sub">Tipps, Coach-Hinweise und die „Erste Schritte"-Liste wieder anzeigen – nützlich, wenn du die App neu kennenlernen oder jemandem zeigen möchtest.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" id="btnResetHelp"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg>Hilfe &amp; Tour zurücksetzen</button>
@@ -2554,7 +2598,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Selbstfürsorge-Impuls</h3>
+        <h3 aria-level="2">Selbstfürsorge-Impuls</h3>
         <p class="sub">Einmal am Tag – zu einer zufälligen Zeit zwischen 11 und 18 Uhr – eine sanfte Frage, um kurz an dich zu denken. Reine Reflexion, du markierst sie als gelesen oder schließt sie einfach.</p>
         <div class="set-row" style="align-items:center">
           <span style="flex:1;font-weight:600" id="scStatusLbl">Täglicher Impuls</span>
@@ -2565,7 +2609,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
 
       <div class="card set-card">
-        <h3>Über Ordela</h3>
+        <h3 aria-level="2">Über Ordela</h3>
         <p class="sub">Version 1.0 – Dein persönlicher KI-Alltagsmanager.<br>
         Dokumente verstehen · Fristen erkennen · Aufgaben &amp; Termine organisieren · KI-Chat.<br>
         Local-first mit optionalem Cloud-Backup &amp; Sync. Ohne Tracking, ohne Werbung. Notfall- &amp; Budgetdaten bleiben nur lokal.</p>
@@ -2574,7 +2618,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
   </main>
 
-  <nav class="tabbar">
+  <nav class="tabbar" aria-label="Schnellzugriff">
     <button class="tab" data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="tab.start">Start</span></button>
     <button class="tab" data-view="docgen"><svg viewBox="0 0 24 24"><use href="#icPen"/></svg><span data-i18n="tab.assistant">Vorlagen</span></button>
     <button class="tab tab-center" id="tabAI" data-view="chat"><span class="bubble"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg></span><span>Ordela AI</span></button>
@@ -2607,7 +2651,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   <button type="button" id="updBarX">✕</button>
 </div>
 
-<div id="toasts"></div>
+<div id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
 
 <!-- ============================== SVG SYMBOLS ============================== -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2726,6 +2770,95 @@ function toast(msg, ms) {
   $('#toasts').appendChild(t);
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, ms || 2600);
 }
+
+/* ===== Barrierefreiheit-Helfer (additiv, ohne Funktionsaenderung) ===== */
+/* Ansage ueber die Live-Region, ohne den Fokus zu verschieben (WCAG 4.1.3). */
+function a11yAnnounce(msg) {
+  const el = document.getElementById('a11yLive'); if (!el || !msg) return;
+  el.textContent = '';                                   // Reset, damit gleiche Meldung erneut vorgelesen wird
+  setTimeout(() => { el.textContent = String(msg); }, 60);
+}
+/* Ein einzelnes Formularfeld aus seinem Platzhalter benennen, falls es sonst
+   keinen zugaenglichen Namen hat (WCAG 3.3.2/4.1.2). Ueberschreibt nie vorhandene Labels. */
+function a11yNameControl(el) {
+  try {
+    if (!el || el.type === 'hidden') return;
+    if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.title) return;
+    if (el.id) { const esc = (window.CSS && CSS.escape) ? CSS.escape(el.id) : el.id.replace(/"/g, '\\"');
+      if (document.querySelector('label[for="' + esc + '"]')) return; }
+    if (el.closest && el.closest('label')) return;
+    const ph = el.getAttribute('placeholder');
+    if (ph) el.setAttribute('aria-label', ph);
+  } catch (e) {}
+}
+function a11yLabelFields(root) {
+  const scope = (root && root.querySelectorAll) ? root : document;
+  scope.querySelectorAll('input,select,textarea').forEach(a11yNameControl);
+}
+/* Zustand segmentierter Steuerungen fuer Screenreader exponieren (WCAG 4.1.2):
+   .seg-Gruppen -> aria-pressed je Knopf; role=tablist -> role=tab + aria-selected.
+   Leitet den Zustand generisch aus der vorhandenen 'active'-Klasse ab, deckt so
+   ALLE aktuellen und kuenftigen Segment-/Tab-Leisten ab, ohne jede einzeln zu aendern. */
+function a11ySyncStates(root) {
+  try {
+    const scope = (root && root.querySelectorAll) ? root : document;
+    const self = (scope.matches) ? scope : null;
+    const segs = [...scope.querySelectorAll('.seg')]; if (self && self.matches('.seg')) segs.push(scope);
+    segs.forEach(seg => {
+      if (!seg.getAttribute('role')) seg.setAttribute('role', 'group');
+      seg.querySelectorAll(':scope > button').forEach(b => b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false'));
+    });
+    const tabls = [...scope.querySelectorAll('[role=tablist]')]; if (self && self.matches('[role=tablist]')) tabls.push(scope);
+    tabls.forEach(tl => {
+      tl.querySelectorAll(':scope > button').forEach(b => {
+        if (b.getAttribute('role') !== 'tab') b.setAttribute('role', 'tab');
+        b.setAttribute('aria-selected', b.classList.contains('active') ? 'true' : 'false');
+      });
+    });
+  } catch (e) {}
+}
+/* Nach jedem Klick auf eine Segment-/Tab-Leiste die Zustaende nachziehen
+   (die App-Handler setzen 'active' erst; darum ein Tick spaeter). */
+document.addEventListener('click', (e) => {
+  const seg = e.target.closest && e.target.closest('.seg, [role=tablist]');
+  if (seg) setTimeout(() => a11ySyncStates(seg.parentNode || seg), 0);
+});
+/* role="button"-Elemente, die keine echten <button>/<a> sind, per Enter/Leertaste
+   ausloesen – sonst sind sie mit Tastatur/Screenreader nicht bedienbar (WCAG 2.1.1). */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const el = e.target;
+  if (!el || el.getAttribute('role') !== 'button') return;
+  if (el.tagName === 'BUTTON' || el.tagName === 'A') return;
+  e.preventDefault(); el.click();
+});
+/* Fokus im offenen Modal/Gate halten – Tab zykliert innerhalb des obersten
+   sichtbaren Dialogs statt dahinter zu wandern (WCAG 2.4.3). Escape/Backdrop
+   schliessen weiterhin wie gehabt, es entsteht keine Falle i.S.v. 2.1.2. */
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const offene = [...document.querySelectorAll('[aria-modal="true"], .gate')].filter(m => m.offsetParent !== null);
+  const modal = offene[offene.length - 1];
+  if (!modal) return;
+  const foc = [...modal.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(el => el.offsetParent !== null);
+  if (!foc.length) return;
+  const first = foc[0], last = foc[foc.length - 1];
+  if (!modal.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+  else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+/* Statische Felder sofort benennen + dynamisch nachgeladene per Observer erfassen. */
+try {
+  a11yLabelFields(document);
+  a11ySyncStates(document);
+  new MutationObserver((muts) => {
+    muts.forEach((m) => m.addedNodes && m.addedNodes.forEach((n) => {
+      if (n.nodeType !== 1) return;
+      if (n.matches && n.matches('input,select,textarea')) a11yNameControl(n);
+      if (n.querySelectorAll) { a11yLabelFields(n); a11ySyncStates(n); }
+    }));
+  }).observe(document.getElementById('app') || document.body, { childList: true, subtree: true });
+} catch (e) {}
 
 async function copyText(text) {
   try {
@@ -2897,6 +3030,32 @@ function syncThemeSegs() { try { $$('[data-theme-set]').forEach(b => b.classList
    automatisch umgeschaltet wird (z. B. abends um 19:00 Uhr auf dunkel). */
 try { setInterval(() => { if (themePref() === 'auto') applyTheme(); }, 60 * 1000); } catch (e) {}
 applyTheme();
+
+/* In-App-Barrierefreiheit für Sehbehinderte: Textgröße, hoher Kontrast, weniger
+   Bewegung – als Klassen auf <html>, persistent in store.settings. Betrifft NICHT
+   die Screenreader-Bedienung (die läuft immer, unabhängig davon). */
+function applyA11y() {
+  const s = store.settings || {};
+  const root = document.documentElement;
+  root.classList.remove('a11y-text-l', 'a11y-text-xl');
+  if (s.a11yText === 'l') root.classList.add('a11y-text-l');
+  else if (s.a11yText === 'xl') root.classList.add('a11y-text-xl');
+  root.classList.toggle('a11y-contrast', !!s.a11yContrast);
+  root.classList.toggle('a11y-reduce-motion', !!s.a11yMotion);
+  syncA11ySegs();
+}
+function syncA11ySegs() {
+  try {
+    const s = store.settings || {};
+    $$('#a11yTextSeg button').forEach(b => b.classList.toggle('active', b.dataset.a11ytext === (s.a11yText || 'normal')));
+    $$('#a11yContrastSeg button').forEach(b => b.classList.toggle('active', b.dataset.a11ycontrast === (s.a11yContrast ? '1' : '0')));
+    $$('#a11yMotionSeg button').forEach(b => b.classList.toggle('active', b.dataset.a11ymotion === (s.a11yMotion ? '1' : '0')));
+  } catch (e) {}
+}
+if ($('#a11yTextSeg')) $('#a11yTextSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; store.settings = store.settings || {}; store.settings.a11yText = b.dataset.a11ytext; save(); applyA11y(); });
+if ($('#a11yContrastSeg')) $('#a11yContrastSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; store.settings = store.settings || {}; store.settings.a11yContrast = b.dataset.a11ycontrast === '1'; save(); applyA11y(); });
+if ($('#a11yMotionSeg')) $('#a11yMotionSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; store.settings = store.settings || {}; store.settings.a11yMotion = b.dataset.a11ymotion === '1'; save(); applyA11y(); });
+applyA11y();
 
 /* ============================== I18N / SPRACHE & REGION ============================== */
 /* Unterstützte Sprachen (Metadaten). native = Originalname; region = Kontinent;
@@ -5427,7 +5586,7 @@ function showView(name) {
   gate();
   $('#moreSheet').classList.remove('on');
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
-  $$('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  $$('[data-view]').forEach(b => { const on = b.dataset.view === name; b.classList.toggle('active', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   /* Im Chat fuehrt der grosse Knopf in der Mitte nirgendwohin mehr – dort wird
      er zum Mikrofon. Genau EIN Sprechknopf, und zwar der am besten erreichbare. */
   { const ai = $('#tabAI'), mt = $('#vaMicTab');
@@ -5439,6 +5598,19 @@ function showView(name) {
   if (typeof maybeShowCoach === 'function') maybeShowCoach(name);   // Coach-Mark beim ersten Öffnen
 
   if (curLang !== 'de') sweepNow($('#view-' + name));   // neu aktivierte (auch statische) Ansicht sofort übersetzen
+  /* Barrierefreiheit: Fokus auf die neue Ansicht setzen und den Wechsel ansagen,
+     damit Screenreader-Nutzer ihn bemerken (WCAG 2.4.3/4.1.3). Nur wenn kein
+     Overlay/Gate den Vordergrund haelt – dort soll der Fokus nicht wandern. */
+  try {
+    const vEl = $('#view-' + name);
+    const blockiert = document.querySelector('.gate.on, #onboarding.on');
+    if (vEl && !blockiert) {
+      const h = vEl.querySelector('h1') || vEl;
+      h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+      a11yAnnounce((vEl.querySelector('h1') || { textContent: name }).textContent.trim());
+    }
+  } catch (e) {}
   window.scrollTo(0, 0);
 }
 /* Eine Seite zurück (Verlauf); ohne Verlauf → Dashboard */
@@ -6275,13 +6447,13 @@ function ageGateNeeded() {
   return !!(account && account.cloud && account.loggedIn && !account.kidMode && !account.birthday);
 }
 async function ageGateSubmit() {
-  const err = $('#ageErr');
-  err.textContent = '';
-  const bday = $('#ageBirth').value || '';
-  if (!bday) { err.textContent = 'Bitte gib dein Geburtsdatum an.'; return; }
+  const err = $('#ageErr'), birth = $('#ageBirth');
+  err.textContent = ''; birth.removeAttribute('aria-invalid');
+  const bday = birth.value || '';
+  if (!bday) { err.textContent = 'Bitte gib dein Geburtsdatum an.'; birth.setAttribute('aria-invalid', 'true'); birth.focus(); return; }
   const age = ageFrom(bday);
-  if (age == null || age < 0 || age > 120) { err.textContent = 'Bitte ein gültiges Geburtsdatum angeben.'; return; }
-  if (age < 18) { err.textContent = 'Konten gibt es erst ab 18. Kinderkonten legt ein Erwachsener in der Familienzentrale an.'; return; }
+  if (age == null || age < 0 || age > 120) { err.textContent = 'Bitte ein gültiges Geburtsdatum angeben.'; birth.setAttribute('aria-invalid', 'true'); birth.focus(); return; }
+  if (age < 18) { err.textContent = 'Konten gibt es erst ab 18. Kinderkonten legt ein Erwachsener in der Familienzentrale an.'; birth.setAttribute('aria-invalid', 'true'); birth.focus(); return; }
   $('#ageGo').disabled = true;
   try {
     const r = await sb.auth.updateUser({ data: { birthday: bday } });
@@ -6301,7 +6473,7 @@ async function ageGateSubmit() {
 
 async function cloudAuth(pass, err) {
   const email = $('#auEmail').value.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; $('#auEmail').setAttribute('aria-invalid', 'true'); $('#auEmail').focus(); return; }
   $('#authGo').disabled = true;
   try {
     if (cloudAuthMode === 'reset') {
@@ -6386,13 +6558,14 @@ async function cloudAuth(pass, err) {
 async function submitAuth() {
   const err = $('#authErr');
   err.textContent = '';
+  ['#auEmail', '#auPass'].forEach(s => { const el = $(s); if (el) el.removeAttribute('aria-invalid'); });
   /* Zurücksetzen braucht kein Passwort. Die Prüfung darunter würde hier immer
      fehlschlagen, weil das Feld ausgeblendet und damit leer ist – der Knopf
      täte dann gar nichts. cloudAuth prüft als Erstes die E-Mail-Adresse und
      erledigt danach den Reset-Zweig. */
   if (CLOUD && cloudAuthMode === 'reset') { await cloudAuth('', err); return; }
   const pass = $('#auPass').value;
-  if (pass.length < 6) { err.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; return; }
+  if (pass.length < 6) { err.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; $('#auPass').setAttribute('aria-invalid', 'true'); $('#auPass').focus(); return; }
   const isReg = CLOUD ? (cloudAuthMode === 'reg') : !account;
   if (isReg && !regBirthOrErr(err)) return;   // 18+-Pflicht, Geburtsdatum erforderlich
   if (CLOUD) { await cloudAuth(pass, err); return; }
@@ -6401,7 +6574,7 @@ async function submitAuth() {
     const last = ($('#auLast') && $('#auLast').value.trim()) || '';
     const bday = ($('#auBirth') && $('#auBirth').value) || '';
     const email = $('#auEmail').value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { err.textContent = 'Bitte eine gültige E-Mail-Adresse eingeben.'; $('#auEmail').setAttribute('aria-invalid', 'true'); $('#auEmail').focus(); return; }
     const salt = uid();
     const hash = await sha256Hex(salt + ':' + pass);
     /* Trial-Start überlebt ein Konto-Zurücksetzen – kein Neustart der Testphase */
@@ -6421,7 +6594,7 @@ async function submitAuth() {
     refresh();
   } else {
     const hash = await sha256Hex(account.salt + ':' + pass);
-    if (hash !== account.hash) { err.textContent = 'Falsches Passwort.'; return; }
+    if (hash !== account.hash) { err.textContent = 'Falsches Passwort.'; $('#auPass').setAttribute('aria-invalid', 'true'); $('#auPass').focus(); return; }
     account.loggedIn = true;
     saveAccount();
     $('#auPass').value = '';
@@ -7510,7 +7683,7 @@ const AMT_PHRASES = [
 function behPhrasesHTML() {
   const kopf = pickLang({ de: 'Am Schalter', en: 'At the counter', fr: 'Au guichet', es: 'En la ventanilla', it: 'Allo sportello', pl: 'Przy okienku' });
   const sub = pickLang({ de: '', en: 'Point at these sentences or read them aloud – German on top, your language below.', fr: 'Montre ces phrases ou lis-les à voix haute – l\'allemand en haut, ta langue en dessous.', es: 'Señala estas frases o léelas en voz alta: alemán arriba, tu idioma debajo.', it: 'Mostra queste frasi o leggile ad alta voce: tedesco sopra, la tua lingua sotto.', pl: 'Pokaż te zdania lub przeczytaj je na głos – niemiecki u góry, Twój język poniżej.' });
-  let h = '<div class="card beh-phrases"><h3>' + esc(kopf) + '</h3>' + (sub ? '<p class="sub">' + esc(sub) + '</p>' : '');
+  let h = '<div class="card beh-phrases"><h3 aria-level="2">' + esc(kopf) + '</h3>' + (sub ? '<p class="sub">' + esc(sub) + '</p>' : '');
   AMT_PHRASES.forEach(p => { h += '<div class="beh-phrase"><b>' + esc(p.de) + '</b><span>' + esc(pickLang(p)) + '</span></div>'; });
   return h + '</div>';
 }
@@ -7523,11 +7696,11 @@ function behDetailHTML() {
   }, { amt: esc(a.amtstyp), ll: esc(a.lebenslage) }) + '</p></div>';
   h += '<div class="beh-note">' + esc(BEH_GEWAEHR) + '</div>';
   h += behAmtHint();
-  h += '<div class="card"><h3>Benötigte Unterlagen</h3><ul class="beh-list">' + (a.unterlagen || []).map(u => '<li>' + esc(u) + '</li>').join('') + '</ul><button class="btn btn-sm" data-beh="toTasks" data-id="' + a.id + '">Unterlagen in Aufgaben übernehmen</button></div>';
-  h += '<div class="card"><h3>Schritte</h3><ol class="beh-steps">' + (a.schritte || []).map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></div>';
-  if (a.hinweise && a.hinweise.length) h += '<div class="card"><h3>Gut zu wissen</h3><ul class="beh-list">' + a.hinweise.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
+  h += '<div class="card"><h3 aria-level="2">Benötigte Unterlagen</h3><ul class="beh-list">' + (a.unterlagen || []).map(u => '<li>' + esc(u) + '</li>').join('') + '</ul><button class="btn btn-sm" data-beh="toTasks" data-id="' + a.id + '">Unterlagen in Aufgaben übernehmen</button></div>';
+  h += '<div class="card"><h3 aria-level="2">Schritte</h3><ol class="beh-steps">' + (a.schritte || []).map(s => '<li>' + esc(s) + '</li>').join('') + '</ol></div>';
+  if (a.hinweise && a.hinweise.length) h += '<div class="card"><h3 aria-level="2">Gut zu wissen</h3><ul class="beh-list">' + a.hinweise.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
   if (curLang !== 'de') h += behPhrasesHTML();   // Feature #2: zweisprachiger Schalter-Spickzettel
-  h += '<div class="card"><h3>' + agentMsg({
+  h += '<div class="card"><h3 aria-level="2">' + agentMsg({
     de: 'Nächstes Amt ({amt})', en: 'Nearest office ({amt})', fr: 'Administration la plus proche ({amt})',
     es: 'Oficina más cercana ({amt})', it: 'Ufficio più vicino ({amt})', pl: 'Najbliższy urząd ({amt})'
   }, { amt: esc(a.amtstyp) }) + '</h3><p class="sub">PLZ eingeben oder deinen Standort verwenden (nur mit deiner Erlaubnis, wird nicht gespeichert).</p>' +
@@ -7536,8 +7709,8 @@ function behDetailHTML() {
     '<button class="btn btn-sm" data-beh="geo" data-amt="' + esc(a.amtstyp) + '" title="Standort verwenden" aria-label="Standort verwenden"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPin"/></svg></button></div>' +
     '<div id="behOffices">' + behOfficesHTML(a) + '</div>' +
     '<a class="btn btn-sm" href="' + esc(behMapsSearch(a.amtstyp)) + '" target="_blank" rel="noopener" style="margin-top:8px">In Karten suchen</a></div>';
-  h += '<div class="card"><h3>Offiziell prüfen &amp; erledigen</h3><p class="sub">Der rechtlich maßgebliche Weg – zuständiges Amt &amp; aktuelle Details über die offizielle Servicesuche des Bundes.</p><a class="btn btn-primary" href="' + esc(behOfficialLink(a)) + '" target="_blank" rel="noopener">Beim offiziellen Amtsportal öffnen →</a></div>';
-  h += '<div class="card"><h3>Termin merken</h3><p class="sub">Erinnerungstermin für diesen Behördengang in den Kalender.</p><div class="beh-loc"><input type="date" id="behDate" aria-label="Termindatum"><button class="btn btn-sm" data-beh="toCal" data-id="' + a.id + '">In Kalender</button></div></div>';
+  h += '<div class="card"><h3 aria-level="2">Offiziell prüfen &amp; erledigen</h3><p class="sub">Der rechtlich maßgebliche Weg – zuständiges Amt &amp; aktuelle Details über die offizielle Servicesuche des Bundes.</p><a class="btn btn-primary" href="' + esc(behOfficialLink(a)) + '" target="_blank" rel="noopener">Beim offiziellen Amtsportal öffnen →</a></div>';
+  h += '<div class="card"><h3 aria-level="2">Termin merken</h3><p class="sub">Erinnerungstermin für diesen Behördengang in den Kalender.</p><div class="beh-loc"><input type="date" id="behDate" aria-label="Termindatum"><button class="btn btn-sm" data-beh="toCal" data-id="' + a.id + '">In Kalender</button></div></div>';
   return h;
 }
 RENDERERS.behoerden = function () {
@@ -8175,8 +8348,10 @@ RENDERERS.calendar = function () {
     const iso = toISO(d);
     const dim = d.getMonth() !== calCur.m;
     const evs = eventsOn(iso);
-    html += '<button class="cal-day' + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === selDate ? ' sel' : '') + '" data-date="' + iso + '">' +
-      d.getDate() + '<span class="dots">' + evs.slice(0, 3).map(() => '<i></i>').join('') + '</span></button>';
+    const nEv = evs.length;
+    const aLbl = esc(d.toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }) + (nEv ? ', ' + nEv + ' ' + (nEv === 1 ? 'Termin' : 'Termine') : '') + (iso === today ? ', heute' : '') + (iso === selDate ? ', ausgewählt' : ''));
+    html += '<button class="cal-day' + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === selDate ? ' sel' : '') + '" data-date="' + iso + '" aria-label="' + aLbl + '"' + (iso === today ? ' aria-current="date"' : '') + '><span aria-hidden="true">' +
+      d.getDate() + '</span><span class="dots" aria-hidden="true">' + evs.slice(0, 3).map(() => '<i></i>').join('') + '</span></button>';
   }
   $('#calGrid').innerHTML = html;
   renderDayPanel();
@@ -8897,8 +9072,8 @@ function dgGenerate() {
   if (t.type !== 'checklist' && !store.profile.name) { dgProfileOpen = true; toast('Bitte trage oben deinen Namen ein'); RENDERERS.docgen(); return; }
   let miss = null;
   $$('#dgRoot [data-key]').forEach(inp => {
-    if (inp.dataset.req === '1' && !inp.value.trim()) { inp.classList.add('invalid'); if (!miss) miss = inp; }
-    else inp.classList.remove('invalid');
+    if (inp.dataset.req === '1' && !inp.value.trim()) { inp.classList.add('invalid'); inp.setAttribute('aria-invalid', 'true'); if (!miss) miss = inp; }
+    else { inp.classList.remove('invalid'); inp.removeAttribute('aria-invalid'); }
   });
   if (miss) { toast('Bitte die markierten Felder ausfüllen'); miss.focus(); return; }
   dgFristAuto();   // Frist (bei Vorlagen mit Deadline) automatisch übernehmen – nicht optional
@@ -9266,6 +9441,7 @@ async function translateDoc(id, code, kind) {
   if (!src) { toast(pickLang(cfg.empty)); return; }
   d._translating = kind;
   RENDERERS.docs();
+  a11yAnnounce(pickLang({ de: 'Übersetzung läuft, bitte warten …', en: 'Translating, please wait …', fr: 'Traduction en cours …', es: 'Traduciendo …', it: 'Traduzione in corso …', pl: 'Trwa tłumaczenie …' }));
   try {
     const out = await aiCall({
       op: 'question',
@@ -9280,6 +9456,7 @@ async function translateDoc(id, code, kind) {
     delete d._translating;
     d[cfg.field] = { code: tgt.code, native: tgt.native, flag: tgt.flag, text: clean };
     save(); RENDERERS.docs();
+    a11yAnnounce(pickLang({ de: 'Übersetzung fertig.', en: 'Translation ready.', fr: 'Traduction prête.', es: 'Traducción lista.', it: 'Traduzione pronta.', pl: 'Tłumaczenie gotowe.' }));
   } catch (e) {
     delete d._translating;
     RENDERERS.docs();
@@ -9308,7 +9485,7 @@ function docTransControlHTML(d, kind) {
     h += '<div class="doc-translated"><div class="doc-tr-head"><span class="doc-tr-lang">' +
       (cur.flag ? cur.flag + ' ' : '') + esc(cur.native) +
       '</span><button data-act="clearDocTrans" data-kind="' + kind + '" data-id="' + d.id + '" aria-label="' + esc(pickLang({ de: 'Übersetzung ausblenden', en: 'Hide translation', fr: 'Masquer la traduction', es: 'Ocultar traducción', it: 'Nascondi traduzione', pl: 'Ukryj tłumaczenie' })) + '">✕</button></div>' +
-      '<div class="doc-tr-text">' + esc(cur.text) + '</div></div>';
+      '<div class="doc-tr-text" lang="' + esc(cur.code || '') + '">' + esc(cur.text) + '</div></div>';
   }
   return h;
 }
@@ -11573,7 +11750,7 @@ const CREDIT_TABLE = [
   { label: 'Wochenplan erstellen', cost: 5 }
 ];
 function creditTableHtml() {
-  let h = '<details class="credit-info"><summary>ℹCredit-Verbrauch je Funktion</summary><table class="credit-table"><tr><th>Funktion</th><th>Credits</th></tr>';
+  let h = '<details class="credit-info"><summary>ℹCredit-Verbrauch je Funktion</summary><table class="credit-table"><tr><th scope="col">Funktion</th><th scope="col">Credits</th></tr>';
   CREDIT_TABLE.forEach(r => { h += '<tr><td>' + r.label + '</td><td>' + r.cost + '</td></tr>'; });
   h += '</table><div class="sub" style="margin-top:4px">Credits werden nur bei echter KI-Nutzung abgezogen. Kinderkonten verbrauchen keine.</div></details>';
   return h;
@@ -13799,9 +13976,11 @@ function workKalender() {
     const sh = dayShifts(iso), primary = sh[0], pd = primary ? WORK_SHIFTS[primary] : null, wsh = !!pd;
     const wg = pd ? (pd.grad || 'linear-gradient(135deg,' + pd.color + ',' + pd.color + ')') : '';
     const vars = wsh ? ' style="--wshg:' + wg + ';--wsh:' + pd.color + ';--wshsh:' + pd.color + '55"' : '';
-    const ic = wsh ? '<span class="cd-ic">' + pd.icon + '</span>' : '';
-    const badges = (sh.length > 1) ? '<span class="cd-badges">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
-    grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' wsel' : '') + '" data-wday="' + iso + '"' + vars + '><span class="cd-num">' + d.getDate() + '</span>' + ic + badges + '</button>';
+    const ic = wsh ? '<span class="cd-ic" aria-hidden="true">' + pd.icon + '</span>' : '';
+    const badges = (sh.length > 1) ? '<span class="cd-badges" aria-hidden="true">' + sh.slice(1).map(k => '<i style="background:' + WORK_SHIFTS[k].color + '"></i>').join('') + '</span>' : '';
+    const shNames = sh.map(k => (WORK_SHIFTS[k] && WORK_SHIFTS[k].name) || '').filter(Boolean);
+    const aLbl = esc(d.toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }) + (shNames.length ? ', ' + shNames.join(', ') : '') + (iso === today ? ', heute' : '') + (iso === workSel ? ', ausgewählt' : ''));
+    grid += '<button class="cal-day' + (wsh ? ' wsh' : '') + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === workSel ? ' wsel' : '') + '" data-wday="' + iso + '"' + vars + ' aria-label="' + aLbl + '"' + (iso === today ? ' aria-current="date"' : '') + '><span class="cd-num" aria-hidden="true">' + d.getDate() + '</span>' + ic + badges + '</button>';
   }
   const _ms = { early: 0, late: 0, night: 0, frei: 0, urlaub: 0, krank: 0 };
   { const _mr = monthRange(workCal.y, workCal.m), _end = parseISO(_mr[1]); for (let d = parseISO(_mr[0]); d <= _end; d.setDate(d.getDate() + 1)) { dayShifts(toISO(d)).forEach(k => { if (k === 'kinderkrank') _ms.krank++; else if (k in _ms) _ms[k]++; }); } }
@@ -13927,7 +14106,7 @@ function workNachweisPDF() {
   }
   const name = (store.profile && store.profile.name) || store.name || (account && account.name) || '';
   $('#printRoot').innerHTML = '<div class="letter"><div class="l-subject" style="font-size:20px">Arbeitszeitnachweis – ' + esc(mname) + '</div>' + (name ? '<div class="l-place">' + esc(name) + '</div>' : '') +
-    '<table class="wtable"><thead><tr><th>Datum</th><th>Tag</th><th>Zeit / Status</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<table class="wtable"><thead><tr><th scope="col">Datum</th><th scope="col">Tag</th><th scope="col">Zeit / Status</th></tr></thead><tbody>' + rows + '</tbody></table>' +
     '<p style="margin-top:14px"><b>Summe Ist: ' + hmDur(st.workedMin) + ' h · Soll: ' + hmDur(st.sollMin) + ' h · Saldo: ' + (st.overMin >= 0 ? '+' : '−') + hmDur(Math.abs(st.overMin)) + ' h</b></p>' +
     '<p style="margin-top:20px;color:#777">Erstellt mit Ordela</p></div>';
   window.print();
@@ -14821,7 +15000,7 @@ RENDERERS.docs = function () {
         '<button class="t-del" data-act="delDoc" title="Löschen"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>' +
         '<div class="doc-body">' +
         (d.thumb ? '<img class="doc-thumb" src="' + d.thumb + '" alt="">' : '') +
-        '<div class="doc-main"><h3>' + esc(d.title) + '</h3>' +
+        '<div class="doc-main"><h3 aria-level="2">' + esc(d.title) + '</h3>' +
         (d.sender ? '<div class="doc-sender">' + t('doc.from', { s: esc(d.sender) }) + '</div>' : '') +
         '<div class="doc-explain"><b>IN EINFACHEN WORTEN</b>' + esc(d.explanation) + '</div>' +
         (!d.demo && d.explanation ? docTransControlHTML(d, 'summary') : '') +
@@ -16585,7 +16764,7 @@ function renderLegalCard() {
       (on ? '<button class="btn btn-sm" data-consent-revoke="' + id + '" style="flex:none">Widerrufen</button>'
           : '<button class="btn btn-sm" data-consent-grant="' + id + '" style="flex:none">Erteilen</button>') + '</div>';
   };
-  card.innerHTML = '<h3>Rechtliches &amp; Datenschutz</h3>' +
+  card.innerHTML = '<h3 aria-level="2">Rechtliches &amp; Datenschutz</h3>' +
     '<div style="margin:8px 0 4px"><b style="font-size:13.5px">Deine Einwilligungen</b><div class="sub" style="font-size:11.5px;margin-bottom:8px">Jederzeit gleich einfach widerrufbar (Art. 7 Abs. 3 DSGVO).</div>' +
     row('ai', 'KI-Verarbeitung (OpenAI, USA · ausdrücklich)') +
     row('push', 'Push-Benachrichtigungen') +
@@ -16601,6 +16780,7 @@ function renderLegalCard() {
     '<button class="btn btn-sm" data-legal="datenschutz" style="text-align:left;justify-content:flex-start">Datenschutzerklärung</button>' +
     '<button class="btn btn-sm" data-legal="nutzungsbedingungen" style="text-align:left;justify-content:flex-start">Nutzungsbedingungen</button>' +
     '<button class="btn btn-sm" data-legal="impressum" style="text-align:left;justify-content:flex-start">Impressum</button>' +
+    '<button class="btn btn-sm" data-legal="barrierefreiheit" style="text-align:left;justify-content:flex-start">Erklärung zur Barrierefreiheit</button>' +
     '<button class="btn btn-sm" data-legal="konto-loeschen" style="text-align:left;justify-content:flex-start">Konto & Daten löschen</button></div>';
   card.querySelectorAll('[data-legal]').forEach(b => b.onclick = () => showLegalDoc(b.dataset.legal));
   card.querySelectorAll('[data-consent-revoke]').forEach(b => b.onclick = () => { const id = b.dataset.consentRevoke; if (id === 'fit') { store.fit = store.fit || {}; store.fit.consent = false; save(); } setConsent(id, 'denied'); });
@@ -16747,7 +16927,7 @@ function renderAccountCard() {
   if (tier === 'free' && ENFORCE_TIERS) planHtml += ' <span class="badge b-trial" style="margin-left:6px">' +
     agentMsg({ de: '⏳ noch {d}', en: '⏳ {d} left', fr: '⏳ encore {d}', es: '⏳ quedan {d}', it: '⏳ ancora {d}', pl: '⏳ jeszcze {d}' }, { d: daysPhrase(days) }) + '</span>';
 
-  let html = '<h3>Dein Konto</h3>' +
+  let html = '<h3 aria-level="2">Dein Konto</h3>' +
     '<p class="sub">' + (account.name ? esc(account.name) + ' · ' : '') + esc(account.email) + '</p>' +
     '<div style="margin-bottom:14px">' + planHtml + '</div>';
 
