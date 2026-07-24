@@ -447,3 +447,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.weather-push]
 verify_jwt = false
+[functions.ics-proxy]
+verify_jwt = true
