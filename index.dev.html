@@ -1305,6 +1305,22 @@ body.store-safe [data-buy]{display:none!important}
   linear-gradient(180deg,rgba(7,9,15,.45) 0%,rgba(7,9,15,.58) 55%,rgba(7,9,15,.76) 100%),
   url('bg.jpg') center/cover no-repeat,var(--bg)}
 #onboarding.on{display:flex}
+/* App-Führung (Spotlight-Tour) */
+.tour-ov{position:fixed;inset:0;z-index:120;display:none}
+.tour-ov.on{display:block}
+.tour-hole{position:fixed;left:50%;top:50%;width:0;height:0;border-radius:16px;box-shadow:0 0 0 9999px rgba(6,9,16,.74);transition:left .38s cubic-bezier(.22,1,.36,1),top .38s cubic-bezier(.22,1,.36,1),width .38s cubic-bezier(.22,1,.36,1),height .38s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.tour-hole.center{box-shadow:0 0 0 9999px rgba(6,9,16,.80)}
+.tour-pop{position:fixed;z-index:121;width:min(340px,calc(100vw - 36px));background:var(--panel,#151d2e);color:var(--text,#e7ecf7);border:1px solid var(--border2,rgba(255,255,255,.16));border-radius:18px;padding:16px 18px 14px;box-shadow:0 20px 56px rgba(0,0,0,.55);animation:tourPop .32s cubic-bezier(.22,1,.36,1) both}
+@keyframes tourPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.tour-pop h4{margin:0 0 5px;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.tour-pop p{margin:0;font-size:14px;line-height:1.5;color:var(--muted,#a2aec4)}
+.tour-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px}
+.tour-dots{display:flex;gap:5px}
+.tour-dots i{width:6px;height:6px;border-radius:50%;background:var(--border2,rgba(255,255,255,.22));transition:.25s}
+.tour-dots i.on{background:var(--accent,#4D7CFF);width:18px;border-radius:3px}
+.tour-nav{display:flex;gap:8px}
+.tour-skip{background:none;border:none;color:var(--muted,#a2aec4);font-size:13px;cursor:pointer;padding:6px 4px;text-decoration:underline;text-underline-offset:2px}
+@media (prefers-reduced-motion:reduce){.tour-hole{transition:none}.tour-pop{animation:none}}
 .ob-slide{display:none;text-align:center;max-width:400px;width:100%;animation:viewIn .45s ease both}
 .ob-slide.active{display:block}
 .ob-slide .logo-mark{width:92px;height:92px;margin:0 auto 26px;filter:drop-shadow(0 10px 40px rgba(77,124,255,.6))}
@@ -2605,6 +2621,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" id="btnResetHelp"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg>Hilfe &amp; Tour zurücksetzen</button>
           <button class="btn" id="btnOpenHelp">Alle Funktionen ansehen</button>
+          <button class="btn" id="btnStartTour">App-Führung starten</button>
           <button class="btn" id="btnScreenreaderGuide">Bedienung mit Screenreader</button>
         </div>
       </div>
@@ -5577,11 +5594,12 @@ if ($('#moreSearch')) $('#moreSearch').addEventListener('input', e => { moreSear
 /* „Hilfe & Tour zurücksetzen" (Einstellungen): Coach-Marks, „Erste Schritte" und Onboarding wieder zeigen. */
 if ($('#btnResetHelp')) $('#btnResetHelp').addEventListener('click', () => {
   try { localStorage.removeItem('effyra_coach'); } catch (e) {}
-  store.firstStepsHidden = false; store.firstStepsDone = false; store.onboarded = false; save();
+  store.firstStepsHidden = false; store.firstStepsDone = false; store.onboarded = false; store.tourDone = false; save();
   if (typeof toast === 'function') toast('Hilfe & Einführung zurückgesetzt – die Tipps erscheinen wieder');
   $('#onboarding').classList.add('on'); if (typeof obShow === 'function') obShow(0); if ($('#obName')) $('#obName').value = store.name || '';
 });
 if ($('#btnOpenHelp')) $('#btnOpenHelp').addEventListener('click', () => showView('help'));
+if ($('#btnStartTour')) $('#btnStartTour').addEventListener('click', () => { if (typeof startTour === 'function') startTour(0); });
 if ($('#btnScreenreaderGuide')) $('#btnScreenreaderGuide').addEventListener('click', () => showLegalDoc('anleitung'));
 
 const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'behoerden', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
@@ -5733,15 +5751,141 @@ function obFinish(target) {
   store.onboarded = true;
   save();
   $('#onboarding').classList.remove('on');
-  showView((typeof target === 'string' && target) ? target : 'dashboard');
+  const firstRun = !store.tourDone;   // beim ersten Mal fuehrt die Tour, die gewaehlte Ansicht kommt danach
+  pendingTourNav = (firstRun && typeof target === 'string' && target && target !== 'dashboard') ? target : null;
+  showView(firstRun ? 'dashboard' : ((typeof target === 'string' && target) ? target : 'dashboard'));
   toast(pickLang({ de: 'Willkommen bei Ordela', en: 'Welcome to Ordela', fr: 'Bienvenue chez Ordela', es: 'Bienvenido a Ordela', it: 'Benvenuto in Ordela', pl: 'Witaj w Ordela' }) + (store.name ? ', ' + store.name : '') + '');
   try { setTimeout(maybeShowTermsGate, 500); } catch (e) {}
   try { setTimeout(askCalendarImport, 1200); } catch (e) {}
+  if (firstRun) try { setTimeout(() => maybeStartTour(0), 1700); } catch (e) {}
 }
 $('#obNext').addEventListener('click', () => { obIdx < OB_LAST ? obShow(obIdx + 1) : obFinish(); });
 $('#obSkip').addEventListener('click', () => obFinish());
 $('#obName').addEventListener('keydown', e => { if (e.key === 'Enter') obShow(3); });
 $$('[data-obchoice]').forEach(b => b.addEventListener('click', () => obFinish(b.dataset.obchoice)));
+
+/* ============================== APP-FÜHRUNG (Spotlight-Tour) ==============================
+   Einmalige, überspringbare Führung nach der Registrierung. Spotlight per Box-Shadow-„Loch".
+   Wiederholbar aus Einstellungen → Hilfe. Mobil-first; fehlt ein Ziel, zeigt der Schritt
+   eine zentrierte Karte mit demselben Text. */
+const TOUR_STEPS = [
+  { title: 'Willkommen bei Ordela 👋', text: 'Eine kurze Führung – etwa 30 Sekunden. Du kannst sie jederzeit überspringen.' },
+  { sel: '#qaDoc', title: 'Briefe verstehen', text: 'Fotografier einen Brief – Ordela erklärt ihn in einfachen Worten und erkennt Fristen automatisch.' },
+  { sel: '#captureInput', title: 'Schnell erfassen', text: 'Tipp einfach los, was dir einfällt. Ordela sortiert Notizen, Aufgaben und Termine von selbst ein.' },
+  { sel: '#tabAI', title: 'Frag Ordela', text: 'Sag in eigenen Worten, was ansteht – Ordela plant, erinnert und organisiert für dich.' },
+  { sel: '#moreTab', title: 'Alle Bereiche', text: 'Hier findest du Kalender, Dokumente, den Behörden-Wegweiser, Müllkalender, Lebenslagen und mehr.' },
+  { title: 'Fertig – viel Erfolg! 🎉', text: 'Sprache, Barrierefreiheit und Hilfe findest du in den Einstellungen. Die Führung kannst du dort neu starten.' }
+];
+let tourIdx = -1, pendingTourNav = null;
+function tourEl() {
+  let ov = document.getElementById('tourOv');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'tourOv'; ov.className = 'tour-ov';
+    ov.innerHTML = '<div class="tour-hole" id="tourHole"></div>' +
+      '<div class="tour-pop" id="tourPop" role="dialog" aria-modal="true" aria-live="polite" aria-label="App-Führung">' +
+      '<h4 id="tourTitle"></h4><p id="tourText"></p>' +
+      '<div class="tour-foot"><div class="tour-dots" id="tourDots"></div>' +
+      '<div class="tour-nav"><button class="btn btn-sm" id="tourBack">Zurück</button><button class="btn btn-primary btn-sm" id="tourNext">Weiter</button></div></div>' +
+      '<div style="text-align:center;margin-top:6px"><button class="tour-skip" id="tourSkip">Führung überspringen</button></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#tourNext').onclick = () => tourShow(tourIdx + 1);
+    ov.querySelector('#tourBack').onclick = () => tourShow(tourIdx - 1);
+    ov.querySelector('#tourSkip').onclick = () => tourEnd();
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') tourEnd(); });
+  }
+  return ov;
+}
+function startTour(i) {
+  showView('dashboard');
+  const ov = tourEl(); ov.classList.add('on');
+  ov.querySelector('#tourDots').innerHTML = TOUR_STEPS.map(() => '<i></i>').join('');
+  setTimeout(() => tourShow(i || 0), 250);
+}
+function tourShow(i) {
+  if (i >= TOUR_STEPS.length) { tourEnd(); return; }
+  if (i < 0) i = 0;
+  tourIdx = i;
+  const ov = tourEl(), step = TOUR_STEPS[i];
+  ov.querySelector('#tourTitle').textContent = step.title;
+  ov.querySelector('#tourText').textContent = step.text;
+  ov.querySelectorAll('#tourDots i').forEach((d, k) => d.classList.toggle('on', k === i));
+  ov.querySelector('#tourBack').style.visibility = i === 0 ? 'hidden' : 'visible';
+  ov.querySelector('#tourNext').textContent = i === TOUR_STEPS.length - 1 ? 'Fertig' : 'Weiter';
+  const el = step.sel ? $(step.sel) : null;
+  const r0 = el && el.getBoundingClientRect();
+  const vis = !!(r0 && r0.width > 0 && r0.height > 0);
+  if (!vis) { tourPosition(null); return; }
+  if (tourPinned(el)) { tourPosition(el); return; }   // Tabbar/Topbar: immer sichtbar, kein Scroll/inView
+  tourScrollCenter(el);
+  setTimeout(() => {
+    const r = el.getBoundingClientRect(), cy = r.top + r.height / 2;   // wirklich im Blick? sonst zentrierte Karte
+    const inView = r.width > 0 && cy > 56 && cy < window.innerHeight - 56;
+    tourPosition(inView ? el : null);
+  }, 130);
+}
+/* Zentriert ein Element im Blick. Der Scroller ist hier <body> (overflow:auto),
+   nicht das Fenster – daher den tatsaechlich scrollenden Vorfahr suchen. Fixe
+   Elemente (Tabbar) sind immer sichtbar und werden uebersprungen. */
+/* „Angepinnt": das Element oder ein Vorfahr ist fixed/sticky → immer sichtbar
+   (Tabbar-Buttons sind static, aber ihre .tabbar ist fixed). */
+function tourPinned(el) {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    let p = ''; try { p = getComputedStyle(n).position; } catch (e) { }
+    if (p === 'fixed' || p === 'sticky') return true;
+  }
+  return false;
+}
+function tourScrollCenter(el) {
+  try { if (getComputedStyle(el).position === 'fixed') return; } catch (e) { }
+  const rect = el.getBoundingClientRect();
+  const delta = rect.top + rect.height / 2 - window.innerHeight / 2;
+  if (Math.abs(delta) < 4) return;
+  for (const c of [document.body, document.documentElement, document.scrollingElement].filter(Boolean)) {
+    const before = c.scrollTop; c.scrollTop = before + delta;
+    if (c.scrollTop !== before) break;
+  }
+}
+function tourPosition(el) {
+  const ov = tourEl(), hole = ov.querySelector('#tourHole'), pop = ov.querySelector('#tourPop');
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const rr = el && el.getBoundingClientRect();
+  if (rr && rr.width > 0 && rr.height > 0) {
+    const r = rr, pad = 8;
+    hole.classList.remove('center');
+    hole.style.left = (r.left - pad) + 'px'; hole.style.top = (r.top - pad) + 'px';
+    hole.style.width = (r.width + pad * 2) + 'px'; hole.style.height = (r.height + pad * 2) + 'px';
+    const popH = pop.offsetHeight || 170, below = r.bottom + 14 + popH < vh;
+    pop.style.top = (below ? r.bottom + 14 : Math.max(12, r.top - 14 - popH)) + 'px';
+    let left = r.left + r.width / 2 - pop.offsetWidth / 2;
+    pop.style.left = Math.max(12, Math.min(left, vw - pop.offsetWidth - 12)) + 'px';
+  } else {
+    hole.classList.add('center');
+    hole.style.width = '0px'; hole.style.height = '0px'; hole.style.left = (vw / 2) + 'px'; hole.style.top = (vh / 2) + 'px';
+    pop.style.left = Math.max(12, vw / 2 - pop.offsetWidth / 2) + 'px';
+    pop.style.top = Math.max(12, vh / 2 - (pop.offsetHeight || 170) / 2) + 'px';
+  }
+}
+function tourEnd() {
+  const ov = document.getElementById('tourOv'); if (ov) ov.classList.remove('on');
+  tourIdx = -1; store.tourDone = true; save();
+  if (pendingTourNav) { const t = pendingTourNav; pendingTourNav = null; showView(t); }
+}
+function maybeStartTour(tries) {
+  if (store.tourDone) return;
+  tries = tries || 0;
+  // NUR sichtbare Overlays zaehlen als „blockiert" – geschlossene Dialoge bleiben im DOM
+  // (mit aria-modal), duerfen die Tour aber nicht dauerhaft aufhalten.
+  const blocked = document.querySelector('.gate.on, #onboarding.on, #termsGateOv.on, .fam-alert-ov.on, .legaldoc-ov.on, .paywall.on');
+  if (blocked) { if (tries < 15) setTimeout(() => maybeStartTour(tries + 1), 1200); return; }
+  startTour(0);
+}
+window.addEventListener('resize', () => {
+  const ov = document.getElementById('tourOv');
+  if (ov && ov.classList.contains('on') && tourIdx >= 0) {
+    const s = TOUR_STEPS[tourIdx], el = s && s.sel ? $(s.sel) : null;
+    tourPosition(el);
+  }
+});
 
 /* ============================== CLOUD-BACKEND (Supabase) ============================== */
 /* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus.              */
