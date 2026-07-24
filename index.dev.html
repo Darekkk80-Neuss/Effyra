@@ -2642,6 +2642,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <p class="sub">Version 1.0 – Dein persönlicher KI-Alltagsmanager.<br>
         Dokumente verstehen · Fristen erkennen · Aufgaben &amp; Termine organisieren · KI-Chat.<br>
         Local-first mit optionalem Cloud-Backup &amp; Sync. Ohne Tracking, ohne Werbung. Notfall- &amp; Budgetdaten bleiben nur lokal.</p>
+        <button class="btn" id="btnRateApp" style="margin-top:10px">⭐ Ordela auf Google Play bewerten</button>
       </div>
     </section>
 
@@ -5600,6 +5601,7 @@ if ($('#btnResetHelp')) $('#btnResetHelp').addEventListener('click', () => {
 });
 if ($('#btnOpenHelp')) $('#btnOpenHelp').addEventListener('click', () => showView('help'));
 if ($('#btnStartTour')) $('#btnStartTour').addEventListener('click', () => { if (typeof startTour === 'function') startTour(0); });
+if ($('#btnRateApp')) $('#btnRateApp').addEventListener('click', () => { if (typeof openPlayRating === 'function') { rateSet('done'); openPlayRating(); } });
 if ($('#btnScreenreaderGuide')) $('#btnScreenreaderGuide').addEventListener('click', () => showLegalDoc('anleitung'));
 
 const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'behoerden', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
@@ -5886,6 +5888,56 @@ window.addEventListener('resize', () => {
     tourPosition(el);
   }
 });
+
+/* ============================== PLAY-BEWERTUNG ==============================
+   Bitte um eine Google-Play-Bewertung – nach einem echten Erfolgsmoment
+   (zweite erfolgreiche Dokument-Analyse), einmalig. „Später" wird 30 Tage
+   respektiert, „Nein, danke" dauerhaft. Play-Policy: der Hinweis erscheint
+   unabhängig von der Zufriedenheit (kein Vorfiltern), die Bewertung selbst
+   passiert ausschließlich im Play Store. */
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=app.effyra.twa';
+function openPlayRating() {
+  window.open(PLAY_STORE_URL, '_blank', 'noopener');
+}
+function rateState() { return store.ratePrompt || {}; }
+function rateSet(status) { store.ratePrompt = { status, ts: Date.now() }; save(); }
+function showRatePrompt() {
+  let ov = document.getElementById('rateOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'rateOv'; ov.className = 'fam-alert-ov'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="rateT" data-noi18n style="max-width:420px;text-align:center">' +
+    '<div aria-hidden="true" style="font-size:30px;letter-spacing:4px;margin-bottom:8px;color:#F5B301">★★★★★</div>' +
+    '<h3 id="rateT" style="margin-bottom:8px">Schön, dass Ordela dir hilft!</h3>' +
+    '<p style="color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:16px">Wenn dir Ordela den Alltag leichter macht, freuen wir uns über deine Bewertung – sie hilft anderen, Ordela zu finden.</p>' +
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+    '<button class="btn btn-primary" id="rateGo">Auf Google Play bewerten</button>' +
+    '<button class="btn" id="rateLater">Später</button>' +
+    '<button class="gate-reset" id="rateNever" style="display:block;margin:2px auto 0">Nein, danke</button>' +
+    '</div></div>';
+  ov.classList.add('on');
+  ov.querySelector('#rateGo').onclick = () => { rateSet('done'); ov.classList.remove('on'); openPlayRating(); };
+  ov.querySelector('#rateLater').onclick = () => { rateSet('later'); ov.classList.remove('on'); };
+  ov.querySelector('#rateNever').onclick = () => { rateSet('never'); ov.classList.remove('on'); };
+  setTimeout(() => { const b = ov.querySelector('#rateGo'); if (b) b.focus(); }, 120);
+}
+function maybeAskRating() {
+  try {
+    if (isKidMode()) return;
+    const st = rateState();
+    if (st.status === 'done' || st.status === 'never') return;
+    if (st.status === 'later' && Date.now() - (st.ts || 0) < 30 * 86400000) return;
+    if ((store.rateWins || 0) < 2) return;   // erst ab dem zweiten Erfolg
+    if (document.querySelector('.gate.on, #onboarding.on, #termsGateOv.on, .fam-alert-ov.on, .legaldoc-ov.on, #tourOv.on')) return;
+    showRatePrompt();
+  } catch (e) { }
+}
+/* Erfolgsmoment melden (z. B. Dokument-Analyse abgeschlossen). */
+function rateSuccessMoment() {
+  store.rateWins = (store.rateWins || 0) + 1; save();
+  setTimeout(maybeAskRating, 1800);   // erst nach dem Erfolgs-Toast, nicht gleichzeitig
+}
+/* Nachholer beim Start: war der Moment blockiert (anderes Overlay offen),
+   holt der nächste App-Start die Bitte nach – gleiche Bedingungen. */
+setTimeout(maybeAskRating, 5000);
 
 /* ============================== CLOUD-BACKEND (Supabase) ============================== */
 /* Konfiguration siehe BACKEND.md – beide Werte leer = lokaler Modus.              */
@@ -15140,6 +15192,7 @@ async function handleDocFile(file) {
     save();
     refresh();
     toast(demo ? 'Demo-Analyse fertig' : 'Dokument analysiert');
+    if (!demo) { try { rateSuccessMoment(); } catch (e) {} }   // Erfolgsmoment → evtl. Play-Bewertung erbitten
   } catch (e) {
     toast('' + e.message);
   } finally {
