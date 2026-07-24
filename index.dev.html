@@ -2446,6 +2446,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="kid-row" style="margin-bottom:6px"><label style="align-self:center;color:var(--muted);font-size:13px;flex:none">zuletzt am</label><input type="date" id="cuLast" style="flex:1"></div>
         <div class="sub" style="color:var(--faint);font-size:12px;margin:0 2px 12px">Vorlage wählen ODER eigene Bezeichnung + Intervall eintragen. „zuletzt am" leer lassen = „steht noch aus". Nach jedem Termin auf „Erledigt" tippen – der nächste wird automatisch berechnet.</div>
         <button class="btn btn-primary" id="cuAddBtn" style="width:100%">+ Erinnerung anlegen</button>
+        <div class="note-box" style="margin-top:10px">ℹ️ Das sind <b>reine Erinnerungen in Ordela</b> – es wird <b>kein Termin beim Arzt</b> gebucht. Den eigentlichen Termin vereinbarst du selbst.</div>
       </div>
       <div id="checkupRoot"></div>
     </section>
@@ -2908,7 +2909,8 @@ const STORE_DEFAULTS = {
   kids: [],     // {id,name,color,lessonMin,breakMin,breakEvery,sched:{1..5:{start,subjects[]}}}
   profile: {},  // Absenderdaten: {name,street,zip,city,email,phone}
   docFavs: [],  // Template-IDs der Favoriten
-  life: {},     // Lebenslagen: {typ:{startDate,done{},tasksAdded}}
+  life: {},     // Lebenslagen: {typ:{startDate,done{},tasksAdded,extra:[{t,note,due}]}}
+  customLife: [], // eigene Lebenslagen: {id,icon,title,dateLabel,intro,steps:[{t,note,due}],custom:true}
   weatherLoc: null, // {name,lat,lon}
   weather: null,    // zuletzt geladene Wetterdaten (Cache)
   family: { members: [], occasions: [], code: null }, // Familienzentrale
@@ -5585,6 +5587,7 @@ if ($('#btnScreenreaderGuide')) $('#btnScreenreaderGuide').addEventListener('cli
 const MORE_VIEWS = ['work', 'docs', 'school', 'calendar', 'life', 'behoerden', 'family', 'emergency', 'vehicles', 'contracts', 'vault', 'shopping', 'waste', 'checkup', 'fit', 'help', 'settings'];
 let viewHistory = [], _navBack = false;
 function showView(name) {
+  if (name !== 'chat') companionTopic = null;   // Begleiter-Modus endet beim Verlassen des Chats
   /* Kindermodus: nur freigegebene, lesende Ansichten */
   if (isKidMode() && KID_ALLOWED.indexOf(name) < 0) { toast('Im Kindermodus nicht verfügbar.'); if (currentView !== 'dashboard') showView('dashboard'); return; }
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
@@ -9216,7 +9219,7 @@ const LIFE = [
     ]
   },
   {
-    id: 'trennung', icon: '💔', title: 'Trennung', dateLabel: 'Stichtag der Trennung',
+    id: 'trennung', icon: '💔', title: 'Trennung', dateLabel: 'Stichtag der Trennung', support: 'trennung',
     short: 'Ruhig und geordnet durch eine schwere Zeit',
     intro: 'Eine Trennung bringt viel Organisatorisches mit sich. Diese Liste hilft dir, den Überblick zu behalten – Schritt für Schritt.',
     steps: [
@@ -9231,7 +9234,7 @@ const LIFE = [
     ]
   },
   {
-    id: 'sterbefall', icon: '🕊️', title: 'Sterbefall', dateLabel: 'Sterbedatum',
+    id: 'sterbefall', icon: '🕊️', title: 'Sterbefall', dateLabel: 'Sterbedatum', support: 'sterbefall',
     short: 'Ruhig und geordnet durch eine schwere Zeit',
     intro: 'Der Verlust eines nahen Menschen ist schwer. Diese Checkliste nimmt dir Organisatorisches ab, damit du dich auf das Wesentliche konzentrieren kannst – Schritt für Schritt, in deinem Tempo.',
     steps: [
@@ -9299,12 +9302,35 @@ const LIFE = [
   }
 ];
 
+/* Emotionaler Begleiter (Trennung/Sterbefall): warme Ansprache + KI-Chat im
+   „Begleiter-Modus". KEIN Therapieersatz – bei Krise Hinweis auf Telefonseelsorge. */
+const LIFE_SUPPORT = {
+  trennung: {
+    title: 'Wie geht es dir gerade?',
+    body: 'Eine Trennung ist ein echter Einschnitt – es ist völlig in Ordnung, wenn im Moment vieles durcheinander ist. Du musst nicht sofort funktionieren. Das Organisatorische kann in kleinen Schritten kommen; ich gehe es mit dir durch, wenn du bereit bist.',
+    opener: 'Das klingt nach einer schweren Zeit, und es tut mir leid, dass du da gerade durchmusst. Ich bin hier und höre dir zu – ganz ohne Eile. Magst du mir erzählen, wie es dir gerade geht?'
+  },
+  sterbefall: {
+    title: 'Nimm dir Zeit für deine Trauer',
+    body: 'Der Verlust eines nahen Menschen ist einer der schwersten Momente überhaupt. Es gibt kein „richtig" beim Trauern, und nichts davon musst du allein tragen. Das Organisatorische kann warten, bis du so weit bist – Schritt für Schritt, in deinem Tempo.',
+    opener: 'Es tut mir sehr leid für deinen Verlust. Ich bin für dich da und höre zu, in deinem Tempo. Wenn du magst, erzähl mir von dem Menschen, den du verloren hast – oder einfach, wie es dir gerade geht.'
+  }
+};
+/* Telefonseelsorge: bundesweit, kostenlos, anonym, rund um die Uhr. */
+const TELEFONSEELSORGE = ['0800 111 0 111', '0800 111 0 222'];
+let companionTopic = null;   // {kind, title} während des Begleiter-Chats
+
 let lifeActive = null;
+/* Alle Lebenslagen (eingebaute + eigene). */
+function allLife() { return LIFE.concat(store.customLife || []); }
+function lifeById(id) { return allLife().find(x => x.id === id); }
 function lifeState(id) { if (!store.life[id]) store.life[id] = { startDate: '', done: {}, tasksAdded: false }; return store.life[id]; }
 function lifeProgress(l) {
   const st = store.life[l.id];
-  const d = st ? Object.keys(st.done).filter(k => st.done[k]).length : 0;
-  return { done: d, total: l.steps.length, pct: Math.round(d / l.steps.length * 100) };
+  const total = l.steps.length + ((st && st.extra) ? st.extra.length : 0);
+  let d = st ? Object.keys(st.done).filter(k => st.done[k]).length : 0;
+  if (d > total) d = total;
+  return { done: d, total: total || 1, pct: total ? Math.round(d / total * 100) : 0 };
 }
 function relOffset(due) {
   if (typeof due !== 'number') return '';
@@ -9318,33 +9344,53 @@ RENDERERS.life = function () {
 };
 function lifeBrowseHTML() {
   let h = '<div class="view-head"><h1>Lebenslagen-Assistent</h1><p>Große Lebensereignisse Schritt für Schritt – Ordela sagt dir, was wann zu tun ist.</p></div>';
-  LIFE.forEach(l => {
+  allLife().forEach(l => {
     const pr = lifeProgress(l);
-    h += '<button class="life-card" data-life="open" data-id="' + l.id + '"><span class="life-ic">' + l.icon + '</span>' +
-      '<span class="life-tx"><b>' + esc(l.title) + '</b><span>' + (pr.done ? '✓ ' + pr.done + ' von ' + pr.total + ' erledigt' : esc(l.short)) + '</span></span></button>';
+    h += '<button class="life-card" data-life="open" data-id="' + esc(l.id) + '"><span class="life-ic">' + (l.icon || '📌') + '</span>' +
+      '<span class="life-tx"><b>' + esc(l.title) + '</b><span>' + (pr.done ? '✓ ' + pr.done + ' von ' + pr.total + ' erledigt' : esc(l.short || l.intro || '')) + '</span></span></button>';
   });
+  h += '<div class="card" style="margin-top:14px">' +
+    '<h3 style="margin:0 0 4px">Eigene Lebenslage</h3>' +
+    '<p class="sub" style="margin:0 0 10px">Fehlt dir eine Situation? Leg deine eigene an und trage deine Schritte selbst ein.</p>' +
+    '<div class="kid-row"><input type="text" id="newLifeTitle" placeholder="z. B. Hochzeit, Pflegefall …" style="flex:1" maxlength="60">' +
+    '<button class="btn btn-primary" data-life="newsit" style="flex:none">Anlegen</button></div></div>';
   return h;
 }
+function lifeStepRow(s, key, st, isExtra) {
+  const done = !!st.done[key];
+  const when = st.startDate ? fmtDateShort(addDays(st.startDate, s.due || 0)) : relOffset(s.due || 0);
+  return '<div class="life-step' + (done ? ' done' : '') + '" data-i="' + key + '">' +
+    '<button class="ls-check" data-life="toggle"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+    '<div class="ls-main"><div class="ls-t">' + esc(s.t) + '</div>' +
+    (s.note ? '<div class="ls-note">' + esc(s.note) + '</div>' : '') +
+    '<div class="ls-meta"><span class="ls-when">' + esc(when) + '</span>' +
+    (s.tpl ? '<button class="ls-tpl" data-life="tpl" data-tpl="' + s.tpl + '">Brief erstellen</button>' : '') +
+    (s.link ? '<button class="ls-tpl" data-life="link" data-link="' + s.link + '">↗ Öffnen</button>' : '') +
+    (isExtra ? '<button class="ls-tpl" data-life="delstep" data-key="' + key + '">Entfernen</button>' : '') +
+    '</div></div></div>';
+}
 function lifeDetailHTML() {
-  const l = LIFE.find(x => x.id === lifeActive), st = lifeState(l.id), pr = lifeProgress(l);
+  const l = lifeById(lifeActive); if (!l) { lifeActive = null; return lifeBrowseHTML(); }
+  const st = lifeState(l.id), pr = lifeProgress(l);
   let h = '<button class="btn btn-ghost btn-sm" data-life="back">‹ Alle Lebenslagen</button>';
-  h += '<div class="view-head" style="margin-top:12px"><h1>' + esc(l.title) + '</h1><p>' + esc(l.intro) + '</p></div>';
-  h += '<div class="card" style="margin-bottom:14px"><label class="fld">' + esc(l.dateLabel) + '</label><input type="date" data-life-date value="' + esc(st.startDate || '') + '"></div>';
+  h += '<div class="view-head" style="margin-top:12px"><h1>' + esc(l.title) + '</h1>' + (l.intro ? '<p>' + esc(l.intro) + '</p>' : '') + '</div>';
+  const sup = l.support && LIFE_SUPPORT[l.support];
+  if (sup) {
+    h += '<div class="card ls-support"><h3 style="margin:0 0 6px">' + esc(sup.title) + '</h3>' +
+      '<p style="margin:0 0 12px;line-height:1.55">' + esc(sup.body) + '</p>' +
+      '<button class="btn btn-primary" data-life="companion" style="width:100%">💬 Mit Ordela darüber reden</button>' +
+      '<div class="note-box" style="margin-top:10px">Ordela hört dir zu und begleitet dich – ist aber <b>kein Ersatz für ärztliche oder therapeutische Hilfe</b>. In akuten Krisen ist die <b>Telefonseelsorge</b> rund um die Uhr, kostenlos und anonym für dich da:' +
+      TELEFONSEELSORGE.map(n => ' <a href="tel:' + n.replace(/\s/g, '') + '" style="white-space:nowrap;font-weight:700">' + n + '</a>').join(' ·') + '</div></div>';
+  }
+  h += '<div class="card" style="margin-bottom:8px"><label class="fld">' + esc(l.dateLabel || 'Startdatum') + '</label><input type="date" data-life-date value="' + esc(st.startDate || '') + '"></div>';
+  h += '<div class="note-box" style="margin:0 0 12px">ℹ️ Termine und Erinnerungen hier sind <b>reine Kalendereinträge in Ordela</b>. Echte Termine bei Ärzten, Ämtern oder Behörden musst du selbst vereinbaren.</div>';
   h += '<div class="life-progress"><i style="width:' + pr.pct + '%"></i></div>';
-  l.steps.forEach((s, i) => {
-    const done = !!st.done[i];
-    const when = st.startDate ? fmtDateShort(addDays(st.startDate, s.due)) : relOffset(s.due);
-    h += '<div class="life-step' + (done ? ' done' : '') + '" data-i="' + i + '">' +
-      '<button class="ls-check" data-life="toggle"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
-      '<div class="ls-main"><div class="ls-t">' + esc(s.t) + '</div>' +
-      (s.note ? '<div class="ls-note">' + esc(s.note) + '</div>' : '') +
-      '<div class="ls-meta"><span class="ls-when">' + esc(when) + '</span>' +
-      (s.tpl ? '<button class="ls-tpl" data-life="tpl" data-tpl="' + s.tpl + '">Brief erstellen</button>' : '') +
-      (s.link ? '<button class="ls-tpl" data-life="link" data-link="' + s.link + '">↗ Öffnen</button>' : '') +
-      '</div></div></div>';
-  });
+  l.steps.forEach((s, i) => { h += lifeStepRow(s, String(i), st, false); });
+  (st.extra || []).forEach((s, j) => { h += lifeStepRow(s, 'e' + j, st, true); });
+  h += '<div class="card" style="margin-top:10px"><div class="kid-row"><input type="text" id="newStepText" placeholder="Eigenen Schritt hinzufügen …" style="flex:1" maxlength="120"><button class="btn" data-life="addstep" style="flex:none">+ Schritt</button></div></div>';
   h += '<button class="btn btn-primary" data-life="tasks" style="width:100%;margin-top:12px">✓ Offene Schritte als Aufgaben übernehmen</button>';
   h += '<button class="btn btn-sm" data-life="ask" style="width:100%;margin-top:8px">Ordela zu dieser Lebenslage fragen</button>';
+  if (l.custom) h += '<button class="btn btn-sm btn-danger" data-life="delsit" style="width:100%;margin-top:8px">Diese Lebenslage löschen</button>';
   return h;
 }
 function lifeAddTasks(l) {
@@ -9353,6 +9399,12 @@ function lifeAddTasks(l) {
   l.steps.forEach((s, i) => {
     if (st.done[i]) return;
     const due = st.startDate ? addDays(st.startDate, s.due) : null;
+    addTask(s.t, due, 'med', 'life');
+    n++;
+  });
+  (st.extra || []).forEach((s, j) => {
+    if (st.done['e' + j]) return;
+    const due = st.startDate ? addDays(st.startDate, s.due || 0) : null;
     addTask(s.t, due, 'med', 'life');
     n++;
   });
@@ -9516,11 +9568,50 @@ $('#lifeRoot').addEventListener('click', e => {
   }
   if (act === 'tpl') { openDocTemplate(el.dataset.tpl); return; }
   if (act === 'link') { showView(el.dataset.link); return; }
-  if (act === 'tasks') { lifeAddTasks(LIFE.find(x => x.id === lifeActive)); return; }
+  if (act === 'tasks') { const l = lifeById(lifeActive); if (l) lifeAddTasks(l); return; }
   if (act === 'ask') {
-    const l = LIFE.find(x => x.id === lifeActive);
+    const l = lifeById(lifeActive); if (!l) return;
     showView('chat');
-    setTimeout(() => { const ci = $('#chatInput'); ci.value = 'Ich bin gerade in dieser Lebenslage: ' + l.title + '. Woran sollte ich denken?'; ci.focus(); }, 200);
+    setTimeout(() => { const ci = $('#chatInput'); if (ci) { ci.value = 'Ich bin gerade in dieser Lebenslage: ' + l.title + '. Woran sollte ich denken?'; ci.focus(); } }, 200);
+    return;
+  }
+  if (act === 'companion') {   // emotionaler Begleiter-Chat (Trennung/Sterbefall)
+    const l = lifeById(lifeActive), sup = l && l.support && LIFE_SUPPORT[l.support]; if (!sup) return;
+    companionTopic = { kind: l.support, title: l.title };
+    showView('chat');
+    const _last = store.chat[store.chat.length - 1];   // Opener nicht stapeln
+    if (typeof pushBot === 'function' && (!_last || _last.text !== sup.opener)) pushBot(sup.opener);
+    setTimeout(() => { const ci = $('#chatInput'); if (ci) ci.focus(); }, 200);
+    return;
+  }
+  if (act === 'newsit') {      // eigene Lebenslage anlegen
+    const inp = $('#newLifeTitle'), title = ((inp && inp.value) || '').trim();
+    if (!title) { toast('Bitte einen Titel eingeben.'); return; }
+    store.customLife = store.customLife || [];
+    const id = 'c' + uid();
+    store.customLife.push({ id, icon: '📌', title, dateLabel: 'Startdatum', intro: '', steps: [], custom: true });
+    save(); lifeActive = id; RENDERERS.life(); window.scrollTo(0, 0);
+    return;
+  }
+  if (act === 'addstep') {     // eigenen Schritt hinzufügen
+    const inp = $('#newStepText'), txt = ((inp && inp.value) || '').trim(); if (!txt) return;
+    const st = lifeState(lifeActive); st.extra = st.extra || []; st.extra.push({ t: txt, due: 0 });
+    save(); RENDERERS.life();
+    return;
+  }
+  if (act === 'delstep') {     // eigenen Schritt entfernen (+ done-Keys neu ordnen)
+    const j = parseInt(String(el.dataset.key).replace('e', ''), 10), st = lifeState(lifeActive);
+    if (st.extra && j >= 0 && j < st.extra.length) {
+      st.extra.splice(j, 1);
+      const nd = {}; Object.keys(st.done).forEach(k => { if (!/^e\d+$/.test(k)) nd[k] = st.done[k]; });
+      st.extra.forEach((_, k) => { const old = 'e' + (k >= j ? k + 1 : k); if (st.done[old]) nd['e' + k] = true; });
+      st.done = nd; save(); RENDERERS.life();
+    }
+    return;
+  }
+  if (act === 'delsit') {      // eigene Lebenslage löschen
+    const l = lifeById(lifeActive);
+    if (l && l.custom) { store.customLife = (store.customLife || []).filter(x => x.id !== l.id); delete store.life[l.id]; save(); lifeActive = null; RENDERERS.life(); toast('Gelöscht'); }
     return;
   }
 });
@@ -16686,7 +16777,7 @@ async function agentReply(text) {
     op: vaLastSpoken ? 'voice' : 'question',
     model: store.settings.model,
     max_tokens: 900,
-    system: buildAgentPrompt() + (activeDocContext ? '\n\nDer Nutzer bezieht sich evtl. auf dieses gescannte Dokument „' + activeDocContext.title + '":\n' + activeDocContext.text : ''),
+    system: (companionTopic ? ('BEGLEITER-MODUS: Der Nutzer ist in einer emotional schweren Lebenslage („' + companionTopic.title + '"). Sei ein ruhiger, warmer, einfühlsamer Begleiter: höre zu, nimm Gefühle ernst, urteile nicht, dränge nicht. Antworte in kurzen, menschlichen Absätzen. Gib Halt; biete sanfte nächste Schritte nur an, wenn es passt, und in kleinen Portionen. Du bist KEIN Therapeut und keine Ärztin – bei Anzeichen einer Krise oder von Suizidgedanken weise einfühlsam auf die Telefonseelsorge hin (0800 111 0 111, kostenlos, anonym, rund um die Uhr) und ermutige zu professioneller Hilfe. Lege in diesem Modus KEINE Aufgaben, Termine oder Erinnerungen an, außer der Nutzer bittet ausdrücklich darum (dann actions leer lassen).\n\n') : '') + buildAgentPrompt() + (activeDocContext ? '\n\nDer Nutzer bezieht sich evtl. auf dieses gescannte Dokument „' + activeDocContext.title + '":\n' + activeDocContext.text : ''),
     messages: history.length ? history : [{ role: 'user', content: text }]
   });
   const plan = parseAgentJSON(raw);
@@ -16717,8 +16808,9 @@ async function sendChat(text, spoken) {
   RENDERERS.chat();
   /* 1) offene Ja/Nein-Bestätigung */
   if (vaPending) { vaHandleConfirm(text); return; }
-  /* 2) lokale Intent-Engine (schnell/offline für häufige Formulierungen) */
-  try { if (vaRunLocal(text)) return; } catch (e) { /* bei Parser-Fehler an Agent/Demo weiterreichen */ }
+  /* 2) lokale Intent-Engine (schnell/offline für häufige Formulierungen) –
+        im Begleiter-Modus übersprungen, damit emotionale Nachrichten immer bei der KI landen */
+  try { if (!companionTopic && vaRunLocal(text)) return; } catch (e) { /* bei Parser-Fehler an Agent/Demo weiterreichen */ }
   /* 3) Agent (KI erkennt Absicht → führt Aktionen aus) bzw. Demo */
   botTyping = true;
   RENDERERS.chat();
