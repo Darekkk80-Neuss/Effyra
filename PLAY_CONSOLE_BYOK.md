@@ -104,11 +104,26 @@ Englisch, Französisch, Spanisch, Italienisch und Polnisch stehen in
    - Toast **„✓ Eigener KI-Schlüssel (Monat) aktiviert. Danke!"**
    - die Karte zeigt jetzt **„✓ Eigener Schlüssel freigeschaltet bis …"**
    - darunter das **Eingabefeld für den Schlüssel** (vorher war da nur das Angebot)
-5. Gegenprobe in Supabase:
+5. Gegenprobe in Supabase (**SQL-Editor**):
    ```sql
-   select public.byok_status();
+   select u.email, p.byok_lifetime, p.byok_until
+   from public.profiles p
+   join auth.users u on u.id = p.id
+   order by u.created_at desc
+   limit 20;
    ```
-   → `{"lifetime": false, "until": "2026-08-…"}`
+   → beim Testkonto steht `byok_until` in der Zukunft bzw. `byok_lifetime = true`.
+
+   > **Nicht** `select public.byok_status();` im SQL-Editor verwenden. Die Funktion
+   > liefert bewusst nur die Daten des *angemeldeten* Nutzers und antwortet dort
+   > mit `not authenticated`, weil der Editor ohne Nutzer-Anmeldung läuft. Das ist
+   > richtig so – aus der App heraus funktioniert sie.
+
+   Prüfen, dass die Spalten überhaupt existieren:
+   ```sql
+   select column_name, data_type from information_schema.columns
+   where table_schema = 'public' and table_name = 'profiles' and column_name like 'byok%';
+   ```
 
 **Test-Abos rückgängig machen:** Play Store-App → Profil → Zahlungen & Abos →
 Abos → Testabo kündigen. Lizenztest-Abos verlängern sich stark beschleunigt
@@ -120,7 +135,7 @@ Abos → Testabo kündigen. Lizenztest-Abos verlängern sich stark beschleunigt
 
 - [ ] Kauf löst den Google-Dialog aus
 - [ ] Nach dem Kauf erscheint das Schlüssel-Eingabefeld
-- [ ] `byok_status()` liefert das erwartete Ergebnis
+- [ ] In `public.profiles` steht `byok_until` bzw. `byok_lifetime` beim Testkonto
 - [ ] Schlüssel eintragen → KI-Anfrage läuft **ohne** Credit-Abzug
 - [ ] Nach Deinstallation + Neuinstallation ist die Freischaltung wieder da
       *(Wiederherstellung läuft automatisch beim Start)*
@@ -133,7 +148,8 @@ Abos → Testabo kündigen. Lizenztest-Abos verlängern sich stark beschleunigt
 |---|---|---|
 | „Käufe laufen über die Ordela-App (Google Play)" | Play Billing fehlt im TWA-Build | Neu bauen mit PWABuilder, Billing aktivieren |
 | „Kauf nicht möglich: … ITEM_UNAVAILABLE" | Produkt-ID falsch, nicht aktiv, oder Änderung noch nicht verteilt | ID buchstabengenau prüfen; nach dem Aktivieren **bis zu 24 Std** warten |
-| Kauf klappt, App bleibt gesperrt | SQL nicht eingespielt oder `play-verify` scheitert | `select public.byok_status();` prüfen; Logs der Function `play-verify` ansehen |
+| Kauf klappt, App bleibt gesperrt | SQL nicht eingespielt oder `play-verify` scheitert | `public.profiles` prüfen (Abfrage oben); Logs der Function `play-verify` ansehen |
+| `not authenticated` im SQL-Editor | **kein Fehler** – `byok_status()` braucht einen angemeldeten Nutzer | stattdessen `public.profiles` abfragen (siehe oben) |
 | Kauf klappt nur beim ersten Mal | Normal beim Einmalkauf — er ist dauerhaft | kein Fehler |
 
 Die App meldet einen misslungenen Kauf **ehrlich** („Kauf erhalten – die
