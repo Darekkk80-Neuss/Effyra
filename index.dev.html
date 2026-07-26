@@ -5715,6 +5715,7 @@ function showUpgrade(lockedView) {
     $('#pwBack').style.display = '';
   }
   pw.classList.add('on');
+  try { loadPlayPrices(); } catch (e) { }   // echte Landespreise nachziehen, sobald Google antwortet
 }
 /* Stripe-Checkout. Mit Backend: echte Kartenzahlung; sonst Code-Fallback. */
 async function startCheckout(product) {
@@ -6439,7 +6440,7 @@ async function syncEntitlements() {
     }
   } catch (e) { /* Backend evtl. noch nicht deployt – Phase-1-Werte behalten */ }
   // Einmal pro Sitzung aktive Play-Abos gegen Google abgleichen (Verlängerungen greifen so auch ohne RTDN).
-  if (!_reverifiedOnce && typeof hasPlayBilling === 'function' && hasPlayBilling()) { _reverifiedOnce = true; reverifyActivePurchases(); }
+  if (!_reverifiedOnce && typeof hasPlayBilling === 'function' && hasPlayBilling()) { _reverifiedOnce = true; reverifyActivePurchases(); try { loadPlayPrices(); } catch (e) { } }
 }
 /* Rückkehr von Stripe (?checkout=success|cancel) auswerten */
 async function handleCheckoutReturn() {
@@ -11041,6 +11042,55 @@ const PLAY_PRODUCTS = {
   byokMonthly:  { id: 'effyra_byok_monthly',  type: 'subs',  kind: 'byok_monthly',  label: 'Eigener KI-Schlüssel (Monat)', price: '1,99 €/Mon.' },
   byokLifetime: { id: 'effyra_byok_lifetime', type: 'inapp', kind: 'byok_lifetime', label: 'Eigener KI-Schlüssel (dauerhaft)', price: '24,99 €' }
 };
+/* ---- Echte Preise aus Google Play holen ----
+   Die Preise in PLAY_PRODUCTS/ADDON_PRODUCTS sind nur Rückfallwerte für den
+   Browser. In der Play-App gilt der Preis, den Google für das Land des Nutzers
+   festgelegt hat – der weicht ab (andere Währung, andere Mehrwertsteuer).
+   Ohne diese Abfrage stünde in Polen „1,99 €" auf dem Knopf, während der
+   Bezahldialog 8,99 zł zeigt. Schlägt die Abfrage fehl, bleiben die Rückfallwerte. */
+let playPrices = null;
+function fmtPlayPrice(p) {
+  if (!p || p.value == null) return null;
+  try { return new Intl.NumberFormat(curLocale || 'de-DE', { style: 'currency', currency: p.currency }).format(Number(p.value)); }
+  catch (e) { return p.value + ' ' + (p.currency || ''); }
+}
+async function loadPlayPrices() {
+  if (playPrices || !hasPlayBilling()) return playPrices;
+  try {
+    const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
+    const alle = Object.assign({}, PLAY_PRODUCTS, ADDON_PRODUCTS);
+    const ids = Object.values(alle).map(p => p.id);
+    const details = await svc.getDetails(ids);
+    const nachId = {};
+    (details || []).forEach(d => { const f = fmtPlayPrice(d.price); if (f) nachId[d.itemId] = f; });
+    playPrices = {};
+    Object.keys(alle).forEach(k => { if (nachId[alle[k].id]) playPrices[k] = nachId[alle[k].id]; });
+    applyPlayPrices();
+    return playPrices;
+  } catch (e) { return null; }
+}
+/* Preis eines Produkts: echter Play-Preis, sonst der Rückfallwert. */
+function priceOf(key) {
+  if (playPrices && playPrices[key]) return playPrices[key];
+  const p = PLAY_PRODUCTS[key] || ADDON_PRODUCTS[key];
+  return p ? String(p.price).replace(/\s*\/\s*Mon\.?$/, '') : '';
+}
+/* Die bereits gezeichneten Oberflächen mit den echten Preisen nachziehen. */
+function applyPlayPrices() {
+  if (!playPrices) return;
+  const proMonat = pickLang({ de: '/ Monat', en: '/ month', fr: '/ mois', es: '/ mes', it: '/ mese', pl: '/ mies.' });
+  const setzen = (sel, html) => { const el = document.querySelector(sel); if (el) el.innerHTML = html; };
+  if (playPrices.premium) {
+    setzen('[data-tier="premium"] .tier-price', esc(playPrices.premium) + '<small>' + esc(proMonat) + '</small>');
+    const b = document.querySelector('[data-buy="premium"].tier-cta'); if (b) b.textContent = pickLang({ de: 'Premium starten – ', en: 'Start Premium – ', fr: 'Démarrer Premium – ', es: 'Empezar Premium – ', it: 'Attiva Premium – ', pl: 'Włącz Premium – ' }) + playPrices.premium;
+  }
+  if (playPrices.family) {
+    setzen('[data-tier="family"] .tier-price', esc(playPrices.family) + '<small>' + esc(proMonat) + '</small>');
+    const b = document.querySelector('[data-buy="family"].tier-cta'); if (b) b.textContent = pickLang({ de: 'Familie starten – ', en: 'Start family – ', fr: 'Démarrer Famille – ', es: 'Empezar Familia – ', it: 'Attiva Famiglia – ', pl: 'Włącz Rodzinę – ' }) + playPrices.family;
+  }
+  if (typeof renderByokBox === 'function' && document.getElementById('byokBox')) renderByokBox();
+  if (currentView === 'settings' && typeof RENDERERS.settings === 'function') { try { RENDERERS.settings(); } catch (e) { } }
+}
 /* Kauf über Google Play Billing (nur in der TWA verfügbar). Der purchaseToken wird
    serverseitig via Play Developer API verifiziert (supabase/functions/play-verify),
    das Entitlement setzt grant_play_purchase; Renewals/Storno kommen per RTDN. */
@@ -17305,6 +17355,7 @@ $('#chatMsgs').addEventListener('click', e => {
 RENDERERS.settings = function () {
   $('#setName').value = store.name;
   $('#setModel').value = store.settings.model;
+  try { loadPlayPrices(); } catch (e) { }   // echte Landespreise (einmalige Abfrage, danach zwischengespeichert)
   renderByokBox();
   const lm = langMeta(curLang);
   const inCur = langNameIn(lm.code);
@@ -17580,7 +17631,7 @@ function renderAccountCard() {
         : '<span class="sub">Kein monatliches Kontingent aktiv.</span>') +
       (extra > 0 ? '<div class="sub" style="margin-top:6px">Gekauft: <b>' + extra + '</b> Credits – <b>verfallen nicht</b> und rollen in den nächsten Monat.</div>' : '') +
       '<div class="sub" style="margin-top:6px">Insgesamt verfügbar: <b>' + aiRemaining() + '</b> Credits.</div>' +
-      ((aiRemaining() <= Math.max(10, Math.round((basis + extra) * 0.1)) && !STORE_SAFE) ? '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" data-buy="topup">+1000 nachbestellen · 4,99 €</button></div>' : '') +
+      ((aiRemaining() <= Math.max(10, Math.round((basis + extra) * 0.1)) && !STORE_SAFE) ? '<div style="margin-top:8px"><button class="btn btn-sm btn-primary" data-buy="topup">+1000 nachbestellen · ' + esc(priceOf('topup')) + '</button></div>' : '') +
       '<div class="sub" style="margin-top:6px">Das Monatskontingent wird am 1. des Folgemonats zurückgesetzt; gekaufte Credits bleiben. Alternativ eigenen Schlüssel (unten) für unbegrenzte Nutzung.</div>' + creditTableHtml() + '</div>';
   } else if (tier === 'premium' && usingOwnKey()) {
     html += '<div class="note-box" style="margin-bottom:12px">Eigener API-Schlüssel aktiv – <b>unbegrenzte</b> KI, kein Kontingentverbrauch.</div>';
@@ -17706,8 +17757,8 @@ function renderByokBox() {
       '<div class="note-box" style="margin-bottom:10px">So funktioniert es: Du legst dir bei <b>platform.openai.com</b> einen eigenen Schlüssel an und zahlst deine KI-Nutzung dort direkt. In Ordela schaltest du einmal die Möglichkeit frei, ihn zu verwenden – danach gilt für dich <b>kein Credit-Limit</b> mehr.</div>' +
       (STORE_SAFE ? '' :
         '<div style="display:flex;flex-direction:column;gap:8px">' +
-        '<button class="btn btn-primary" data-buy="byokMonthly">Monatlich freischalten – 1,99 €/Mon.</button>' +
-        '<button class="btn" data-buy="byokLifetime">Dauerhaft freischalten – 24,99 € einmalig</button>' +
+        '<button class="btn btn-primary" data-buy="byokMonthly">Monatlich freischalten – ' + esc(priceOf('byokMonthly')) + '/Mon.</button>' +
+        '<button class="btn" data-buy="byokLifetime">Dauerhaft freischalten – ' + esc(priceOf('byokLifetime')) + ' einmalig</button>' +
         '</div>' +
         '<div class="sub" style="margin-top:8px;font-size:11.5px;color:var(--faint)">Das Monatsabo verlängert sich automatisch und ist jederzeit über Google Play kündbar. Der Einmalkauf gilt dauerhaft für dieses Konto.</div>');
     box.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.buy)));

@@ -31,8 +31,15 @@ Produkt-IDs, der Kauf-Weg und die Entitlement-Logik warten nur auf die echten Pl
 | `effyra_ai_boost`     | **Verbrauchbar** (consumable) | 4,99 € | +500 KI-Credits (Nachbuchung) |
 | `effyra_adult`  | **Abo** (subs)     | 3,99 €/Monat | +1 Erwachsener im Familienabo |
 | `effyra_child`  | **Abo** (subs)     | 0,99 €/Monat | +1 Kind im Familienabo |
+| `effyra_byok_monthly`  | **Abo** (subs) | **1,99 €/Monat** | Eigener KI-Schlüssel erlaubt (kein Credit-Limit) |
+| `effyra_byok_lifetime` | **Einmalkauf** (in-app, nicht verbrauchbar) | **24,99 €** | Eigener KI-Schlüssel dauerhaft erlaubt |
 
-- [ ] Alle 6 Produkte angelegt, **IDs exakt** wie oben, Status **aktiv**.
+> Die beiden **BYOK-Produkte** (eigener Schlüssel) sind neu seit 26.07.2026.
+> Schritt-für-Schritt-Anleitung: **`PLAY_CONSOLE_BYOK.md`**, Texte in 6 Sprachen:
+> `legal/byok_products.md`. Sie kosten uns nichts an KI-Gebühren – der Käufer
+> rechnet die Nutzung über seinen eigenen Schlüssel direkt mit OpenAI ab.
+
+- [ ] Alle 8 Produkte angelegt, **IDs exakt** wie oben, Status **aktiv**.
 - [ ] Für die Abos je ein **Basisplan** (monatlich) + Preis in EUR (weitere Länder optional).
 - [ ] `effyra_lifetime` als **einmaliges** In-App-Produkt (nicht verbrauchbar).
 - [ ] `effyra_ai_boost` als **verbrauchbares** Produkt (mehrfach kaufbar).
