@@ -4,7 +4,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#3355C9">
+<!-- Statusleiste: Startwert = dunkler App-Grund. applyTheme() zieht sie beim
+     Umschalten auf Hell/Dunkel nach (setStatusBarColor). Vorher stand hier fest
+     das Akzentblau – im Dunkelmodus leuchtete oben ein blauer Balken. -->
+<meta name="theme-color" content="#090B12">
 <meta name="description" content="Ordela – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.">
 <!-- Bau-Kennung. build.mjs ersetzt "dev" bei jedem Lauf durch YYYYMMDD-HHMM (UTC).
      Bewusst ein Meta-Tag und keine JS-Konstante: build.mjs minifiziert die Skriptblöcke
@@ -3092,7 +3095,19 @@ function applyTheme() {
   const t = themePref();
   const light = t === 'light' || (t === 'auto' && isDaytime());
   document.documentElement.dataset.theme = light ? 'light' : 'dark';
+  setStatusBarColor(light);
   syncThemeSegs();
+}
+/* Farbe der System-Statusleiste (Android/TWA + Browser-Adressleiste) an das
+   App-Design angleichen. Vorher stand die meta theme-color FEST auf dem
+   Akzentblau – im Dunkelmodus leuchtete oben ein greller blauer Balken über der
+   dunklen App. Die Farbe entspricht jetzt der Kopfzeile: dunkel bzw. hell. */
+function setStatusBarColor(light) {
+  try {
+    let m = document.querySelector('meta[name="theme-color"]');
+    if (!m) { m = document.createElement('meta'); m.name = 'theme-color'; document.head.appendChild(m); }
+    m.setAttribute('content', light ? '#F8FAFC' : '#090B12');
+  } catch (e) { }
 }
 /* Aktiv-Zustand aller Theme-Umschalter (#themeQuick im Dashboard + #themeSeg in den Einstellungen) angleichen. */
 function syncThemeSegs() { try { $$('[data-theme-set]').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref())); } catch (e) {} }
