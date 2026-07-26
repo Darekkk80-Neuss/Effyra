@@ -14,29 +14,23 @@ Produkt-ID lässt sich nach dem Anlegen **nie wieder ändern**.
 
 ---
 
-## ⚠️ Zuerst prüfen: Ist Play Billing in der App überhaupt aktiv?
+## Play Billing: bereits aktiv ✅
 
-**Ohne diesen Schritt funktioniert kein einziger Kauf** — auch die bestehenden nicht.
+Käufe laufen in der TWA über die *Digital Goods API*, die nur mit
+Play-Billing-Unterstützung im Build funktioniert. **Das ist eingerichtet** —
+geprüft in der echten Build-Konfiguration `~/ordela-build/twa/twa-manifest.json`:
 
-Ordela ist eine Web-App in einer TWA-Hülle. Käufe laufen über die *Digital Goods
-API*, und die ist nur verfügbar, wenn die TWA **mit Play-Billing-Unterstützung
-gebaut** wurde. In der Referenz-Datei `twa-manifest.json` dieses Projekts ist das
-Merkmal **nicht** gesetzt, und gebaut wird bei dir über **PWABuilder**.
+```json
+"features": { "playBilling": { "enabled": true } }
+```
 
-**So prüfst du es in 30 Sekunden:**
+> **Nicht verwechseln:** Die `twa-manifest.json` im App-Repo ist nur eine
+> Referenz-/Beispieldatei und dort steht das Merkmal **nicht** drin. Maßgeblich
+> ist ausschließlich der Build-Ordner `~/ordela-build/twa/`. Gebaut wird lokal
+> mit **Bubblewrap CLI** (eigenes JDK + Android-SDK in `~/ordela-build/`), nicht
+> über PWABuilder — von dort stammt nur der Signaturschlüssel.
 
-1. Ordela auf dem Handy **aus dem Play Store** öffnen (nicht im Browser).
-2. Einstellungen → *Eigener KI-Schlüssel* → auf „Monatlich freischalten" tippen.
-3. Was passiert?
-   - **Google-Bezahldialog erscheint** → alles gut, weiter bei Schritt 1 unten.
-   - **Meldung „Käufe laufen über die Ordela-App (Google Play)"** → Play Billing
-     fehlt im Build.
-
-**Falls es fehlt:** Auf [pwabuilder.com](https://www.pwabuilder.com) das Android-Paket
-neu erzeugen und dort **„Google Play Billing"** aktivieren (in den Android-Optionen).
-Danach neues AAB in den Test-Track hochladen. Wichtig: **Paketname
-`app.effyra.twa` und denselben Signaturschlüssel behalten**, sonst gilt es als
-andere App.
+Der Kauftest am Gerät bleibt trotzdem der endgültige Beweis (siehe Schritt 4).
 
 ---
 
@@ -146,7 +140,7 @@ Abos → Testabo kündigen. Lizenztest-Abos verlängern sich stark beschleunigt
 
 | Symptom | Ursache | Lösung |
 |---|---|---|
-| „Käufe laufen über die Ordela-App (Google Play)" | Play Billing fehlt im TWA-Build | Neu bauen mit PWABuilder, Billing aktivieren |
+| „Käufe laufen über die Ordela-App (Google Play)" | Digital Goods API nicht verfügbar (alte App-Version installiert?) | Neuestes AAB installieren; Billing ist im Build aktiv (`~/ordela-build/twa/`) |
 | „Kauf nicht möglich: … ITEM_UNAVAILABLE" | Produkt-ID falsch, nicht aktiv, oder Änderung noch nicht verteilt | ID buchstabengenau prüfen; nach dem Aktivieren **bis zu 24 Std** warten |
 | Kauf klappt, App bleibt gesperrt | SQL nicht eingespielt oder `play-verify` scheitert | `public.profiles` prüfen (Abfrage oben); Logs der Function `play-verify` ansehen |
 | `not authenticated` im SQL-Editor | **kein Fehler** – `byok_status()` braucht einen angemeldeten Nutzer | stattdessen `public.profiles` abfragen (siehe oben) |
