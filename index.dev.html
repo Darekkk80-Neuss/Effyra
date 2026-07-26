@@ -1691,15 +1691,29 @@ input.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0
 /* Dokumentenassistent: erkannte Einträge (Findings) */
 .fnd-box{margin:14px 0 4px;border:1px solid var(--border);border-radius:16px;padding:14px;background:rgba(77,124,255,.06)}
 .fnd-hd{font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:10px}
-.fnd-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--border)}
+/* Zweizeiliges Raster: Haken | Symbol | Inhalt. Der Titel steht in der ersten
+   Zeile ueber die ganze Breite, Datum/Betrag und Zielmodul darunter. Als eine
+   einzige Flex-Zeile (bis 26.07.2026) passten fuenf Elemente auf Handybreite
+   nicht nebeneinander: das Datumsfeld drueckte die Zeile aus dem Bild und der
+   Titel wurde auf 18 px zusammengequetscht – unlesbar UND unbearbeitbar. */
+.fnd-row{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;column-gap:8px;row-gap:7px;padding:8px 0;border-top:1px solid var(--border)}
 .fnd-row:first-of-type{border-top:none}
 .fnd-row.done{opacity:.6}
-.fnd-row input[type=checkbox]{width:17px;height:17px;flex:none;accent-color:#4D7CFF}
-.fnd-check{width:17px;text-align:center;color:#32D583;flex:none;font-weight:700}
+.fnd-row input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:#4D7CFF}
+.fnd-check{width:20px;text-align:center;color:#32D583;flex:none;font-weight:700}
 .fnd-ic{flex:none;font-size:16px}
-.fnd-title{flex:1;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px 8px;font-size:13px;color:var(--text)}
+.fnd-title{grid-column:3;width:100%;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px 8px;font-size:13px;color:var(--text)}
+.fnd-meta{grid-column:3;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
 .fnd-num{width:78px;flex:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;font-size:13px;color:var(--text);text-align:right}
 .fnd-date{width:130px;flex:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:5px 6px;font-size:12px;color:var(--text)}
+/* Die Sammelregel input[type=date],input[type=number]{width:100%} weiter oben
+   ist SPEZIFISCHER als eine einzelne Klasse (0,1,1 gegen 0,1,0) – deshalb war
+   das Datumsfeld trotz "width:130px" 313 px breit und riss die Zeile auf.
+   Zwei Klassen gewinnen wieder, ohne !important. Rahmen und Polsterung bleiben
+   bewusst unangetastet: die stammen aus der Kontrastregel (#808EA3, WCAG
+   1.4.11) und aus der Groesse des Tippziels. */
+.fnd-meta .fnd-date{width:auto;min-width:0;max-width:100%;flex:0 1 auto}
+.fnd-meta .fnd-num{width:96px;min-width:0;flex:0 1 auto}
 .fnd-unit{flex:none;font-size:12px;color:var(--muted)}
 .fnd-mod{flex:none;font-size:10.5px;font-weight:700;color:#8FB0FF;background:rgba(77,124,255,.14);padding:3px 7px;border-radius:16px;white-space:nowrap}
 .fnd-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
@@ -15669,8 +15683,9 @@ function findingRowHTML(f) {
     (f.applied ? '<span class="fnd-check">✓</span>' : '<input type="checkbox" data-act="toggleFnd" data-fid="' + f.id + '"' + (f.selected ? ' checked' : '') + '>') +
     '<span class="fnd-ic">' + t.icon + '</span>' +
     '<input class="fnd-title" data-act="editFnd" data-fid="' + f.id + '" data-field="title" value="' + esc(f.title) + '"' + (f.applied ? ' disabled' : '') + '>' +
-    extra +
-    '<span class="fnd-mod">' + t.group + (f.consent ? '' : '') + '</span></div>';
+    /* Datum/Betrag und Zielmodul bilden die zweite Rasterzeile – siehe .fnd-meta. */
+    '<div class="fnd-meta">' + extra +
+    '<span class="fnd-mod">' + t.group + (f.consent ? '' : '') + '</span></div></div>';
 }
 
 /* Dokument im KI-Chat weiterverwenden */
