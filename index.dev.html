@@ -648,17 +648,21 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
           mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 calc(100% - 2px));
   filter:drop-shadow(0 0 2px rgba(233,199,102,.5))}
 .fuel-row:hover .fuel-go{transform:scale(1.08)}
-/* „Günstig tanken" in ruhigem Gold: metallischer Verlauf mit hellem Kern, aber
-   OHNE Bewegung – wanderndes Gold wirkt billig, ruhendes edel. Auf dunklem
-   Grund kraeftig lesbar (~10:1). */
-.fuel-title{
-  background:linear-gradient(100deg,#B8860B 0%,#E9C766 34%,#FFF7DA 52%,#E9C766 68%,#9C7519 100%);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent}
-/* Hell: Gold auf Weiss ist unlesbar. Dunklere Bronze-Toene halten den Kontrast. */
-:root[data-theme="light"] .fuel-title{
-  background:linear-gradient(100deg,#5A4410 0%,#6B5214 36%,#8A6D1E 52%,#6B5214 68%,#5A4410 100%);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+/* Die Ueberschrift „Günstig tanken" stand bis 26.07.2026 in goldener
+   Verlaufsschrift. Drei Gruende, warum sie jetzt schlicht wie jede andere
+   Kartenueberschrift ist (Nachbarkarte: „Dein Tag heute"):
+   1. Es ist ein Etikett, kein Messwert – von ~20 Dashboard-Bloecken rief genau
+      dieser einer, ohne wichtiger zu sein.
+   2. Verlaufsschrift war im Juli app-weit entfernt worden (6 Stellen); das hier
+      war die letzte Rueckkehr. Gold bringt ausserdem eine dritte Farbfamilie
+      neben das eine Blau.
+   3. Entscheidend: background-clip:text braucht -webkit-text-fill-color:
+      transparent, und die Fuellfarbe schlaegt jede color-Regel. Gemessen mit
+      eingeschaltetem .a11y-contrast blieb sie rgba(0,0,0,0) – die Ueberschrift
+      hat den Kontrastmodus der eigenen App als einzige ignoriert (ebenso den
+      von Windows).
+   Das goldene Routen-Medaillon (.fuel-go) bleibt: es ist eine Grafik, keine
+   Schrift, erbt nichts und traegt den Charakter der Karte in kleiner Dosis. */
 @media(prefers-reduced-motion:reduce){ .fuel-row{transition:none} .fuel-row:active{transform:none} }
 .warn-row{border-left:3px solid #f59e0b;padding:5px 0 5px 10px;margin-bottom:7px;display:flex;flex-direction:column;gap:1px}
 .warn-row b{font-size:13.5px;line-height:1.25}
@@ -13778,7 +13782,7 @@ function fuelCard(inner, loc) {
     ? agentMsg({ de: 'Beste Preise in {o}', en: 'Best prices in {o}', fr: 'Meilleurs prix à {o}', es: 'Mejores precios en {o}', it: 'Prezzi migliori a {o}', pl: 'Najlepsze ceny w {o}' }, { o: loc.name })
     : pickLang({ de: 'Beste Preise in deiner Nähe', en: 'Best prices near you', fr: 'Meilleurs prix près de toi', es: 'Mejores precios cerca de ti', it: 'Prezzi migliori vicino a te', pl: 'Najlepsze ceny w pobliżu' });
   return '<section class="card dash-info-card"><div class="di-head">' +
-    '<div class="di-head-tx"><b class="fuel-title">' + esc(titel) + '</b><small>' + esc(sub) + '</small></div></div>' +
+    '<div class="di-head-tx"><b>' + esc(titel) + '</b><small>' + esc(sub) + '</small></div></div>' +
     inner + '</section>';
 }
 function fuelSetupHTML() { return fuelCard('<div class="di-note">Noch einzurichten: kostenlosen <b>Tankerkönig-API-Key</b> holen und die Function <code>fuel-proxy</code> deployen (Secret <code>TANKERKOENIG_KEY</code>). Danach erscheinen hier die günstigsten Tankstellen in der Nähe.</div>'); }
