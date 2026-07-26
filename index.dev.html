@@ -7969,7 +7969,7 @@ function behAmtHint() {
     es: 'Aviso: Ordela es una app privada y no está afiliada a ninguna administración pública. Fuente oficial:',
     it: 'Nota: Ordela è un\'app privata e non è collegata ad alcun ente pubblico. Fonte ufficiale:',
     pl: 'Uwaga: Ordela to prywatna aplikacja i nie jest powiązana z żadnym urzędem. Oficjalne źródło:'
-  })) + ' <a href="https://www.servicesuche.bund.de" target="_blank" rel="noopener">servicesuche.bund.de</a></div>';
+  })) + ' <a href="https://servicesuche.bund.de" target="_blank" rel="noopener">servicesuche.bund.de</a></div>';
 }
 const BEH_LAGE_ICON = { 'Umzug': '', 'Ausweise & Dokumente': '', 'Fahrzeug & Mobilität': '', 'Gewerbe & Selbstständigkeit': '', 'Familie & Partnerschaft': '', 'Trauerfall': '' };
 function behMapsSearch(amtstyp) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(amtstyp + ' ' + (behState.plz || 'in der Nähe')); }
