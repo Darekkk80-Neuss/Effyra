@@ -1945,13 +1945,18 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 /* Credits als Balken statt als blosse Zahl: der Fuellstand ist auf einen Blick
    lesbar, die Zahl daneben bleibt fuer die Genauigkeit. Die Farbe wechselt,
    wenn es knapp wird – das ist Zustand, nicht Dekoration. */
-.credit-bar{height:8px;border-radius:999px;margin-top:14px;overflow:hidden;background:rgba(255,255,255,.09)}
+/* Credit-Balken: bewusst leise. Vorher 8 px hoch mit Blau-nach-Violett-Verlauf
+   und Leuchtschein – bei vollem Kontingent (z. B. 50/50) ergab das einen
+   durchgehenden bunten Streifen, der wie Deko wirkte statt wie eine Anzeige,
+   und brachte mit dem Violett eine zweite Akzentfarbe ins Design.
+   Jetzt: flacher, eine Farbe, kein Schein. Knapp/leer bleiben farbig – dort
+   ist das Auffallen erwuenscht. */
+.credit-bar{height:6px;border-radius:999px;margin-top:14px;overflow:hidden;background:rgba(255,255,255,.10)}
 .credit-bar i{display:block;height:100%;border-radius:999px;
-  background:linear-gradient(90deg,#4D7CFF,#7A5CFF);
-  box-shadow:0 0 12px rgba(77,124,255,.55);
+  background:var(--accent);
   transition:width .5s var(--ease-spring)}
-.credit-bar.knapp i{background:linear-gradient(90deg,#FFB547,#FF8A3D);box-shadow:0 0 12px rgba(255,181,71,.5)}
-.credit-bar.leer i{background:#FF6B6B;box-shadow:none}
+.credit-bar.knapp i{background:#FFB547}
+.credit-bar.leer i{background:#FF6B6B}
 :root[data-theme="light"] .credit-bar{background:rgba(7,11,23,.10)}
 @media (prefers-reduced-motion:reduce){ .credit-bar i{transition:none} }
 .lic-empty-note{margin-top:10px;padding:9px 11px;border-radius:14px;font-size:12px;line-height:1.4;color:#fde68a;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)}
@@ -8301,12 +8306,16 @@ RENDERERS.dashboard = function () {
          unendlich – dann bleibt der Balken leer statt NaN in die Breite zu
          schreiben (das ergaebe eine ungueltige CSS-Angabe). */
       const pct = lim > 0 ? Math.max(0, Math.min(100, Math.round(rem / lim * 100))) : 0;
+      /* Solange nichts verbraucht ist, steht der Balken randvoll da und sagt
+         nichts, was die Zeile "50 / 50 Credits" nicht schon sagt – dann bleibt
+         er weg. Er taucht erst auf, sobald er einen Verbrauch anzeigen kann. */
+      const balken = pct >= 100 ? '' :
+        '<div class="credit-bar' + (rem <= 0 ? ' leer' : low ? ' knapp' : '') + '" role="progressbar" aria-valuenow="' + rem + '" aria-valuemin="0" aria-valuemax="' + lim + '" aria-label="Verbleibende KI-Credits">' +
+        '<i style="width:' + pct + '%"></i></div>';
       slot.innerHTML = '<div class="lic-widget lic-solo"><div class="lic-cur"><span class="lic-cur-ic">' + ic + '</span>' +
         '<div class="lic-cur-tx">' + head + '</div>' +
         (low ? '<button class="lic-cur-manage lic-cur-topup" data-lic="topup">Credits nachbuchen</button>' : '<button class="lic-cur-manage" data-lic="manage">Verwalten</button>') +
-        '</div>' +
-        '<div class="credit-bar' + (rem <= 0 ? ' leer' : low ? ' knapp' : '') + '" role="progressbar" aria-valuenow="' + rem + '" aria-valuemin="0" aria-valuemax="' + lim + '" aria-label="Verbleibende KI-Credits">' +
-        '<i style="width:' + pct + '%"></i></div>' +
+        '</div>' + balken +
         (rem <= 0 ? '<div class="lic-empty-note">Deine Credits sind für diesen Monat aufgebraucht. Buche Credits nach, um die KI weiter zu nutzen – sonst pausiert sie bis zum Monatswechsel.</div>' : '') + '</div>';
     } else {
       const over = aiTrialOver();
@@ -8333,9 +8342,10 @@ RENDERERS.dashboard = function () {
          daran haengen Goldrahmen und Schein. */
       const tier = (k, ic, name, price, curr, tag) => '<button class="lic-tier' + (curr ? ' active' : '') + (tag ? ' lic-top' : '') + '" data-lic="' + k + '">' + (tag ? '<span class="lic-tag">' + tag + '</span>' : '') + '<span class="lic-ic">' + ic + '</span><b>' + name + '</b><small>' + price + '</small></button>';
       /* Waehrend der Testphase zeigt derselbe Balken wie beim bezahlten Plan den
-         Verbrauch. Nach Ablauf entfaellt er – dann gibt es nichts mehr zu fuellen. */
+         Verbrauch. Nach Ablauf entfaellt er – dann gibt es nichts mehr zu
+         fuellen; bei noch unangetasteten Credits ebenso, siehe oben. */
       const pctT = lim > 0 ? Math.max(0, Math.min(100, Math.round(rem / lim * 100))) : 0;
-      const balken = over ? '' :
+      const balken = (over || pctT >= 100) ? '' :
         '<div class="credit-bar' + (rem <= 0 ? ' leer' : rem <= Math.max(5, lim * 0.2) ? ' knapp' : '') +
         '" role="progressbar" aria-valuenow="' + rem + '" aria-valuemin="0" aria-valuemax="' + lim +
         '" aria-label="Verbleibende KI-Credits"><i style="width:' + pctT + '%"></i></div>';
