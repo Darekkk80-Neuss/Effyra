@@ -1828,6 +1828,13 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .tier-feats{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:5px}
 .tier-feats li{font-size:13px;color:var(--muted)}
 .tier-cta{width:100%;padding:11px}
+/* Hinweis „eigener KI-Schlüssel" in der Paywall – bewusst leise: kleiner Satz
+   unter den Plan-Karten, kein Kasten mit Rahmen, kein Akzentfarben-Block. */
+.up-byok{margin:2px 0 14px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.045);
+  font-size:13px;line-height:1.5;text-align:left;color:var(--muted)}
+:root[data-theme="light"] .up-byok{background:rgba(10,15,30,.045)}
+.up-byok b{display:block;color:var(--text);font-size:13.5px;margin-bottom:3px}
+.up-byok .btn{margin-top:9px}
 .up-code{font-size:13px;margin-bottom:6px}
 .up-code summary{cursor:pointer;color:var(--muted);list-style:none}
 .up-code summary::-webkit-details-marker{display:none}
@@ -2061,6 +2068,15 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <button class="btn btn-primary tier-cta" data-buy="family">Familie starten – 14,99 €/Mon.</button>
       </div>
     </div>
+    <!-- Zurückhaltender Hinweis auf „eigener Schlüssel": bewusst KEINE dritte
+         gleichrangige Karte – das Angebot richtet sich nur an Nutzer, die schon
+         einen OpenAI-Zugang haben. Hier steht es aber richtig, weil der Nutzer
+         genau in diesem Moment über KI-Kosten nachdenkt. -->
+    <div class="up-byok" id="pwByok">
+      <b>Du hast schon einen eigenen OpenAI-Zugang?</b>
+      <span id="pwByokTxt">Dann genügt die Freischaltung dafür – du nutzt die KI ohne Credit-Limit und rechnest die Kosten direkt mit OpenAI ab.</span>
+      <button class="btn btn-sm" id="pwByokGo">Mehr dazu</button>
+    </div>
     <button class="btn up-dismiss" id="pwBack" style="display:none">Erst mal ohne KI weiter</button>
     <details class="up-code"><summary>Ich habe einen Freischalt-Code</summary>
       <div class="gate-fields" style="margin-top:10px">
@@ -2263,7 +2279,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
       <div class="task-add">
         <input type="text" id="taskTitle" placeholder="Neue Aufgabe …" maxlength="120">
-        <button class="btn btn-primary" id="taskAddBtn"><svg viewBox="0 0 24 24"><use href="#icPlus"/></svg></button>
+        <button class="btn btn-primary" id="taskAddBtn" title="Aufgabe hinzufügen" aria-label="Aufgabe hinzufügen"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPlus"/></svg></button>
       </div>
       <div class="task-opts">
         <input type="date" id="taskDue" title="Fällig am">
@@ -2312,7 +2328,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="sec-title"><h2 id="dayTitle"></h2><button id="evAddToggle">+ Termin</button></div>
         <div class="ev-form" id="evForm">
           <div class="row"><input type="text" id="evTitle" placeholder="Titel des Termins" maxlength="80"></div>
-          <div class="row"><input type="time" id="evTime"><select id="evRemind" title="Erinnerung" aria-label="Erinnerung">
+          <div class="row"><input type="time" id="evTime" title="Uhrzeit (optional)" aria-label="Uhrzeit (optional)"><select id="evRemind" title="Erinnerung" aria-label="Erinnerung">
             <option value="">Keine Erinnerung</option>
             <option value="0">Zum Zeitpunkt</option>
             <option value="30">30 Minuten vorher</option>
@@ -5716,6 +5732,7 @@ function showUpgrade(lockedView) {
   }
   pw.classList.add('on');
   try { loadPlayPrices(); } catch (e) { }   // echte Landespreise nachziehen, sobald Google antwortet
+  try { renderPwByok(); } catch (e) { }     // Hinweis auf „eigener Schlüssel" (nur wenn noch nicht freigeschaltet)
 }
 /* Stripe-Checkout. Mit Backend: echte Kartenzahlung; sonst Code-Fallback. */
 async function startCheckout(product) {
@@ -7125,6 +7142,13 @@ $('#pwGo').addEventListener('click', () => activatePremium($('#pwCode').value, $
 $('#pwCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pwGo').click(); });
 $('#pwLogout').addEventListener('click', logout);
 $('#paywall').addEventListener('click', e => { const buy = e.target.closest('[data-buy]'); if (buy) startCheckout(buy.dataset.buy); });
+/* „Mehr dazu" führt dorthin, wo die Freischaltung gekauft und der Schlüssel
+   hinterlegt wird – die Einstellungen. Kein zweiter Kaufweg in der Paywall. */
+if ($('#pwByokGo')) $('#pwByokGo').addEventListener('click', () => {
+  $('#paywall').classList.remove('on');
+  showView('settings');
+  setTimeout(() => { const b = $('#byokBox'); if (b) b.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 350);
+});
 $('#pwBack').addEventListener('click', () => { $('#paywall').classList.remove('on'); showView('dashboard'); toast(pickLang({ de: 'Alles gut – die App bleibt ohne KI voll nutzbar.', en: 'All good – the app stays fully usable without AI.', fr: 'Tout va bien – l’app reste pleinement utilisable sans IA.', es: 'Todo bien: la app sigue plenamente utilizable sin IA.', it: 'Tutto ok – l’app resta pienamente utilizzabile senza IA.', pl: 'W porządku – aplikacja pozostaje w pełni użyteczna bez AI.' })); });
 
 /* ============================== TASKS (Daten) ============================== */
@@ -8739,7 +8763,7 @@ function renderDayPanel() {
     (e.note ? '<small>' + esc(e.note) + '</small>' : '') +
     (e.remind != null ? '<small>🔔 ' + esc(REMIND_LABEL[e.remind] || 'Erinnerung') + '</small>' : '') + '</div>' +
     (SOURCE_LABEL[e.source] ? '<span class="src-badge">' + SOURCE_LABEL[e.source] + '</span>' : '') +
-    '<button class="t-del" data-act="del"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>').join('');
+    '<button class="t-del" data-act="del" title="Termin löschen" aria-label="Termin löschen: ' + esc(e.title) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icTrash"/></svg></button></div>').join('');
   /* Abholungen ohne Löschknopf: sie gehören dem Müllkalender, nicht dem Termin-Speicher. */
   const wsHTML = wst.map(x =>
     '<div class="ev"><span class="ev-time">' + x.ty.i + '</span>' +
@@ -11074,6 +11098,17 @@ function priceOf(key) {
   if (playPrices && playPrices[key]) return playPrices[key];
   const p = PLAY_PRODUCTS[key] || ADDON_PRODUCTS[key];
   return p ? String(p.price).replace(/\s*\/\s*Mon\.?$/, '') : '';
+}
+/* Hinweis „eigener KI-Schlüssel" in der Paywall füllen bzw. ausblenden.
+   Ausgeblendet wird er, wenn die Freischaltung bereits besteht oder Käufe
+   ausgeschaltet sind (STORE_SAFE) – dann wäre er nur noch Rauschen. */
+function renderPwByok() {
+  const box = $('#pwByok'); if (!box) return;
+  if (STORE_SAFE || (typeof hasByokLicense === 'function' && hasByokLicense()) || isChildUser()) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const t = $('#pwByokTxt');
+  if (t) t.textContent = 'Dann genügt die Freischaltung dafür – ' + priceOf('byokMonthly') + '/Monat oder ' +
+    priceOf('byokLifetime') + ' einmalig. Du nutzt die KI ohne Credit-Limit und rechnest die Kosten direkt mit OpenAI ab.';
 }
 /* Die bereits gezeichneten Oberflächen mit den echten Preisen nachziehen. */
 function applyPlayPrices() {
