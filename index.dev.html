@@ -1231,6 +1231,7 @@ body.store-safe [data-buy]{display:none!important}
 .cal-day.sel{background:var(--grad);color:#fff;box-shadow:0 6px 18px rgba(77,124,255,.45);transform:scale(1.03)}
 .cal-day .dots{display:flex;gap:3px;height:5px}
 .cal-day .dots i{width:5px;height:5px;border-radius:50%;background:#8FB0FF}
+.cal-day .dots i.dot-waste{background:#2BE0A0}   /* Müllabholung – vom Termin-Punkt unterscheidbar */
 .cal-day.sel .dots i{background:#fff}
 .day-panel{margin-top:16px}
 .day-panel h3{font-size:15px;margin-bottom:10px}
@@ -2272,6 +2273,14 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <option value="high">Hoch</option>
           <option value="low">Niedrig</option>
         </select>
+        <select id="taskRemind" title="Erinnerung" aria-label="Erinnerung">
+          <option value="">Keine Erinnerung</option>
+          <option value="0">Zum Zeitpunkt</option>
+          <option value="30">30 Minuten vorher</option>
+          <option value="60">1 Stunde vorher</option>
+          <option value="120">2 Stunden vorher</option>
+          <option value="1440">1 Tag vorher</option>
+        </select>
       </div>
       <div class="seg" id="taskSeg">
         <button data-f="open" class="active">Offen</button>
@@ -2303,7 +2312,15 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <div class="sec-title"><h2 id="dayTitle"></h2><button id="evAddToggle">+ Termin</button></div>
         <div class="ev-form" id="evForm">
           <div class="row"><input type="text" id="evTitle" placeholder="Titel des Termins" maxlength="80"></div>
-          <div class="row"><input type="time" id="evTime"><button class="btn btn-primary" id="evSave">Speichern</button></div>
+          <div class="row"><input type="time" id="evTime"><select id="evRemind" title="Erinnerung" aria-label="Erinnerung">
+            <option value="">Keine Erinnerung</option>
+            <option value="0">Zum Zeitpunkt</option>
+            <option value="30">30 Minuten vorher</option>
+            <option value="60">1 Stunde vorher</option>
+            <option value="120">2 Stunden vorher</option>
+            <option value="1440">1 Tag vorher</option>
+          </select></div>
+          <div class="row"><button class="btn btn-primary" id="evSave" style="width:100%">Speichern</button></div>
         </div>
         <div id="dayEvents"></div>
       </div>
@@ -2447,6 +2464,12 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <label class="btn" style="width:100%;cursor:pointer;justify-content:center">Oder ICS-Datei wählen<input type="file" id="wtIcsFile" accept=".ics,text/calendar" style="display:none"></label>
         <div class="sub" id="wtIcsStatus" style="margin-top:8px;min-height:1.2em" role="status" aria-live="polite"></div>
       </div>
+      <div class="card">
+        <h3 style="margin:0 0 4px">In deinen Gerätekalender übernehmen</h3>
+        <p class="sub" style="margin:0 0 10px">Ordela zeigt die Abholtermine im eigenen Kalender an. Wenn sie zusätzlich in deinem Google-, Apple- oder Outlook-Kalender stehen sollen, lade sie hier als Termindatei herunter und öffne sie – dein Kalender übernimmt sie dann.</p>
+        <button class="btn btn-primary" id="wtExportBtn" style="width:100%">Abholtermine als Kalenderdatei (.ics)</button>
+        <div class="sub" id="wtExportStatus" style="margin-top:8px;min-height:1.2em" role="status" aria-live="polite"></div>
+      </div>
       <div id="wasteRoot"></div>
     </section>
 
@@ -2574,20 +2597,20 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
       <div class="card set-card">
         <h3 aria-level="2">Echte KI <span class="status-pill" id="aiStatusSet" style="margin:0 0 0 6px"><span class="dot"></span><span class="lbl">Demo-Modus</span></span></h3>
-        <p class="sub">Die echte KI (Chat, Dokument- &amp; Bildanalyse) ist über den sicheren Ordela-Server aktiv – du brauchst dafür keinen eigenen Schlüssel. Optional kannst du einen eigenen OpenAI-Schlüssel hinterlegen, dann laufen die Anfragen direkt über dein Konto.</p>
-        <div class="set-row">
-          <input type="password" id="setKey" placeholder="sk-…" autocomplete="off">
-          <button class="btn btn-primary" id="setKeySave">Aktivieren</button>
-        </div>
+        <p class="sub">Die echte KI (Chat, Dokument- &amp; Bildanalyse) ist über den sicheren Ordela-Server aktiv – du brauchst dafür nichts einzurichten.</p>
         <div style="margin-top:10px">
           <label class="fld" for="setModel">Modell</label>
           <select id="setModel">
             <option value="gpt-5-mini">GPT-5 mini – empfohlen</option>
-            <option value="gpt-4o-mini">GPT-4o mini – nur mit eigenem Schlüssel</option>
+            <option value="gpt-4o-mini">GPT-4o mini</option>
           </select>
         </div>
-        <div class="note-box"><b>Privat:</b> Der Schlüssel wird nur in deinem Browser gespeichert (localStorage) und direkt an die OpenAI-API gesendet – niemals an andere Server. Einen Schlüssel bekommst du unter <b>platform.openai.com</b>.</div>
-        <div style="margin-top:10px"><button class="btn btn-sm btn-danger" id="setKeyClear">Schlüssel entfernen</button></div>
+      </div>
+
+      <div class="card set-card">
+        <h3 aria-level="2">Eigener KI-Schlüssel</h3>
+        <p class="sub">Du hast einen eigenen OpenAI-Zugang? Dann kannst du ihn hier hinterlegen und die KI <b>ohne unser Credit-Limit</b> nutzen – die Nutzung rechnest du direkt mit OpenAI ab. Die Freischaltung dieser Möglichkeit ist kostenpflichtig.</p>
+        <div id="byokBox"></div>
       </div>
 
       <div class="card set-card">
@@ -4124,7 +4147,7 @@ const TDICT_SRC = {
   'Guten Tag': { en: 'Hello', fr: 'Bonjour', es: 'Hola', it: 'Ciao', pl: 'Cześć' },
   'Guten Abend': { en: 'Good evening', fr: 'Bonsoir', es: 'Buenas tardes', it: 'Buonasera', pl: 'Dobry wieczór' },
   'Gute Nacht': { en: 'Good night', fr: 'Bonne nuit', es: 'Buenas noches', it: 'Buonanotte', pl: 'Dobranoc' },
-  'Deine Plattform ist bereit': { en: 'Your platform is ready', fr: 'Ta plateforme est prête', es: 'Tu plataforma está lista', it: 'La tua piattaforma è pronta', pl: 'Twoja platforma jest gotowa' },
+  'Das Betriebssystem für deinen Alltag': { en: 'The operating system for your everyday life', fr: 'Le système d’exploitation de ton quotidien', es: 'El sistema operativo de tu día a día', it: 'Il sistema operativo della tua quotidianità', pl: 'System operacyjny Twojej codzienności' },
   'Schön, dass du da bist.': { en: 'Good to have you here.', fr: 'Quel plaisir de te voir.', es: 'Qué bueno tenerte aquí.', it: 'Che bello averti qui.', pl: 'Dobrze, że jesteś.' },
   'Start-Erlebnis': { en: 'Startup experience', fr: 'Expérience de démarrage', es: 'Experiencia de inicio', it: 'Esperienza d’avvio', pl: 'Ekran startowy' },
   'Beim Öffnen begrüßt dich Ordela mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.': { en: 'When you open the app, Ordela greets you by name – depending on the time of day, with a short startup sound.', fr: 'À l’ouverture, Ordela t’accueille par ton prénom – selon l’heure, avec un court son de démarrage.', es: 'Al abrir, Ordela te saluda por tu nombre, según la hora del día, con un breve sonido de inicio.', it: 'All’apertura, Ordela ti saluta per nome – a seconda dell’ora, con un breve suono d’avvio.', pl: 'Po otwarciu Ordela wita Cię imieniem – zależnie od pory dnia, z krótkim dźwiękiem startowym.' },
@@ -4278,6 +4301,20 @@ const TDICT_SRC = {
   'Arbeit abnehmen.': { en: 'Take work off your plate.', fr: 'Te soulager du travail.', es: 'Quitarte trabajo de encima.', it: 'Toglierti lavoro.', pl: 'Zdejmować z Ciebie pracę.' },
   'Nicht nur Informationen liefern –': { en: 'Not just deliver information –', fr: "Pas seulement fournir des informations –", es: 'No solo dar información –', it: 'Non solo fornire informazioni –', pl: 'Nie tylko dostarczać informacji –' },
   'Was Ordela für dich tut': { en: 'What Ordela does for you', fr: 'Ce qu’Ordela fait pour toi', es: 'Lo que Ordela hace por ti', it: 'Cosa fa Ordela per te', pl: 'Co Ordela robi dla Ciebie' },
+  /* ---- App-Führung (Spotlight-Tour beim ersten Start) ---- */
+  'Willkommen bei Ordela 👋': { en: 'Welcome to Ordela 👋', fr: 'Bienvenue dans Ordela 👋', es: 'Bienvenido a Ordela 👋', it: 'Benvenuto in Ordela 👋', pl: 'Witaj w Ordeli 👋' },
+  'Eine kurze Führung – etwa 30 Sekunden. Du kannst sie jederzeit überspringen.': { en: 'A quick tour – about 30 seconds. You can skip it any time.', fr: 'Une visite rapide – environ 30 secondes. Tu peux la passer à tout moment.', es: 'Un recorrido rápido: unos 30 segundos. Puedes omitirlo cuando quieras.', it: 'Un breve tour – circa 30 secondi. Puoi saltarlo quando vuoi.', pl: 'Krótki przewodnik – około 30 sekund. Możesz go pominąć w każdej chwili.' },
+  'Briefe verstehen': { en: 'Understand letters', fr: 'Comprendre les courriers', es: 'Entender cartas', it: 'Capire le lettere', pl: 'Zrozum pisma' },
+  'Fotografier einen Brief – Ordela erklärt ihn in einfachen Worten und erkennt Fristen automatisch.': { en: 'Photograph a letter – Ordela explains it in plain words and spots deadlines automatically.', fr: 'Photographie un courrier – Ordela l’explique simplement et repère les délais automatiquement.', es: 'Fotografía una carta: Ordela la explica con palabras sencillas y detecta los plazos automáticamente.', it: 'Fotografa una lettera – Ordela la spiega con parole semplici e riconosce le scadenze automaticamente.', pl: 'Zrób zdjęcie pisma – Ordela wyjaśni je prostymi słowami i automatycznie rozpozna terminy.' },
+  'Tipp einfach los, was dir einfällt. Ordela sortiert Notizen, Aufgaben und Termine von selbst ein.': { en: 'Just start typing whatever comes to mind. Ordela files notes, tasks and appointments by itself.', fr: 'Écris simplement ce qui te vient à l’esprit. Ordela classe notes, tâches et rendez-vous tout seul.', es: 'Escribe lo que se te ocurra. Ordela clasifica notas, tareas y citas por sí solo.', it: 'Scrivi semplicemente quello che ti viene in mente. Ordela smista da solo note, attività e appuntamenti.', pl: 'Po prostu zacznij pisać. Ordela sama posortuje notatki, zadania i terminy.' },
+  'Sag in eigenen Worten, was ansteht – Ordela plant, erinnert und organisiert für dich.': { en: 'Say in your own words what’s coming up – Ordela plans, reminds and organises for you.', fr: 'Dis avec tes mots ce qui t’attend – Ordela planifie, rappelle et organise pour toi.', es: 'Di con tus palabras qué tienes pendiente: Ordela planifica, recuerda y organiza por ti.', it: 'Di’ con parole tue che cosa ti aspetta – Ordela pianifica, ricorda e organizza per te.', pl: 'Powiedz własnymi słowami, co Cię czeka – Ordela zaplanuje, przypomni i zorganizuje.' },
+  'Startseite anpassen': { en: 'Customise your home screen', fr: 'Personnaliser l’accueil', es: 'Personalizar la pantalla de inicio', it: 'Personalizza la schermata iniziale', pl: 'Dostosuj ekran główny' },
+  'Über diesen Knopf wählst du, welche Kacheln du auf der Startseite siehst – ein- und ausschalten, per Ziehen umsortieren.': { en: 'This button lets you choose which cards appear on your home screen – switch them on or off and drag to reorder.', fr: 'Ce bouton te permet de choisir les cartes affichées sur l’accueil – active-les ou désactive-les, et réorganise-les en les faisant glisser.', es: 'Con este botón eliges qué tarjetas ves en la pantalla de inicio: actívalas o desactívalas y arrástralas para reordenarlas.', it: 'Con questo pulsante scegli quali riquadri vedere nella schermata iniziale: attivali o disattivali e trascinali per riordinarli.', pl: 'Tym przyciskiem wybierzesz, które kafelki widzisz na ekranie głównym – włączaj, wyłączaj i przeciągaj, by zmienić kolejność.' },
+  'Alle Bereiche': { en: 'All areas', fr: 'Tous les domaines', es: 'Todas las secciones', it: 'Tutte le sezioni', pl: 'Wszystkie sekcje' },
+  'Hier findest du Kalender, Dokumente, den Behörden-Wegweiser, Müllkalender, Lebenslagen und mehr.': { en: 'Here you’ll find the calendar, documents, the authority guide, waste calendar, life situations and more.', fr: 'Tu y trouveras l’agenda, les documents, le guide des administrations, le calendrier des déchets, les situations de vie et plus encore.', es: 'Aquí encuentras el calendario, los documentos, la guía de administraciones, el calendario de basura, las situaciones de vida y más.', it: 'Qui trovi calendario, documenti, guida agli uffici, calendario dei rifiuti, situazioni della vita e altro.', pl: 'Tu znajdziesz kalendarz, dokumenty, przewodnik po urzędach, kalendarz odpadów, sytuacje życiowe i więcej.' },
+  'Fertig – viel Erfolg! 🎉': { en: 'All set – enjoy! 🎉', fr: 'C’est prêt – bonne route ! 🎉', es: '¡Listo, mucho éxito! 🎉', it: 'Fatto – buon lavoro! 🎉', pl: 'Gotowe – powodzenia! 🎉' },
+  'Sprache, Barrierefreiheit und Hilfe findest du in den Einstellungen. Die Führung kannst du dort neu starten.': { en: 'Language, accessibility and help are in Settings. You can restart this tour there too.', fr: 'La langue, l’accessibilité et l’aide se trouvent dans les réglages. Tu peux y relancer la visite.', es: 'El idioma, la accesibilidad y la ayuda están en Ajustes. Allí también puedes reiniciar el recorrido.', it: 'Lingua, accessibilità e aiuto sono nelle impostazioni. Lì puoi anche riavviare il tour.', pl: 'Język, dostępność i pomoc znajdziesz w ustawieniach. Tam też uruchomisz przewodnik ponownie.' },
+  'Führung überspringen': { en: 'Skip the tour', fr: 'Passer la visite', es: 'Omitir el recorrido', it: 'Salta il tour', pl: 'Pomiń przewodnik' },
   'Dokumente verstehen': { en: 'Understand documents', fr: 'Comprendre les documents', es: 'Entender documentos', it: 'Capire i documenti', pl: 'Zrozum dokumenty' },
   'Dokumente verstehen · Fristen erkennen · Aufgaben & Termine organisieren · KI-Chat.': { en: 'Understand documents · spot deadlines · organize tasks & events · AI chat.', fr: 'Comprendre les documents · repérer les échéances · organiser tâches et événements · chat IA.', es: 'Entender documentos · detectar plazos · organizar tareas y eventos · chat con IA.', it: 'Capire i documenti · individuare le scadenze · organizzare attività ed eventi · chat IA.', pl: 'Zrozum dokumenty · wykrywaj terminy · organizuj zadania i wydarzenia · czat AI.' },
   'Brief fotografieren – Ordela AI liest den Text, erklärt ihn, erkennt Fristen und verteilt alles automatisch.': { en: 'Photograph a letter – Ordela AI reads the text, explains it, spots deadlines and files everything automatically.', fr: "Photographie un courrier – Ordela AI lit le texte, l'explique, repère les échéances et classe tout automatiquement.", es: 'Fotografía una carta: Ordela AI lee el texto, lo explica, detecta plazos y lo organiza todo automáticamente.', it: 'Fotografa una lettera – Ordela AI legge il testo, lo spiega, individua le scadenze e sistema tutto automaticamente.', pl: 'Zrób zdjęcie pisma – Ordela AI odczyta tekst, wyjaśni go, wykryje terminy i wszystko automatycznie rozdzieli.' },
@@ -5774,6 +5811,7 @@ const TOUR_STEPS = [
   { title: 'Willkommen bei Ordela 👋', text: 'Eine kurze Führung – etwa 30 Sekunden. Du kannst sie jederzeit überspringen.' },
   { sel: '#qaDoc', title: 'Briefe verstehen', text: 'Fotografier einen Brief – Ordela erklärt ihn in einfachen Worten und erkennt Fristen automatisch.' },
   { sel: '#captureInput', title: 'Schnell erfassen', text: 'Tipp einfach los, was dir einfällt. Ordela sortiert Notizen, Aufgaben und Termine von selbst ein.' },
+  { sel: '#dashCustomize', title: 'Startseite anpassen', text: 'Über diesen Knopf wählst du, welche Kacheln du auf der Startseite siehst – ein- und ausschalten, per Ziehen umsortieren.' },
   { sel: '#tabAI', title: 'Frag Ordela', text: 'Sag in eigenen Worten, was ansteht – Ordela plant, erinnert und organisiert für dich.' },
   { sel: '#moreTab', title: 'Alle Bereiche', text: 'Hier findest du Kalender, Dokumente, den Behörden-Wegweiser, Müllkalender, Lebenslagen und mehr.' },
   { title: 'Fertig – viel Erfolg! 🎉', text: 'Sprache, Barrierefreiheit und Hilfe findest du in den Einstellungen. Die Führung kannst du dort neu starten.' }
@@ -5808,11 +5846,16 @@ function tourShow(i) {
   if (i < 0) i = 0;
   tourIdx = i;
   const ov = tourEl(), step = TOUR_STEPS[i];
-  ov.querySelector('#tourTitle').textContent = step.title;
-  ov.querySelector('#tourText').textContent = step.text;
+  /* Die Führung liegt in einem eigenen Overlay über der App. Statt auf den
+     DOM-Sweep zu vertrauen, wird hier direkt übersetzt – wie im Boot-Screen. */
+  const tt = (s) => (curLang === 'de' ? s : (lookupTr(s) || s));
+  ov.querySelector('#tourTitle').textContent = tt(step.title);
+  ov.querySelector('#tourText').textContent = tt(step.text);
   ov.querySelectorAll('#tourDots i').forEach((d, k) => d.classList.toggle('on', k === i));
   ov.querySelector('#tourBack').style.visibility = i === 0 ? 'hidden' : 'visible';
-  ov.querySelector('#tourNext').textContent = i === TOUR_STEPS.length - 1 ? 'Fertig' : 'Weiter';
+  ov.querySelector('#tourBack').textContent = tt('Zurück');
+  ov.querySelector('#tourSkip').textContent = tt('Führung überspringen');
+  ov.querySelector('#tourNext').textContent = tt(i === TOUR_STEPS.length - 1 ? 'Fertig' : 'Weiter');
   const el = step.sel ? $(step.sel) : null;
   const r0 = el && el.getBoundingClientRect();
   const vis = !!(r0 && r0.width > 0 && r0.height > 0);
@@ -5820,8 +5863,12 @@ function tourShow(i) {
   if (tourPinned(el)) { tourPosition(el); return; }   // Tabbar/Topbar: immer sichtbar, kein Scroll/inView
   tourScrollCenter(el);
   setTimeout(() => {
-    const r = el.getBoundingClientRect(), cy = r.top + r.height / 2;   // wirklich im Blick? sonst zentrierte Karte
-    const inView = r.width > 0 && cy > 56 && cy < window.innerHeight - 56;
+    /* Wirklich im Blick? Geprüft wird die ECHTE Überlappung mit dem Sichtfeld –
+       eine feste Randmarge schloss sonst Elemente ganz oben (z. B. den Knopf
+       „Startseite anpassen" in der Kopfzeile) fälschlich aus, obwohl sie
+       sichtbar sind. Sonst: zentrierte Karte mit demselben Text. */
+    const r = el.getBoundingClientRect();
+    const inView = r.width > 0 && r.bottom > 4 && r.top < window.innerHeight - 4;
     tourPosition(inView ? el : null);
   }, 130);
 }
@@ -6084,7 +6131,18 @@ const aiRemaining = () => Math.max(0, aiLimit() - aiUsed());
 function aiMonthBase() { ensureAIQuota(); const b = account.ai.base; return (typeof b === 'number') ? b : aiBase(); }
 function aiExtraCredits() { ensureAIQuota(); return Math.max(0, account.ai.extra || 0); }
 function aiPct() { const l = aiLimit(); return l ? Math.min(100, Math.round(aiUsed() / l * 100)) : 0; }
-const usingOwnKey = () => hasKey();                 // eigener Schlüssel = unbegrenzt, zählt nicht aufs Kontingent
+/* Lizenz für den eigenen KI-Schlüssel („bring your own key").
+   Der Schlüssel selbst gehört dem Nutzer – er zahlt seine OpenAI-Nutzung direkt
+   dort. Kostenpflichtig ist bei uns nur die FREISCHALTUNG dieser Möglichkeit
+   (Monatsabo oder einmalig dauerhaft). Vor dem 24.07.2026 war sie gratis. */
+function hasByokLicense() {
+  if (!account) return false;
+  if (account.byokLifetime) return true;
+  return !!(account.byokUntil && new Date(account.byokUntil).getTime() > Date.now());
+}
+/* Eigener Schlüssel wirkt nur mit gültiger Freischaltung – dann unbegrenzt und
+   ohne Verbrauch unseres Kontingents (die Kosten trägt der eigene Schlüssel). */
+const usingOwnKey = () => hasKey() && hasByokLicense();
 /* Kinderkonto? (Rolle child) – Sicherheitsanforderung: Kinder dürfen NIE KI nutzen / keinen API-Key hinterlegen.
    In Phase 1 ist der Geräte-Account immer 18+ (Owner); voll wirksam mit Pro-Mitglied-Login in Phase 2. */
 const isChildUser = () => !!(account && account.role === 'child');
@@ -6357,6 +6415,17 @@ async function syncEntitlements() {
       account.viaFamily = !!r.data.via_family;          // Premium über das Familienabo eines Mitglieds geerbt
       account.familyUntil = r.data.family_until || null;
       account.aiScope = r.data.ai_scope || 'personal';  // 'family' = KI läuft auf gemeinsamem Familien-Topf
+      /* Freischaltung „eigener KI-Schlüssel". Eigener RPC statt Erweiterung von
+         get_entitlements: hält die große Funktion unangetastet. Schlägt der Aufruf
+         fehl (SQL noch nicht eingespielt), bleibt der bisherige Stand stehen –
+         niemand verliert dadurch eine bezahlte Freischaltung. */
+      try {
+        const b = await sb.rpc('byok_status');
+        if (b && !b.error && b.data) {
+          account.byokUntil = b.data.until || null;
+          account.byokLifetime = !!b.data.lifetime;
+        }
+      } catch (e) { }
       account.familyAiUsed = (typeof r.data.family_ai_used === 'number') ? r.data.family_ai_used : null;
       account.familyAiLimit = (typeof r.data.family_ai_limit === 'number') ? r.data.family_ai_limit : null;
       // Zugebuchte Sitzplätze vom Server spiegeln → Kapazität stimmt geräteübergreifend / nach Reinstall
@@ -7083,6 +7152,65 @@ function addEvent(title, date, time, note, source, extra) {
   save();
   return ev;
 }
+/* ============================== LOKALE ERINNERUNGEN ==============================
+   Pro Termin/Aufgabe wählbar: 0 / 30 Min / 1 Std / 2 Std / 1 Tag vorher (Feld
+   `remind` = Minuten davor). Solange die App offen ist, prüft ein Wecker jede
+   Minute und zeigt eine echte System-Benachrichtigung.
+   Bewusste Grenze: Ein Browser kann nichts zeigen, während die App vollständig
+   geschlossen ist – dafür gibt es die serverseitigen Push-Erinnerungen. Verpasste
+   Erinnerungen werden beim nächsten Öffnen nachgeholt (bis 12 Std danach). */
+const REMIND_LABEL = { 0: 'zum Zeitpunkt', 30: '30 Minuten vorher', 60: '1 Stunde vorher', 120: '2 Stunden vorher', 1440: '1 Tag vorher' };
+/* Zeitpunkt, zu dem erinnert werden soll (ms) – oder null. */
+function remindAtMs(item, dateISO) {
+  if (item.remind == null || !dateISO) return null;
+  const d = parseISO(dateISO);
+  const hhmm = item.time && /^\d{1,2}:\d{2}$/.test(item.time) ? item.time.split(':') : null;
+  if (hhmm) d.setHours(Number(hhmm[0]), Number(hhmm[1]), 0, 0);
+  else d.setHours(9, 0, 0, 0);            // ohne Uhrzeit: 9 Uhr als Bezug, sonst käme die Erinnerung um Mitternacht
+  return d.getTime() - Number(item.remind) * 60000;
+}
+function askNotifyPermission() {
+  try {
+    if (typeof Notification === 'undefined') { toast('Dieses Gerät kann keine Erinnerungen anzeigen.'); return; }
+    if (Notification.permission === 'granted') return;
+    if (Notification.permission === 'denied') { toast('Benachrichtigungen sind blockiert – die Erinnerung erscheint dann nur als Hinweis in der App.'); return; }
+    Notification.requestPermission().then(p => {
+      if (p !== 'granted') toast('Ohne Erlaubnis erscheint die Erinnerung nur als Hinweis in der App.');
+    }).catch(() => { });
+  } catch (e) { }
+}
+/* Zeigt die Erinnerung: System-Benachrichtigung, sonst wenigstens ein Hinweis in der App. */
+function fireReminder(titel, wann) {
+  const body = wann ? ('Fällig: ' + wann) : '';
+  let gezeigt = false;
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      const n = new Notification('' + titel, { body, tag: 'ordela-remind-' + titel, icon: './icon-192.png' });
+      n.onclick = () => { try { window.focus(); } catch (e) { } n.close(); };
+      gezeigt = true;
+    }
+  } catch (e) { }
+  if (!gezeigt) toast('' + titel + (body ? ' – ' + body : ''));
+}
+function checkReminders() {
+  const jetzt = Date.now(), MAXALT = 12 * 3600e3;   // älter als 12 Std: nicht mehr nachträglich stören
+  let geaendert = false;
+  const faellig = (item, dateISO, praefix) => {
+    const at = remindAtMs(item, dateISO);
+    if (at == null || item.remindedAt) return;
+    if (jetzt < at || jetzt - at > MAXALT) return;
+    item.remindedAt = jetzt; geaendert = true;
+    const zeit = item.time ? (item.time + ' Uhr') : fmtDateShort(dateISO);
+    fireReminder(praefix + item.title, zeit);
+  };
+  (store.events || []).forEach(e => faellig(e, e.date, ''));
+  (store.tasks || []).forEach(t => { if (!t.done) faellig(t, t.due, ''); });
+  if (geaendert) save();
+}
+/* Jede Minute prüfen, solange die App offen ist – plus sofort beim Öffnen/Zurückkehren. */
+setInterval(() => { try { checkReminders(); } catch (e) { } }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { checkReminders(); } catch (e) { } } });
+
 /* Deckt ein (evtl. mehrtägiger/wiederkehrender) Termin dieses Datum ab? */
 function eventCoversDate(e, iso) {
   const start = e.date, end = e.endDate || e.date;
@@ -7093,6 +7221,29 @@ function eventCoversDate(e, iso) {
 }
 const eventsOn = (iso) => store.events.filter(e => eventCoversDate(e, iso))
   .sort((a, b) => (a.time || '99') < (b.time || '99') ? -1 : 1);
+/* Müllabholungen liegen bewusst NICHT in store.events (sie werden aus Regeln
+   bzw. dem importierten Gemeindekalender berechnet und beim Neuimport ersetzt).
+   Damit sie im Kalender trotzdem sichtbar sind, werden sie hier als
+   schreibgeschützte Pseudo-Termine eingeblendet – sie lassen sich im Kalender
+   also nicht löschen, sondern nur im Müllkalender selbst. Genau das fehlte:
+   die Abholtermine tauchten im Kalender überhaupt nicht auf. */
+function wasteOn(iso) {
+  const out = [];
+  (store.waste || []).forEach(w => {
+    const ty = (typeof wType === 'function') ? wType(w.type) : { i: '🗑️', l: 'Abholung' };
+    if (w.dates && w.dates.length) { if (w.dates.indexOf(iso) >= 0) out.push({ w, ty }); return; }
+    if (typeof wasteHitsDate === 'function' ? wasteHitsDate(w, iso) : false) out.push({ w, ty });
+  });
+  return out;
+}
+/* Trifft eine Wochentags-Regel diesen Tag? (gleiche Logik wie wasteNext, aber für ein festes Datum) */
+function wasteHitsDate(w, iso) {
+  const d = parseISO(iso);
+  if (d.getDay() !== Number(w.weekday)) return false;
+  if (w.freq === 'weekly') return true;
+  const even = isoWeekNum(d) % 2 === 0;
+  return (w.freq === 'biweeklyA' && even) || (w.freq === 'biweeklyB' && !even);
+}
 const upcomingEvents = (n) => store.events.filter(e => e.date >= todayISO())
   .sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, n);
 
@@ -8419,7 +8570,10 @@ RENDERERS.tasks = function () {
 $('#taskAddBtn').addEventListener('click', () => {
   const title = $('#taskTitle').value;
   if (!title.trim()) { $('#taskTitle').focus(); return; }
-  addTask(title, $('#taskDue').value || null, $('#taskPrio').value, 'manual', $('#taskTime').value || null);
+  const tk = addTask(title, $('#taskDue').value || null, $('#taskPrio').value, 'manual', $('#taskTime').value || null);
+  const rem = ($('#taskRemind') || {}).value;
+  if (tk && rem !== '' && tk.due) { tk.remind = Number(rem); save(); askNotifyPermission(); }
+  else if (tk && rem !== '' && !tk.due) toast('Für eine Erinnerung braucht die Aufgabe ein Fälligkeitsdatum.');
   $('#taskTitle').value = ''; $('#taskDue').value = ''; $('#taskTime').value = '';
   refresh();
   toast('Aufgabe angelegt ✓');
@@ -8559,10 +8713,15 @@ RENDERERS.calendar = function () {
     const iso = toISO(d);
     const dim = d.getMonth() !== calCur.m;
     const evs = eventsOn(iso);
-    const nEv = evs.length;
-    const aLbl = esc(d.toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }) + (nEv ? ', ' + nEv + ' ' + (nEv === 1 ? 'Termin' : 'Termine') : '') + (iso === today ? ', heute' : '') + (iso === selDate ? ', ausgewählt' : ''));
+    const wst = wasteOn(iso);                       // Abholungen mit anzeigen (lagen vorher nur im Müllmodul)
+    const nEv = evs.length, nW = wst.length;
+    const aLbl = esc(d.toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }) +
+      (nEv ? ', ' + nEv + ' ' + (nEv === 1 ? 'Termin' : 'Termine') : '') +
+      (nW ? ', ' + wst.map(x => x.w.label || x.ty.l).join(', ') : '') +
+      (iso === today ? ', heute' : '') + (iso === selDate ? ', ausgewählt' : ''));
+    const dots = evs.slice(0, 3).map(() => '<i></i>').join('') + wst.slice(0, 2).map(() => '<i class="dot-waste"></i>').join('');
     html += '<button class="cal-day' + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === selDate ? ' sel' : '') + '" data-date="' + iso + '" aria-label="' + aLbl + '"' + (iso === today ? ' aria-current="date"' : '') + '><span aria-hidden="true">' +
-      d.getDate() + '</span><span class="dots" aria-hidden="true">' + evs.slice(0, 3).map(() => '<i></i>').join('') + '</span></button>';
+      d.getDate() + '</span><span class="dots" aria-hidden="true">' + dots + '</span></button>';
   }
   $('#calGrid').innerHTML = html;
   renderDayPanel();
@@ -8572,13 +8731,22 @@ RENDERERS.calendar = function () {
 function renderDayPanel() {
   $('#dayTitle').textContent = t('day.events_on', { date: fmtDate(selDate) });
   const evs = eventsOn(selDate);
-  $('#dayEvents').innerHTML = !evs.length
+  const wst = wasteOn(selDate);
+  const evHTML = evs.map(e =>
+    '<div class="ev" data-id="' + e.id + '"><span class="ev-time">' + (e.time ? esc(e.time) : '–') + '</span>' +
+    '<div class="ev-tx">' + esc(e.title) +
+    (e.note ? '<small>' + esc(e.note) + '</small>' : '') +
+    (e.remind != null ? '<small>🔔 ' + esc(REMIND_LABEL[e.remind] || 'Erinnerung') + '</small>' : '') + '</div>' +
+    (SOURCE_LABEL[e.source] ? '<span class="src-badge">' + SOURCE_LABEL[e.source] + '</span>' : '') +
+    '<button class="t-del" data-act="del"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>').join('');
+  /* Abholungen ohne Löschknopf: sie gehören dem Müllkalender, nicht dem Termin-Speicher. */
+  const wsHTML = wst.map(x =>
+    '<div class="ev"><span class="ev-time">' + x.ty.i + '</span>' +
+    '<div class="ev-tx">' + esc(x.w.label || x.ty.l) + '<small>Abholung</small></div>' +
+    '<span class="src-badge">Müllkalender</span></div>').join('');
+  $('#dayEvents').innerHTML = (!evs.length && !wst.length)
     ? '<div class="empty">Keine Termine an diesem Tag.</div>'
-    : evs.map(e =>
-      '<div class="ev" data-id="' + e.id + '"><span class="ev-time">' + (e.time ? esc(e.time) : '–') + '</span>' +
-      '<div class="ev-tx">' + esc(e.title) + (e.note ? '<small>' + esc(e.note) + '</small>' : '') + '</div>' +
-      (SOURCE_LABEL[e.source] ? '<span class="src-badge">' + SOURCE_LABEL[e.source] + '</span>' : '') +
-      '<button class="t-del" data-act="del"><svg viewBox="0 0 24 24"><use href="#icTrash"/></svg></button></div>').join('');
+    : (evHTML + wsHTML);
 }
 
 function renderUpcoming() {
@@ -8608,10 +8776,12 @@ $('#evAddToggle').addEventListener('click', () => {
 $('#evSave').addEventListener('click', () => {
   const t = $('#evTitle').value;
   if (!t.trim()) { $('#evTitle').focus(); return; }
-  addEvent(t, selDate, $('#evTime').value || null, '', 'manual');
+  const rem = ($('#evRemind') || {}).value;
+  const ev = addEvent(t, selDate, $('#evTime').value || null, '', 'manual', rem === '' ? null : { remind: Number(rem) });
   $('#evTitle').value = ''; $('#evTime').value = '';
   $('#evForm').classList.remove('on');
   refresh();
+  if (ev && ev.remind != null) askNotifyPermission();   // erst fragen, wenn wirklich eine Erinnerung gewünscht ist
   toast('Termin gespeichert ✓');
 });
 $('#dayEvents').addEventListener('click', e => {
@@ -10864,7 +11034,12 @@ async function dgsRetry(fn, tries) {
 const PLAY_PRODUCTS = {
   premium:  { id: 'effyra_premium',  type: 'subs',       kind: 'premium',  label: 'Ordela Premium',   price: '4,99 €/Mon.' },
   family:   { id: 'effyra_family',   type: 'subs',       kind: 'family',   label: 'Familienabo',      price: '14,99 €/Mon.' },
-  topup:    { id: 'effyra_ai_boost', type: 'consumable', kind: 'topup',    label: 'KI-Credits +1000', price: '4,99 €' }
+  topup:    { id: 'effyra_ai_boost', type: 'consumable', kind: 'topup',    label: 'KI-Credits +1000', price: '4,99 €' },
+  /* Eigener Schluessel („bring your own key"): Der Nutzer hinterlegt seinen eigenen
+     OpenAI-Schluessel und rechnet die KI-Nutzung direkt mit OpenAI ab. Freigeschaltet
+     wird die MOEGLICHKEIT dazu – als Monatsabo oder einmalig dauerhaft. */
+  byokMonthly:  { id: 'effyra_byok_monthly',  type: 'subs',  kind: 'byok_monthly',  label: 'Eigener KI-Schlüssel (Monat)', price: '1,99 €/Mon.' },
+  byokLifetime: { id: 'effyra_byok_lifetime', type: 'inapp', kind: 'byok_lifetime', label: 'Eigener KI-Schlüssel (dauerhaft)', price: '24,99 €' }
 };
 /* Kauf über Google Play Billing (nur in der TWA verfügbar). Der purchaseToken wird
    serverseitig via Play Developer API verifiziert (supabase/functions/play-verify),
@@ -10925,7 +11100,9 @@ async function startPlayPurchase(product) {
    damit Verlängerungen greifen (auch ohne RTDN). Nur in der TWA mit Play Billing + angemeldet. */
 async function reverifyActivePurchases() {
   if (!hasPlayBilling() || !(CLOUD && sb && account && account.loggedIn)) return;
-  const SUB_SKUS = ['effyra_premium', 'effyra_family', 'effyra_adult', 'effyra_child'];   // Abos + Add-ons (keine Consumables)
+  // Abos + Add-ons + Dauerkäufe (keine Consumables). byok_lifetime muss mit: ein Einmalkauf
+  // muss nach Neuinstallation wiederhergestellt werden, sonst wäre die bezahlte Freischaltung weg.
+  const SUB_SKUS = ['effyra_premium', 'effyra_family', 'effyra_adult', 'effyra_child', 'effyra_byok_monthly', 'effyra_byok_lifetime'];
   try {
     const service = await window.getDigitalGoodsService('https://play.google.com/billing');
     if (!service || typeof service.listPurchases !== 'function') return;
@@ -11240,7 +11417,7 @@ function bootExperience() {
   if (document.getElementById('bootFx')) return;
   const name = (store.name || (account && account.name) || '').trim();
   const hi = greetWord() + (name ? ', ' + name : '');
-  const sub = (curLang === 'de' ? 'Deine Plattform ist bereit' : (lookupTr('Deine Plattform ist bereit') || 'Deine Plattform ist bereit'));
+  const sub = (curLang === 'de' ? 'Das Betriebssystem für deinen Alltag' : (lookupTr('Das Betriebssystem für deinen Alltag') || 'Das Betriebssystem für deinen Alltag'));
   const ov = document.createElement('div');
   ov.id = 'bootFx'; ov.setAttribute('data-noi18n', ''); ov.setAttribute('role', 'status');
   ov.innerHTML = '<div class="bootfx-orb"></div>' +
@@ -14143,6 +14320,66 @@ if ($('#wtIcsFile')) $('#wtIcsFile').addEventListener('change', async (e) => {
   try { const txt = await f.text(); if (!/BEGIN:VCALENDAR/i.test(txt)) throw new Error('kein ICS'); importWasteEvents(parseICS(txt)); }
   catch (err) { setWtStatus('Das war keine gültige ICS-Datei.'); }
   e.target.value = '';
+});
+
+/* ---- Abholtermine in den Gerätekalender ----
+   Web-Apps dürfen NICHT direkt in den Gerätekalender schreiben – dafür gibt es
+   keine Browser-Schnittstelle und folglich auch keine Berechtigung, die man
+   erfragen könnte. Der verlässliche Weg ist eine Termindatei (.ics), die der
+   Kalender des Geräts übernimmt. Genau das macht dieser Export – inklusive
+   Erinnerung am Vorabend. */
+function wasteAllDates(monate) {
+  /* addDays nimmt einen ISO-String UND liefert einen ISO-String zurück – kein toISO() darum herum. */
+  const t0 = toISO(new Date()), bis = addDays(t0, (monate || 12) * 30);
+  const out = [];
+  (store.waste || []).forEach(w => {
+    const ty = wType(w.type), name = w.label || ty.l;
+    if (w.dates && w.dates.length) {
+      w.dates.forEach(d => { if (d >= t0) out.push({ date: d, name }); });
+      return;
+    }
+    for (let d = t0; d <= bis; d = addDays(d, 1)) if (wasteHitsDate(w, d)) out.push({ date: d, name });
+  });
+  return out.sort((a, b) => a.date < b.date ? -1 : 1);
+}
+function buildWasteICS() {
+  const stamp = toISO(new Date()).replace(/-/g, '') + 'T080000Z';
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Gonsoft labs//Ordela//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Ordela – Müllabfuhr'];
+  wasteAllDates(12).forEach((e, i) => {
+    const ymd = e.date.replace(/-/g, '');
+    const naechster = addDays(e.date, 1).replace(/-/g, '');   // Ganztagstermin: DTEND ist der Folgetag
+    lines.push('BEGIN:VEVENT',
+      'UID:ordela-waste-' + ymd + '-' + i + '@gonsoft-labs.de',
+      'DTSTAMP:' + stamp,
+      'DTSTART;VALUE=DATE:' + ymd,
+      'DTEND;VALUE=DATE:' + naechster,
+      'SUMMARY:' + String(e.name).replace(/([,;\\])/g, '\\$1'),
+      'DESCRIPTION:Abholung – eingetragen mit Ordela',
+      'BEGIN:VALARM', 'TRIGGER:-PT14H', 'ACTION:DISPLAY', 'DESCRIPTION:Tonne rausstellen', 'END:VALARM',
+      'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+if ($('#wtExportBtn')) $('#wtExportBtn').addEventListener('click', () => {
+  const st = $('#wtExportStatus');
+  const setEx = (m) => { if (st) st.textContent = m || ''; };
+  const n = wasteAllDates(12).length;
+  if (!n) { setEx('Es sind noch keine Abholtermine eingetragen – trage oben welche ein oder importiere den Kalender deiner Gemeinde.'); return; }
+  try {
+    const blob = new Blob([buildWasteICS()], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'ordela-muellkalender.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    setEx('✓ ' + n + ' Termine erzeugt. Öffne die heruntergeladene Datei – dein Kalender fragt dann, ob er sie übernehmen soll.');
+    toast('Kalenderdatei erstellt ✓');
+  } catch (e) {
+    /* Ehrlich benennen statt still scheitern: in manchen App-Ansichten ist der
+       Download gesperrt. Dann hilft nur der Weg über den echten Browser. */
+    setEx('Die Datei konnte nicht erzeugt werden. Öffne Ordela im Browser (Chrome) und versuche es dort erneut – manche App-Ansichten erlauben keine Downloads.');
+  }
 });
 
 /* ============================== VORSORGE & ERINNERUNGEN (lokal) ============================== */
@@ -17068,7 +17305,7 @@ $('#chatMsgs').addEventListener('click', e => {
 RENDERERS.settings = function () {
   $('#setName').value = store.name;
   $('#setModel').value = store.settings.model;
-  $('#setKey').value = getKey() ? '••••••••••••••••' : '';
+  renderByokBox();
   const lm = langMeta(curLang);
   const inCur = langNameIn(lm.code);
   $('#langCardSub').textContent = lm.flag + ' ' + lm.native + (inCur.toLowerCase() !== lm.native.toLowerCase() ? ' (' + inCur + ')' : '') + ' · ' + (lm.country || '');
@@ -17458,21 +17695,47 @@ $('#setNameSave').addEventListener('click', () => {
   }
   toast(store.name ? pickLang({ de: 'Gespeichert', en: 'Saved', fr: 'Enregistré', es: 'Guardado', it: 'Salvato', pl: 'Zapisano' }) + ', ' + store.name + ' ✓' : pickLang({ de: 'Name entfernt', en: 'Name removed', fr: 'Nom supprimé', es: 'Nombre eliminado', it: 'Nome rimosso', pl: 'Imię usunięte' }));
 });
-$('#setKeySave').addEventListener('click', () => {
-  if (isChildUser()) { toast('Ein eigener API-Schlüssel ist für Kinderkonten nicht möglich.'); return; }
-  const v = $('#setKey').value.trim();
-  if (!v || v.startsWith('••')) { toast('Bitte einen API-Schlüssel eingeben'); return; }
-  try { localStorage.setItem(KEY_KEY, v); } catch (e) {}
-  refreshAIStatus();
-  RENDERERS.settings();
-  toast('Echte KI aktiviert');
-});
-$('#setKeyClear').addEventListener('click', () => {
-  try { localStorage.removeItem(KEY_KEY); } catch (e) {}
-  $('#setKey').value = '';
-  refreshAIStatus();
-  toast('Schlüssel entfernt – Demo-Modus aktiv');
-});
+/* ---- Eigener KI-Schlüssel: Freischaltung kaufen bzw. Schlüssel verwalten ----
+   Der Kasten zeigt je nach Lizenz entweder das Kaufangebot oder die Schlüssel-
+   verwaltung. Kinderkonten bekommen den Bereich gar nicht erst zu sehen. */
+function renderByokBox() {
+  const box = $('#byokBox'); if (!box) return;
+  if (isChildUser()) { box.innerHTML = '<div class="note-box">Für Kinderkonten nicht verfügbar.</div>'; return; }
+  if (!hasByokLicense()) {
+    box.innerHTML =
+      '<div class="note-box" style="margin-bottom:10px">So funktioniert es: Du legst dir bei <b>platform.openai.com</b> einen eigenen Schlüssel an und zahlst deine KI-Nutzung dort direkt. In Ordela schaltest du einmal die Möglichkeit frei, ihn zu verwenden – danach gilt für dich <b>kein Credit-Limit</b> mehr.</div>' +
+      (STORE_SAFE ? '' :
+        '<div style="display:flex;flex-direction:column;gap:8px">' +
+        '<button class="btn btn-primary" data-buy="byokMonthly">Monatlich freischalten – 1,99 €/Mon.</button>' +
+        '<button class="btn" data-buy="byokLifetime">Dauerhaft freischalten – 24,99 € einmalig</button>' +
+        '</div>' +
+        '<div class="sub" style="margin-top:8px;font-size:11.5px;color:var(--faint)">Das Monatsabo verlängert sich automatisch und ist jederzeit über Google Play kündbar. Der Einmalkauf gilt dauerhaft für dieses Konto.</div>');
+    box.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.buy)));
+    return;
+  }
+  const bis = account.byokLifetime
+    ? 'dauerhaft freigeschaltet'
+    : 'freigeschaltet bis ' + fmtDate(toISO(new Date(account.byokUntil)));
+  box.innerHTML =
+    '<div class="note-box" style="margin-bottom:10px">✓ Eigener Schlüssel <b>' + bis + '</b>.</div>' +
+    '<div class="set-row"><input type="password" id="setKey" placeholder="sk-…" autocomplete="off" value="' + (getKey() ? '••••••••••••••••' : '') + '"><button class="btn btn-primary" id="setKeySave">Speichern</button></div>' +
+    '<div class="note-box" style="margin-top:10px"><b>Privat:</b> Der Schlüssel wird nur auf deinem Gerät gespeichert und direkt an OpenAI gesendet – niemals an unsere Server.</div>' +
+    (getKey() ? '<div style="margin-top:10px"><button class="btn btn-sm btn-danger" id="setKeyClear">Schlüssel entfernen</button></div>' : '');
+  const save1 = box.querySelector('#setKeySave');
+  if (save1) save1.addEventListener('click', () => {
+    const el = box.querySelector('#setKey'), v = (el.value || '').trim();
+    if (!v || v.startsWith('••')) { toast('Bitte einen API-Schlüssel eingeben'); return; }
+    try { localStorage.setItem(KEY_KEY, v); } catch (e) { }
+    refreshAIStatus(); RENDERERS.settings();
+    toast('Eigener Schlüssel aktiv – unbegrenzte KI');
+  });
+  const clr = box.querySelector('#setKeyClear');
+  if (clr) clr.addEventListener('click', () => {
+    try { localStorage.removeItem(KEY_KEY); } catch (e) { }
+    refreshAIStatus(); RENDERERS.settings();
+    toast('Schlüssel entfernt – es gilt wieder dein Ordela-Kontingent');
+  });
+}
 $('#setModel').addEventListener('change', () => {
   store.settings.model = $('#setModel').value;
   save();
@@ -17561,6 +17824,7 @@ if (CLOUD) {
 }
 if (STORE_SAFE) document.body.classList.add('store-safe');   // Play-sicher: Kauf-Buttons ausblenden
 showView('dashboard');
+try { setTimeout(checkReminders, 2500); } catch (e) {}   // verpasste Erinnerungen beim Öffnen nachholen
 try { setTimeout(bootExperience, 60); } catch (e) {}   // „Plattform fährt hoch": Begrüßung + kurzer Startklang (einmal je Kaltstart)
 
 pruneMedTaken();                              // alte „genommen"-Marken aufräumen

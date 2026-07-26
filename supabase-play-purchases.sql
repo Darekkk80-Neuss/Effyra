@@ -79,6 +79,15 @@ begin
            premium_since = coalesce(premium_since, now()),
            premium_until = v_exp
      where id = p_user;
+  elsif p_sku = 'effyra_byok_monthly' then
+    -- Freischaltung „eigener KI-Schluessel": Ablauf IDEMPOTENT auf Googles Stand
+    -- setzen (kein Addieren), damit Verlaengerungen greifen und ein Abbruch
+    -- automatisch ausläuft.
+    update public.profiles set byok_until = v_exp where id = p_user;
+  elsif p_sku = 'effyra_byok_lifetime' then
+    -- Einmalkauf: bei jeder Re-Verifikation bestaetigen (heilt verlorene Grants
+    -- nach Neuinstallation).
+    update public.profiles set byok_lifetime = true where id = p_user;
   end if;
   return json_build_object('ok', true, 'sku', p_sku, 'until', v_exp);
 end $$;
@@ -156,7 +165,14 @@ language plpgsql security definer set search_path = public
 as $$
 declare v_fid uuid; v_active_ms bigint; v_stripe_until timestamptz; v_eff_until timestamptz;
 begin
-  if p_sku = 'effyra_ai_boost' then
+  if p_sku = 'effyra_byok_monthly' then
+    -- Freischaltung „eigener KI-Schluessel" (Abo) entziehen. Ab dann gilt fuer
+    -- den Nutzer wieder das normale Ordela-Kontingent; sein Schluessel bleibt
+    -- auf seinem Geraet, wirkt aber nicht mehr.
+    return public.revoke_byok(p_user, false);
+  elsif p_sku = 'effyra_byok_lifetime' then
+    return public.revoke_byok(p_user, true);
+  elsif p_sku = 'effyra_ai_boost' then
     -- Nur den noch vorhandenen Rest, nie unter null.
     -- Den beim KAUF vermerkten Topf treffen, nicht den heutigen raten. Zwischen
     -- Kauf und Erstattung kann das Familienabo abgelaufen sein – dann gingen die

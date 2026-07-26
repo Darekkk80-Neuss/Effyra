@@ -187,6 +187,12 @@ begin
            tier = case when tier = 'premium' then 'premium' else 'medium' end
      where id = p_user;
     v_res := json_build_object('ok', true, 'kind', 'lifetime', 'prev_tier', v_prev);
+  elsif p_sku = 'effyra_byok_monthly' then
+    -- Freischaltung „eigener KI-Schluessel", monatlich. Kostet uns nichts:
+    -- die KI-Nutzung rechnet der Kaeufer ueber seinen eigenen Schluessel ab.
+    v_res := public.grant_byok(p_user, false, 32);
+  elsif p_sku = 'effyra_byok_lifetime' then
+    v_res := public.grant_byok(p_user, true);
   elsif p_sku = 'effyra_ai_boost' then
     -- KI-Boost: +1000 Credits, die ÜBERROLLEN (kein Monats-Verfall).
     -- Landen im Topf, aus dem der Nutzer wirklich schöpft: aktives Family-Abo → Familien-Topf, sonst persönlich.
