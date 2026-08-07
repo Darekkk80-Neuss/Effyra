@@ -8,7 +8,7 @@
    hiess in der Praxis: wer nur index.dev.html änderte, liess sw.js byte-gleich. Der
    Browser sieht dann keine neue Datei, installiert keinen neuen Worker – und im
    laufenden Tab feuert nie 'updatefound'. Der Zeitstempel erzwingt beides. */
-const BUILD = '20260807-2130';
+const BUILD = '20260807-2150';
 const CACHE = 'effyra-' + BUILD;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './bg.jpg',
   './impressum.html', './datenschutz.html', './nutzungsbedingungen.html', './konto-loeschen.html', './barrierefreiheit.html', './anleitung.html',
@@ -18,7 +18,11 @@ const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './
   './behoerden.json', './behoerden.en.json', './behoerden.fr.json',
   './behoerden.es.json', './behoerden.it.json', './behoerden.pl.json',
   './briefe.en.json', './briefe.fr.json', './briefe.es.json',
-  './briefe.it.json', './briefe.pl.json'];
+  './briefe.it.json', './briefe.pl.json',
+  './behoerden.tr.json', './behoerden.uk.json',
+  './briefe.tr.json', './briefe.uk.json',
+  './selbstfuersorge.tr.json', './selbstfuersorge.uk.json',
+  './translation/tr.json', './translation/uk.json'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
