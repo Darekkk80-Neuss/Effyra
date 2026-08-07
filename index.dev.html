@@ -554,6 +554,10 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .brief-card.brief-tag{background:linear-gradient(160deg,rgba(255,193,84,.12),rgba(62,201,255,.04) 55%,transparent),var(--card)}
 .brief-card.brief-abend{background:linear-gradient(160deg,rgba(255,124,74,.13),rgba(122,92,255,.05) 55%,transparent),var(--card)}
 .brief-card.brief-nacht{background:linear-gradient(160deg,rgba(122,92,255,.15),rgba(62,201,255,.045) 55%,transparent),var(--card)}
+.brief-grp{margin-top:14px}
+.brief-grp:first-child{margin-top:6px}
+.brief-grp-h{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px;display:flex;align-items:center;gap:6px}
+.brief-card .dsec-body{gap:8px}
 
 /* Tageskarte, Symbol: Das Strichbild in getoenter Kachel war austauschbar – es
    haette auf jeder Karte stehen koennen und blieb blau, auch nachts um drei.
@@ -8457,15 +8461,46 @@ RENDERERS.dashboard = function () {
     fr: 'Rien d\'urgent aujourd\'hui – profite de ta journée.', es: 'Hoy no hay nada urgente: disfruta del día.',
     it: 'Oggi niente di urgente: goditi la giornata.', pl: 'Dziś nic pilnego – ciesz się dniem.'
   });
-  /* Tageskarte: Symbol links in eigener Flaeche, grosser Titel, Pfeil rechts.
-     Nutzt die .di-*-Klassen statt Inline-Stilen – so folgt sie automatisch dem
-     Kartensystem (Verlauf, Innenabstand, Radius) statt eigene Werte zu setzen. */
+  /* Tageskarte: strukturierte HEUTE-Übersicht, nach Kategorie gruppiert (Termine,
+     Aufgaben, Medikamente, Müllabholung) – ausschließlich der heutige Tag. Jede
+     Gruppe erscheint nur, wenn sie heute Einträge hat; sonst die ruhige Zeile.
+     Nutzt die vorhandenen .drow/.dsec-body-Zeilen, folgt also dem Kartensystem. */
+  const _tEvents = evTodayList.slice().sort((a, b) => ((a.time || '99:99') < (b.time || '99:99') ? -1 : 1));
+  const _tTasks = _bTasks.slice().sort((a, b) => { const la = dayDiff(a.due) < 0, lb = dayDiff(b.due) < 0; if (la !== lb) return la ? -1 : 1; return (a.title || '') < (b.title || '') ? -1 : 1; });
+  const _tMeds = [];
+  ((store.family && store.family.meds) || []).forEach(md => {
+    if (md.date && md.date !== today) return;                 // nur heute oder täglich
+    const mm = famMember(md.memberId), ts = medTimes(md);
+    if (!ts.length) _tMeds.push({ md, mm, t: '' });
+    else ts.forEach(tm => { if (!medIsTaken(md.id, tm, today)) _tMeds.push({ md, mm, t: tm }); });
+  });
+  _tMeds.sort((a, b) => (a.t || '99:99') < (b.t || '99:99') ? -1 : 1);
+  const _tWaste = (typeof wasteOn === 'function') ? wasteOn(today) : [];
+  const L = {
+    appts: pickLang({ de: 'Termine', en: 'Appointments', fr: 'Rendez-vous', es: 'Citas', it: 'Appuntamenti', pl: 'Terminy' }),
+    tasks: pickLang({ de: 'Aufgaben', en: 'Tasks', fr: 'Tâches', es: 'Tareas', it: 'Attività', pl: 'Zadania' }),
+    meds: pickLang({ de: 'Medikamente', en: 'Medications', fr: 'Médicaments', es: 'Medicamentos', it: 'Farmaci', pl: 'Leki' }),
+    waste: pickLang({ de: 'Müllabholung', en: 'Waste collection', fr: 'Collecte des déchets', es: 'Recogida de basura', it: 'Raccolta rifiuti', pl: 'Wywóz śmieci' }),
+    overdue: pickLang({ de: 'überfällig', en: 'overdue', fr: 'en retard', es: 'vencida', it: 'scaduta', pl: 'zaległe' }),
+    dueToday: pickLang({ de: 'heute fällig', en: 'due today', fr: "à faire aujourd'hui", es: 'para hoy', it: 'in scadenza oggi', pl: 'na dziś' }),
+    tOverdue: pickLang({ de: 'Überfällig', en: 'Overdue', fr: 'En retard', es: 'Vencida', it: 'Scaduta', pl: 'Zaległe' }),
+    tToday: pickLang({ de: 'Heute', en: 'Today', fr: "Aujourd'hui", es: 'Hoy', it: 'Oggi', pl: 'Dziś' }),
+    collToday: pickLang({ de: 'heute Abholung', en: 'collection today', fr: 'collecte aujourd’hui', es: 'recogida hoy', it: 'raccolta oggi', pl: 'wywóz dziś' })
+  };
+  const _grp = (emoji, label, rows) => rows ? '<div class="brief-grp"><div class="brief-grp-h">' + emoji + ' ' + esc(label) + '</div><div class="dsec-body">' + rows + '</div></div>' : '';
+  const _evRows = _tEvents.map(e => drow({ svg: 'icCal', title: e.title, sub: e.time ? oclock(e.time) : t('fmt.allday'), go: 'calendar' })).join('');
+  const _tkRows = _tTasks.map(tk => { const late = dayDiff(tk.due) < 0; return drow({ svg: 'icCheck2', title: tk.title, sub: late ? L.overdue : L.dueToday, chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? L.tOverdue : L.tToday }, go: 'tasks' }); }).join('');
+  const _mdRows = _tMeds.map(r => drow({ emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b', title: (r.mm ? r.mm.name + ': ' : '') + r.md.name, sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : t('fmt.daily')), go: 'family', attrs: ' data-tab="meds"' })).join('');
+  const _waRows = _tWaste.map(x => drow({ emoji: (x.ty && x.ty.i) || '🗑️', title: (x.ty && x.ty.l) || 'Abholung', sub: L.collToday, go: 'waste' })).join('');
+  const _hasToday = _tEvents.length || _tTasks.length || _tMeds.length || _tWaste.length;
+  const briefBody = _hasToday
+    ? (_grp('📅', L.appts, _evRows) + _grp('✅', L.tasks, _tkRows) + _grp('💊', L.meds, _mdRows) + _grp('🗑️', L.waste, _waRows))
+    : '<p style="margin:8px 0 0;font-size:15px">' + esc(_bLine) + '</p>';
   $('#briefWidget').innerHTML = '<section class="dash-section brief-card brief-' + tagesZeit + '">' +
     '<div class="di-head"><span class="brief-ic" aria-hidden="true"></span>' +
     '<div class="di-head-tx"><b>Dein Tag heute</b><small>' + esc(dstr) + '</small></div>' +
     '<button class="di-go di-arrow" data-go="calendar" aria-label="Kalender öffnen">›</button></div>' +
-    '<p style="margin:0' + (_bChips.length ? ' 0 12px' : '') + ';font-size:15px">' + esc(_bLine) + '</p>' +
-    (_bChips.length ? '<div style="display:flex;flex-wrap:wrap;gap:8px">' + _bChips.map(c => '<button data-go="' + c.go + '" style="display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:7px 13px;font-size:13px;color:var(--text);cursor:pointer;min-height:38px"><span>' + c.ic + '</span><b>' + c.n + '</b> ' + esc(c.l) + '</button>').join('') + '</div>' : '') +
+    briefBody +
     '</section>';
   if (!dashOn('brief')) $('#briefWidget').innerHTML = '';
 
