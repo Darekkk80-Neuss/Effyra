@@ -1,0 +1,759 @@
+{
+  "version": 1,
+  "sprache": "tr",
+  "encoding": "UTF-8",
+  "anzahl": 150,
+  "hinweis": "Taeglich eine Frage, rotierend ohne Wiederholung bis alle gezeigt wurden, dann neu mischen. Reine Anzeige, keine Antworten speichern.",
+  "fragen": [
+    {
+      "id": 1,
+      "thema": "Beden Farkındalığı",
+      "frage": "Bedenin şu an, bu anda nasıl hissediyor?"
+    },
+    {
+      "id": 2,
+      "thema": "Beden Farkındalığı",
+      "frage": "Bedeninin neresinde gerginlik hissediyorsun – ve biraz yumuşamasına izin verebilir misin?"
+    },
+    {
+      "id": 3,
+      "thema": "Beden Farkındalığı",
+      "frage": "En son ne zaman bilinçli olarak omuzlarını gevşetip bıraktın?"
+    },
+    {
+      "id": 4,
+      "thema": "Beden Farkındalığı",
+      "frage": "Şu an rahat mı oturuyor ya da duruyorsun, yoksa duruşunu değiştirmek ister misin?"
+    },
+    {
+      "id": 5,
+      "thema": "Beden Farkındalığı",
+      "frage": "Bugün bedeninin hangi kısmına biraz daha sevgiyle yaklaşabilirsin?"
+    },
+    {
+      "id": 6,
+      "thema": "Beden Farkındalığı",
+      "frage": "Şu an daha çok yorgunluk mu yoksa enerji mi hissediyorsun – ve bu sana ne söylüyor?"
+    },
+    {
+      "id": 7,
+      "thema": "Beden Farkındalığı",
+      "frage": "Bugün en son ne zaman bilinçli olarak gerinip esnedin?"
+    },
+    {
+      "id": 8,
+      "thema": "Beden Farkındalığı",
+      "frage": "Şu an yeterince sıcak mısın, yoksa biraz daha rahat mı olmak isterdin?"
+    },
+    {
+      "id": 9,
+      "thema": "Beden Farkındalığı",
+      "frage": "Önümüzdeki birkaç dakikada bedenine ne iyi gelirdi?"
+    },
+    {
+      "id": 10,
+      "thema": "Beden Farkındalığı",
+      "frage": "Şu an ne kadar derin nefes alıyorsun – yüzeysel mi yoksa sakin ve dolu mu?"
+    },
+    {
+      "id": 11,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Üç nefes boyunca sadece nefes alıp başka hiçbir şey yapmamak ister misin?"
+    },
+    {
+      "id": 12,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Yavaş, derin bir nefes şu an nasıl hissettirirdi?"
+    },
+    {
+      "id": 13,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Bir sonraki nefesini verirken biraz bırakırsan ne olur?"
+    },
+    {
+      "id": 14,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Bugün kısa bir sessizlik anını nerede bulabilirsin?"
+    },
+    {
+      "id": 15,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Her şey çok fazla geldiğinde seni ne sakinleştirir?"
+    },
+    {
+      "id": 16,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Bugün senden hiçbir şey beklenmeyen bir anın ne zaman oldu?"
+    },
+    {
+      "id": 17,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Şu an biraz sakin ve yavaş olmasına da izin var mı?"
+    },
+    {
+      "id": 18,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Sessizlik sana nasıl geliyor – daha çok huzur verici mi yoksa alışılmadık mı?"
+    },
+    {
+      "id": 19,
+      "thema": "Nefes & Dinginlik",
+      "frage": "İçsel olarak sakinleşmene ne yardımcı oluyor?"
+    },
+    {
+      "id": 20,
+      "thema": "Nefes & Dinginlik",
+      "frage": "Kısa bir süre gözlerini kapatıp sadece burada olmak ister misin?"
+    },
+    {
+      "id": 21,
+      "thema": "Molalar & Enerji",
+      "frage": "Bugün en son ne zaman kendine gerçek bir mola verdin?"
+    },
+    {
+      "id": 22,
+      "thema": "Molalar & Enerji",
+      "frage": "Şu an sana ne enerji veriyor – ve ne enerjini alıyor?"
+    },
+    {
+      "id": 23,
+      "thema": "Molalar & Enerji",
+      "frage": "Şu an daha çok bir molaya mı yoksa küçük bir motivasyona mı ihtiyacın var?"
+    },
+    {
+      "id": 24,
+      "thema": "Molalar & Enerji",
+      "frage": "Bugün pilin ne kadar dolu hissediyor?"
+    },
+    {
+      "id": 25,
+      "thema": "Molalar & Enerji",
+      "frage": "Önümüzdeki bir saat içinde kendine hangi küçük molayı verebilirsin?"
+    },
+    {
+      "id": 26,
+      "thema": "Molalar & Enerji",
+      "frage": "Şu an aynı anda çok fazla şey mi yapıyorsun?"
+    },
+    {
+      "id": 27,
+      "thema": "Molalar & Enerji",
+      "frage": "Bugün gönül rahatlığıyla neyi bir kenara bırakabilirsin?"
+    },
+    {
+      "id": 28,
+      "thema": "Molalar & Enerji",
+      "frage": "En son ne zaman kendine sadece hiçbir şey yapmama izni verdin?"
+    },
+    {
+      "id": 29,
+      "thema": "Molalar & Enerji",
+      "frage": "Tükenmiş hissettiğinde sana ne iyi geliyor?"
+    },
+    {
+      "id": 30,
+      "thema": "Molalar & Enerji",
+      "frage": "Devam etmeden önce kısa bir nefes almak nasıl hissettiriyor?"
+    },
+    {
+      "id": 31,
+      "thema": "Şükran",
+      "frage": "Bugün – çok küçük bir şey için bile olsa – neye minnettarsın?"
+    },
+    {
+      "id": 32,
+      "thema": "Şükran",
+      "frage": "Bugün seni ne gülümsetti?"
+    },
+    {
+      "id": 33,
+      "thema": "Şükran",
+      "frage": "Son zamanlarda kim sana iyi geldi?"
+    },
+    {
+      "id": 34,
+      "thema": "Şükran",
+      "frage": "Bugün hangi küçük şey beklediğinden daha güzeldi?"
+    },
+    {
+      "id": 35,
+      "thema": "Şükran",
+      "frage": "Bugününden neyi tutup saklamak isterdin?"
+    },
+    {
+      "id": 36,
+      "thema": "Şükran",
+      "frage": "Şu an kendinde neye minnettarsın?"
+    },
+    {
+      "id": 37,
+      "thema": "Şükran",
+      "frage": "Bugün hangi an sakin ve huzurluydu?"
+    },
+    {
+      "id": 38,
+      "thema": "Şükran",
+      "frage": "Hayatında şu an olduğu haliyle iyi olan ne var?"
+    },
+    {
+      "id": 39,
+      "thema": "Şükran",
+      "frage": "Belki bugün kime teşekkür etmek istersin?"
+    },
+    {
+      "id": 40,
+      "thema": "Şükran",
+      "frage": "Sıradan görünen ne aslında küçük bir armağan?"
+    },
+    {
+      "id": 41,
+      "thema": "Duygular",
+      "frage": "Şu an gerçekten nasılsın – sadece „idare eder“ değil?"
+    },
+    {
+      "id": 42,
+      "thema": "Duygular",
+      "frage": "Bugün en çok hangi duygu sana eşlik ediyor?"
+    },
+    {
+      "id": 43,
+      "thema": "Duygular",
+      "frage": "Şu an hissettiğin şeye, onu itip uzaklaştırmadan var olma izni var mı?"
+    },
+    {
+      "id": 44,
+      "thema": "Duygular",
+      "frage": "Şu an duygularına ne söylemek isterdin?"
+    },
+    {
+      "id": 45,
+      "thema": "Duygular",
+      "frage": "Şu an duygusal olarak en çok neye ihtiyacın var?"
+    },
+    {
+      "id": 46,
+      "thema": "Duygular",
+      "frage": "Bugün seni meşgul eden ve biraz alan isteyen bir şey var mı?"
+    },
+    {
+      "id": 47,
+      "thema": "Duygular",
+      "frage": "Bugün en son ne zaman gerçekten iyi hissettin?"
+    },
+    {
+      "id": 48,
+      "thema": "Duygular",
+      "frage": "Şu an kendini biraz daha hafif hissetmene ne yardımcı olurdu?"
+    },
+    {
+      "id": 49,
+      "thema": "Duygular",
+      "frage": "Bugün kendine karşı daha çok katı mı yoksa sevecen mi davranıyorsun?"
+    },
+    {
+      "id": 50,
+      "thema": "Duygular",
+      "frage": "Günün geri kalanına hangi ruh halini taşımak istersin?"
+    },
+    {
+      "id": 51,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Şu an en acil neye ihtiyacın var?"
+    },
+    {
+      "id": 52,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Bugün aslında iyi gelecek bir „hayır“ var mı?"
+    },
+    {
+      "id": 53,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Kendine yeterince zaman ayırıyor musun?"
+    },
+    {
+      "id": 54,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Başkaları için yaptığın ama kendine de tanıyabileceğin şey ne?"
+    },
+    {
+      "id": 55,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Bugün nerede bir sınır koyabilirsin?"
+    },
+    {
+      "id": 56,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Bugün artık kendine yapılmasına izin vermek istemediğin şey ne?"
+    },
+    {
+      "id": 57,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Şu an bedeninin sana söylediğini dinliyor musun?"
+    },
+    {
+      "id": 58,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Son zamanlarda hangi ihtiyacın ihmal ediliyor?"
+    },
+    {
+      "id": 59,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Dile getirmeye cesaret etsen, kendine ne dilerdin?"
+    },
+    {
+      "id": 60,
+      "thema": "İhtiyaçlar & Sınırlar",
+      "frage": "Bugün önce kendini düşünmen de tamam mı?"
+    },
+    {
+      "id": 61,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Bugün – hiçbir sebep olmadan – sana ne keyif verirdi?"
+    },
+    {
+      "id": 62,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Bugün kendine hangi küçük şeyi tanıyabilirsin?"
+    },
+    {
+      "id": 63,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "En son ne zaman gerçekten içten güldün?"
+    },
+    {
+      "id": 64,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Şu an günlük hayatında sana ne keyif veriyor?"
+    },
+    {
+      "id": 65,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Hangi küçük ritüel sana iyi geliyor?"
+    },
+    {
+      "id": 66,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Bugün kendine sadece 15 dakika ayırsan ne yapardın?"
+    },
+    {
+      "id": 67,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Şu an ruh haline hangi müzik uyardı?"
+    },
+    {
+      "id": 68,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Sıradan bir günde en sevdiğin küçük an nedir?"
+    },
+    {
+      "id": 69,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Neredeyse her zaman moralini ne yükseltir?"
+    },
+    {
+      "id": 70,
+      "thema": "Neşe & Küçük Şeyler",
+      "frage": "Bugün gününe neyi daha çok katmak istersin?"
+    },
+    {
+      "id": 71,
+      "thema": "Bağlar",
+      "frage": "Bugün kiminle kısa bir temas sana iyi gelirdi?"
+    },
+    {
+      "id": 72,
+      "thema": "Bağlar",
+      "frage": "En son ne zaman birine gerçekten yakın hissettin?"
+    },
+    {
+      "id": 73,
+      "thema": "Bağlar",
+      "frage": "Bugün kimi küçük bir şeyle mutlu edebilirsin?"
+    },
+    {
+      "id": 74,
+      "thema": "Bağlar",
+      "frage": "Sana olduğun gibi olabilme hissini kim veriyor?"
+    },
+    {
+      "id": 75,
+      "thema": "Bağlar",
+      "frage": "Şu an yazabileceğin birini özlüyor musun?"
+    },
+    {
+      "id": 76,
+      "thema": "Bağlar",
+      "frage": "En son ne zaman anlaşıldığını hissettin?"
+    },
+    {
+      "id": 77,
+      "thema": "Bağlar",
+      "frage": "Hayatında kim bugün bir teşekkürü hak ediyor?"
+    },
+    {
+      "id": 78,
+      "thema": "Bağlar",
+      "frage": "Bugün daha çok kendini göstermek mi yoksa geri çekilmek mi istersin?"
+    },
+    {
+      "id": 79,
+      "thema": "Bağlar",
+      "frage": "Senin için önemli olan insanlarla seni ne bağlıyor?"
+    },
+    {
+      "id": 80,
+      "thema": "Bağlar",
+      "frage": "En son ne zaman yardım istemeye cesaret ettin?"
+    },
+    {
+      "id": 81,
+      "thema": "Anda Farkındalık",
+      "frage": "Kısa bir an durup beklediğinde şu an neyi fark ediyorsun?"
+    },
+    {
+      "id": 82,
+      "thema": "Anda Farkındalık",
+      "frage": "Şu an görebildiğin, duyabildiğin ve hissedebildiğin üç şey ne?"
+    },
+    {
+      "id": 83,
+      "thema": "Anda Farkındalık",
+      "frage": "Şu an ne kokluyor ya da tadıyorsun – tümüyle bilinçli olarak?"
+    },
+    {
+      "id": 84,
+      "thema": "Anda Farkındalık",
+      "frage": "Ayaklarının altındaki zemin nasıl hissettiriyor?"
+    },
+    {
+      "id": 85,
+      "thema": "Anda Farkındalık",
+      "frage": "Tam şu anda aslında yolunda olan ne?"
+    },
+    {
+      "id": 86,
+      "thema": "Anda Farkındalık",
+      "frage": "Bu anın birkaç saniye boyunca sadece var olmasına izin verebilir misin?"
+    },
+    {
+      "id": 87,
+      "thema": "Anda Farkındalık",
+      "frage": "Yavaşladığında neyi fark ederdin?"
+    },
+    {
+      "id": 88,
+      "thema": "Anda Farkındalık",
+      "frage": "Dikkatin şu an nerede – burada mı yoksa bambaşka bir yerde mi?"
+    },
+    {
+      "id": 89,
+      "thema": "Anda Farkındalık",
+      "frage": "Şu anki ana tüm dikkatini verdiğinde ne değişiyor?"
+    },
+    {
+      "id": 90,
+      "thema": "Anda Farkındalık",
+      "frage": "Şu an çevrende görebildiğin en güzel şey ne?"
+    },
+    {
+      "id": 91,
+      "thema": "Kendine Şefkat",
+      "frage": "Şu an kendinle konuştuğun gibi iyi bir arkadaşınla da konuşur muydun?"
+    },
+    {
+      "id": 92,
+      "thema": "Kendine Şefkat",
+      "frage": "En iyi arkadaşın olsan kendine ne söylerdin?"
+    },
+    {
+      "id": 93,
+      "thema": "Kendine Şefkat",
+      "frage": "Bugün kendinle ne için gurur duyabilirsin?"
+    },
+    {
+      "id": 94,
+      "thema": "Kendine Şefkat",
+      "frage": "Bugün – küçük de olsa – neyi başardın bile?"
+    },
+    {
+      "id": 95,
+      "thema": "Kendine Şefkat",
+      "frage": "Bugün mükemmel olmaman da tamam mı?"
+    },
+    {
+      "id": 96,
+      "thema": "Kendine Şefkat",
+      "frage": "Kendine neyi affetmek isterdin?"
+    },
+    {
+      "id": 97,
+      "thema": "Kendine Şefkat",
+      "frage": "Bugün kendine biraz daha yumuşak nasıl davranabilirsin?"
+    },
+    {
+      "id": 98,
+      "thema": "Kendine Şefkat",
+      "frage": "Bugün kendine hangi sevecen cümleyi armağan etmek istersin?"
+    },
+    {
+      "id": 99,
+      "thema": "Kendine Şefkat",
+      "frage": "Kabul etmek zor olsa bile kendinde neyi seviyorsun?"
+    },
+    {
+      "id": 100,
+      "thema": "Kendine Şefkat",
+      "frage": "Şu an aslında ne kadar çok şey taşıdığını kabul ediyor musun?"
+    },
+    {
+      "id": 101,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Dün gece yeterince dinlenebildin mi?"
+    },
+    {
+      "id": 102,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Bu akşam kafanı boşaltmana ne yardımcı olurdu?"
+    },
+    {
+      "id": 103,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Bugün ideal olarak ne zaman dinlenmeye çekiliyorsun?"
+    },
+    {
+      "id": 104,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Bazen iyi uyumanı ne engelliyor?"
+    },
+    {
+      "id": 105,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Bugün akşamını biraz daha sakin nasıl noktalayabilirsin?"
+    },
+    {
+      "id": 106,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Şu an dinlenmiş mi yoksa daha çok yorgun mu hissediyorsun?"
+    },
+    {
+      "id": 107,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Uyumadan önce sana ne iyi geliyor?"
+    },
+    {
+      "id": 108,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Kendine yeterince gerçek dinlenme tanıyor musun – sadece oyalanma değil?"
+    },
+    {
+      "id": 109,
+      "thema": "Uyku & Dinlenme",
+      "frage": "Senin için dinlendirici bir akşamı ne oluştururdu?"
+    },
+    {
+      "id": 110,
+      "thema": "Uyku & Dinlenme",
+      "frage": "En son ne zaman kendine gerçekten tembel bir an tanıdın?"
+    },
+    {
+      "id": 111,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Bugün dışarıda, temiz havada bulundun mu?"
+    },
+    {
+      "id": 112,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Kısa bir yürüyüş şu an nasıl hissettirirdi?"
+    },
+    {
+      "id": 113,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Bedenin bugün belki biraz hareket etmek istiyor mu?"
+    },
+    {
+      "id": 114,
+      "thema": "Hareket & Dışarısı",
+      "frage": "En son ne zaman bilinçli olarak gökyüzüne baktın?"
+    },
+    {
+      "id": 115,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Doğada birkaç dakika sana ne verirdi?"
+    },
+    {
+      "id": 116,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Kısa bir süre ayağa kalkıp bir kez gerinmek ister misin?"
+    },
+    {
+      "id": 117,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Temiz hava ya da güneş ışığı teninde nasıl hissettiriyor?"
+    },
+    {
+      "id": 118,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Hiç baskı olmadan, bugün hangi hareket sana keyif verirdi?"
+    },
+    {
+      "id": 119,
+      "thema": "Hareket & Dışarısı",
+      "frage": "En son ne zaman hiçbir amaç olmadan sadece dışarıdaydın?"
+    },
+    {
+      "id": 120,
+      "thema": "Hareket & Dışarısı",
+      "frage": "Bugün bedenine hangi hareket iyi gelirdi?"
+    },
+    {
+      "id": 121,
+      "thema": "Düşünceler & Odak",
+      "frage": "Şu an aklından tekrar tekrar geçen düşünce ne?"
+    },
+    {
+      "id": 122,
+      "thema": "Düşünceler & Odak",
+      "frage": "Endişelendiğin şeylerden hangisini şu an gerçekten etkileyebilirsin?"
+    },
+    {
+      "id": 123,
+      "thema": "Düşünceler & Odak",
+      "frage": "Bugün bilinçli olarak neyi bırakabilirsin?"
+    },
+    {
+      "id": 124,
+      "thema": "Düşünceler & Odak",
+      "frage": "Bugün dikkatini neye daha az yöneltmek istersin?"
+    },
+    {
+      "id": 125,
+      "thema": "Düşünceler & Odak",
+      "frage": "Şu an gerçekten önemli olan ne – ve sadece gürültülü olan ne?"
+    },
+    {
+      "id": 126,
+      "thema": "Düşünceler & Odak",
+      "frage": "Daha sık düşünsen sana iyi gelecek düşünce hangisi?"
+    },
+    {
+      "id": 127,
+      "thema": "Düşünceler & Odak",
+      "frage": "Kısa bir süre geri adım atsan kendine ne öğüt verirdin?"
+    },
+    {
+      "id": 128,
+      "thema": "Düşünceler & Odak",
+      "frage": "Şu an kendine gereğinden fazla baskı mı yapıyorsun?"
+    },
+    {
+      "id": 129,
+      "thema": "Düşünceler & Odak",
+      "frage": "Ya bugün, olduğu haliyle yeterliyse?"
+    },
+    {
+      "id": 130,
+      "thema": "Düşünceler & Odak",
+      "frage": "Şimdilik hangi endişeyi bir kenara koyabilirsin?"
+    },
+    {
+      "id": 131,
+      "thema": "Anlam & Değerler",
+      "frage": "Bugün senin için gerçekten önemli olan ne?"
+    },
+    {
+      "id": 132,
+      "thema": "Anlam & Değerler",
+      "frage": "En son ne zaman canlı hissettin?"
+    },
+    {
+      "id": 133,
+      "thema": "Anlam & Değerler",
+      "frage": "Şu an gününe ne anlam katıyor?"
+    },
+    {
+      "id": 134,
+      "thema": "Anlam & Değerler",
+      "frage": "Sabahları hangi şey için severek kalkıyorsun?"
+    },
+    {
+      "id": 135,
+      "thema": "Anlam & Değerler",
+      "frage": "Bugününe hangi değer rehberlik etsin?"
+    },
+    {
+      "id": 136,
+      "thema": "Anlam & Değerler",
+      "frage": "Günün sonunda kendin hakkında ne söyleyebilmek istersin?"
+    },
+    {
+      "id": 137,
+      "thema": "Anlam & Değerler",
+      "frage": "Hayatını şu an biraz daha zenginleştirecek şey ne?"
+    },
+    {
+      "id": 138,
+      "thema": "Anlam & Değerler",
+      "frage": "Hayatında neyin daha çoğunu, neyin daha azını istersin?"
+    },
+    {
+      "id": 139,
+      "thema": "Anlam & Değerler",
+      "frage": "Kısa vadede zahmetli olsa da uzun vadede sana iyi gelen ne?"
+    },
+    {
+      "id": 140,
+      "thema": "Anlam & Değerler",
+      "frage": "En çok ne zaman kendin gibi hissediyorsun?"
+    },
+    {
+      "id": 141,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Bugün yeterince su içtin mi?"
+    },
+    {
+      "id": 142,
+      "thema": "Günlük Öz Bakım",
+      "frage": "En son ne zaman huzur içinde kendine güzel bir şey tanıdın?"
+    },
+    {
+      "id": 143,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Şu an sana ne güç verirdi?"
+    },
+    {
+      "id": 144,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Bugün kendine sadece iyiliğin için var olan bir şey tanıyor musun?"
+    },
+    {
+      "id": 145,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Şu an huzuruna en çok iyi gelen ne?"
+    },
+    {
+      "id": 146,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Bugün kendine sevecen şekilde nasıl bakabilirsin?"
+    },
+    {
+      "id": 147,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Kendini güvende ve huzurlu hissetmek için neye ihtiyacın var?"
+    },
+    {
+      "id": 148,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Önümüzdeki birkaç dakikada kendine hangi küçük özeni gösterebilirsin?"
+    },
+    {
+      "id": 149,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Sevgi dolu biri şu an sana ne öğütlerdi?"
+    },
+    {
+      "id": 150,
+      "thema": "Günlük Öz Bakım",
+      "frage": "Bugün kendin için tek bir şey yapacak olsan – o ne olurdu?"
+    }
+  ]
+}

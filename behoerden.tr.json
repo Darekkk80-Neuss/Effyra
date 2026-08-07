@@ -1,0 +1,471 @@
+{
+  "version": 1,
+  "sprache": "tr",
+  "encoding": "UTF-8",
+  "stand": "Ağustos 2026",
+  "anzahl": 20,
+  "gewaehr": "Bu bilgiler yalnızca yönlendirme ve genel bilgilendirme amaçlıdır; hukuken bağlayıcı bir bilgi değildir ve hiçbir garanti verilmez. Yetkili kurumlar, gerekli belgeler, süreler ve harçlar il/ilçeye ve kuruma göre değişebilir ve zaman içinde güncellenebilir. Bağlayıcı bilgi için daima resmi e-Devlet portalını (turkiye.gov.tr) veya yetkili kurumu kontrol edin.",
+  "offizielleSucheBasis": "https://www.turkiye.gov.tr",
+  "hinweisDeepLink": "Uygulama, resmi aramayı açarken konum/il bilgisini ve ilgili işlemi temel URL'ye eklemelidir.",
+  "anliegen": [
+    {
+      "id": "address-registration",
+      "titel": "Adres kaydı (Yerleşim yeri beyanı)",
+      "lebenslage": "Taşınma",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "Geçerli T.C. kimlik kartı",
+        "Adres beyan formu",
+        "Elektrik, su, doğalgaz veya telefon aboneliği ya da kira sözleşmesi gibi adresi teyit eden belge (istenebilir)",
+        "Aynı adrese kayıtlı değilse hane sahibinin muvafakati veya beyanı istenebilir"
+      ],
+      "schritte": [
+        "e-Devlet üzerinden veya bağlı bulunduğunuz Nüfus Müdürlüğü'nden adres beyanında bulunun",
+        "Taşındıktan sonra yasal süre içinde bildirimi yapın",
+        "Adres beyan formunu doldurup teslim edin",
+        "Yerleşim yeri kaydınızın güncellendiğini e-Devlet'ten kontrol edin"
+      ],
+      "hinweise": [
+        "Adres değişikliğinin yasal süresi içinde bildirilmesi gerekir; gecikmede idari para cezası uygulanabilir",
+        "Çoğu adres bildirimi e-Devlet üzerinden yapılabilir",
+        "İşlem genellikle harçsızdır"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "id-card",
+      "titel": "T.C. kimlik kartı başvurusu / yenileme",
+      "lebenslage": "Kimlik ve belgeler",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "Eski kimlik kartı veya nüfus cüzdanı (varsa)",
+        "Biyometrik fotoğraf (randevu sırasında istenebilir)",
+        "Kayıp/çalıntı durumunda beyan",
+        "Değerli kağıt/kart bedeli"
+      ],
+      "schritte": [
+        "e-Devlet veya ALO 199 üzerinden Nüfus Müdürlüğü'nden randevu alın",
+        "Kart bedelini yatırın",
+        "Randevuda şahsen başvurun; parmak izi ve fotoğraf alınır",
+        "Kart adrese posta ile gönderilir veya müdürlükten teslim alınır"
+      ],
+      "hinweise": [
+        "Başvuru için şahsen gitmek gereklidir",
+        "Çipli kimlik kartı PTT aracılığıyla adrese teslim edilebilir",
+        "Reşit olmayanlar için veli/vasi ile başvuru yapılır"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "passport",
+      "titel": "Pasaport başvurusu",
+      "lebenslage": "Kimlik ve belgeler",
+      "amtstyp": "İl/İlçe Emniyet Müdürlüğü (Pasaport birimi)",
+      "unterlagen": [
+        "Geçerli T.C. kimlik kartı",
+        "Biyometrik fotoğraf",
+        "Pasaport harcı ve değerli kağıt (cüzdan) bedeli dekontu",
+        "18 yaş altı için veli/vasi muvafakati"
+      ],
+      "schritte": [
+        "e-Devlet üzerinden randevu alın ve süre (yıl) seçimi yapın",
+        "Pasaport harcı ile değerli kağıt bedelini yatırın",
+        "Randevuda parmak izi ve fotoğraf için şahsen başvurun",
+        "Pasaport PTT ile adrese gönderilir"
+      ],
+      "hinweise": [
+        "Harç tutarı seçilen geçerlilik süresine göre değişir",
+        "Bazı vergi/harç borçları başvuruya engel olabilir",
+        "18 yaş altında her iki velinin muvafakati genellikle gereklidir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "driving-license",
+      "titel": "Sürücü belgesi (ehliyet) ilk başvuru",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "Sürücü olur sağlık raporu",
+        "Sürücü kursu ve MEB sınav başarı bilgileri",
+        "Biyometrik fotoğraf",
+        "Sabıka (adli sicil) durumu",
+        "Belge ve harç bedelleri dekontu"
+      ],
+      "schritte": [
+        "MTSK sürücü kursuna kayıt olup teorik ve direksiyon sınavlarını geçin",
+        "Sürücü olur sağlık raporu alın",
+        "Harç ve belge bedellerini yatırın",
+        "e-Devlet'ten Nüfus Müdürlüğü'nden randevu alıp şahsen başvurun",
+        "Sürücü belgesi PTT ile adrese gönderilir"
+      ],
+      "hinweise": [
+        "Sürücü belgeleri 2016'dan itibaren Nüfus Müdürlükleri tarafından düzenlenmektedir",
+        "Sağlık raporu şartları belge sınıfına göre değişir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "driving-license-renewal",
+      "titel": "Sürücü belgesi yenileme / değişim",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "Mevcut sürücü belgesi",
+        "T.C. kimlik kartı",
+        "Sürücü olur sağlık raporu (istenen hallerde)",
+        "Biyometrik fotoğraf",
+        "Belge ve harç bedelleri dekontu"
+      ],
+      "schritte": [
+        "Belgenizin geçerlilik süresini veya değişim gerekliliğini kontrol edin",
+        "Gereken hallerde güncel sağlık raporu alın",
+        "Bedelleri yatırıp e-Devlet'ten randevu alın",
+        "Yeni sürücü belgesi PTT ile adrese gönderilir"
+      ],
+      "hinweise": [
+        "Eski (kağıt/karton) belgelerin yeni tip kart belgeyle değiştirilmesi için son tarihler bulunmaktadır; güncel süreyi resmi kaynaktan kontrol edin",
+        "Süre dolduğunda belge yenilenmeden araç kullanılmamalıdır"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "vehicle-registration",
+      "titel": "Araç tescili (yeni kayıt)",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Trafik Tescil ve Denetleme Şube/Büro Amirliği",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "Fatura veya araç iktisap belgesi",
+        "Zorunlu trafik sigortası (ZMSS) poliçesi",
+        "Uygunluk belgesi / araç bilgileri",
+        "Vergi dairesinden ilişik kesme/ödeme belgesi (istenen hallerde)"
+      ],
+      "schritte": [
+        "Zorunlu trafik sigortasını yaptırın",
+        "Motorlu taşıtlar vergisi ve varsa harçlar için işlem yapın",
+        "Trafik tescil birimine başvurup aracı tescil ettirin",
+        "Tescil belgesi (ruhsat) ve plaka işlemlerini tamamlayın"
+      ],
+      "hinweise": [
+        "Sıfır araçlarda tescil çoğunlukla yetkili satıcı üzerinden yürütülebilir",
+        "Bazı tescil işlemleri noterde de yapılabilmektedir; güncel usulü kontrol edin"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "vehicle-transfer",
+      "titel": "Araç satışı / devir işlemi",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Noter (ve Trafik Tescil birimi)",
+      "unterlagen": [
+        "Alıcı ve satıcının T.C. kimlik kartı",
+        "Araç tescil belgesi (ruhsat)",
+        "Zorunlu trafik sigortası poliçesi",
+        "Motorlu taşıtlar vergisi borcu bulunmadığına dair belge",
+        "Trafik cezası ve vergi borçlarının olmadığına dair sorgu"
+      ],
+      "schritte": [
+        "Vergi ve ceza borçlarını kontrol edip kapatın",
+        "Alıcı adına zorunlu trafik sigortasını hazır edin",
+        "Noterde satış sözleşmesi ile devir işlemini yapın",
+        "Tescil kaydının alıcı adına güncellendiğini kontrol edin"
+      ],
+      "hinweise": [
+        "Araç satışı noter huzurunda yapılır; noter tescil bildirimini iletir",
+        "Devir sonrası yeni ruhsat düzenlenir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "birth-registration",
+      "titel": "Doğum bildirimi",
+      "lebenslage": "Aile ve çocuk",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "Anne ve/veya babanın T.C. kimlik kartı",
+        "Doğum belgesi / doğumun gerçekleştiği sağlık kuruluşu bildirimi",
+        "Çocuğa verilecek ad bilgisi"
+      ],
+      "schritte": [
+        "Doğumu yasal süre içinde Nüfus Müdürlüğü'ne bildirin",
+        "Hastanede doğanlarda bildirim genellikle sağlık kuruluşu tarafından sisteme iletilir",
+        "Ad tescili ve nüfusa kayıt işlemini tamamlayın",
+        "Çocuğun T.C. kimlik numarasının oluştuğunu kontrol edin"
+      ],
+      "hinweise": [
+        "Doğum yasal süre içinde bildirilmelidir; gecikmede idari yaptırım olabilir",
+        "Yurt dışı doğumlarda dış temsilciliklere bildirim yapılır"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "marriage",
+      "titel": "Evlenme (nikah) başvurusu",
+      "lebenslage": "Aile ve çocuk",
+      "amtstyp": "Belediye Evlendirme Dairesi / Nüfus Müdürlüğü (evlendirme yetkili birim)",
+      "unterlagen": [
+        "Her iki tarafın T.C. kimlik kartı",
+        "Evlenme beyannamesi",
+        "Evlenmeye engel hastalık bulunmadığına dair sağlık raporu",
+        "Biyometrik fotoğraf",
+        "Daha önce evlenmiş olanlar için boşanma/ölüm durumuna ilişkin kayıt"
+      ],
+      "schritte": [
+        "Yetkili evlendirme dairesinden başvuru ve nikah randevusu alın",
+        "Sağlık raporu ve gerekli belgeleri hazırlayın",
+        "Birlikte şahsen başvurun",
+        "Belirlenen tarihte nikah töreni gerçekleştirilir ve uluslararası aile cüzdanı verilir"
+      ],
+      "hinweise": [
+        "Sağlık raporu şartları ilgili sağlık kuruluşunca belirlenir",
+        "Yabancı uyruklu taraf için ek belgeler (bekârlık belgesi, tercüme vb.) istenebilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "death-registration",
+      "titel": "Ölüm bildirimi / ölüm belgesi",
+      "lebenslage": "Vefat",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "Bildirimi yapan kişinin T.C. kimlik kartı",
+        "Ölüm belgesi / defin ruhsatı (sağlık kuruluşu veya belediye tabipliği)",
+        "Vefat edenin kimlik bilgileri"
+      ],
+      "schritte": [
+        "Ölümü yasal süre içinde ilgili birime bildirin",
+        "Hastane veya belediye tarafından düzenlenen ölüm belgesini alın",
+        "Nüfus kaydının güncellenmesini sağlayın",
+        "Gereken sayıda kayıt örneği / belge talep edin"
+      ],
+      "hinweise": [
+        "Defin işlemleri genellikle belediye ve sağlık birimleri tarafından yürütülür",
+        "Miras, sigorta ve emeklilik işlemleri için belge örnekleri gerekebilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "sgk-registration",
+      "titel": "SGK sigortalılık / işe giriş bildirimi",
+      "lebenslage": "Çalışma ve sosyal güvenlik",
+      "amtstyp": "Sosyal Güvenlik Kurumu (SGK)",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "İşe giriş bildirgesi (işveren tarafından)",
+        "İş sözleşmesi bilgileri",
+        "Bağımsız çalışanlar için faaliyet/tescil bilgileri"
+      ],
+      "schritte": [
+        "İşverenler işe giriş bildirgesini işe başlamadan önce SGK'ya verir",
+        "Sigortalılığınızı e-Devlet'ten SGK tescil ve hizmet dökümünden kontrol edin",
+        "Bağımsız (4/b) çalışanlar için tescil işlemlerini tamamlayın",
+        "Eksik bildirim halinde SGK il/merkez müdürlüğüne başvurun"
+      ],
+      "hinweise": [
+        "İşe giriş bildirimi kanunen işe başlamadan önce yapılmalıdır",
+        "Sigortalılık türü (4/a, 4/b, 4/c) çalışma biçimine göre değişir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "health-insurance-gss",
+      "titel": "Genel Sağlık Sigortası (GSS) tescili",
+      "lebenslage": "Çalışma ve sosyal güvenlik",
+      "amtstyp": "Sosyal Güvenlik Kurumu (SGK)",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "Gelir durumuna ilişkin bilgiler (gerektiğinde gelir testi)",
+        "Öğrenci, aile bireyi veya bağımlı durumunu gösterir bilgiler"
+      ],
+      "schritte": [
+        "Sağlık sigortası kapsamını e-Devlet'ten kontrol edin",
+        "Başka bir sigortalılığınız yoksa GSS tescili oluşabilir",
+        "Gerekiyorsa Sosyal Yardımlaşma ve Dayanışma Vakfı'nda gelir testi yaptırın",
+        "Prim yükümlülüğü ve kapsamınızı SGK'dan teyit edin"
+      ],
+      "hinweise": [
+        "Belirli yaş altındaki çocuklar ve bazı gruplar prim ödemeden sağlık hizmetinden yararlanabilir",
+        "Gelir testi sonucu prim tutarını etkiler"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "tax-number",
+      "titel": "Vergi kimlik numarası edinme",
+      "lebenslage": "İş ve vergi",
+      "amtstyp": "Vergi Dairesi (Gelir İdaresi Başkanlığı)",
+      "unterlagen": [
+        "T.C. kimlik kartı (vatandaşlar için)",
+        "Yabancılar için pasaport",
+        "İletişim ve adres bilgileri"
+      ],
+      "schritte": [
+        "Türk vatandaşlarında T.C. kimlik numarası vergi kimlik numarası olarak kullanılır",
+        "Yabancılar İnteraktif Vergi Dairesi üzerinden çevrimiçi vergi numarası alabilir",
+        "Gerekirse yetkili vergi dairesine başvurun",
+        "Numaranızı e-Devlet / GİB üzerinden doğrulayın"
+      ],
+      "hinweise": [
+        "Vatandaşlar ayrıca vergi numarası almak zorunda değildir; T.C. kimlik numarası esas alınır",
+        "Banka, tapu ve resmi işlemler için gerekli olabilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "income-tax",
+      "titel": "Gelir vergisi mükellefiyeti / beyanname",
+      "lebenslage": "İş ve vergi",
+      "amtstyp": "Vergi Dairesi (Gelir İdaresi Başkanlığı)",
+      "unterlagen": [
+        "T.C. kimlik / vergi kimlik bilgileri",
+        "Gelir ve gider belgeleri",
+        "Faaliyet/işe başlama bildirimi (mükellefiyet için)",
+        "Varsa serbest meslek/ticari kazanç kayıtları"
+      ],
+      "schritte": [
+        "Faaliyete başlarken işe başlama bildirimi ile mükellefiyet tesis ettirin",
+        "Gelir ve giderlerinizi usulüne uygun belgeleyin",
+        "Beyannameyi ilgili dönemde Dijital Vergi Dairesi (GİB) üzerinden verin",
+        "Tahakkuk eden vergiyi süresinde ödeyin"
+      ],
+      "hinweise": [
+        "Beyanname türleri ve süreleri kazanç türüne göre değişir",
+        "Muhasebeci/mali müşavir desteği alınması yaygındır; kesin bilgi için yetkili vergi dairesine danışın"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "business-registration",
+      "titel": "Şirket / işyeri kuruluşu",
+      "lebenslage": "İş ve girişim",
+      "amtstyp": "Ticaret Sicil Müdürlüğü (Ticaret Odası)",
+      "unterlagen": [
+        "Kurucuların T.C. kimlik bilgileri",
+        "Şirket sözleşmesi / ana sözleşme",
+        "İmza beyanı",
+        "Sermaye ve ortaklık bilgileri",
+        "Faaliyet konusuna göre gerekli izin/ruhsatlar"
+      ],
+      "schritte": [
+        "Şirket türünü belirleyip sözleşmeyi hazırlayın",
+        "Ticaret Sicil Müdürlüğü'nde (MERSİS üzerinden) tescil işlemini yapın",
+        "Vergi dairesi ve SGK bildirimlerini tamamlayın",
+        "Belediyeden işyeri açma ve çalışma ruhsatını alın"
+      ],
+      "hinweise": [
+        "Tescil MERSİS sistemi üzerinden yürütülür",
+        "Faaliyet koluna göre ek izinler (gıda, sağlık vb.) gerekebilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "tradesman-registration",
+      "titel": "Esnaf ve sanatkar sicili / oda kaydı",
+      "lebenslage": "İş ve girişim",
+      "amtstyp": "Esnaf ve Sanatkarlar Sicil Müdürlüğü / ilgili Esnaf Odası",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "Faaliyet konusu bilgileri",
+        "Vergi dairesi kaydı / işe başlama bilgileri",
+        "Faaliyete göre gerekli belge ve ruhsatlar"
+      ],
+      "schritte": [
+        "Esnaf ve Sanatkarlar Sicil Müdürlüğü'ne (ESBİS üzerinden) tescil başvurusu yapın",
+        "İlgili esnaf odasına kaydınızı yaptırın",
+        "Vergi dairesi ve SGK (4/b) bildirimlerini tamamlayın",
+        "Gereken hallerde belediyeden işyeri ruhsatı alın"
+      ],
+      "hinweise": [
+        "Küçük ölçekli/esnaf faaliyetleri esnaf siciline, ticari şirketler ticaret siciline kaydolur",
+        "Kayıt işlemleri ESBİS sistemi üzerinden yürütülür"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "residence-certificate",
+      "titel": "Yerleşim yeri (ikametgah) belgesi",
+      "lebenslage": "Kimlik ve belgeler",
+      "amtstyp": "Nüfus ve Vatandaşlık İşleri Müdürlüğü",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "e-Devlet erişim bilgileri (çevrimiçi alım için)"
+      ],
+      "schritte": [
+        "e-Devlet üzerinden yerleşim yeri belgesini çevrimiçi alın",
+        "Alternatif olarak Nüfus Müdürlüğü'nden şahsen talep edin",
+        "Belgeyi kullanacağınız kuruma iletin"
+      ],
+      "hinweise": [
+        "Belge çoğunlukla e-Devlet üzerinden ücretsiz ve anında alınabilir",
+        "e-Devlet çıktısının doğruluğu karekod ile sorgulanabilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "criminal-record",
+      "titel": "Adli sicil kaydı (sabıka kaydı)",
+      "lebenslage": "Kimlik ve belgeler",
+      "amtstyp": "Adli Sicil ve İstatistik Genel Müdürlüğü (Adliye)",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "Kullanım amacı bilgisi (istenen hallerde)"
+      ],
+      "schritte": [
+        "e-Devlet üzerinden adli sicil kaydını çevrimiçi alın",
+        "Alternatif olarak adliyedeki adli sicil biriminden veya kaymakamlıktan talep edin",
+        "Belgeyi ilgili kuruma iletin"
+      ],
+      "hinweise": [
+        "Belge çoğunlukla e-Devlet üzerinden ücretsiz alınabilir",
+        "Resmi kuruma verilecek belgede kullanım amacının belirtilmesi istenebilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "military-status",
+      "titel": "Askerlik durum belgesi",
+      "lebenslage": "Çalışma ve resmi işlemler",
+      "amtstyp": "Askerlik Şubesi (Milli Savunma Bakanlığı)",
+      "unterlagen": [
+        "T.C. kimlik kartı",
+        "e-Devlet erişim bilgileri (çevrimiçi alım için)"
+      ],
+      "schritte": [
+        "e-Devlet üzerinden askerlik durum belgesini çevrimiçi alın",
+        "Alternatif olarak bağlı bulunduğunuz Askerlik Şubesi'nden talep edin",
+        "Belgeyi işveren veya ilgili kuruma iletin"
+      ],
+      "hinweise": [
+        "Erkek vatandaşlar için işe giriş ve bazı resmi işlemlerde istenebilir",
+        "Belge çoğunlukla e-Devlet üzerinden alınabilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    },
+    {
+      "id": "title-deed",
+      "titel": "Tapu işlemleri (satış / devir)",
+      "lebenslage": "Konut ve gayrimenkul",
+      "amtstyp": "Tapu ve Kadastro Müdürlüğü",
+      "unterlagen": [
+        "Alıcı ve satıcının T.C. kimlik kartı",
+        "Tapu senedi / taşınmaz bilgileri",
+        "Zorunlu deprem sigortası (DASK) poliçesi",
+        "Belediyeden rayiç bedel belgesi",
+        "Biyometrik fotoğraf ve tapu harcı dekontu"
+      ],
+      "schritte": [
+        "Web-Tapu üzerinden başvuru ve randevu oluşturun",
+        "DASK poliçesi ve belediye rayiç belgesini hazırlayın",
+        "Tapu harcını ve döner sermaye ücretini yatırın",
+        "Randevuda taraflar Tapu Müdürlüğü'nde işlemi imzalayarak tamamlar"
+      ],
+      "hinweise": [
+        "Tapu harcı genellikle beyan edilen satış bedeli üzerinden hesaplanır",
+        "Yabancıların gayrimenkul ediniminde ek koşullar ve kısıtlamalar bulunabilir"
+      ],
+      "offizielleSuche": "https://www.turkiye.gov.tr"
+    }
+  ]
+}

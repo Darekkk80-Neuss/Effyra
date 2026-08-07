@@ -1,0 +1,218 @@
+{
+ "land": "TR",
+ "sprache": "tr",
+ "formen": {
+  "arbeit": {
+   "label": "İş sözleşmesi",
+   "form": "Islak imzalı yazılı bildirim en güvenli yoldur; bazı işverenler e-postayı kabul edebilir — sözleşmenizi kontrol edin",
+   "email": "nein",
+   "tipp": "Türkiye'de iş sözleşmesinin feshinde bildirimin yazılı ve imzalı olarak yapılması ve işverene tebliğ edilmesi en güvenli yoldur; ihbar (bildirim) süreleri çalışma sürenize göre değişir. Önce iş sözleşmenizi ve varsa işyeri iç yönetmeliğini inceleyin. Fesih dilekçenizi elden imza karşılığı teslim edin veya iadeli taahhütlü posta ya da noter kanalıyla gönderip teslim belgesini saklayın. Düz bir e-posta çoğu durumda yazılı bildirim yerine geçmez; en fazla destekleyici bir kayıt sayılır. Ayrıntılar için işten çıkışa ilişkin haklarınızı e-Devlet (turkiye.gov.tr) üzerinden veya bir avukat/İŞKUR'dan teyit etmeniz önerilir."
+  },
+  "miete": {
+   "label": "Konut / kira sözleşmesi",
+   "form": "İmzalı yazılı bildirim beklenir; genellikle tek başına e-posta yeterli olmaz — kira sözleşmenizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Kira ilişkisinin sona erdirilmesinde bildirimin yazılı yapılması ve karşı tarafa ulaştığının kanıtlanabilmesi önemlidir; kiracı ve kiraya veren için farklı süreler ve koşullar uygulanabilir. Kira sözleşmenizdeki fesih/bildirim maddesini dikkatle okuyun. Uygulamada bildirimi noter aracılığıyla veya iadeli taahhütlü posta ile göndermek ve bir kopyasını saklamak en güvenli yoldur. Kurallar taşınmazın bulunduğu yere ve sözleşmeye göre değişebileceğinden emin değilseniz danışın."
+  },
+  "handy": {
+   "label": "Cep telefonu / internet / sabit hat",
+   "form": "Yazılı bildirim; birçok operatör e-posta veya çevrimiçi iptal seçeneğini de kabul eder — sözleşmenizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Operatörlerin çoğu abonelik sözleşmesinde ve taahhütnamede iptal kanalını belirtir; birçoğu artık çevrimiçi iptal veya özel bir iptal adresi sunar. Sözleşmenizde belirtilen kanalı kullanın ve onay e-postasını, başvuru/işlem numarasını veya ekran görüntüsünü kanıt olarak saklayın. Herhangi bir kanal belirtilmemişse yazılı bildirim gönderip fesih tarihinin yazılı olarak teyidini isteyin."
+  },
+  "strom": {
+   "label": "Elektrik / doğal gaz",
+   "form": "Yazılı bildirim; birçok tedarikçi e-posta veya çevrimiçi işlem talebini de kabul eder — sözleşmenizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Enerji tedarikçileri iptal veya tedarikçi değişikliği prosedürünü genellikle sözleşme koşullarında açıklar. Herhangi bir bildirim göndermeden önce sözleşmenizi ve yerel kuralları kontrol edin; taşınma durumunda çoğu zaman ayrı bir çıkış/kapama (abonelik iptali) adımı bulunur. Son endeks (sayaç) değerlerinizi mutlaka kaydedin ve yazılı teyidi saklayın."
+  },
+  "streaming": {
+   "label": "Dijital yayın / abonelik",
+   "form": "Yazılı bildirim; çoğu sağlayıcı hesap ayarlarından veya e-posta ile iptali de kabul eder — sözleşmenizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Çevrimiçi başlatılan abonelikler genellikle çevrimiçi olarak iptal edilebilir ve bu en hızlı, en iyi belgelenen yoldur. Üyelik sırasında kabul ettiğiniz koşullardaki iptal yöntemini ve varsa asgari taahhüt süresini kontrol edin. Onay ekranının görüntüsünü alın ve ödemenin gerçekten durduğundan emin olmak için bir sonraki ekstrenizi kontrol edin."
+  },
+  "fitness": {
+   "label": "Spor salonu / fitness üyeliği",
+   "form": "Yazılı bildirim; bazı işletmeler e-postayı da kabul eder — üyelik sözleşmenizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Spor salonu üyelikleri sıklıkla asgari taahhüt süresi ile otomatik yenileme koşulunu bir arada içerir; bu nedenle iptal tarihi yöntem kadar önemlidir. Üyelik sözleşmenizi dikkatle okuyun ve bildiriminizi yenileme tarihinden önce gönderin. Sözleşme e-postayı açıkça kabul etmiyorsa iadeli taahhütlü posta ile imzalı bir yazı gönderin ve kanıtı saklayın."
+  },
+  "versicherung": {
+   "label": "Sigorta",
+   "form": "Yazılı bildirim; koşullar sigortacıya ve poliçeye göre değişir — poliçe belgelerinizi kontrol edin",
+   "email": "unsicher",
+   "tipp": "Sigorta poliçeleri çoğu zaman kendi bildirim koşullarını, kabul edilen yöntemi ve cayma/yenileme sürelerini belirler. İptalden önce poliçe belgelerinizi ve varsa yenileme bildirimini okuyun; yasal olarak zorunlu olan sigortalarda yeni teminatın devrede olduğundan emin olun. Kabul edilen yöntem belirsizse iadeli taahhütlü posta ile gönderilen yazılı bildirim daha güvenlidir."
+  },
+  "verein": {
+   "label": "Dernek / kulüp üyeliği",
+   "form": "Derneğin tüzüğünde veya iç yönetmeliğinde belirtilen usule göre",
+   "email": "unsicher",
+   "tipp": "Dernek ve kulüpler genellikle kendi tüzükleriyle yönetilir; tüzük bildirimin kime, hangi biçimde ve hangi tarihe kadar yapılacağını belirleyebilir. Elinizde yoksa tüzüğün bir kopyasını isteyin ve bildiriminizi orada belirtilen kişi veya organa yöneltin. Bir düzenleme yoksa yazılı bildirim gönderip yazılı teyit talep edin."
+  },
+  "sonstiges": {
+   "label": "Diğer sözleşme",
+   "form": "Sözleşmeye bağlıdır; en güvenli varsayılan yazılı bildirimdir — sözleşme koşullarınızı kontrol edin",
+   "email": "unsicher",
+   "tipp": "Sözleşme türü yukarıda yer almıyorsa ilk bakılacak yer kabul ettiğiniz sözleşme koşulları, ardından bulunduğunuz yerde geçerli tüketici kurallarıdır. Sözleşme sessiz veya belirsizse yazılı bildirim gönderip alındığının ve fesih tarihinin yazılı teyidini isteyin. Teslim kanıtını saklamak az maliyetlidir ve sonraki uyuşmazlıkların çoğunu çözer."
+  }
+ },
+ "vorlagen": {
+  "miet-kuend": {
+   "titel": "Kira sözleşmesinin feshi",
+   "body": "Kira sözleşmemde belirtilen bildirim süresine uygun olarak, {objekt} adresindeki taşınmaza ilişkin kira sözleşmesini feshetmek istediğimi bildiririm.\n\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, kira sözleşmesinin sözleşmede izin verilen en erken tarihte sona erdirilmesini ve bu tarihin tarafıma bildirilmesini rica ederim.\n\nBu fesih bildiriminin alındığını ve kira ilişkisinin sona erme tarihini yazılı olarak teyit etmenizi rica ederim. Ayrıca taşınmazın birlikte teslim ve tespitini yapmak isterim; depozitonun ne şekilde ve ne zaman iade edileceğini de bildirmenizi rica ederim."
+  },
+  "umzug": {
+   "titel": "Adres değişikliğinin bildirilmesi",
+   "body": "Taşındığımı bildirmek isterim. Kayıtlarınızdaki adresimi buna göre güncellemenizi rica ederim.\n\nYeni adresim:\n{neueAdresse}\n\nGeçerlilik tarihi: {datum}\n\nBundan sonraki tüm yazışmaların yeni adrese gönderilmesini ve değişikliğin yapıldığını teyit etmenizi rica ederim."
+  },
+  "nachsende": {
+   "titel": "Postanın yeni adrese yönlendirilmesi",
+   "body": "Postalarımın bundan böyle aşağıdaki adrese teslim edilmesini bildirmek isterim:\n\n{neueAdresse}\n\nGeçerlilik tarihi: {datum}\n\nTeslimat kayıtlarınızı buna göre güncellemenizi ve bu talebin alındığını teyit etmenizi rica ederim. Posta yönlendirme işlemi için ayrı bir form, kimlik veya ücret gerekiyorsa nelere ihtiyaç duyduğunuzu bildirmenizi rica ederim."
+  },
+  "uebergabe": {
+   "titel": "Konut teslim kontrol listesi",
+   "body": "Kiralanan bir taşınmazın teslimi için kontrol listesi:\n\n- Tüm sayaç değerlerini (elektrik, doğal gaz, su) kaydedin ve fotoğraflayın\n- Her anahtarı teslim edin ve her türden kaç adet iade edildiğini kaydedin\n- Taşınmazı temiz ve eşyalarınızdan arınmış şekilde bırakın\n- Duvar, tavan ve zeminleri hasar yönünden kontrol edin\n- Sözleşmeniz gerektiriyorsa açtığınız delikleri kapatıp düzeltin\n- Pencere, kapı ve tesisatın düzgün çalıştığını kontrol edin\n- Ev sahibi veya yetkiliyle birlikte imzalı bir teslim tutanağı düzenleyin\n- Depozito iadesi için banka hesap bilgilerini verin\n- Her odanın durumunu tarihli fotoğraflarla belgeleyin\n- Postanızın yeni adresinize yönlendirilmesini ayarlayın\n- Altyapı (elektrik, gaz, su) aboneliklerinizde son fatura tarihini teyit edin"
+  },
+  "maengel": {
+   "titel": "Ev sahibine ayıp/eksik bildirimi",
+   "body": "{objekt} adresindeki taşınmazda aşağıdaki ayıbı/eksikliği bildirmek isterim:\n\n{mangel}\n\nOnarımın tamamlanması için talep edilen tarih: {datum}\n\nAyıbın bu tarihe kadar giderilmesini sağlamanızı rica ederim. Giriş için erişim gerekiyorsa uygun bir randevu belirlemek üzere benimle iletişime geçmenizi rica ederim. Ayıp giderilmezse, kira sözleşmem ve taşınmazın bulunduğu yerde geçerli mevzuat çerçevesinde başvurabileceğim diğer yollara başvurma hakkımı saklı tutarım.\n\nBu bildirimin alındığını yazılı olarak teyit etmenizi rica ederim."
+  },
+  "kaution": {
+   "titel": "Kira depozitosunun iadesinin talep edilmesi",
+   "body": "{objekt} adresindeki, artık sona ermiş olan kira sözleşmesine ilişkin olarak yazıyorum. Taşınmaz sözleşmeye uygun şekilde teslim edilmiştir.\n\nKira sözleşmesinin sona erme tarihi: {datum}\n\nDepozitonun, varsa işlemiş faiziyle birlikte, aşağıdaki hesaba tamamen iade edilmesini rica ederim:\n\nHesap sahibi: {name}\nIBAN / hesap numarası: {iban}\n\nDepozitodan herhangi bir kesinti yapmayı düşünüyorsanız, her kesintinin tutarını ve nedenini gösteren ayrıntılı bir döküm ile destekleyici belgeleri iletmenizi rica ederim. Ayrıca bu yazının alındığını da teyit etmenizi rica ederim."
+  },
+  "handy-kuend": {
+   "titel": "Cep telefonu sözleşmesinin iptali",
+   "body": "Sözleşmemde belirtilen bildirim süresine uygun olarak, cep telefonu sözleşmemi feshetmek istediğimi bildiririm.\n\nSözleşme / müşteri numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, bu bildirimi sözleşmede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nFeshi ve kesin sona erme tarihini yazılı olarak teyit etmenizi ve bu tarihten sonra herhangi bir tahsilat yapılmayacağını doğrulamanızı rica ederim. Numaram başka bir operatöre taşınmaya uygunsa, taşıma için gereken bilgileri de tarafıma iletmenizi rica ederim."
+  },
+  "internet-kuend": {
+   "titel": "İnternet / genişbant sözleşmesinin iptali",
+   "body": "Sözleşmemde belirtilen bildirim süresine uygun olarak, internet / genişbant sözleşmemi feshetmek istediğimi bildiririm.\n\nSözleşme / müşteri numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, bu bildirimi sözleşmede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nFeshi ve kesin sona erme tarihini yazılı olarak teyit etmenizi ve bu tarihten sonra herhangi bir tahsilat yapılmayacağını doğrulamanızı rica ederim. Ayrıca size ait cihazların (modem vb.) ne şekilde ve hangi tarihe kadar iade edilmesi gerektiğini bildirmenizi rica ederim."
+  },
+  "streaming-kuend": {
+   "titel": "Dijital yayın aboneliğinin iptali",
+   "body": "Sözleşmemde belirtilen bildirim süresine uygun olarak, dijital yayın aboneliğimi iptal etmek istediğimi bildiririm.\n\nSözleşme / müşteri numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe iptal mümkün değilse, bu bildirimi sözleşmede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nİptali ve kesin sona erme tarihini yazılı olarak teyit etmenizi ve bu tarihten sonra hesabımdan herhangi bir tahsilat yapılmayacağını doğrulamanızı rica ederim."
+  },
+  "fitness-kuend": {
+   "titel": "Spor salonu üyeliğinin iptali",
+   "body": "Üyelik sözleşmemde belirtilen bildirim süresine uygun olarak, spor salonu üyeliğimi iptal etmek istediğimi bildiririm.\n\nÜyelik / müşteri numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe iptal mümkün değilse, bu bildirimi sözleşmede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nİptali ve kesin sona erme tarihini yazılı olarak teyit etmenizi, üyeliğin otomatik olarak yenilenmeyeceğini ve bu tarihten sonra herhangi bir tahsilat yapılmayacağını doğrulamanızı rica ederim."
+  },
+  "versicherung-kuend": {
+   "titel": "Sigorta poliçesinin iptali",
+   "body": "Poliçe belgelerimde belirtilen bildirim süresine uygun olarak, yukarıda belirtilen sigorta poliçesini feshetmek istediğimi bildiririm.\n\nPoliçe numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, bu bildirimi poliçede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nİptali ve teminatın sona erdiği kesin tarihi yazılı olarak teyit etmenizi, bu tarihten sonra herhangi bir prim tahsilatı yapılmayacağını doğrulamanızı ve ödenmiş primlerden iade edilecek bir tutar olup olmadığını bildirmenizi rica ederim."
+  },
+  "mitgliedschaft-kuend": {
+   "titel": "Üyeliğin sonlandırılması",
+   "body": "Üyelik koşullarında veya kurumun tüzüğünde belirtilen bildirim süresine uygun olarak, üyeliğimi sonlandırmak istediğimi bildiririm.\n\nÜye numarası: {vertragsnr}\nTalep edilen fesih tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, bu bildirimi izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nÜyeliğimin sona erdiğini yazılı olarak teyit etmenizi ve bu tarihten sonra herhangi bir aidat veya ücret tahsil edilmeyeceğini doğrulamanızı rica ederim."
+  },
+  "adress-behoerde": {
+   "titel": "Bir kuruma yeni adresin bildirilmesi",
+   "body": "Yeni adresimi bildirmek isterim. Kayıtlarınızı buna göre güncellemenizi rica ederim.\n\nYeni adresim:\n{neueAdresse}\n\nGeçerlilik tarihi: {datum}\n\nBundan sonraki tüm yazışmaların bu adrese gönderilmesini ve değişikliğin yazılı olarak teyidini rica ederim. Bu değişikliği işleme almak için ayrı bir form, adres beyanı veya kimlik gerekiyorsa nelere ihtiyaç duyduğunuzu bildirmenizi rica ederim."
+  },
+  "namensaenderung": {
+   "titel": "İsim değişikliğinin bildirilmesi",
+   "body": "İsmimin değiştiğini bildirmek isterim.\n\nÖnceki isim: {altName}\nYeni isim: {neuName}\nGeçerlilik tarihi: {datum}\n\nKayıtlarınızı buna göre güncellemenizi ve değişikliğin yazılı olarak teyidini rica ederim. İsim değişikliğine ilişkin belgeye ihtiyaç duyarsanız hangi belgenin gerektiğini bildirin, bir kopyasını ileteyim."
+  },
+  "aenderungsmitteilung": {
+   "titel": "Bir kuruma durum değişikliğinin bildirilmesi",
+   "body": "Kişisel durumumdaki aşağıdaki değişikliği bildirmek isterim:\n\n{text}\n\nKayıtlarınızı buna göre güncellemenizi ve devam eden herhangi bir işlem veya başvuruda bu değişikliği dikkate almanızı rica ederim. Ek bilgi, form veya destekleyici belge gerekiyorsa bildirmenizi rica ederim.\n\nBu bildirimin alındığını teyit etmenizi rica ederim."
+  },
+  "kindergeld": {
+   "titel": "Çocuk / aile yardımına ilişkin değişikliğin bildirilmesi",
+   "body": "Çocuk veya aileye yönelik yardım hakkımla bağlantılı olarak aşağıdakileri bildirmek isterim:\n\n{text}\n\nDosya / başvuru numarası: {vertragsnr}\n\nBu bilgiyi hakkımın değerlendirilmesinde dikkate almanızı ve kayıtlarınızı buna göre güncellemenizi rica ederim. Ek bilgi veya destekleyici belge gerekiyorsa neye ve hangi tarihe kadar ihtiyaç duyduğunuzu bildirmenizi rica ederim.\n\nBu bildirimin alındığını teyit etmenizi rica ederim. (Not: Aile ve çocuğa yönelik yardımların türü ve koşulları duruma ve ilgili kuruma göre değişebilir.)"
+  },
+  "steuer-adress": {
+   "titel": "Vergi dairesine yeni adresin bildirilmesi",
+   "body": "Vergi işlemleri bakımından yeni adresimi bildirmek isterim. Kayıtlarımı buna göre güncellemenizi rica ederim.\n\nYeni adresim:\n{neueAdresse}\n\nVergi kimlik / sicil numarası: {vertragsnr}\nGeçerlilik tarihi: {datum}\n\nBundan sonraki tüm yazışma, tarhiyat ve tebligatların bu adrese gönderilmesini ve değişikliğin yazılı teyidini rica ederim. Bu değişikliğin belirli bir form veya çevrimiçi hizmet (ör. İnteraktif Vergi Dairesi) üzerinden yapılması gerekiyorsa bildirmenizi rica ederim."
+  },
+  "eigenkuendigung": {
+   "titel": "İstifa dilekçesi",
+   "body": "İş sözleşmemde belirtilen bildirim (ihbar) süresine uygun olarak, iş sözleşmemi feshetmek istediğimi bildiririm.\n\nTalep edilen son çalışma günü: {datum}\n\nİhbar sürem nedeniyle farklı bir tarih geçerli oluyorsa, bu bildirimi sözleşmemde izin verilen en erken tarih için yapılmış sayın ve bu tarihi tarafıma teyit edin.\n\nBu dilekçenin alındığını ve son çalışma günümü yazılı olarak teyit etmenizi rica ederim. Ayrıca görevim ve çalışma performansımı içeren yazılı bir çalışma belgesini (bonservis), kullanılmamış izin hakkım ile son ücret ödemesine ilişkin bir dökümle birlikte iletmenizi rica ederim. İşlerimin sorunsuz devri için elimden geleni yapacağımı belirtmek isterim."
+  },
+  "arbeit-bank": {
+   "titel": "Maaş ödemesi için banka bilgilerinin değiştirilmesi",
+   "body": "Maaş ödemesine ilişkin banka bilgilerimin değiştiğini bildirmek isterim. Maaşımın bundan böyle aşağıdaki hesaba yatırılmasını rica ederim:\n\nHesap sahibi: {name}\nIBAN / hesap numarası: {iban}\n\nGeçerlilik tarihi: {datum}\n\nBir sonraki bordro dönemi öncesinde değişikliğin yazılı olarak teyit edilmesini rica ederim. Bu talebin belirli bir form veya çalışan self-servis sistemi üzerinden yapılması gerekiyorsa bildirmenizi rica ederim."
+  },
+  "elternzeit": {
+   "titel": "Ebeveyn / doğum sonrası izin talebi",
+   "body": "Aşağıda belirtilen dönem için ebeveyn / doğum sonrası izin talep etmek isterim.\n\nİznin başlangıcı: {von}\nİznin bitişi: {bis}\n\nİşlerimin yokluğumda en iyi şekilde nasıl yürütülebileceği ve varsa kısmi süreli ya da kademeli dönüş düzenlemeleri dahil olmak üzere ayrıntıları sizinle görüşmekten memnuniyet duyarım.\n\nİzni yazılı olarak teyit etmenizi; sözleşmem ve çalıştığım yerde geçerli mevzuat uyarınca geçerli olan koşulları, bildirim gerekliliklerini ve destekleyici belgeleri bildirmenizi rica ederim."
+  },
+  "urlaub": {
+   "titel": "Yıllık izin talebi",
+   "body": "Aşağıda belirtilen dönem için yıllık izin talep etmek isterim.\n\nBaşlangıç: {von}\nBitiş: {bis}\n\nAyrılmadan önce mevcut işlerimin devrini yapacağım. Ekip planlaması açısından farklı bir dönem daha uygun olursa bildirmenizi rica ederim.\n\nİzni teyit etmenizi rica ederim. Teşekkür ederim."
+  },
+  "arbeitszeugnis": {
+   "titel": "Yazılı çalışma belgesi (bonservis) talebi",
+   "body": "Sizinle olan iş ilişkim sona ermiştir.\n\nSon çalışma günü: {datum}\n\nGörevimi, sorumluluklarımı ve şirkette bulunduğum süre boyunca çalışma performansım ile davranışımı içeren yazılı bir çalışma belgesi (bonservis) düzenlemenizi rica ederim.\n\nBelgeyi yukarıda belirtilen adrese veya daha uygunsa e-posta ile göndermenizi rica ederim. Politikanız gereği belge yalnızca standart bir biçimde ya da yalnızca gelecekteki bir işverenin talebi üzerine veriliyorsa, doğru iletişim bilgilerini iletebilmem için bildirmenizi rica ederim. Teşekkür ederim."
+  },
+  "fin-bank": {
+   "titel": "Banka bilgilerinin değiştirilmesi",
+   "body": "Yeni banka bilgilerimi bildirmek isterim. Vadesi gelen tutarların bundan böyle aşağıdaki hesaptan tahsil edilmesini rica ederim:\n\nHesap sahibi: {name}\nIBAN / hesap numarası: {iban}\nMüşteri numarası: {vertragsnr}\n\nGeçerlilik tarihi: {datum}\n\nDeğişikliğin yazılı olarak teyidini ve önceki hesabımdan başka bir tahsilat yapılmayacağını doğrulamanızı rica ederim. Yeni bir otomatik ödeme talimatı veya yetki formu gerekiyorsa tarafıma göndermenizi rica ederim."
+  },
+  "lastschrift": {
+   "titel": "Otomatik ödeme talimatının iptali",
+   "body": "Hesabım için elinizde bulunan otomatik ödeme talimatını / düzenli ödeme yetkisini iptal etmek isterim.\n\nMüşteri numarası: {vertragsnr}\nİlgili tutar: {betrag}\nİptalin geçerli olacağı tarih: {datum}\n\nBu tarihten itibaren hesabımdan başka bir ödeme tahsil etmemenizi ve iptali yazılı olarak teyit etmenizi rica ederim.\n\nSözleşmemiz uyarınca hâlâ gerçekten vadesi gelmiş bir tutar varsa, ne kadar ve neden borçlu olduğumu gösteren bir fatura göndermenizi rica ederim; ödemeyi ayrıca yapacağım. Bu yetkinin iptalinin, altta yatan sözleşmeyi tek başına sona erdirmediğini belirtmek isterim."
+  },
+  "reklamation": {
+   "titel": "Hesabımdan yapılan bir ödemeye itiraz",
+   "body": "Hesabımdan, kabul etmediğim bir ödeme tahsil edilmiştir; bu ödemeye itiraz etmek isterim.\n\nTutar: {betrag}\nÖdeme tarihi: {datum}\n\nİtirazımın gerekçesi şudur:\n\n{text}\n\nİşlemi incelemenizi ve tutarı hesabıma iade etmenizi rica ederim. İncelemeyi tamamlamak için benden bir şeye ihtiyacınız varsa bunu ve işlemin ne kadar süreceğini bildirmenizi rica ederim.\n\nBu itirazın alındığını teyit etmenizi rica ederim. Çözüme kavuşturamazsanız, konuyu nasıl üst makama taşıyabileceğimi ve hizmetinizi hangi şikâyet merci veya hakem/tahkim sisteminin kapsadığını bildirmenizi rica ederim."
+  },
+  "ratenzahlung": {
+   "titel": "Taksitle ödeme talebi",
+   "body": "Hesabımdaki bakiyeyle ilgili olarak, taksitle ödemenin mümkün olup olmadığını sormak isterim.\n\nFatura / müşteri numarası: {vertragsnr}\nBorç tutarı: {betrag}\n\n{text}\n\nMevcut mali durumum, tutarın tamamını tek seferde ödememe imkân vermemektedir; ancak borcu kapatmak istiyorum ve düzenli ödemeler yapabilecek durumdayım.\n\nBir taksit düzenlemesini kabul etmenizi ve her taksitin tutarı ile vade tarihini içerecek şekilde yazılı olarak teyit etmenizi rica ederim. Ayrıca, kararlaştırılan taksitler zamanında ödendiği sürece ek ücret, faiz veya takip işlemi eklenmeyeceğini teyit etmenizi rica ederim."
+  },
+  "strom": {
+   "titel": "Elektrik sözleşmesinin yeni adrese taşınması",
+   "body": "Taşındığımı bildirmek isterim. Elektrik sözleşmemin yeni adresime aktarılmasını rica ederim:\n\n{neueAdresse}\n\nSayaç / müşteri numarası: {vertragsnr}\nTaşınma tarihi: {datum}\n\nBenden hangi sayaç değerleri ve belgelere ihtiyaç duyduğunuzu, yeni adresteki aboneliğin aynı sözleşme üzerinden devralınıp devralınamayacağını ve tarifemde bir değişiklik olup olmayacağını bildirmenizi rica ederim. Aktarımı yazılı olarak teyit etmenizi ve eski adres için bir son hesap dökümü göndermenizi rica ederim."
+  },
+  "gas": {
+   "titel": "Doğal gaz sözleşmesinin yeni adrese taşınması",
+   "body": "Taşındığımı bildirmek isterim. Doğal gaz sözleşmemin yeni adresime aktarılmasını rica ederim:\n\n{neueAdresse}\n\nSayaç / müşteri numarası: {vertragsnr}\nTaşınma tarihi: {datum}\n\nBenden hangi sayaç değerleri ve belgelere ihtiyaç duyduğunuzu, yeni adresteki aboneliğin aynı sözleşme üzerinden devralınıp devralınamayacağını ve tarifemde bir değişiklik olup olmayacağını bildirmenizi rica ederim. Aktarımı yazılı olarak teyit etmenizi ve eski adres için bir son hesap dökümü göndermenizi rica ederim."
+  },
+  "wasser": {
+   "titel": "Su aboneliğinin yeni adrese taşınması",
+   "body": "Taşındığımı bildirmek isterim. Su aboneliğimin yeni adresime aktarılmasını rica ederim:\n\n{neueAdresse}\n\nSayaç / abone numarası: {vertragsnr}\nTaşınma tarihi: {datum}\n\nBenden hangi sayaç değerleri ve belgelere ihtiyaç duyduğunuzu ve yeni adresteki aboneliğin ayrıca açılmasının gerekip gerekmediğini bildirmenizi rica ederim. Değişikliği yazılı olarak teyit etmenizi ve eski adres için bir son hesap dökümü göndermenizi rica ederim."
+  },
+  "muell": {
+   "titel": "Taşınma sonrası çöp / temizlik hizmet bedelinin güncellenmesi",
+   "body": "Taşındığımı bildirmek isterim. Çöp toplama / temizlik hizmeti bedeline ilişkin kaydımı yeni adresime göre güncellemenizi rica ederim:\n\n{neueAdresse}\n\nHesap / dosya numarası: {vertragsnr}\nTaşınma tarihi: {datum}\n\nEski adresimdeki kaydı kapatmak ve yenisini açmak için benden neye ihtiyaç duyduğunuzu, varsa konteyner/kutu teslim veya toplama düzenlemelerini bildirmenizi rica ederim. Değişikliği yazılı olarak teyit etmenizi ve eski adres için bir son hesap dökümü göndermenizi rica ederim."
+  },
+  "rundfunk": {
+   "titel": "Taşınma sonrası kamu yayın katkısı / bandrol kaydının güncellenmesi",
+   "body": "Taşındığımı bildirmek isterim. Kamu yayın katkısı / ilgili kayda ilişkin adresimi güncellemenizi rica ederim:\n\n{neueAdresse}\n\nHesap / kayıt numarası: {vertragsnr}\nTaşınma tarihi: {datum}\n\nDeğişikliği yazılı olarak teyit etmenizi ve bunun sonucunda ödenmesi ya da iade edilmesi gereken bir tutar olup olmadığını, yeni adres için ayrı bir form veya beyan gerekip gerekmediğini bildirmenizi rica ederim. (Not: Türkiye'de kamu yayın katkısı uygulaması ülkedeki modellerden farklılık gösterebilir; ayrıntılar için ilgili kuruma danışın.)"
+  },
+  "kfz-vers-kuend": {
+   "titel": "Araç sigortasının iptali",
+   "body": "Poliçe belgelerimde belirtilen bildirim süresine uygun olarak, aracıma ait araç sigortası poliçesini feshetmek istediğimi bildiririm.\n\nPlaka: {kennzeichen}\nPoliçe numarası: {vertragsnr}\nTalep edilen teminat sona erme tarihi: {datum}\n\nBu tarihe fesih mümkün değilse, bu bildirimi poliçede izin verilen en erken tarih için yapılmış sayın ve bu tarihi bana bildirin.\n\nİptali ve teminatın sona erdiği kesin tarihi yazılı olarak teyit etmenizi, başka bir prim tahsilatı yapılmayacağını doğrulamanızı ve ödenmiş primlerden iade edilecek bir tutar olup olmadığını bildirmenizi rica ederim. Ayrıca yeni bir sigortacıda kullanmak üzere hasarsızlık / hasar geçmişimi gösteren bir belge göndermenizi rica ederim.\n\nZorunlu trafik sigortasının çoğu ülkede yasal zorunluluk olduğunun farkındayım ve bu poliçe sona ermeden önce yeni teminatın devrede olmasını sağlayacağım."
+  },
+  "fahrzeug-anab": {
+   "titel": "Araç tescili veya tescil silme",
+   "body": "Aracımın tesciline ilişkin olarak yazıyorum.\n\nPlaka: {kennzeichen}\n\n{text}\n\nTalep edilen geçerlilik tarihi: {datum}\n\nBenden hangi belge, form ve kanıtları istediğinizi, işlemin posta veya çevrimiçi olarak yapılıp yapılamayacağını ve ödenecek bir ücret olup olmadığını bildirmenizi rica ederim. Ayrıca tescil belgeleri ve plakaların ne olacağını da teyit etmenizi rica ederim.\n\nBu talebin alındığını teyit etmenizi ve işlem tamamlandığında bilgilendirmenizi rica ederim."
+  },
+  "halterwechsel": {
+   "titel": "Araç malik / işleten değişikliğinin bildirilmesi",
+   "body": "Aracıma ilişkin malik / işleten değişikliğini bildirmek isterim.\n\nPlaka: {kennzeichen}\n\nYeni malikin bilgileri:\n\n{text}\n\nTalep edilen geçerlilik tarihi: {datum}\n\nDevri tamamlamak için hangi belge ve formların gerektiğini, her iki tarafın da imza atması gerekip gerekmediğini ve ödenecek bir ücret olup olmadığını bildirmenizi rica ederim. Ayrıca hangi tarihten itibaren, vergiler, harçlar ve cezalar dahil olmak üzere araçtan sorumlu olmayacağımı teyit etmenizi rica ederim.\n\nBu bildirimin alındığını teyit etmenizi ve değişiklik kaydedildiğinde yazılı onay göndermenizi rica ederim."
+  },
+  "adress-freunde": {
+   "titel": "Arkadaş ve akrabalara yeni adresin bildirilmesi",
+   "body": "Taşındığımızı bildirmek isteriz. Yeni adresimiz:\n\n{neueAdresse}\n\nBu adreste bize şu tarihten itibaren ulaşabilirsiniz: {datum}\n\nTelefon numaralarımız ve e-posta adreslerimiz aynı kalıyor. Sizi yeni evimizde görmekten mutluluk duyarız; lütfen bize haber verin, ziyaretinizi dört gözle bekliyoruz."
+  },
+  "namens-mitteilen": {
+   "titel": "Arkadaş ve akrabalara isim değişikliğinin bildirilmesi",
+   "body": "İsmimin değiştiğini bildirmek isterim.\n\nÖnceki isim: {altName}\nYeni isim: {neuName}\nGeçerlilik tarihi: {datum}\n\nBunun dışında hiçbir şey değişmiyor — aynı kişi, aynı telefon numarası, aynı e-posta adresi. Bundan böyle yeni ismimi kullanmanızı ve rehberinizde güncellemenizi rica ederim. Teşekkür ederim."
+  },
+  "todesfall": {
+   "titel": "Vefat duyurusu",
+   "body": "Büyük bir üzüntüyle, {verstorben} adlı sevdiğimizin vefat ettiğini bildirmek zorundayız.\n\nVefat tarihi: {sterbedatum}\n\n{text}\n\nYıllar boyunca gösterilen sevgi ve dostluk için minnettarız ve bu haberin birçoğunuz için almanın zor olacağını biliyoruz.\n\nCenaze düzenlemelerine ilişkin ayrıntılar daha sonra paylaşılacaktır. Bu süreçte sessiz dualarınızı diliyor, mesajlara geç yanıt verirsek anlayışınızı rica ediyoruz."
+  },
+  "vollmacht": {
+   "titel": "Adıma işlem yapma yetkisi (vekâlet)",
+   "body": "Ben, {name}, aşağıdaki kişiyi adıma işlem yapmak üzere yetkilendiriyorum:\n\n{bevoll}\n\nYetki aşağıdaki konuyu kapsamaktadır:\n\n{zweck}\n\nGeçerlilik tarihi: {datum}\n\nBu yetki, yazılı olarak geri alınana kadar yürürlükte kalır. Yetkili kişi, yukarıda açıklanan konuyu adıma yürütmek için makul ölçüde gerekli işlemleri yapabilir ve beyanları verebilir. Bu yetki başka hiçbir konuyu kapsamaz.\n\nLütfen dikkat: Bu tür bir yetkilendirmenin şekil şartları ülkeden ülkeye değişir; taşınmaz, bankacılık, sağlık ve dava işlemlerinde çoğu zaman noter onaylı ya da resmî usulle düzenlenmiş bir vekâletname gerekir. Türkiye'de birçok resmî işlem için noter huzurunda düzenlenmiş vekâletname aranır. Bu belgenin amacınız için yeterli olup olmadığını ya da özel bir form gerekip gerekmediğini teyit etmenizi rica ederim."
+  },
+  "frei": {
+   "titel": "Serbest metinli yazı",
+   "body": "{text}\n\nBu yazının tarafınıza ulaştığına dair yazılı teyidinizi ve konuyu nasıl ele almayı düşündüğünüzü belirten bir yanıtı rica ederim. Benden başka bir bilgiye ihtiyaç duyarsanız bildirmenizi rica ederim."
+  }
+ }
+}
