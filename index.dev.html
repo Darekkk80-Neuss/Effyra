@@ -9,6 +9,19 @@
      das Akzentblau – im Dunkelmodus leuchtete oben ein blauer Balken. -->
 <meta name="theme-color" content="#090B12">
 <meta name="description" content="Ordela – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.">
+<!-- Link-Vorschau (Open Graph / Twitter): zeigt beim Teilen das Ordela-Logo -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ordela">
+<meta property="og:title" content="Ordela – gewinnt dir Zeit zurück">
+<meta property="og:description" content="Dein persönlicher KI-Alltagsmanager: Briefe verstehen, Fristen erkennen, Aufgaben & Termine automatisch organisieren.">
+<meta property="og:image" content="https://darekkk80-neuss.github.io/Effyra/icon-512.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://darekkk80-neuss.github.io/Effyra/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ordela – gewinnt dir Zeit zurück">
+<meta name="twitter:description" content="Dein persönlicher KI-Alltagsmanager: Briefe verstehen, Fristen erkennen, Aufgaben & Termine automatisch organisieren.">
+<meta name="twitter:image" content="https://darekkk80-neuss.github.io/Effyra/icon-512.png">
 <!-- Bau-Kennung. build.mjs ersetzt "dev" bei jedem Lauf durch YYYYMMDD-HHMM (UTC).
      Bewusst ein Meta-Tag und keine JS-Konstante: build.mjs minifiziert die Skriptblöcke
      mit minifyIdentifiers:true, und laut BUILD.md trägt das nur, solange alles in IIFEs
@@ -10651,7 +10664,7 @@ function mealAddToList() {
    #effyra springt direkt zur Produktsektion. ?ref=rezept macht in der Statistik
    sichtbar, ob das Teilen tatsaechlich Nutzer bringt – sonst raet man.
    Zum Umstellen (etwa spaeter auf den Play-Store-Eintrag) genuegt DIESE Zeile. */
-const SHARE_TARGET_URL = 'https://gonsoft-labs.de/effyra.html?ref=rezept';
+const SHARE_TARGET_URL = 'https://darekkk80-neuss.github.io/Effyra/?ref=rezept';
 function mealShareUrl() { return SHARE_TARGET_URL; }
 function buildMealShareMessage(m) {
   const L = mealLocalize(m);
@@ -13811,14 +13824,16 @@ let _fuelCache = { at: 0, html: '', key: '' };
    neutrale „Spritpreise". Titel + Unterzeile im Stil der Tageskarte. Lokalisiert,
    weil die Karte zwar nur in DE erscheint, die App-Sprache dort aber auch
    Englisch sein kann (z. B. Zugezogene). */
-function fuelCard(inner, loc) {
+function fuelCard(inner, loc, canShare) {
   const titel = pickLang({ de: 'Günstig tanken', en: 'Cheapest fuel nearby', fr: 'Faire le plein malin', es: 'Repostar barato', it: 'Fai il pieno risparmiando', pl: 'Tankuj taniej' });
   const sub = (loc && loc.name)
     ? agentMsg({ de: 'Beste Preise in {o}', en: 'Best prices in {o}', fr: 'Meilleurs prix à {o}', es: 'Mejores precios en {o}', it: 'Prezzi migliori a {o}', pl: 'Najlepsze ceny w {o}' }, { o: loc.name })
     : pickLang({ de: 'Beste Preise in deiner Nähe', en: 'Best prices near you', fr: 'Meilleurs prix près de toi', es: 'Mejores precios cerca de ti', it: 'Prezzi migliori vicino a te', pl: 'Najlepsze ceny w pobliżu' });
+  const shareLbl = pickLang({ de: 'Spritpreise teilen', en: 'Share fuel prices', fr: 'Partager les prix', es: 'Compartir precios', it: 'Condividi i prezzi', pl: 'Udostępnij ceny' });
   return '<section class="card dash-info-card"><div class="di-head">' +
-    '<div class="di-head-tx"><b>' + esc(titel) + '</b><small>' + esc(sub) + '</small></div></div>' +
-    inner + '</section>';
+    '<div class="di-head-tx"><b>' + esc(titel) + '</b><small>' + esc(sub) + '</small></div>' +
+    (canShare ? '<button class="di-go" data-fuel="share" title="' + esc(shareLbl) + '" aria-label="' + esc(shareLbl) + '">📤</button>' : '') +
+    '</div>' + inner + '</section>';
 }
 function fuelSetupHTML() { return fuelCard('<div class="di-note">Noch einzurichten: kostenlosen <b>Tankerkönig-API-Key</b> holen und die Function <code>fuel-proxy</code> deployen (Secret <code>TANKERKOENIG_KEY</code>). Danach erscheinen hier die günstigsten Tankstellen in der Nähe.</div>'); }
 /* Wortvergleich fuer den Namensputz unten: Umlaute und die vielen Schreibweisen
@@ -13914,7 +13929,7 @@ async function renderFuel() {
       return;
     }
     const inner = fuelRow('E5', j.e5) + fuelRow('E10', j.e10) + fuelRow('Diesel', j.diesel) + '<div class="di-note">Quelle: Tankerkönig (CC BY 4.0)</div>';
-    _fuelCache = { at: Date.now(), html: fuelCard(inner, loc), key: key };
+    _fuelCache = { at: Date.now(), html: fuelCard(inner, loc, true), key: key, share: { e5: j.e5, e10: j.e10, diesel: j.diesel, loc: loc } };
     if (currentView === 'dashboard') box.innerHTML = _fuelCache.html;
   } catch (e) {
     /* Netzfehler ist kein Einrichtungsfehler. */
@@ -13922,6 +13937,36 @@ async function renderFuel() {
       pickLang({ de: 'Spritpreise gerade nicht abrufbar. Ich versuche es später erneut.', en: 'Fuel prices unavailable right now. I will retry later.', fr: 'Prix des carburants indisponibles. Nouvel essai plus tard.', es: 'Precios no disponibles ahora. Lo intentaré más tarde.', it: 'Prezzi non disponibili ora. Riprovo più tardi.', pl: 'Ceny paliw chwilowo niedostępne. Spróbuję później.' }) + '</div>', loc);
   }
 }
+/* ===== Spritpreise teilen (Text mit Ordela-Link → Link-Vorschau zeigt das Logo) ===== */
+function buildFuelShareMessage() {
+  const d = _fuelCache && _fuelCache.share; if (!d) return '';
+  const line = (label, st) => (st && st.price != null)
+    ? label + ': ' + Number(st.price).toFixed(2).replace('.', ',') + ' € – ' + fuelShortName(st) + (st.place ? ', ' + st.place : '') + (st.dist != null && !isNaN(st.dist) ? ' (' + Number(st.dist).toFixed(1).replace('.', ',') + ' km)' : '')
+    : '';
+  const z = [];
+  z.push(pickLang({ de: '⛽ Günstig tanken', en: '⛽ Cheapest fuel nearby', fr: '⛽ Faire le plein malin', es: '⛽ Repostar barato', it: '⛽ Fai il pieno risparmiando', pl: '⛽ Tankuj taniej' }));
+  if (d.loc && d.loc.name) z.push(agentMsg({ de: 'Beste Preise in {o}', en: 'Best prices in {o}', fr: 'Meilleurs prix à {o}', es: 'Mejores precios en {o}', it: 'Prezzi migliori a {o}', pl: 'Najlepsze ceny w {o}' }, { o: d.loc.name }));
+  z.push('');
+  [line('E5', d.e5), line('E10', d.e10), line('Diesel', d.diesel)].filter(Boolean).forEach(l => z.push(l));
+  z.push('');
+  z.push(pickLang({ de: 'Geteilt mit Ordela – dein Alltags-Organizer', en: 'Shared with Ordela – your everyday organiser', fr: 'Partagé avec Ordela – ton organiseur du quotidien', es: 'Compartido con Ordela: tu organizador diario', it: 'Condiviso con Ordela – il tuo organizer quotidiano', pl: 'Udostępnione przez Ordela – Twój organizer' }));
+  z.push(SHARE_TARGET_URL.replace('ref=rezept', 'ref=benzin'));
+  z.push('Quelle: Tankerkönig (CC BY 4.0)');
+  return z.join('\n');
+}
+async function shareFuel() {
+  const text = buildFuelShareMessage();
+  if (!text) { toast(pickLang({ de: 'Noch keine Preise geladen.', en: 'No prices loaded yet.', fr: 'Aucun prix chargé.', es: 'Aún no hay precios.', it: 'Nessun prezzo caricato.', pl: 'Brak wczytanych cen.' })); return; }
+  if (navigator.share) {
+    try { await navigator.share({ title: pickLang({ de: 'Günstig tanken', en: 'Cheapest fuel nearby', fr: 'Faire le plein malin', es: 'Repostar barato', it: 'Fai il pieno risparmiando', pl: 'Tankuj taniej' }), text: text }); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const ok = await copyText(text);
+  toast(ok ? pickLang({ de: 'Preise kopiert – jetzt einfügen ✓', en: 'Prices copied – paste them ✓', fr: 'Prix copiés – colle-les ✓', es: 'Precios copiados: pégalos ✓', it: 'Prezzi copiati – incollali ✓', pl: 'Ceny skopiowane – wklej ✓' })
+            : pickLang({ de: 'Teilen nicht möglich', en: 'Sharing not possible', fr: 'Partage impossible', es: 'No se puede compartir', it: 'Condivisione non possibile', pl: 'Udostępnianie niemożliwe' }));
+}
+if ($('#fuelWidget')) $('#fuelWidget').addEventListener('click', e => { const b = e.target.closest('[data-fuel]'); if (b && b.dataset.fuel === 'share') { e.preventDefault(); shareFuel(); } });
+
 /* ============================== VERTRÄGE & ABOS ============================== */
 const CONTRACT_CATS = {
   versicherung: { l: 'Versicherung', i: '🛡️' }, mobilfunk: { l: 'Mobilfunk', i: '📱' },
