@@ -9,3 +9,7 @@ node_modules/
 
 # Lokale Test-Datei (index.html ohne Anon-Key, nur zum lokalen Testen)
 __test.html
+
+# i18n-Pipeline: abgeleitete Zwischenprodukte (regenerierbar aus index.dev.html)
+scripts-i18n/i18n-manifest.json
+scripts-i18n/batches/
