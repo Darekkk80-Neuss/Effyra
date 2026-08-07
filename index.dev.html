@@ -8904,11 +8904,15 @@ RENDERERS.dashboard = function () {
   ((store.family && store.family.meds) || []).forEach(md => {
     if (md.date && md.date !== today) return;                 // nur heute oder täglich
     const mm = famMember(md.memberId), ts = medTimes(md);
-    if (!ts.length) _tMeds.push({ md, mm, t: '' });
+    if (!ts.length) { if (!medIsTaken(md.id, '', today)) _tMeds.push({ md, mm, t: '' }); }
     else ts.forEach(tm => { if (!medIsTaken(md.id, tm, today)) _tMeds.push({ md, mm, t: tm }); });
   });
   _tMeds.sort((a, b) => (a.t || '99:99') < (b.t || '99:99') ? -1 : 1);
-  const _tWaste = (typeof wasteOn === 'function') ? wasteOn(today) : [];
+  // Müllabholung: EINEN Tag vorher zeigen (Tonne muss am Vorabend raus) → „Morgen · Abholung".
+  const _tmrw = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1));
+  const _evDone = store.eventDone || {}, _waDone = store.wasteDone || {};
+  const _tEventsF = _tEvents.filter(e => !_evDone[(e.id || e.title) + '|' + today]);
+  const _tWaste = ((typeof wasteOn === 'function') ? wasteOn(_tmrw) : []).filter(x => !_waDone[((x.w && x.w.id) || (x.ty && x.ty.l)) + '|' + _tmrw]);
   const L = {
     appts: pickLang({ de: 'Termine', en: 'Appointments', fr: 'Rendez-vous', es: 'Citas', it: 'Appuntamenti', pl: 'Terminy', tr: "Randevular", uk: "Записи" }),
     tasks: pickLang({ de: 'Aufgaben', en: 'Tasks', fr: 'Tâches', es: 'Tareas', it: 'Attività', pl: 'Zadania', tr: "Görevler", uk: "Завдання" }),
@@ -8918,14 +8922,21 @@ RENDERERS.dashboard = function () {
     dueToday: pickLang({ de: 'heute fällig', en: 'due today', fr: "à faire aujourd'hui", es: 'para hoy', it: 'in scadenza oggi', pl: 'na dziś', tr: "bugün", uk: "сьогодні" }),
     tOverdue: pickLang({ de: 'Überfällig', en: 'Overdue', fr: 'En retard', es: 'Vencida', it: 'Scaduta', pl: 'Zaległe', tr: "Gecikmiş", uk: "Прострочено" }),
     tToday: pickLang({ de: 'Heute', en: 'Today', fr: "Aujourd'hui", es: 'Hoy', it: 'Oggi', pl: 'Dziś', tr: "Bugün", uk: "Сьогодні" }),
-    collToday: pickLang({ de: 'heute Abholung', en: 'collection today', fr: 'collecte aujourd’hui', es: 'recogida hoy', it: 'raccolta oggi', pl: 'wywóz dziś', tr: "bugün toplama", uk: "сьогодні вивіз" })
+    collToday: pickLang({ de: 'heute Abholung', en: 'collection today', fr: 'collecte aujourd’hui', es: 'recogida hoy', it: 'raccolta oggi', pl: 'wywóz dziś', tr: "bugün toplama", uk: "сьогодні вивіз" }),
+    collTomorrow: pickLang({ de: 'Morgen · Abholung', en: 'Tomorrow · collection', fr: 'Demain · collecte', es: 'Mañana · recogida', it: 'Domani · raccolta', pl: 'Jutro · wywóz', tr: "Yarın · toplama", uk: "Завтра · вивіз" }),
+    doneLbl: pickLang({ de: 'Als erledigt abhaken', en: 'Mark as done', fr: 'Marquer comme fait', es: 'Marcar como hecho', it: 'Segna come fatto', pl: 'Oznacz jako zrobione', tr: "Tamamlandı olarak işaretle", uk: "Позначити виконаним" })
   };
   const _grp = (emoji, label, rows) => rows ? '<div class="brief-grp"><div class="brief-grp-h">' + emoji + ' ' + esc(label) + '</div><div class="dsec-body">' + rows + '</div></div>' : '';
-  const _evRows = _tEvents.map(e => drow({ svg: 'icCal', title: e.title, sub: e.time ? oclock(e.time) : t('fmt.allday'), go: 'calendar' })).join('');
-  const _tkRows = _tTasks.map(tk => { const late = dayDiff(tk.due) < 0; return drow({ svg: 'icCheck2', title: tk.title, sub: late ? L.overdue : L.dueToday, chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? L.tOverdue : L.tToday }, go: 'tasks' }); }).join('');
-  const _mdRows = _tMeds.map(r => drow({ emoji: '💊', iconColor: r.mm ? r.mm.color : '#64748b', title: (r.mm ? r.mm.name + ': ' : '') + r.md.name, sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : t('fmt.daily')), go: 'family', attrs: ' data-tab="meds"' })).join('');
-  const _waRows = _tWaste.map(x => drow({ emoji: (x.ty && x.ty.i) || '🗑️', title: (x.ty && x.ty.l) || 'Abholung', sub: L.collToday, go: 'waste' })).join('');
-  const _hasToday = _tEvents.length || _tTasks.length || _tMeds.length || _tWaste.length;
+  /* Zeile mit Abhak-Button: ein Klick markiert erledigt → Zeile fällt sofort aus „Dein Tag heute". */
+  const briefRow = (o) => '<div class="drow drow-check">' +
+    '<button class="tcheck" data-brief="' + o.act + '" title="' + esc(L.doneLbl) + '" aria-label="' + esc(L.doneLbl) + '"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+    '<span class="drow-tx"' + (o.go ? ' data-go="' + o.go + '"' + (o.attrs || '') + ' role="button" tabindex="0"' : '') + '><b>' + esc(o.title) + '</b>' + (o.sub ? '<span>' + esc(o.sub) + '</span>' : '') + '</span>' +
+    (o.chip ? '<span class="chip-status ' + o.chip.cls + '">' + esc(o.chip.text) + '</span>' : '') + '</div>';
+  const _evRows = _tEventsF.map(e => briefRow({ act: 'event:' + (e.id || e.title), title: e.title, sub: e.time ? oclock(e.time) : t('fmt.allday'), go: 'calendar' })).join('');
+  const _tkRows = _tTasks.map(tk => { const late = dayDiff(tk.due) < 0; return briefRow({ act: 'task:' + tk.id, title: tk.title, sub: late ? L.overdue : L.dueToday, chip: { cls: late ? 'chip-danger' : 'chip-warn', text: late ? L.tOverdue : L.tToday }, go: 'tasks' }); }).join('');
+  const _mdRows = _tMeds.map(r => briefRow({ act: 'med:' + r.md.id + '|' + (r.t || ''), title: (r.mm ? r.mm.name + ': ' : '') + r.md.name, sub: (r.md.dose ? r.md.dose + ' · ' : '') + (r.t ? oclock(r.t) : t('fmt.daily')), go: 'family', attrs: ' data-tab="meds"' })).join('');
+  const _waRows = _tWaste.map(x => briefRow({ act: 'waste:' + ((x.w && x.w.id) || (x.ty && x.ty.l)), title: ((x.ty && x.ty.i) || '🗑️') + ' ' + ((x.ty && x.ty.l) || 'Abholung'), sub: L.collTomorrow, go: 'waste' })).join('');
+  const _hasToday = _tEventsF.length || _tTasks.length || _tMeds.length || _tWaste.length;
   const briefBody = _hasToday
     ? (_grp('📅', L.appts, _evRows) + _grp('✅', L.tasks, _tkRows) + _grp('💊', L.meds, _mdRows) + _grp('🗑️', L.waste, _waRows))
     : '<p style="margin:8px 0 0;font-size:15px">' + esc(_bLine) + '</p>';
@@ -8936,6 +8947,24 @@ RENDERERS.dashboard = function () {
     briefBody +
     '</section>';
   if (!dashOn('brief')) $('#briefWidget').innerHTML = '';
+  /* Abhaken in „Dein Tag heute": Termin/Aufgabe/Medikament/Müll als erledigt markieren
+     → verschwindet sofort. Delegierter Listener, EINMAL gebunden (überlebt innerHTML-Neurender). */
+  if (!window._briefBound) {
+    window._briefBound = true;
+    const bw = $('#briefWidget');
+    if (bw) bw.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-brief]'); if (!b) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const s = b.dataset.brief, i = s.indexOf(':'), kind = s.slice(0, i), arg = s.slice(i + 1);
+      const td = todayISO();
+      const tm = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1));
+      if (kind === 'task') { const t = store.tasks.find(x => x.id === arg); if (t) t.done = true; }
+      else if (kind === 'med') { const p = arg.split('|'); store.family = store.family || {}; store.family.medTaken = store.family.medTaken || {}; store.family.medTaken[medTakenKey(p[0], p[1] || '', td)] = Date.now(); }
+      else if (kind === 'event') { store.eventDone = store.eventDone || {}; store.eventDone[arg + '|' + td] = Date.now(); }
+      else if (kind === 'waste') { store.wasteDone = store.wasteDone || {}; store.wasteDone[arg + '|' + tm] = Date.now(); }
+      save(); RENDERERS.dashboard();
+    });
+  }
 
   /* HEUTE – Fokus: was heute/dringend zählt */
   const focus = [];
