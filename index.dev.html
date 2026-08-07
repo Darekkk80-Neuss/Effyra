@@ -8656,7 +8656,7 @@ const DASH_BLOCKS = [
   { id: 'family', name: 'Familie', icon: '🏡' },
   { id: 'docs', name: 'Dokumente', icon: '📄' },
   { id: 'contracts', name: 'Verträge & Fristen', icon: '🧾' },
-  { id: 'waste', name: 'Müllabholung', icon: '🗑️' },
+  { id: 'waste', name: 'Müllabholung', icon: '🗑️', deOnly: true },   // Müllkalender nur für Deutschland relevant → außerhalb DE ausgeblendet
   { id: 'checkup', name: 'Vorsorge', icon: '🩺' }
 ];
 function dashDefOff(id) { const b = DASH_BLOCKS.find(x => x.id === id); return !!(b && b.defOff); }
@@ -8912,7 +8912,7 @@ RENDERERS.dashboard = function () {
   const _tmrw = toISO(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 1));
   const _evDone = store.eventDone || {}, _waDone = store.wasteDone || {};
   const _tEventsF = _tEvents.filter(e => !_evDone[(e.id || e.title) + '|' + today]);
-  const _tWaste = ((typeof wasteOn === 'function') ? wasteOn(_tmrw) : []).filter(x => !_waDone[((x.w && x.w.id) || (x.ty && x.ty.l)) + '|' + _tmrw]);
+  const _tWaste = ((typeof wasteOn === 'function' && holidayCountry() === 'DE') ? wasteOn(_tmrw) : []).filter(x => !_waDone[((x.w && x.w.id) || (x.ty && x.ty.l)) + '|' + _tmrw]);
   const L = {
     appts: pickLang({ de: 'Termine', en: 'Appointments', fr: 'Rendez-vous', es: 'Citas', it: 'Appuntamenti', pl: 'Terminy', tr: "Randevular", uk: "Записи" }),
     tasks: pickLang({ de: 'Aufgaben', en: 'Tasks', fr: 'Tâches', es: 'Tareas', it: 'Attività', pl: 'Zadania', tr: "Görevler", uk: "Завдання" }),
