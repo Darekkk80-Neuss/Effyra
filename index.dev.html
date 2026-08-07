@@ -170,8 +170,11 @@ input,select,textarea{font-family:inherit;font-size:15px}
 #app{display:flex;min-height:100dvh}
 main{flex:1;width:100%;max-width:760px;margin:0 auto;
   /* Unten: Leistenhoehe + ihr Abstand zum Rand + Geraete-Sicherheitsbereich,
-     sonst verdeckt die schwebende Leiste den letzten Inhalt. */
-  padding:calc(var(--topbar-h) + 14px) 16px calc(var(--tabbar-h) + 34px + env(safe-area-inset-bottom))}
+     sonst verdeckt die schwebende Leiste den letzten Inhalt. Der zentrale FAB
+     ragt 21px ueber die Leiste (.tab-center{top:-21px}) samt Glueh-Ring/Schatten –
+     darum reserviert der Puffer 56px statt 34px, sonst kaschiert der Knopf die
+     letzte Vorlagen-/Listenzeile (QA M-01). */
+  padding:calc(var(--topbar-h) + 14px) 16px calc(var(--tabbar-h) + 56px + env(safe-area-inset-bottom))}
 
 /* Topbar (mobil) */
 .topbar{position:fixed;top:0;left:0;right:0;z-index:40;height:var(--topbar-h);
@@ -3274,6 +3277,15 @@ function residenceCountry() {
   const c = store.country;
   return (c && RESIDENCE_COUNTRIES.some(x => x.code === c)) ? c : 'DE';
 }
+/* Wohnsitz-Land aus der GERÄTE-ZEITZONE raten (für Onboarding-Vorbelegung und
+   Feiertags-Fallback). Anders als die App-Sprache ist die Zeitzone geografisch
+   aussagekräftig: ein Englisch-Nutzer in Deutschland hat 'Europe/Berlin' → DE,
+   nicht GB (QA M-03/M-03b). Ohne Treffer: Deutschland (Markt-Standard). */
+const TZ_COUNTRY = { 'Europe/Berlin': 'DE', 'Europe/Vienna': 'DE', 'Europe/Zurich': 'DE', 'Europe/Busingen': 'DE', 'Europe/London': 'GB', 'Europe/Paris': 'FR', 'Europe/Madrid': 'ES', 'Europe/Rome': 'IT', 'Europe/Warsaw': 'PL', 'Europe/Istanbul': 'TR', 'Europe/Kiev': 'UA', 'Europe/Kyiv': 'UA' };
+function guessResidenceCountry() {
+  try { const c = TZ_COUNTRY[Intl.DateTimeFormat().resolvedOptions().timeZone || '']; if (c && RESIDENCE_COUNTRIES.some(x => x.code === c)) return c; } catch (e) {}
+  return 'DE';
+}
 /* Land, dessen Inhalts-Dateien geladen werden – oder null (keine Laender-Inhalte). */
 function contentCountry() {
   const c = residenceCountry();
@@ -6103,7 +6115,11 @@ function goBack() {
   else showView('dashboard');
 }
 if ($('#backBtn')) $('#backBtn').addEventListener('click', goBack);
-if ($('#dashLogout')) $('#dashLogout').addEventListener('click', () => logout());
+if ($('#dashLogout')) $('#dashLogout').addEventListener('click', () => {
+  /* Kurze Rückfrage – auf geteilten Geräten meldete ein Fehltipp bisher sofort ab (QA S-03). */
+  if (!confirm(pickLang({ de: 'Wirklich abmelden?', en: 'Really log out?', fr: 'Vraiment se déconnecter ?', es: '¿Cerrar sesión?', it: 'Disconnettersi davvero?', pl: 'Na pewno się wylogować?', tr: 'Gerçekten çıkış yapılsın mı?', uk: 'Справді вийти?' }))) return;
+  logout();
+});
 function refresh() { if (RENDERERS[currentView]) RENDERERS[currentView](); }
 
 const viewLabel = (v) => { try { return t('nav.' + v); } catch (e) { return v; } };
@@ -6200,7 +6216,10 @@ function obShow(i) {
   $$('.ob-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
   if (i === 2) {   // „Fast geschafft": Wohnsitz-Land vorbelegen (bisherige Auswahl behalten, sonst Sprach-Heimatland)
     const cs = $('#obCountry');
-    if (cs) { const cur = cs.value || store.country || (typeof LANG_DEFAULT_COUNTRY !== 'undefined' ? LANG_DEFAULT_COUNTRY[curLang] : '') || 'DE'; cs.innerHTML = countryOptionsHTML(cur); }
+    /* Vorauswahl aus Zeitzone, NICHT aus der App-Sprache: sonst bekam ein
+       Englisch-Nutzer in DE 'GB' vorbelegt und – klickte er durch – dauerhaft
+       gespeichert (QA M-03b). 'Europe/Berlin' → DE. */
+    if (cs) { const cur = cs.value || store.country || guessResidenceCountry(); cs.innerHTML = countryOptionsHTML(cur); }
   }
   $('#obNext').style.display = i === OB_LAST ? 'none' : '';   // letzte Slide: die Auswahl-Buttons sind die Aktion
   $('#obNext').textContent = 'Weiter';
@@ -7267,9 +7286,16 @@ async function submitAuth() {
      täte dann gar nichts. cloudAuth prüft als Erstes die E-Mail-Adresse und
      erledigt danach den Reset-Zweig. */
   if (CLOUD && cloudAuthMode === 'reset') { await cloudAuth('', err); return; }
+  const isReg = CLOUD ? (cloudAuthMode === 'reg') : !account;
+  /* E-Mail zuerst prüfen (es ist das erste Feld) – sonst meldete der Button bei
+     gleichzeitig ungültiger E-Mail UND fehlendem Geburtsdatum zuerst den
+     Geburtsdatum-Fehler (QA S-04). */
+  if (isReg) {
+    const email0 = ($('#auEmail').value || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email0)) { err.textContent = pickLang({ de: 'Bitte eine gültige E-Mail-Adresse eingeben.', en: 'Please enter a valid email address.', fr: 'Saisis une adresse e-mail valide.', es: 'Introduce un correo electrónico válido.', it: 'Inserisci un indirizzo email valido.', pl: 'Podaj prawidłowy adres e-mail.', tr: 'Lütfen geçerli bir e-posta adresi gir.', uk: 'Введи дійсну адресу електронної пошти.' }); $('#auEmail').setAttribute('aria-invalid', 'true'); $('#auEmail').focus(); return; }
+  }
   const pass = $('#auPass').value;
   if (pass.length < 6) { err.textContent = 'Das Passwort braucht mindestens 6 Zeichen.'; $('#auPass').setAttribute('aria-invalid', 'true'); $('#auPass').focus(); return; }
-  const isReg = CLOUD ? (cloudAuthMode === 'reg') : !account;
   if (isReg && !regBirthOrErr(err)) return;   // 18+-Pflicht, Geburtsdatum erforderlich
   if (CLOUD) { await cloudAuth(pass, err); return; }
   if (!account) {
@@ -8955,7 +8981,7 @@ RENDERERS.dashboard = function () {
       slot.innerHTML = '<div class="lic-widget"><div class="lic-status">' + status + '</div>' + balken + '<div class="lic-tiers">' +
         tier('free', '🎁',
           pickLang({ de: 'Kostenlos', en: 'Free', fr: 'Gratuit', es: 'Gratis', it: 'Gratis', pl: 'Za darmo', tr: "Ücretsiz", uk: "Безкоштовно" }),
-          pickLang({ de: 'dein Plan', en: 'your plan', fr: 'ta formule', es: 'tu plan', it: 'il tuo piano', pl: 'Twój plan', tr: "senin planın", uk: "твій план" }), true) +
+          pickLang({ de: 'aktueller Plan', en: 'current plan', fr: 'formule actuelle', es: 'plan actual', it: 'piano attuale', pl: 'bieżący plan', tr: "mevcut plan", uk: "поточний план" }), true) +
         tier('premium', '👑', 'Premium',
           pickLang({ de: '4,99 €/Mon.', en: '€4.99/mo.', fr: '4,99 €/mois', es: '4,99 €/mes', it: '4,99 €/mese', pl: '4,99 €/mies.', tr: "4,99 €/ay", uk: "4,99 €/міс." }), false,
           pickLang({ de: 'Top', en: 'Top', fr: 'Top', es: 'Top', it: 'Top', pl: 'Top', tr: "En iyi", uk: "Топ" })) +
@@ -14012,19 +14038,18 @@ function holidayRegion(c) {
   return (store.holidayRegion && store.holidayRegion[land]) || '';
 }
 function holidayCountry() {
-  /* Wohnsitz-Land (Punkt 2) schlaegt alles – ausser 'XX' (Sonstiges), das keine
-     definierten Feiertage hat und daher auf Sprache/Wetter-Standort zurueckfaellt. */
+  /* Wohnsitz-Land (Punkt 2) schlaegt alles – ausser explizitem 'XX' (Sonstiges). */
   if (store.country && store.country !== 'XX' && RESIDENCE_COUNTRIES.some(c => c.code === store.country)) return store.country;
-  const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
-  if (lang === 'de') return 'DE';   // Deutsch: immer deutsche Feiertage (Standard, kein Länder-Picker)
-  if (store.holidayCountry) return store.holidayCountry;   // eigene Wahl schlaegt alles
-  /* Sonst das Land des Wetter-Standorts – die App-Sprache ist ein schlechter
-     Anhaltspunkt: wer die App auf Englisch stellt und in Deutschland wohnt,
-     bekam bisher britische Feiertage. Nur fuer die unterstuetzten Laender;
-     alles andere faellt auf die Sprache zurueck. */
+  /* Kein Wohnsitz-Land gesetzt = dokumentierter Standard Deutschland. NICHT
+     sprachbasiert raten – sonst bekam ein Englisch-Nutzer in DE britische
+     Feiertage (Boxing Day), obwohl er hier lebt (QA M-03). */
+  if (!store.country) return 'DE';
+  /* Ab hier nur noch explizit 'XX' (Sonstiges): eigene Feiertags-Wahl, dann
+     Wetter-Standort, dann Geräte-Zeitzone – NIE sprachbasiert (kein en→GB). */
+  if (store.holidayCountry) return store.holidayCountry;
   const ausOrt = String((store.weatherLoc && store.weatherLoc.land) || '').toUpperCase();
   if (ausOrt && HOLIDAY_COUNTRIES.some(c => c.code === ausOrt)) return ausOrt;
-  return LANG_DEFAULT_COUNTRY[lang] || 'DE';
+  return guessResidenceCountry();
 }
 let holApiCache = (function () { try { return JSON.parse(localStorage.getItem('effyra_hol_api')) || {}; } catch (e) { return {}; } })();
 function saveHolApi() { try { localStorage.setItem('effyra_hol_api', JSON.stringify(holApiCache)); } catch (e) {} }
@@ -16636,7 +16661,7 @@ RENDERERS.chat = function () {
   let html = '';
   if (!store.chat.length) {
     html += '<div class="chat-hello"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>' +
-      '<h2>Hallo' + (store.name ? ', ' + esc(store.name) : '') + '!</h2>' +
+      '<h2>' + esc(pickLang({ de: 'Hallo', en: 'Hello', fr: 'Bonjour', es: 'Hola', it: 'Ciao', pl: 'Cześć', tr: 'Merhaba', uk: 'Привіт' })) + (store.name ? ', ' + esc(store.name) : '') + '!</h2>' +
       '<p>Ich bin <b>Ordela AI</b>. Tippe aufs Mikrofon und sag,<br>was ansteht – oder schreib es mir.</p></div>' +
       '<div class="suggest">' + CHAT_SUGGESTIONS.map(s => '<button data-sg="' + esc(s) + '">' + esc(s) + '</button>').join('') + '</div>';
   } else {
@@ -17274,6 +17299,41 @@ function vaReply(text) {
    Zudem matcht z. B. polnisch „termin" die deutschen Muster → falsche Sprache.
    Andere Sprachen laufen darum immer über den KI-Agenten (vaSend Schritt 3), der
    per langRule garantiert in der eingestellten Sprache antwortet. */
+/* Erkennt Überblicks-Anfragen (auch den Vorschlags-Chip „Was steht heute an?",
+   dessen data-sg immer der deutsche Satz ist – matcht daher in jeder Sprache). */
+function isOverviewQuery(text) {
+  return /\b(was steht|was habe ich|was ist heute|was ist morgen|welche termine|zusammenfass|überblick|ueberblick|wie viele aufgaben|wie sieht mein tag|wie viel .*budget|wie viel .*übrig)\b/i.test(text || '');
+}
+/* Lokalisierter Tagesüberblick (Termine, Aufgaben, Budget). Wird IN-CHAT
+   ausgegeben – früher sprang der Chip außerhalb Deutsch in den Kalender (QA S-01). */
+function dayOverviewText(forDate) {
+  const isToday = forDate === todayISO();
+  const evs = eventsOn(forDate), open = openTasksSorted();
+  const day = isToday ? pickLang({ de: 'Heute', en: 'Today', fr: 'Aujourd’hui', es: 'Hoy', it: 'Oggi', pl: 'Dziś', tr: 'Bugün', uk: 'Сьогодні' })
+    : pickLang({ de: 'Morgen', en: 'Tomorrow', fr: 'Demain', es: 'Mañana', it: 'Domani', pl: 'Jutro', tr: 'Yarın', uk: 'Завтра' });
+  const parts = [];
+  if (evs.length) {
+    const list = evs.map(e => (e.time ? e.time + ' ' : '') + e.title).join(', ');
+    const w = evs.length === 1 ? pickLang({ de: 'Termin', en: 'appointment', fr: 'rendez-vous', es: 'cita', it: 'appuntamento', pl: 'termin', tr: 'randevu', uk: 'подія' })
+      : pickLang({ de: 'Termine', en: 'appointments', fr: 'rendez-vous', es: 'citas', it: 'appuntamenti', pl: 'terminy', tr: 'randevu', uk: 'події' });
+    parts.push(day + ': ' + evs.length + ' ' + w + ' – ' + list);
+  } else {
+    parts.push(day + ' ' + pickLang({ de: 'keine Termine', en: 'no appointments', fr: 'aucun rendez-vous', es: 'sin citas', it: 'nessun appuntamento', pl: 'brak terminów', tr: 'randevu yok', uk: 'подій немає' }));
+  }
+  if (open.length) {
+    const w = open.length === 1 ? pickLang({ de: 'offene Aufgabe', en: 'open task', fr: 'tâche à faire', es: 'tarea pendiente', it: 'attività aperta', pl: 'otwarte zadanie', tr: 'açık görev', uk: 'відкрите завдання' })
+      : pickLang({ de: 'offene Aufgaben', en: 'open tasks', fr: 'tâches à faire', es: 'tareas pendientes', it: 'attività aperte', pl: 'otwarte zadania', tr: 'açık görev', uk: 'відкриті завдання' });
+    parts.push(open.length + ' ' + w + (open[0] ? ' – ' + pickLang({ de: 'zuerst', en: 'first', fr: 'd’abord', es: 'primero', it: 'prima', pl: 'najpierw', tr: 'önce', uk: 'спершу' }) + ' „' + open[0].title + '"' : ''));
+  } else {
+    parts.push(pickLang({ de: 'keine offenen Aufgaben', en: 'no open tasks', fr: 'aucune tâche à faire', es: 'sin tareas pendientes', it: 'nessuna attività aperta', pl: 'brak otwartych zadań', tr: 'açık görev yok', uk: 'відкритих завдань немає' }));
+  }
+  if (store.budget && store.budget.entries && store.budget.entries.length) {
+    const ym = todayISO().slice(0, 7); let inc = 0, exp = 0;
+    store.budget.entries.forEach(e => { const inM = e.recurring || (e.date || '').slice(0, 7) === ym; if (!inM) return; if (e.kind === 'income') inc += +e.amount || 0; else exp += +e.amount || 0; });
+    parts.push(pickLang({ de: 'Budget diesen Monat: noch ', en: 'Budget this month: ', fr: 'Budget ce mois : ', es: 'Presupuesto este mes: ', it: 'Budget questo mese: ', pl: 'Budżet w tym miesiącu: ', tr: 'Bu ay bütçe: ', uk: 'Бюджет цього місяця: ' }) + eur(inc - exp));
+  }
+  return parts.join('. ') + '.';
+}
 function vaRunLocal(text) {
   if (curLang !== 'de') return false;
   const raw = text.trim(), t = raw.toLowerCase();
@@ -17346,18 +17406,9 @@ function vaRunLocal(text) {
   }
 
   /* Abfrage / Überblick */
-  if (/\b(was steht|was habe ich|was ist heute|was ist morgen|welche termine|zusammenfass|überblick|ueberblick|wie viele aufgaben|wie sieht mein tag|wie viel .*budget|wie viel .*übrig)\b/.test(t)) {
+  if (isOverviewQuery(t)) {
     const forDate = /\bmorgen\b/.test(t) ? addDays(todayISO(), 1) : todayISO();
-    const evs = eventsOn(forDate), open = openTasksSorted();
-    const parts = [];
-    parts.push(evs.length ? (forDate === todayISO() ? 'Heute' : 'Morgen') + ' ' + evs.length + ' Termin' + (evs.length > 1 ? 'e' : '') + ': ' + evs.map(e => (e.time ? e.time + ' Uhr ' : '') + e.title).join(', ') : (forDate === todayISO() ? 'Heute' : 'Morgen') + ' keine Termine');
-    parts.push(open.length ? open.length + ' offene Aufgabe' + (open.length > 1 ? 'n' : '') + (open[0] ? ' – zuerst „' + open[0].title + '"' : '') : 'keine offenen Aufgaben');
-    if (store.budget && store.budget.entries && store.budget.entries.length) {
-      const ym = todayISO().slice(0, 7); let inc = 0, exp = 0;
-      store.budget.entries.forEach(e => { const inM = e.recurring || (e.date || '').slice(0, 7) === ym; if (!inM) return; if (e.kind === 'income') inc += +e.amount || 0; else exp += +e.amount || 0; });
-      parts.push('Budget diesen Monat: noch ' + eur(inc - exp));
-    }
-    vaReply('' + parts.join('. ') + '.');
+    vaReply(dayOverviewText(forDate));
     return true;
   }
 
@@ -18128,6 +18179,14 @@ async function sendChat(text, spoken) {
   RENDERERS.chat();
   /* 1) offene Ja/Nein-Bestätigung */
   if (vaPending) { vaHandleConfirm(text); return; }
+  /* 1b) Überblicks-Anfrage / Vorschlags-Chip „Was steht heute an?" IMMER in-chat
+        beantworten – in jeder Sprache, statt in den Kalender zu navigieren (QA S-01). */
+  if (!companionTopic && isOverviewQuery(text)) {
+    const forDate = /\bmorgen\b/i.test(text) ? addDays(todayISO(), 1) : todayISO();
+    pushBot(dayOverviewText(forDate));
+    if (vaLastSpoken) { const last = store.chat[store.chat.length - 1]; if (last && last.role === 'bot') vaSpeak(last.text); }
+    return;
+  }
   /* 2) lokale Intent-Engine (schnell/offline für häufige Formulierungen) –
         im Begleiter-Modus übersprungen, damit emotionale Nachrichten immer bei der KI landen */
   try { if (!companionTopic && vaRunLocal(text)) return; } catch (e) { /* bei Parser-Fehler an Agent/Demo weiterreichen */ }
