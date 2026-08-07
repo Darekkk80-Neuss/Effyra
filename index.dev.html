@@ -5685,9 +5685,12 @@ const TDICT_SRC = {
   'Ein sanfter Anstoß – kein Ersatz für professionelle Hilfe.': { en: 'A gentle nudge – not a substitute for professional help.', fr: 'Un petit encouragement – ne remplace pas une aide professionnelle.', es: 'Un pequeño impulso: no sustituye la ayuda profesional.', it: 'Un piccolo stimolo – non sostituisce l’aiuto professionale.', pl: 'Delikatny impuls – nie zastępuje profesjonalnej pomocy.', tr: "Nazik bir dürtü – profesyonel yardımın yerini tutmaz.", uk: "Легке нагадування – не заміна професійної допомоги." }
 };
 
-/* TDICT[lang][deutscherText] = Übersetzung */
+/* TDICT[lang][deutscherText] = Übersetzung.
+   Aus SUPPORTED_LANGS abgeleitet (ohne de = Quellsprache), damit eine neu
+   freigeschaltete Sprache (tr/uk …) NIE vergessen wird – genau der frühere Fehler,
+   bei dem tr/uk zwar in TDICT_SRC standen, aber nie ins Lookup gebaut wurden. */
 const TDICT = {};
-['en', 'fr', 'es', 'it', 'pl'].forEach(L => {
+SUPPORTED_LANGS.filter(L => L !== 'de').forEach(L => {
   TDICT[L] = {};
   Object.keys(TDICT_SRC).forEach(de => {
     const v = TDICT_SRC[de][L]; if (!v) return;
@@ -5702,8 +5705,11 @@ const TDICT = {};
   });
 });
 
-/* Kernsprachen mit vollständigem statischem Wörterbuch → KEIN KI-Übersetzen (deterministisch, keine Fehlübersetzungen wie „Mtsbh") */
-const CORE_LANGS = ['de', 'en', 'fr', 'es', 'it', 'pl'];
+/* Kernsprachen mit vollständigem statischem Wörterbuch → KEIN KI-Übersetzen (deterministisch, keine Fehlübersetzungen wie „Mtsbh").
+   = alle unterstützten Sprachen: der i18n-Linter ist das Gate (eine Sprache wird erst
+   in SUPPORTED_LANGS aufgenommen, wenn sie zu 100 % statisch übersetzt ist), also sind
+   sie per Definition vollständig und brauchen keinen KI-Fallback. */
+const CORE_LANGS = SUPPORTED_LANGS.slice();
 /* KI-Cache (dauerhaft) – v2: alter Cache (mit möglichen Fehlübersetzungen) wird verworfen */
 const I18N_CACHE_KEY = 'effyra_i18n_cache_v2';
 let aiCache = (function () { try { return JSON.parse(localStorage.getItem(I18N_CACHE_KEY)) || {}; } catch (e) { return {}; } })();

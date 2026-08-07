@@ -18,7 +18,7 @@ const SRC = fs.readFileSync('index.dev.html', 'utf8');
 // So kann keine Sprache freigeschaltet werden, bevor der Linter fuer sie gruen ist.
 function supportedFromSource() {
   const m = /const SUPPORTED_LANGS = \[([^\]]*)\]/.exec(SRC);
-  if (!m) return ['de', 'en', 'fr', 'es', 'it', 'pl'];
+  if (!m) return ['de', 'en', 'fr', 'es', 'it', 'pl', 'tr', 'uk'];
   return m[1].split(',').map(s => s.replace(/['"\s]/g, '')).filter(Boolean);
 }
 const arg = process.argv.find(a => a.startsWith('--required='));

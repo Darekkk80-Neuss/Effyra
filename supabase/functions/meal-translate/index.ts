@@ -33,7 +33,7 @@ function json(o: unknown, s = 200) {
 }
 
 // 'en' fehlt bewusst: das Original ist bereits Englisch, da gibt es nichts zu tun.
-const LANGS: Record<string, string> = { de: 'German', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish' };
+const LANGS: Record<string, string> = { de: 'German', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish', tr: 'Turkish', uk: 'Ukrainian' };
 
 const MODEL_CHAIN = (Deno.env.get('OPENAI_MODEL_CHAIN') || 'gpt-5-mini,gpt-4.1-mini-2025-04-14,gpt-4o-mini-2024-07-18')
   .split(',').map((s) => s.trim()).filter(Boolean);
