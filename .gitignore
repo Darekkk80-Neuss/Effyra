@@ -13,3 +13,4 @@ __test.html
 # i18n-Pipeline: abgeleitete Zwischenprodukte (regenerierbar aus index.dev.html)
 scripts-i18n/i18n-manifest.json
 scripts-i18n/batches/
+scripts-i18n/*.json

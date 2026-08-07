@@ -15,7 +15,9 @@ const T = JSON.parse(fs.readFileSync(TR_FILE, 'utf8'));
 
 function tr(de, l) {
   const e = T[de];
-  if (!e || e[l] == null || e[l] === '') { console.error(`FEHLT ${l}: ${JSON.stringify(de).slice(0, 60)}`); process.exit(3); }
+  // Leerer String ist eine gueltige Uebersetzung (z. B. Suffix " Uhr", das auch EN weglaesst);
+  // nur echtes Fehlen (kein Eintrag / null) ist ein Fehler.
+  if (!e || e[l] == null) { console.error(`FEHLT ${l}: ${JSON.stringify(de).slice(0, 60)}`); process.exit(3); }
   return e[l];
 }
 
