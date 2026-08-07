@@ -1,0 +1,464 @@
+{
+  "version": 1,
+  "sprache": "tr",
+  "encoding": "UTF-8",
+  "stand": "Temmuz 2026",
+  "anzahl": 20,
+  "gewaehr": "Yönlendirme amaçlıdır, hukuken bağlayıcı bir bilgi değildir, garanti verilmez. Yetkiler, gerekli belgeler, süreler ve ücretler eyalete ve belediyeye göre farklılık gösterebilir ve değişebilir. Bağlayıcı bilgiler için her zaman resmi hizmet aramasını veya yetkili makamı kontrol edin.",
+  "offizielleSucheBasis": "https://servicesuche.bund.de",
+  "hinweisDeepLink": "Uygulama, resmi aramayı açarken posta kodunu/konumu ve talebi temel URL'ye eklemelidir.",
+  "anliegen": [
+    {
+      "id": "wohnsitz-anmelden",
+      "titel": "İkametgah kaydı yaptırma (yeni yerleşim)",
+      "lebenslage": "Taşınma",
+      "amtstyp": "Vatandaşlık dairesi / Nüfus kayıt dairesi (Bürgeramt / Einwohnermeldeamt)",
+      "unterlagen": [
+        "Kaydedilecek tüm kişilerin kimlik kartı veya pasaportu",
+        "Doldurulmuş kayıt formu",
+        "Ev sahibinin konut sağlayıcı onayı (Wohnungsgeberbestätigung)",
+        "gerekirse aileler için evlilik/doğum belgeleri"
+      ],
+      "schritte": [
+        "Vatandaşlık dairesinden (Bürgeramt) randevu alın",
+        "Ev sahibinden konut sağlayıcı onayını (Wohnungsgeberbestätigung) alın",
+        "Taşındıktan sonra süre içinde kaydınızı yaptırın",
+        "Formu teslim edin ve kimlikleri ibraz edin"
+      ],
+      "hinweise": [
+        "Genellikle ücretsizdir",
+        "Süre genellikle taşınmadan sonra 2 hafta içindedir",
+        "Gecikme durumunda para cezası uygulanabilir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "wohnsitz-ummelden",
+      "titel": "İkametgah adres değişikliği (Almanya içinde taşınma)",
+      "lebenslage": "Taşınma",
+      "amtstyp": "Vatandaşlık dairesi / Nüfus kayıt dairesi (Bürgeramt / Einwohnermeldeamt)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "Kayıt formu",
+        "Yeni ev sahibinin konut sağlayıcı onayı (Wohnungsgeberbestätigung)"
+      ],
+      "schritte": [
+        "Yeni ikamet yerinde randevu alın",
+        "Konut sağlayıcı onayını (Wohnungsgeberbestätigung) alın",
+        "Süre içinde yeni ikamet yerinde kaydınızı yaptırın",
+        "Kimlik üzerindeki adres güncellenir"
+      ],
+      "hinweise": [
+        "Almanya içinde taşınmada eski ikamet yerinde ayrı bir çıkış bildirimi genellikle gerekmez",
+        "Süre genellikle 2 haftadır",
+        "Genellikle ücretsizdir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "wohnsitz-abmelden",
+      "titel": "İkametgah çıkış bildirimi (yurt dışına taşınma / ikinci konut)",
+      "lebenslage": "Taşınma",
+      "amtstyp": "Vatandaşlık dairesi / Nüfus kayıt dairesi (Bürgeramt / Einwohnermeldeamt)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "Çıkış bildirimi formu"
+      ],
+      "schritte": [
+        "Çıkış bildirimi en erken taşınmadan kısa süre önce yapılabilir",
+        "Formu doldurun",
+        "Vatandaşlık dairesine (Bürgeramt) teslim edin (genellikle yazılı/çevrimiçi de mümkündür)"
+      ],
+      "hinweise": [
+        "Yurt dışına taşınmada veya ikinci konutun bırakılmasında gereklidir",
+        "Almanya içinde taşınmada çıkış bildirimi gerekmez",
+        "Genellikle ücretsizdir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "personalausweis",
+      "titel": "Kimlik kartı başvurusu / yenileme",
+      "lebenslage": "Kimlikler ve belgeler",
+      "amtstyp": "Vatandaşlık dairesi (Bürgeramt)",
+      "unterlagen": [
+        "Mevcut kimlik kartı veya pasaport",
+        "Dijital biyometrik vesikalık fotoğraf (Mayıs 2025'ten beri zorunlu)",
+        "ilk başvuruda gerekirse doğum/evlilik belgesi",
+        "Ücret"
+      ],
+      "schritte": [
+        "Randevu alın",
+        "Dijital biyometrik fotoğraf çektirin (dairedeki terminalde veya bağlı fotoğrafçıda)",
+        "Şahsen başvurun, parmak izleri alınır",
+        "Kimliği teslim alın veya ücret karşılığında eve gönderttirin"
+      ],
+      "hinweise": [
+        "1 Mayıs 2025'ten beri yalnızca dijital biyometrik fotoğraflar geçerlidir – kağıt fotoğraflar artık kabul edilmez",
+        "Ücret karşılığında eve doğrudan gönderim mümkündür",
+        "Şahsen başvuru gereklidir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "reisepass",
+      "titel": "Pasaport başvurusu",
+      "lebenslage": "Kimlikler ve belgeler",
+      "amtstyp": "Vatandaşlık dairesi / Pasaport dairesi (Bürgeramt / Passbehörde)",
+      "unterlagen": [
+        "Kimlik kartı veya eski pasaport",
+        "Dijital biyometrik vesikalık fotoğraf (Mayıs 2025'ten beri zorunlu)",
+        "gerekirse doğum/evlilik belgesi",
+        "Ücret"
+      ],
+      "schritte": [
+        "Randevu alın",
+        "Dijital biyometrik fotoğraf çektirin",
+        "Şahsen başvurun",
+        "Pasaportu teslim alın veya eve gönderttirin"
+      ],
+      "hinweise": [
+        "Mayıs 2025'ten beri dijital vesikalık fotoğraf zorunludur",
+        "Ek ücret karşılığında hızlandırılmış pasaport (Express) mümkündür",
+        "Şahsen başvuru gereklidir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-anmelden",
+      "titel": "Araç kaydı (yeni tescil)",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Araç tescil dairesi (KFZ-Zulassungsstelle)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "Tescil belgesi Bölüm I ve Bölüm II (Zulassungsbescheinigung Teil I und Teil II)",
+        "eVB numarası (elektronik sigorta onayı)",
+        "Motorlu taşıt vergisi için SEPA otomatik ödeme talimatı",
+        "ikinci el araçta geçerli muayene belgesi (HU/AU)",
+        "Plaka (baskı genellikle yerinde yapılır)"
+      ],
+      "schritte": [
+        "Araç sigortasından eVB numarasını temin edin",
+        "Tescil dairesinden randevu alın",
+        "Belgeleri ibraz edin",
+        "Plakayı bastırın ve tescili yaptırın",
+        "Etiketleri yapıştırın"
+      ],
+      "hinweise": [
+        "Birçok tescil işlemi çevrimiçi yapılabilir (i-Kfz)",
+        "Ücret alınır"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-ummelden",
+      "titel": "Araç adres/devir değişikliği",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Araç tescil dairesi (KFZ-Zulassungsstelle)",
+      "unterlagen": [
+        "Kimlik kartı",
+        "Tescil belgesi Bölüm I ve Bölüm II (Zulassungsbescheinigung Teil I und Teil II)",
+        "eVB numarası (sahip değişikliğinde)",
+        "SEPA otomatik ödeme talimatı",
+        "mevcut plakalar",
+        "Muayene belgesi (HU)"
+      ],
+      "schritte": [
+        "eVB numarasını temin edin (sahip değişikliğinde)",
+        "Randevu alın",
+        "Belgeleri ibraz edin",
+        "gerekirse yeni plaka alın"
+      ],
+      "hinweise": [
+        "Almanya içinde taşınmada plakalar genellikle korunabilir",
+        "i-Kfz ile kısmen çevrimiçi mümkündür"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kfz-abmelden",
+      "titel": "Araç trafikten çekme (kaydı kapatma)",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Araç tescil dairesi (KFZ-Zulassungsstelle)",
+      "unterlagen": [
+        "Kimlik kartı",
+        "Tescil belgesi Bölüm I (Zulassungsbescheinigung Teil I)",
+        "Mühürlü plaka"
+      ],
+      "schritte": [
+        "Randevu alın veya i-Kfz üzerinden çevrimiçi yapın",
+        "Plakayı ve belgeyi ibraz edin/teslim edin",
+        "Trafikten çekme işlemini onaylatın"
+      ],
+      "hinweise": [
+        "Çevrimiçi kapatma (i-Kfz) genellikle mümkündür",
+        "Düşük ücret"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrerschein-ersterteilung",
+      "titel": "Ehliyet başvurusu (ilk kez alma)",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Ehliyet dairesi / Sürücü belgesi makamı (Führerscheinstelle / Fahrerlaubnisbehörde)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "Biyometrik vesikalık fotoğraf (kağıt fotoğraf geçerlidir)",
+        "Göz testi belgesi",
+        "İlk yardım kursu belgesi",
+        "Sürücü kursu belgesi",
+        "Başvuru"
+      ],
+      "schritte": [
+        "Göz testi ve ilk yardım kursunu tamamlayın",
+        "Ehliyet dairesine başvuru yapın (genellikle sürücü kursu aracılığıyla)",
+        "Teorik ve pratik sınavı geçin",
+        "Ehliyeti teslim alın"
+      ],
+      "hinweise": [
+        "Ehliyet için kağıt vesikalık fotoğraflar hâlâ geçerlidir (kimlik/pasaporttan farklı olarak)",
+        "Başvuruyu sınavdan birkaç hafta önce yapın"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrerschein-umtausch",
+      "titel": "Ehliyet değişimi (zorunlu değişim)",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Ehliyet dairesi (Führerscheinstelle)",
+      "unterlagen": [
+        "Eski ehliyet",
+        "Kimlik kartı",
+        "Biyometrik vesikalık fotoğraf (kağıt fotoğraf geçerlidir)",
+        "Başvuru"
+      ],
+      "schritte": [
+        "Kendi doğum yılınızın değişim süresini kontrol edin",
+        "Ehliyet dairesine başvuru yapın",
+        "Yeni kart tipi ehliyeti teslim alın"
+      ],
+      "hinweise": [
+        "Değişim süreleri doğum veya düzenlenme yılına göre kademelidir",
+        "Kağıt vesikalık fotoğraf geçerlidir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "gewerbe-anmelden",
+      "titel": "İşletme (esnaf) kaydı yapma",
+      "lebenslage": "Ticaret ve serbest meslek",
+      "amtstyp": "İşletme dairesi / Kamu düzeni dairesi (Gewerbeamt / Ordnungsamt)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "İşletme kayıt formu (GewA 1)",
+        "faaliyete göre gerekli izinler/ruhsatlar",
+        "gerekirse ticaret sicil kaydı örneği"
+      ],
+      "schritte": [
+        "Formu doldurun",
+        "İşletme dairesine (Gewerbeamt) kaydınızı yaptırın (genellikle çevrimiçi mümkündür)",
+        "Ücreti ödeyin",
+        "Vergi dairesi ardından vergi kaydı için sizinle iletişime geçer"
+      ],
+      "hinweise": [
+        "Kayıt, vergi dairesine ve IHK/HWK'ye otomatik bildirimleri tetikler",
+        "Ücret belediyeye göre değişir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "gewerbe-abmelden",
+      "titel": "İşletme (esnaf) kaydını kapatma",
+      "lebenslage": "Ticaret ve serbest meslek",
+      "amtstyp": "İşletme dairesi (Gewerbeamt)",
+      "unterlagen": [
+        "Kimlik kartı",
+        "İşletme kapama formu (GewA 3)"
+      ],
+      "schritte": [
+        "Formu doldurun",
+        "İşletme dairesine (Gewerbeamt) teslim edin (genellikle çevrimiçi mümkündür)"
+      ],
+      "hinweise": [
+        "Genellikle ücretsiz veya düşük ücretlidir",
+        "Vergi dairesini de bilgilendirin"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "eheschliessung",
+      "titel": "Evlilik başvurusu (nikah bildirimi)",
+      "lebenslage": "Aile ve ortaklık",
+      "amtstyp": "Nüfus/evlendirme dairesi (Standesamt)",
+      "unterlagen": [
+        "Her iki eşin kimlik kartı veya pasaportu",
+        "Doğum kütüğünden güncel onaylı örnek",
+        "Genişletilmiş ikametgah belgesi (Erweiterte Meldebescheinigung)",
+        "gerekirse önceki evliliklere ilişkin belgeler (boşanma kararı, ölüm belgesi)"
+      ],
+      "schritte": [
+        "İkamet yerinizin nüfus/evlendirme dairesinden (Standesamt) başvuru randevusu alın",
+        "Belgeleri hazırlayın",
+        "Birlikte şahsen başvurun",
+        "Nikah tarihini belirleyin"
+      ],
+      "hinweise": [
+        "Belgeleri erkenden temin edin (işlem süreleri nedeniyle)",
+        "Somut şartlar kişisel duruma göre değişebilir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "geburtsurkunde",
+      "titel": "Doğum belgesi başvurusu",
+      "lebenslage": "Aile ve ortaklık",
+      "amtstyp": "Nüfus dairesi (doğum yerinin Standesamt'ı)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "Kişiye ait bilgiler (ad, doğum tarihi ve yeri)",
+        "gerekirse hak sahipliği belgesi"
+      ],
+      "schritte": [
+        "Yetkili nüfus dairesini (doğum yeri) belirleyin",
+        "Başvuru yapın (genellikle çevrimiçi/yazılı mümkündür)",
+        "Ücreti ödeyin",
+        "Belgeyi posta ile alın veya teslim alın"
+      ],
+      "hinweise": [
+        "Yalnızca belirli kişiler belge alma hakkına sahiptir",
+        "Her belge için ücret alınır"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "sterbeurkunde",
+      "titel": "Ölüm kaydı / ölüm belgesi",
+      "lebenslage": "Vefat durumu",
+      "amtstyp": "Nüfus dairesi (ölüm yerinin Standesamt'ı)",
+      "unterlagen": [
+        "Bildirimde bulunan kişinin kimlik kartı",
+        "Doktorun düzenlediği ölüm raporu",
+        "Vefat eden kişinin kimlik belgeleri",
+        "Vefat eden kişinin doğum/evlilik belgesi"
+      ],
+      "schritte": [
+        "Vefatı en kısa sürede nüfus dairesine (Standesamt) bildirin (genellikle cenaze hizmeti aracılığıyla)",
+        "Belgeleri teslim edin",
+        "Gerekli sayıda ölüm belgesi talep edin"
+      ],
+      "hinweise": [
+        "Formaliteleri çoğunlukla cenaze hizmeti üstlenir",
+        "Sigortalar/emeklilik için birden fazla belge almak faydalıdır"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "kindergeld",
+      "titel": "Çocuk parası (Kindergeld) başvurusu",
+      "lebenslage": "Aile ve ortaklık",
+      "amtstyp": "Aile kasası (İş Ajansı) (Familienkasse / Bundesagentur für Arbeit)",
+      "unterlagen": [
+        "Çocuğun ve başvuru sahibinin vergi kimlik numarası",
+        "Çocuğun doğum belgesi",
+        "Çocuk parası başvurusu"
+      ],
+      "schritte": [
+        "Başvuruyu aile kasasına (Familienkasse) çevrimiçi veya yazılı olarak yapın",
+        "Doğum belgesini ve vergi kimlik numaralarını ekleyin",
+        "Kararı bekleyin"
+      ],
+      "hinweise": [
+        "Çocuk parası yalnızca sınırlı ölçüde geriye dönük ödenir – en kısa sürede başvurun"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "elterngeld",
+      "titel": "Ebeveyn parası (Elterngeld) başvurusu",
+      "lebenslage": "Aile ve ortaklık",
+      "amtstyp": "Ebeveyn parası dairesi (Elterngeldstelle)",
+      "unterlagen": [
+        "Çocuğun doğum belgesi (Elterngeld kullanım amacı belirtilmiş)",
+        "Gelir belgeleri",
+        "Sağlık sigortasının doğum yardımlarına ilişkin belgesi",
+        "Kimlik kartı",
+        "Başvuru"
+      ],
+      "schritte": [
+        "Başvuruyu yetkili ebeveyn parası dairesine (Elterngeldstelle) yapın",
+        "Belgeleri ekleyin",
+        "İşlemin tamamlanmasını bekleyin"
+      ],
+      "hinweise": [
+        "Geriye dönük yalnızca son yaşam ayları için ödenir – en kısa sürede başvurun",
+        "Yetki eyalete göre farklılık gösterir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "finanzamt-erfassung",
+      "titel": "Vergi kaydı / vergi numarası (Vergi dairesi)",
+      "lebenslage": "Ticaret ve serbest meslek",
+      "amtstyp": "Vergi dairesi (Finanzamt)",
+      "unterlagen": [
+        "Kimlik kartı",
+        "gerekirse işletme kaydı belgesi",
+        "Faaliyet ve tahmini gelirlere ilişkin bilgiler"
+      ],
+      "schritte": [
+        "Serbest bir faaliyete başlarken vergi kayıt formunu ELSTER üzerinden doldurun",
+        "Yetkili vergi dairesine iletin",
+        "Vergi numarasını bekleyin"
+      ],
+      "hinweise": [
+        "Vergi kimlik numarası otomatik olarak verilir ve posta ile gönderilir",
+        "Serbest meslek sahipleri için: form ELSTER üzerinden doldurulur"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "fuehrungszeugnis",
+      "titel": "Adli sicil kaydı (Führungszeugnis) başvurusu",
+      "lebenslage": "Kimlikler ve belgeler",
+      "amtstyp": "Vatandaşlık dairesi (düzenleme: Federal Adalet Dairesi) (Bürgeramt / Bundesamt für Justiz)",
+      "unterlagen": [
+        "Kimlik kartı veya pasaport",
+        "gerekirse kullanım amacının belirtilmesi",
+        "Ücret"
+      ],
+      "schritte": [
+        "Vatandaşlık dairesine (Bürgeramt) veya çevrimiçi olarak Federal Adalet Dairesi'ne başvurun",
+        "Ücreti ödeyin",
+        "Belgeyi posta ile alın"
+      ],
+      "hinweise": [
+        "Çevrimiçi kimlik işlevi ile çevrimiçi başvuru mümkündür",
+        "Teslimat birkaç gün sürer"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    },
+    {
+      "id": "bewohnerparkausweis",
+      "titel": "Sakin park izni (Bewohnerparkausweis) başvurusu",
+      "lebenslage": "Araç ve ulaşım",
+      "amtstyp": "Vatandaşlık dairesi / Karayolu trafik makamı (Bürgeramt / Straßenverkehrsbehörde)",
+      "unterlagen": [
+        "Park bölgesinde kayıtlı adresi olan kimlik kartı",
+        "Tescil belgesi Bölüm I (araç başvuru sahibi adına tescilli) (Zulassungsbescheinigung Teil I)",
+        "Başvuru",
+        "Ücret"
+      ],
+      "schritte": [
+        "Yetkili park bölgesini kontrol edin",
+        "Başvuru yapın (genellikle çevrimiçi mümkündür)",
+        "Ücreti ödeyin",
+        "İzni alın"
+      ],
+      "hinweise": [
+        "Yalnızca ilgili park bölgesinin sakinleri için geçerlidir",
+        "Genellikle yıllık olarak yenilenmesi gerekir"
+      ],
+      "offizielleSuche": "https://servicesuche.bund.de"
+    }
+  ]
+}

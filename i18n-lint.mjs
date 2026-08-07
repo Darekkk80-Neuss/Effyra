@@ -90,12 +90,11 @@ if (I18N) {
 
 // ---- Inhalts-JSONs ----
 const jsonGaps = [];
-for (const base of ['behoerden', 'briefe', 'selbstfuersorge'])
-  for (const l of CHECK) {
-    const f = `${base}.${l}.json`;
-    if (!fs.existsSync(f)) jsonGaps.push(f + ' (fehlt)');
-    else { try { JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { jsonGaps.push(f + ' (ungueltig)'); } }
-  }
+const ckJson = (f) => { if (!fs.existsSync(f)) jsonGaps.push(f + ' (fehlt)'); else { try { JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { jsonGaps.push(f + ' (ungueltig)'); } } };
+// Deutschland-Inhalte tragen jetzt das Wohnsitz-Land im Namen: <base>.DE.<lang>.json
+for (const base of ['behoerden', 'briefe']) for (const l of CHECK) ckJson(`${base}.DE.${l}.json`);
+// Selbstfürsorge ist NICHT länderspezifisch → bleibt <base>.<lang>.json
+for (const l of CHECK) ckJson(`selbstfuersorge.${l}.json`);
 
 // ---- Bericht ----
 console.log(`i18n-Linter (acorn) — geforderte Sprachen: ${REQUIRED.join(', ')} | geprueft: ${CHECK.join(', ')}`);

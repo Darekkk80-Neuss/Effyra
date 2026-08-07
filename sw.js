@@ -8,20 +8,25 @@
    hiess in der Praxis: wer nur index.dev.html änderte, liess sw.js byte-gleich. Der
    Browser sieht dann keine neue Datei, installiert keinen neuen Worker – und im
    laufenden Tab feuert nie 'updatefound'. Der Zeitstempel erzwingt beides. */
-const BUILD = '20260807-2200';
+const BUILD = '20260807-2218';
 const CACHE = 'effyra-' + BUILD;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './bg.jpg',
   './impressum.html', './datenschutz.html', './nutzungsbedingungen.html', './konto-loeschen.html', './barrierefreiheit.html', './anleitung.html',
   './fonts/effyra-fonts.css', './vendor/supabase.min.js',
   './selbstfuersorge.json', './selbstfuersorge.en.json', './selbstfuersorge.fr.json',
   './selbstfuersorge.es.json', './selbstfuersorge.it.json', './selbstfuersorge.pl.json',
-  './behoerden.json', './behoerden.en.json', './behoerden.fr.json',
-  './behoerden.es.json', './behoerden.it.json', './behoerden.pl.json',
-  './briefe.en.json', './briefe.fr.json', './briefe.es.json',
-  './briefe.it.json', './briefe.pl.json',
-  './behoerden.tr.json', './behoerden.uk.json',
-  './briefe.tr.json', './briefe.uk.json',
   './selbstfuersorge.tr.json', './selbstfuersorge.uk.json',
+  // Wohnsitz-Land-Inhalte (Behörden-Wegweiser): Deutschland in allen 8 Sprachen …
+  './behoerden.DE.de.json', './behoerden.DE.en.json', './behoerden.DE.fr.json',
+  './behoerden.DE.es.json', './behoerden.DE.it.json', './behoerden.DE.pl.json',
+  './behoerden.DE.tr.json', './behoerden.DE.uk.json',
+  // … plus die Herkunftsländer Türkei und Ukraine in ihrer Landessprache
+  './behoerden.TR.tr.json', './behoerden.UA.uk.json',
+  // Musterbriefe je Wohnsitz-Land
+  './briefe.DE.en.json', './briefe.DE.fr.json', './briefe.DE.es.json',
+  './briefe.DE.it.json', './briefe.DE.pl.json',
+  './briefe.DE.tr.json', './briefe.DE.uk.json',
+  './briefe.TR.tr.json', './briefe.UA.uk.json',
   './translation/tr.json', './translation/uk.json'];
 
 self.addEventListener('install', (e) => {

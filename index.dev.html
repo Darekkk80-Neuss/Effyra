@@ -2210,6 +2210,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <div class="ob-name">
       <input type="text" id="obName" placeholder="Dein Vorname (optional)" maxlength="30" autocomplete="given-name" aria-labelledby="obNameLbl">
     </div>
+    <p id="obCountryLbl" style="margin-top:18px">In welchem Land lebst du?</p>
+    <div class="ob-name">
+      <select id="obCountry" data-noi18n aria-labelledby="obCountryLbl"></select>
+    </div>
+    <p class="ob-note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPin"/></svg><span>Danach greifen Behörden-Wegweiser, Musterbriefe, Feiertage und Wetter für dein Land – in deiner Sprache.</span></p>
     <p class="ob-note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icShield"/></svg><span>Local-first mit Cloud-Backup: Deine Daten liegen auf dem Gerät und werden – angemeldet – sicher in deinem Konto gesichert. Keine Werbung, kein Tracking.</span></p>
   </div>
   <div class="ob-slide" data-slide="3">
@@ -2626,6 +2631,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
         <h3 aria-level="2" data-i18n="set.lang_title">Sprache &amp; Region</h3>
         <p class="sub" id="langCardSub" data-noi18n></p>
         <button class="btn" id="btnChangeLang" data-i18n="set.change_lang">Sprache ändern</button>
+        <div style="margin-top:16px">
+          <label class="fld" id="setCountryLbl" data-noi18n style="display:block;margin-bottom:6px;font-weight:600"></label>
+          <select id="setCountry" data-noi18n style="width:100%"></select>
+          <p class="sub" id="setCountryHint" data-noi18n style="margin-top:8px"></p>
+        </div>
       </div>
 
       <div class="card set-card">
@@ -3039,6 +3049,7 @@ const KEY_KEY = 'effyra_key';
 const STORE_DEFAULTS = {
   onboarded: false,
   name: '',
+  country: '',   // Wohnsitz-Land des Nutzers (DE/GB/FR/ES/IT/PL/TR/UA/XX). Steuert Behörden-/Brief-Inhalte, Feiertage und Müll/Sprit-Gating. Leer = Standard DE.
   tasks: [],    // {id,title,due,prio,done,source,createdAt}
   events: [],   // {id,title,date,time,note,source}
   docs: [],     // {id,docType,title,sender,explanation,deadline,urgency,todos,replyDraft,thumb,demo,tasksApplied,eventApplied,createdAt}
@@ -3086,7 +3097,7 @@ function save() {
    RLS: nur eigene Zeile) gesichert und geräteübergreifend abgeglichen (Last-Write-Wins über _ts).
    Bewusst NICHT synchronisiert: emergency (Notfall/Gesundheit) & budget (sensibel, lokal), docs
    (große Vorschaubilder), chat/weather (transient), family (eigener RPC-Sync). */
-const SYNC_KEYS = ['name', 'onboarded', 'tasks', 'events', 'kids', 'life', 'vehicles', 'work', 'profile', 'docFavs', 'settings', 'weatherLoc'];
+const SYNC_KEYS = ['name', 'onboarded', 'country', 'tasks', 'events', 'kids', 'life', 'vehicles', 'work', 'profile', 'docFavs', 'settings', 'weatherLoc'];
 let syncApplying = false, _pushTimer = null;
 function stateSnapshot() {
   const s = { _ts: store._ts || Date.now() };
@@ -3235,6 +3246,49 @@ const LANGS = [
   { code: 'uk', flag: '🇺🇦', native: 'Українська', locale: 'uk-UA', country: 'Україна', region: 'Europa', common: true }
 ];
 const SUPPORTED_LANGS = ['de', 'en', 'fr', 'es', 'it', 'pl', 'tr', 'uk'];
+/* ===== Wohnsitz-Land (Sprache × Wohnsitz entkoppelt) =====
+   Der Nutzer waehlt seine Bediensprache UND das Land, in dem er lebt. Inhalte
+   (Behoerden-Wegweiser, Musterbriefe), Feiertage und die Datenquellen-Gates
+   (Spritpreise/Muellkalender = nur DE) richten sich nach dem WOHNSITZ; die
+   Sprache bleibt frei. So bekommt z. B. ein ukrainischsprachiger Nutzer mit
+   Wohnsitz Deutschland die deutschen Unterlagen auf Ukrainisch.
+   'XX' = Sonstiges: nur Wetter + Bediensprache, keine Laender-Inhalte. */
+const RESIDENCE_COUNTRIES = [
+  { code: 'DE', flag: '🇩🇪', name: 'Deutschland' },
+  { code: 'GB', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: 'FR', flag: '🇫🇷', name: 'France' },
+  { code: 'ES', flag: '🇪🇸', name: 'España' },
+  { code: 'IT', flag: '🇮🇹', name: 'Italia' },
+  { code: 'PL', flag: '🇵🇱', name: 'Polska' },
+  { code: 'TR', flag: '🇹🇷', name: 'Türkiye' },
+  { code: 'UA', flag: '🇺🇦', name: 'Україна' },
+  { code: 'XX', flag: '🌍', name: 'Sonstiges / Other' }
+];
+/* Laender mit eigener Inhalts-Registry (Behoerden/Briefe als <CC>.<lang>.json).
+   Waechst, sobald weitere Laender redaktionell erstellt sind. Alles andere →
+   Laender-Inhalte deaktiviert (Abschnitt zeigt einen Hinweis, Sprit/Muell aus). */
+const CONTENT_COUNTRIES = { DE: 1, TR: 1, UA: 1 };
+/* Wohnsitz-Land: explizite Wahl (inkl. 'XX'), sonst Standard Deutschland –
+   Bestandsnutzer ohne Wahl behalten so die deutschen Inhalte in ihrer Sprache. */
+function residenceCountry() {
+  const c = store.country;
+  return (c && RESIDENCE_COUNTRIES.some(x => x.code === c)) ? c : 'DE';
+}
+/* Land, dessen Inhalts-Dateien geladen werden – oder null (keine Laender-Inhalte). */
+function contentCountry() {
+  const c = residenceCountry();
+  return CONTENT_COUNTRIES[c] ? c : null;
+}
+/* Kandidatenliste je Inhaltstyp: exakte Sprache → EN → DE (nur was existiert).
+   Fuer DE liegen alle 8 Sprachen vor; TR nur tr, UA nur uk → sonst leer (Hinweis). */
+function contentFileCandidates(kind, lang) {
+  const cc = contentCountry();
+  if (!cc) return [];
+  const out = [];
+  const add = (l) => { const f = kind + '.' + cc + '.' + l + '.json'; if (out.indexOf(f) < 0) out.push(f); };
+  add(lang); add('en'); add('de');
+  return out;
+}
 /* Zielsprachen fuer die Uebersetzung der Dokument-Zusammenfassung: die sechs
    App-Sprachen plus Tuerkisch und Russisch. Letztere sind KEINE vollstaendigen
    App-Sprachen (die Bedienoberflaeche bleibt in der App-Sprache) – uebersetzt
@@ -6122,10 +6176,18 @@ function refreshAIStatus() {
 /* ============================== ONBOARDING ============================== */
 let obIdx = 0;
 const OB_LAST = 3;   // Slides: 0 Brand · 1 Nutzen · 2 Name · 3 Personalisierung („Was zuerst?")
+/* Options für den Wohnsitz-Land-Selektor (Onboarding + Einstellungen). */
+function countryOptionsHTML(cur) {
+  return RESIDENCE_COUNTRIES.map(c => '<option value="' + c.code + '"' + (c.code === cur ? ' selected' : '') + '>' + c.flag + ' ' + esc(c.name) + '</option>').join('');
+}
 function obShow(i) {
   obIdx = i;
   $$('.ob-slide').forEach(s => s.classList.toggle('active', +s.dataset.slide === i));
   $$('.ob-dots i').forEach((d, k) => d.classList.toggle('on', k === i));
+  if (i === 2) {   // „Fast geschafft": Wohnsitz-Land vorbelegen (bisherige Auswahl behalten, sonst Sprach-Heimatland)
+    const cs = $('#obCountry');
+    if (cs) { const cur = cs.value || store.country || (typeof LANG_DEFAULT_COUNTRY !== 'undefined' ? LANG_DEFAULT_COUNTRY[curLang] : '') || 'DE'; cs.innerHTML = countryOptionsHTML(cur); }
+  }
   $('#obNext').style.display = i === OB_LAST ? 'none' : '';   // letzte Slide: die Auswahl-Buttons sind die Aktion
   $('#obNext').textContent = 'Weiter';
   $('#obSkip').style.visibility = 'visible';
@@ -6133,6 +6195,7 @@ function obShow(i) {
 function obFinish(target) {
   const n = $('#obName').value.trim();
   if (n) store.name = n;
+  const cs = $('#obCountry'); if (cs && cs.value) store.country = cs.value;   // Wohnsitz-Land übernehmen
   store.onboarded = true;
   save();
   $('#onboarding').classList.remove('on');
@@ -8454,17 +8517,22 @@ const behState = { q: '', sel: null, plz: '', offices: null, oStatus: '' };
    Sprachwechsel lädt neu (_behLang), damit die Inhalte nicht in der alten Sprache hängen bleiben. */
 function behLoad() {
   const lang = (typeof curLang !== 'undefined' && curLang) ? curLang : 'de';
-  if (_behData && _behLang === lang) return Promise.resolve(_behData);
-  if (_behLoad && _behLang === lang) return _behLoad;
-  _behLang = lang;
-  const file = (lang === 'de') ? 'behoerden.json' : ('behoerden.' + lang + '.json');
-  const useDE = () => fetch('behoerden.json', { cache: 'force-cache' }).then(r => r.json())
-    .then(d => { _behData = d || { anliegen: [] }; return _behData; })
-    .catch(() => { _behData = { anliegen: [] }; return _behData; });
-  _behLoad = fetch(file, { cache: 'force-cache' })
-    .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
-    .then(d => { _behData = (d && d.anliegen) ? d : null; return _behData || useDE(); })
-    .catch(useDE);
+  const key = residenceCountry() + '|' + lang;   // Cache je Wohnsitz-Land UND Sprache
+  if (_behData && _behLang === key) return Promise.resolve(_behData);
+  if (_behLoad && _behLang === key) return _behLoad;
+  _behLang = key;
+  /* Kandidaten in Reihenfolge (Wohnsitz-Land × Sprache → EN → DE). Für Länder
+     ohne eigene Registry ist die Liste leer → keine Anliegen (Abschnitt zeigt Hinweis). */
+  const cands = contentFileCandidates('behoerden', lang);
+  const empty = () => { _behData = { anliegen: [] }; return _behData; };
+  const tryNext = (i) => {
+    if (i >= cands.length) return Promise.resolve(empty());
+    return fetch(cands[i], { cache: 'force-cache' })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
+      .then(d => { if (d && d.anliegen) { _behData = d; return _behData; } return tryNext(i + 1); })
+      .catch(() => tryNext(i + 1));
+  };
+  _behLoad = tryNext(0);
   return _behLoad;
 }
 const behAnliegen = () => (_behData && _behData.anliegen) || [];
@@ -8612,9 +8680,38 @@ function behDetailHTML() {
   h += '<div class="card"><h3 aria-level="2">Termin merken</h3><p class="sub">Erinnerungstermin für diesen Behördengang in den Kalender.</p><div class="beh-loc"><input type="date" id="behDate" aria-label="Termindatum"><button class="btn btn-sm" data-beh="toCal" data-id="' + a.id + '">In Kalender</button></div></div>';
   return h;
 }
+/* Wohnsitz-Land ohne eigene Registry (z. B. „Sonstiges") → klarer Hinweis statt leerer Liste. */
+function behNoCountryHTML() {
+  const land = RESIDENCE_COUNTRIES.find(c => c.code === residenceCountry());
+  const name = land ? land.name : '';
+  return '<div class="dsec-empty" style="text-align:center;padding:28px 16px">' +
+    '<div style="font-size:34px;margin-bottom:10px">🗺️</div>' +
+    '<p style="font-weight:600;margin-bottom:6px">' + esc(pickLang({
+      de: 'Der Behörden-Wegweiser ist für dein Land noch nicht verfügbar.',
+      en: 'The authorities guide is not available for your country yet.',
+      fr: 'Le guide des démarches administratives n\'est pas encore disponible pour votre pays.',
+      es: 'La guía de trámites aún no está disponible para tu país.',
+      it: 'La guida agli enti pubblici non è ancora disponibile per il tuo Paese.',
+      pl: 'Przewodnik po urzędach nie jest jeszcze dostępny dla Twojego kraju.',
+      tr: 'Resmî kurumlar rehberi ülken için henüz mevcut değil.',
+      uk: 'Путівник по установах ще недоступний для вашої країни.'
+    })) + '</p>' +
+    '<p style="color:var(--muted);font-size:13.5px">' + esc(pickLang({
+      de: 'Aktuell decken wir Deutschland vollständig ab – weitere Länder folgen. Dein Wohnsitz-Land kannst du in den Einstellungen ändern.',
+      en: 'We currently cover Germany in full – more countries are coming. You can change your country of residence in Settings.',
+      fr: 'Nous couvrons actuellement toute l\'Allemagne – d\'autres pays suivront. Vous pouvez changer votre pays de résidence dans les Paramètres.',
+      es: 'Actualmente cubrimos Alemania por completo; llegarán más países. Puedes cambiar tu país de residencia en Ajustes.',
+      it: 'Al momento copriamo interamente la Germania – altri Paesi arriveranno. Puoi cambiare il Paese di residenza nelle Impostazioni.',
+      pl: 'Obecnie w pełni obsługujemy Niemcy – kolejne kraje wkrótce. Kraj zamieszkania zmienisz w Ustawieniach.',
+      tr: 'Şu anda Almanya\'yı tam olarak kapsıyoruz – diğer ülkeler yolda. İkamet ettiğin ülkeyi Ayarlar\'dan değiştirebilirsin.',
+      uk: 'Наразі ми повністю охоплюємо Німеччину – інші країни з\'являться згодом. Країну проживання можна змінити в Налаштуваннях.'
+    })) + '</p></div>';
+}
 RENDERERS.behoerden = function () {
   const box = $('#behRoot'); if (!box) return;
-  if (!_behData) { box.innerHTML = '<div class="dsec-empty">Lädt …</div>'; behLoad().then(() => RENDERERS.behoerden()); return; }
+  if (!contentCountry()) { box.innerHTML = behNoCountryHTML(); if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box); return; }
+  const key = residenceCountry() + '|' + curLang;   // bei Land- ODER Sprachwechsel neu laden (nicht am alten Datenstand hängen bleiben)
+  if (!_behData || _behLang !== key) { box.innerHTML = '<div class="dsec-empty">Lädt …</div>'; behLoad().then(() => RENDERERS.behoerden()); return; }
   box.innerHTML = behState.sel ? behDetailHTML() : behBrowseHTML();
   if (curLang !== 'de' && typeof sweepNow === 'function') sweepNow(box);
 };
@@ -9742,17 +9839,25 @@ const curTpl = () => DOC_TPL.find(x => x.id === dgActiveId);
 let _letterPack = null, _letterPackLang = null, _letterPackLoad = null;
 function letterPackLoad() {
   const lang = (typeof curLang !== 'undefined' && curLang) ? curLang : 'de';
-  if (lang === 'de') { _letterPack = null; _letterPackLang = 'de'; return Promise.resolve(null); }
-  if (_letterPackLang === lang && _letterPackLoad) return _letterPackLoad;
-  _letterPackLang = lang;
-  _letterPackLoad = fetch('briefe.' + lang + '.json', { cache: 'force-cache' })
-    .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
-    .then(d => { _letterPack = (d && d.vorlagen) ? d : null; return _letterPack; })
-    .catch(() => { _letterPack = null; return null; });
+  const key = residenceCountry() + '|' + lang;   // Cache je Wohnsitz-Land UND Sprache
+  /* Deutsch: die eingebauten Vorlagen (deutsches Recht) – kein externes Paket. */
+  if (lang === 'de') { _letterPack = null; _letterPackLang = key; return Promise.resolve(null); }
+  if (_letterPackLang === key && _letterPackLoad) return _letterPackLoad;
+  _letterPackLang = key;
+  const cands = contentFileCandidates('briefe', lang);   // <CC>.<lang> → <CC>.en → <CC>.de
+  const tryNext = (i) => {
+    if (i >= cands.length) { _letterPack = null; return Promise.resolve(null); }
+    return fetch(cands[i], { cache: 'force-cache' })
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
+      .then(d => { if (d && d.vorlagen) { _letterPack = d; return _letterPack; } return tryNext(i + 1); })
+      .catch(() => tryNext(i + 1));
+  };
+  _letterPackLoad = tryNext(0);
   return _letterPackLoad;
 }
-/* Aktives Paket nur nutzen, wenn es zur eingestellten Sprache gehört. */
-const letterPack = () => (_letterPack && _letterPackLang === curLang) ? _letterPack : null;
+/* Aktives Paket nur nutzen, wenn es zu Wohnsitz-Land UND Sprache gehört. */
+const letterPackKey = () => residenceCountry() + '|' + curLang;
+const letterPack = () => (_letterPack && _letterPackLang === letterPackKey()) ? _letterPack : null;
 
 /* Datum der Landesfassungen. Ohne Datum bleibt der Wert LEER – die Vorlagen setzen
    {datum} durchgängig auf eine beschriftete Zeile („Termin rozwiązania umowy: {datum}"),
@@ -9932,8 +10037,9 @@ function kuendVersandHTML(t) {
 
 RENDERERS.docgen = function () {
   ensureProfileName();
-  /* Landesfassung der Musterbriefe nachladen; ist sie da, einmal neu zeichnen. */
-  if (curLang !== 'de' && _letterPackLang !== curLang) {
+  /* Landesfassung der Musterbriefe nachladen; ist sie da, einmal neu zeichnen.
+     Schlüssel = Wohnsitz-Land|Sprache, damit ein Landwechsel korrekt nachlädt. */
+  if (curLang !== 'de' && _letterPackLang !== letterPackKey()) {
     letterPackLoad().then(() => { if (currentView === 'docgen') RENDERERS.docgen(); });
   }
   $('#dgRoot').innerHTML = dgState === 'form' ? dgFormHTML() : dgState === 'result' ? dgResultHTML() : dgBrowseHTML();
@@ -13834,6 +13940,7 @@ const LANG_DEFAULT_COUNTRY = { de: 'DE', fr: 'FR', es: 'ES', it: 'IT', pl: 'PL',
 const HOLIDAY_COUNTRIES = [
   { code: 'DE', name: 'Deutschland' }, { code: 'FR', name: 'France' }, { code: 'ES', name: 'España' },
   { code: 'IT', name: 'Italia' }, { code: 'PL', name: 'Polska' }, { code: 'GB', name: 'United Kingdom' },
+  { code: 'TR', name: 'Türkiye' }, { code: 'UA', name: 'Україна' },
 ];
 /* Regionen, die in den Nager-Daten tatsaechlich vorkommen (ISO 3166-2).
    Gemessen fuer 2027: GB hat 8 von 13 Feiertagen regional (nur 5 landesweit –
@@ -13856,6 +13963,9 @@ function holidayRegion(c) {
   return (store.holidayRegion && store.holidayRegion[land]) || '';
 }
 function holidayCountry() {
+  /* Wohnsitz-Land (Punkt 2) schlaegt alles – ausser 'XX' (Sonstiges), das keine
+     definierten Feiertage hat und daher auf Sprache/Wetter-Standort zurueckfaellt. */
+  if (store.country && store.country !== 'XX' && RESIDENCE_COUNTRIES.some(c => c.code === store.country)) return store.country;
   const lang = (typeof curLang !== 'undefined') ? curLang : 'de';
   if (lang === 'de') return 'DE';   // Deutsch: immer deutsche Feiertage (Standard, kein Länder-Picker)
   if (store.holidayCountry) return store.holidayCountry;   // eigene Wahl schlaegt alles
@@ -18029,6 +18139,10 @@ RENDERERS.settings = function () {
   const lm = langMeta(curLang);
   const inCur = langNameIn(lm.code);
   $('#langCardSub').textContent = lm.flag + ' ' + lm.native + (inCur.toLowerCase() !== lm.native.toLowerCase() ? ' (' + inCur + ')' : '') + ' · ' + (lm.country || '');
+  const cSel = $('#setCountry');
+  if (cSel) cSel.innerHTML = countryOptionsHTML(residenceCountry());
+  const cLbl = $('#setCountryLbl'); if (cLbl) cLbl.textContent = pickLang({ de: 'Dein Wohnsitz-Land', en: 'Your country of residence', fr: 'Votre pays de résidence', es: 'Tu país de residencia', it: 'Il tuo Paese di residenza', pl: 'Twój kraj zamieszkania', tr: 'İkamet ettiğin ülke', uk: 'Країна проживання' });
+  const cHint = $('#setCountryHint'); if (cHint) cHint.textContent = pickLang({ de: 'Bestimmt Behörden-Wegweiser, Musterbriefe, Feiertage sowie Sprit- & Müll-Funktionen. Deine Sprache bleibt davon unabhängig.', en: 'Determines the authorities guide, letter templates, public holidays and the fuel & waste features. Your language stays independent.', fr: 'Détermine le guide administratif, les modèles de lettres, les jours fériés ainsi que les fonctions carburant et déchets. Votre langue reste indépendante.', es: 'Determina la guía de trámites, las plantillas de cartas, los festivos y las funciones de combustible y basura. Tu idioma es independiente.', it: 'Determina la guida agli enti, i modelli di lettere, le festività e le funzioni carburante e rifiuti. La tua lingua resta indipendente.', pl: 'Określa przewodnik po urzędach, wzory pism, dni wolne oraz funkcje paliwa i śmieci. Twój język pozostaje niezależny.', tr: 'Resmî kurumlar rehberini, mektup şablonlarını, resmî tatilleri ve yakıt & çöp özelliklerini belirler. Dilin bundan bağımsızdır.', uk: 'Визначає путівник по установах, шаблони листів, свята, а також функції пального та вивозу сміття. Ваша мова залишається незалежною.' });
   refreshAIStatus();
   renderAccountCard();
   renderLegalCard();
@@ -18040,6 +18154,22 @@ RENDERERS.settings = function () {
 };
 
 $('#btnChangeLang').addEventListener('click', () => openLangPicker(false));
+$('#setCountry').addEventListener('change', e => {
+  const prev = store.country;
+  store.country = e.target.value; save();
+  if (store.country === prev) return;
+  /* Inhalts-Caches leeren, damit Behörden/Briefe für das neue Land frisch laden. */
+  _behData = null; _behLoad = null; _behLang = null;
+  _letterPack = null; _letterPackLang = null; _letterPackLoad = null;
+  try { ensureHolidayData(); } catch (err) {}
+  const land = RESIDENCE_COUNTRIES.find(c => c.code === store.country);
+  toast((land ? land.flag + ' ' : '') + pickLang({ de: 'Wohnsitz-Land aktualisiert', en: 'Country of residence updated', fr: 'Pays de résidence mis à jour', es: 'País de residencia actualizado', it: 'Paese di residenza aggiornato', pl: 'Zaktualizowano kraj zamieszkania', tr: 'İkamet ülkesi güncellendi', uk: 'Країну проживання оновлено' }));
+  /* Betroffene Ansichten neu zeichnen (Dashboard: Sprit/Müll-Gating, Feiertage). */
+  try { if (typeof RENDERERS.dashboard === 'function') RENDERERS.dashboard(); } catch (err) {}
+  try { if (currentView === 'behoerden') RENDERERS.behoerden(); } catch (err) {}
+  try { if (currentView === 'docgen' && typeof RENDERERS.docgen === 'function') RENDERERS.docgen(); } catch (err) {}
+  RENDERERS.settings();
+});
 $('#themeSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-theme-set]'); if (!b) return;
   store.settings.theme = b.dataset.themeSet; save(); applyTheme();
