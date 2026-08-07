@@ -91,10 +91,13 @@ if (I18N) {
 // ---- Inhalts-JSONs ----
 const jsonGaps = [];
 const ckJson = (f) => { if (!fs.existsSync(f)) jsonGaps.push(f + ' (fehlt)'); else { try { JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { jsonGaps.push(f + ' (ungueltig)'); } } };
-// Deutschland-Inhalte tragen jetzt das Wohnsitz-Land im Namen: <base>.DE.<lang>.json
-for (const base of ['behoerden', 'briefe']) for (const l of CHECK) ckJson(`${base}.DE.${l}.json`);
-// Selbstfürsorge ist NICHT länderspezifisch → bleibt <base>.<lang>.json
+// Behörden-Wegweiser = deutsche Behörden je Sprache übersetzt: behoerden.DE.<lang>.json
+for (const l of CHECK) ckJson(`behoerden.DE.${l}.json`);
+// Selbstfürsorge ist NICHT länderspezifisch → bleibt selbstfuersorge.<lang>.json
 for (const l of CHECK) ckJson(`selbstfuersorge.${l}.json`);
+// Musterbriefe = Recht des Wohnsitz-Landes, je EINE Fassung (feste Liste; Deutschland
+// nutzt die eingebauten Vorlagen, hat also KEINE Datei).
+for (const f of ['briefe.PL.pl.json', 'briefe.FR.fr.json', 'briefe.ES.es.json', 'briefe.IT.it.json', 'briefe.TR.tr.json', 'briefe.UA.uk.json']) ckJson(f);
 
 // ---- Bericht ----
 console.log(`i18n-Linter (acorn) — geforderte Sprachen: ${REQUIRED.join(', ')} | geprueft: ${CHECK.join(', ')}`);

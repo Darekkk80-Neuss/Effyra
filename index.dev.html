@@ -3279,6 +3279,12 @@ function contentCountry() {
   const c = residenceCountry();
   return CONTENT_COUNTRIES[c] ? c : null;
 }
+/* Musterbriefe = Recht des WOHNSITZ-Landes, in dessen Amtssprache (Briefe gehen an
+   Institutionen dort). Deutschland nutzt die EINGEBAUTEN deutschen Vorlagen (deutsches
+   Recht, deutscher Brieftext) – ein Kündigungsschreiben an einen deutschen Vermieter
+   muss deutsch sein. Ein Ausländer mit Wohnsitz DE bekommt also deutsche Vorlagen mit
+   übersetzter Oberfläche. Nur echte Nicht-DE-Wohnsitze laden ein Landesrecht-Pack. */
+const LETTER_PACKS = { PL: 'briefe.PL.pl.json', FR: 'briefe.FR.fr.json', ES: 'briefe.ES.es.json', IT: 'briefe.IT.it.json', TR: 'briefe.TR.tr.json', UA: 'briefe.UA.uk.json' };
 /* Kandidatenliste je Inhaltstyp: exakte Sprache → EN → DE (nur was existiert).
    Fuer DE liegen alle 8 Sprachen vor; TR nur tr, UA nur uk → sonst leer (Hinweis). */
 function contentFileCandidates(kind, lang) {
@@ -9844,26 +9850,20 @@ const curTpl = () => DOC_TPL.find(x => x.id === dgActiveId);
    Fällt die Datei aus, greift automatisch die deutsche Vorlage (dokumentiert im Hinweis). */
 let _letterPack = null, _letterPackLang = null, _letterPackLoad = null;
 function letterPackLoad() {
-  const lang = (typeof curLang !== 'undefined' && curLang) ? curLang : 'de';
-  const key = residenceCountry() + '|' + lang;   // Cache je Wohnsitz-Land UND Sprache
-  /* Deutsch: die eingebauten Vorlagen (deutsches Recht) – kein externes Paket. */
-  if (lang === 'de') { _letterPack = null; _letterPackLang = key; return Promise.resolve(null); }
-  if (_letterPackLang === key && _letterPackLoad) return _letterPackLoad;
-  _letterPackLang = key;
-  const cands = contentFileCandidates('briefe', lang);   // <CC>.<lang> → <CC>.en → <CC>.de
-  const tryNext = (i) => {
-    if (i >= cands.length) { _letterPack = null; return Promise.resolve(null); }
-    return fetch(cands[i], { cache: 'force-cache' })
-      .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
-      .then(d => { if (d && d.vorlagen) { _letterPack = d; return _letterPack; } return tryNext(i + 1); })
-      .catch(() => tryNext(i + 1));
-  };
-  _letterPackLoad = tryNext(0);
+  const cc = residenceCountry();
+  const file = LETTER_PACKS[cc];   // DE/GB/XX → kein Pack → eingebaute deutsche Vorlagen
+  if (!file) { _letterPack = null; _letterPackLang = cc; return Promise.resolve(null); }
+  if (_letterPackLang === cc && _letterPackLoad) return _letterPackLoad;
+  _letterPackLang = cc;
+  _letterPackLoad = fetch(file, { cache: 'force-cache' })
+    .then(r => (r.ok ? r.json() : Promise.reject(new Error('missing'))))
+    .then(d => { _letterPack = (d && d.vorlagen) ? d : null; return _letterPack; })
+    .catch(() => { _letterPack = null; return null; });
   return _letterPackLoad;
 }
-/* Aktives Paket nur nutzen, wenn es zu Wohnsitz-Land UND Sprache gehört. */
-const letterPackKey = () => residenceCountry() + '|' + curLang;
-const letterPack = () => (_letterPack && _letterPackLang === letterPackKey()) ? _letterPack : null;
+/* Aktives Paket gehört zum Wohnsitz-Land (nicht zur Bediensprache). */
+const letterPackKey = () => residenceCountry();
+const letterPack = () => (_letterPack && _letterPackLang === residenceCountry()) ? _letterPack : null;
 
 /* Datum der Landesfassungen. Ohne Datum bleibt der Wert LEER – die Vorlagen setzen
    {datum} durchgängig auf eine beschriftete Zeile („Termin rozwiązania umowy: {datum}"),
@@ -9884,8 +9884,10 @@ function letterPlaceLine(p, today) {
 /* Sagt offen, welchem Recht die angezeigten Vorlagen folgen. Ohne das könnte ein
    Nutzer in Warschau einen Brief nach deutschem Recht für verbindlich halten. */
 function letterJurisdictionHTML() {
-  if (curLang === 'de') return '<div class="note-box" style="margin:10px 0;font-size:12.5px">Vorlagen zur Orientierung – keine Rechtsberatung. Ordela ist eine private App und steht in keiner Verbindung zu Behörden. Gesetzestexte offiziell: <a href="https://www.gesetze-im-internet.de" target="_blank" rel="noopener">gesetze-im-internet.de</a></div>';
   const pack = letterPack();
+  /* Zuerst das Landesrecht-Pack prüfen (Wohnsitz schlägt Sprache): ein deutschsprachiger
+     Nutzer mit Wohnsitz Polen sieht polnisches Recht – nicht die deutsche Standardnotiz. */
+  if (!pack && curLang === 'de') return '<div class="note-box" style="margin:10px 0;font-size:12.5px">Vorlagen zur Orientierung – keine Rechtsberatung. Ordela ist eine private App und steht in keiner Verbindung zu Behörden. Gesetzestexte offiziell: <a href="https://www.gesetze-im-internet.de" target="_blank" rel="noopener">gesetze-im-internet.de</a></div>';
   if (pack && pack.land && pack.land !== 'INT') {
     return '<div class="note-box" style="margin:10px 0;font-size:12.5px">' + esc(agentMsg({
       de: 'Diese Vorlagen folgen dem Recht von {l}. Keine Rechtsberatung – im Zweifel Vertrag prüfen oder rechtlichen Rat einholen.',
@@ -9897,20 +9899,28 @@ function letterJurisdictionHTML() {
     }, { l: pack.land })) + '</div>';
   }
   const txt = pack
-    ? pickLang({
+    ? pickLang({   // INT-Pack: jurisdiktionsneutral
       de: '', en: 'These templates are written to be jurisdiction-neutral. Notice periods and the required form depend on your contract and your country.',
       fr: 'Ces modèles sont rédigés de façon neutre sur le plan juridique. Les délais et la forme requise dépendent de ton contrat et de ton pays.',
       es: 'Estas plantillas son neutrales en cuanto a jurisdicción. Los plazos y la forma exigida dependen de tu contrato y de tu país.',
       it: 'Questi modelli sono neutri dal punto di vista giuridico. I termini e la forma richiesta dipendono dal contratto e dal tuo Paese.',
-      pl: 'Te wzory są neutralne prawnie. Terminy i wymagana forma zależą od Twojej umowy i kraju.', tr: "Bu cümleleri gösterin veya yüksek sesle okuyun – üstte Almanca, altta kendi diliniz.", uk: "Показуйте на ці речення або читайте вголос – зверху німецька, знизу ваша мова."
+      pl: 'Te wzory są neutralne prawnie. Terminy i wymagana forma zależą od Twojej umowy i kraju.', tr: "Bu şablonlar hukuken tarafsız hazırlanmıştır. Süreler ve gerekli biçim sözleşmene ve ülkene göre değişir.", uk: "Ці шаблони складені юридично нейтрально. Строки та необхідна форма залежать від твого договору й країни."
     })
-    : pickLang({
-      de: '', en: 'These templates are based on German law. Please check the rules that apply in your country.',
-      fr: 'Ces modèles reposent sur le droit allemand. Vérifie les règles applicables dans ton pays.',
-      es: 'Estas plantillas se basan en el derecho alemán. Comprueba las normas de tu país.',
-      it: 'Questi modelli si basano sul diritto tedesco. Verifica le regole del tuo Paese.',
-      pl: 'Te wzory opierają się na prawie niemieckim. Sprawdź przepisy obowiązujące w Twoim kraju.', tr: "Bu cümleleri gösterin veya yüksek sesle okuyun – üstte Almanca, altta kendi diliniz.", uk: "Показуйте на ці речення або читайте вголос – зверху німецька, знизу ваша мова."
-    });
+    : (residenceCountry() === 'DE'
+      ? pickLang({   // Wohnsitz Deutschland: deutsche Vorlagen sind hier korrekt (Briefe an deutsche Stellen)
+        de: '', en: 'These templates follow German law – suitable for letters to authorities and companies in Germany. Not legal advice; check your contract if in doubt.',
+        fr: 'Ces modèles suivent le droit allemand – adaptés aux courriers aux administrations et entreprises en Allemagne. Ceci n\'est pas un conseil juridique ; vérifie ton contrat en cas de doute.',
+        es: 'Estas plantillas siguen el derecho alemán, aptas para cartas a administraciones y empresas en Alemania. No es asesoramiento jurídico; revisa tu contrato en caso de duda.',
+        it: 'Questi modelli seguono il diritto tedesco, adatti a lettere verso enti e aziende in Germania. Non è consulenza legale; controlla il contratto in caso di dubbio.',
+        pl: 'Te wzory opierają się na prawie niemieckim – nadają się do pism do urzędów i firm w Niemczech. To nie jest porada prawna; w razie wątpliwości sprawdź umowę.', tr: "Bu şablonlar Alman hukukuna dayanır – Almanya'daki kurum ve şirketlere yazılacak mektuplar için uygundur. Hukuki danışmanlık değildir; şüphe halinde sözleşmeni kontrol et.", uk: "Ці шаблони засновані на німецькому праві – придатні для листів до установ і компаній у Німеччині. Це не юридична консультація; за сумніву перевір договір."
+      })
+      : pickLang({   // Wohnsitz ohne eigenes Pack (z. B. „Sonstiges"): deutsche Basis, eigenes Land prüfen
+        de: '', en: 'These templates are based on German law. Please check the rules that apply in your country.',
+        fr: 'Ces modèles reposent sur le droit allemand. Vérifie les règles applicables dans ton pays.',
+        es: 'Estas plantillas se basan en el derecho alemán. Comprueba las normas de tu país.',
+        it: 'Questi modelli si basano sul diritto tedesco. Verifica le regole del tuo Paese.',
+        pl: 'Te wzory opierają się na prawie niemieckim. Sprawdź przepisy obowiązujące w Twoim kraju.', tr: "Bu şablonlar Alman hukukuna dayanır. Lütfen kendi ülkende geçerli kuralları kontrol et.", uk: "Ці шаблони засновані на німецькому праві. Перевір правила, що діють у твоїй країні."
+      }));
   return '<div class="note-box" style="margin:10px 0;font-size:12.5px">' + esc(txt) + '</div>';
 }
 
@@ -10043,9 +10053,10 @@ function kuendVersandHTML(t) {
 
 RENDERERS.docgen = function () {
   ensureProfileName();
-  /* Landesfassung der Musterbriefe nachladen; ist sie da, einmal neu zeichnen.
-     Schlüssel = Wohnsitz-Land|Sprache, damit ein Landwechsel korrekt nachlädt. */
-  if (curLang !== 'de' && _letterPackLang !== letterPackKey()) {
+  /* Landesrecht-Pack des WOHNSITZ-Landes nachladen (nicht der Sprache); ist es da,
+     einmal neu zeichnen. Bei Wohnsitz DE liefert letterPackLoad sofort null → die
+     eingebauten deutschen Vorlagen greifen. */
+  if (_letterPackLang !== letterPackKey()) {
     letterPackLoad().then(() => { if (currentView === 'docgen') RENDERERS.docgen(); });
   }
   $('#dgRoot').innerHTML = dgState === 'form' ? dgFormHTML() : dgState === 'result' ? dgResultHTML() : dgBrowseHTML();
