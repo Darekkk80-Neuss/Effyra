@@ -6776,10 +6776,20 @@ function showKidsConsent(onGrant) {
 }
 /* In-App-Dokument-Viewer (Overlay, ohne Navigationsverlust). Sprache: DE in Deutschland, sonst EN. */
 function legalLang() { return (typeof curLang !== 'undefined' && curLang === 'de') ? 'de' : 'en'; }
+/* Datenschutz & Nutzungsbedingungen liegen zusätzlich auf Türkisch/Ukrainisch vor
+   (<name>.tr.html / <name>.uk.html, jeweils Zielsprache + Englisch-Umschalter).
+   Impressum & Co. nur DE/EN. tr/uk-Nutzer bekommen ihre eigene Fassung. */
+const LEGAL_LANGS = ['tr', 'uk'];
+function legalDocSrc(name) {
+  if ((name === 'datenschutz' || name === 'nutzungsbedingungen') && LEGAL_LANGS.indexOf(curLang) >= 0) {
+    return name + '.' + curLang + '.html?lang=' + curLang;
+  }
+  return name + '.html?lang=' + legalLang();
+}
 function showLegalDoc(name) {
   let ov = document.getElementById('legalDocOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'legalDocOv'; ov.className = 'legaldoc-ov'; document.body.appendChild(ov); }
-  ov.innerHTML = '<div class="legaldoc-bar"><button class="btn btn-sm" id="legalDocClose">' + (legalLang() === 'de' ? 'Schließen' : 'Close') + '</button></div><iframe class="legaldoc-frame" src="' + name + '.html?lang=' + legalLang() + '" title="Rechtstext"></iframe>';
+  ov.innerHTML = '<div class="legaldoc-bar"><button class="btn btn-sm" id="legalDocClose">' + esc(pickLang({ de: 'Schließen', en: 'Close', fr: 'Fermer', es: 'Cerrar', it: 'Chiudi', pl: 'Zamknij', tr: 'Kapat', uk: 'Закрити' })) + '</button></div><iframe class="legaldoc-frame" src="' + legalDocSrc(name) + '" title="Rechtstext"></iframe>';
   ov.classList.add('on');
   ov.querySelector('#legalDocClose').onclick = () => ov.classList.remove('on');
 }
