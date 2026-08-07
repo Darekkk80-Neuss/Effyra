@@ -6,9 +6,12 @@
   "scripts": {
     "build": "node build.mjs",
     "check-build": "node check-build.mjs",
-    "hooks": "git config core.hooksPath .githooks"
+    "hooks": "git config core.hooksPath .githooks",
+    "i18n:check": "node i18n-lint.mjs"
   },
   "devDependencies": {
+    "acorn": "^8.18.0",
+    "acorn-walk": "^8.3.5",
     "esbuild": "^0.28.1"
   }
 }

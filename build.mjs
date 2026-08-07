@@ -17,6 +17,19 @@ import { readFileSync, writeFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { transform } from 'esbuild';
+import { spawnSync } from 'node:child_process';
+
+// ---- i18n-Vollstaendigkeits-Guard: kein Deploy mit unvollstaendiger Sprache ----
+// Prueft genau die in SUPPORTED_LANGS deklarierten Sprachen. Bricht den Build ab,
+// wenn eine deklarierte Sprache Luecken hat (Details siehe Ausgabe des Linters).
+{
+  const lint = spawnSync('node', ['i18n-lint.mjs'], { stdio: 'inherit' });
+  if (lint.status !== 0) {
+    console.error('\n⛔ Build abgebrochen: i18n-Linter meldet Luecken in einer deklarierten Sprache.');
+    console.error('   Entweder die fehlenden Uebersetzungen ergaenzen ODER die Sprache aus SUPPORTED_LANGS entfernen.');
+    process.exit(1);
+  }
+}
 
 const SRC = 'index.dev.html';
 const OUT = 'index.html';
