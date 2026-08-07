@@ -541,6 +541,15 @@ label.fld{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
 .wx-setup .row{display:flex;gap:8px}
 .wx-setup .row input{flex:1}
 .wx-loading{opacity:.75}
+.wx-fc{display:flex;gap:8px;margin-top:12px}
+.wx-fc-d{flex:1;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 4px;text-align:center;min-width:0}
+.wx-fc-wd{display:block;font-size:11px;opacity:.85;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wx-fc-ic{display:block;font-size:18px;margin:2px 0;line-height:1}
+.wx-fc-t{display:block;font-size:11px;white-space:nowrap}
+.wx-sun{margin-top:10px;font-size:12px;opacity:.92;text-align:center;letter-spacing:.2px}
+.wx-skel{height:206px;border-radius:12px;margin-bottom:var(--gap-card);background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden}
+.wx-skel::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(127,127,127,.16) 50%,transparent 70%);background-size:200% 100%;animation:wxShimmer 1.25s linear infinite}
+@keyframes wxShimmer{to{background-position:-200% 0}}
 
 /* ---- Gericht des Tages (Apple-Look: Foto-Hero + aufklappbares Rezept) ---- */
 /* ---- Dashboard-Info-Widgets (Feiertage, Unwetterwarnungen) ---- */
@@ -10861,11 +10870,23 @@ function buildWeather(loc, wx, aq) {
       if (typeof v === 'number') { hasPollen = true; if (v > pMax) { pMax = v; dom = trStr(POLLEN_MAP[k]); } }
     });
   }
+  /* Kommende Tage (heute + 3) für die Vorschau-Leiste – so wirkt die Karte nicht
+     wie eine karge Momentaufnahme (QA W-01). */
+  const days = (wx.daily && wx.daily.time) ? wx.daily.time.slice(0, 4).map((t, i) => ({
+    date: t, code: (wx.daily.weather_code || [])[i] || 0,
+    hi: Math.round(wx.daily.temperature_2m_max[i]), lo: Math.round(wx.daily.temperature_2m_min[i])
+  })) : [];
+  const hhmm = (s) => (s ? String(s).slice(11, 16) : '');
   return {
     lat: loc.lat, lon: loc.lon, name: loc.name, ts: Date.now(),
     temp: Math.round(cur.temperature_2m), feels: Math.round(cur.apparent_temperature),
     text: ti[0], icon: ti[1], grad: wGrad(code, day),
     rain: rain != null ? Math.round(rain) : null,
+    humidity: cur.relative_humidity_2m != null ? Math.round(cur.relative_humidity_2m) : null,
+    wind: cur.wind_speed_10m != null ? Math.round(cur.wind_speed_10m) : null,
+    sunrise: (wx.daily && wx.daily.sunrise) ? hhmm(wx.daily.sunrise[0]) : '',
+    sunset: (wx.daily && wx.daily.sunset) ? hhmm(wx.daily.sunset[0]) : '',
+    days: days,
     hi: wx.daily ? Math.round(wx.daily.temperature_2m_max[0]) : Math.round(cur.temperature_2m),
     lo: wx.daily ? Math.round(wx.daily.temperature_2m_min[0]) : Math.round(cur.temperature_2m),
     pollen: hasPollen ? pollenLevel(pMax) : '—',
@@ -10879,8 +10900,8 @@ function buildWeather(loc, wx, aq) {
 }
 async function fetchWeather(loc) {
   const wxURL = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon +
-    '&current=temperature_2m,apparent_temperature,is_day,weather_code&hourly=precipitation_probability' +
-    '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1';
+    '&current=temperature_2m,apparent_temperature,is_day,weather_code,relative_humidity_2m,wind_speed_10m&hourly=precipitation_probability' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=4';
   const aqURL = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + loc.lat + '&longitude=' + loc.lon +
     '&current=alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen&timezone=auto';
   try {
@@ -10958,7 +10979,7 @@ function weatherPickHTML(results) {
     results.map((g, i) => '<button class="btn btn-sm" data-wx="pick" data-i="' + i + '" style="width:100%;text-align:left;margin-bottom:6px">' + esc(g.name) + (g.admin1 ? ', ' + esc(g.admin1) : '') + (g.country ? ' · ' + esc(g.country) : '') + '</button>').join('') +
     '<button class="btn btn-sm btn-ghost" data-wx="edit" style="margin-top:4px">‹ Andere Stadt</button></div>';
 }
-function weatherLoadingHTML() { return '<div class="wx-setup wx-loading"><h3>Wetter wird geladen …</h3></div>'; }
+function weatherLoadingHTML() { return '<div class="wx-skel" role="status" aria-label="' + esc(pickLang({ de: 'Wetter wird geladen', en: 'Loading weather', fr: 'Chargement de la météo', es: 'Cargando el tiempo', it: 'Caricamento meteo', pl: 'Ładowanie pogody', tr: 'Hava durumu yükleniyor', uk: 'Завантаження погоди' })) + '"></div>'; }
 function weatherErrorHTML() {
   return '<div class="wx-setup"><h3>Wetter nicht verfügbar</h3><p>Die Wetterdaten konnten nicht geladen werden.</p>' +
     '<button class="btn btn-sm" data-wx="retry">Erneut versuchen</button></div>';
@@ -10971,8 +10992,20 @@ function weatherSetupHTML(hasLoc) {
     (hasLoc ? '<button class="btn btn-sm btn-ghost" data-wx="cancel" style="margin-top:8px">Abbrechen</button>' : '') + '</div>';
 }
 function weatherCardHTML(d) {
-  /* Standortnadel, nicht Stift: An dieser Stelle setzt man den Ort – ein
-     Stiftsymbol las sich wie "Text bearbeiten" und war nicht wiederzuerkennen. */
+  /* Pills nie leer lassen (QA W-01): Regen – sonst Luftfeuchte –, Wind, Höchst/Tief;
+     Pollen nur, wenn echte Daten vorliegen (kein „keine Daten"-Platzhalter mehr). */
+  const pill = (ic, val, lbl) => '<div class="wx-pill"><span>' + ic + '</span><b>' + val + '</b><small>' + lbl + '</small></div>';
+  let pills = '';
+  if (d.rain != null) pills += pill('💧', d.rain + '%', esc(pickLang({ de: 'Regen', en: 'Rain', fr: 'Pluie', es: 'Lluvia', it: 'Pioggia', pl: 'Deszcz', tr: 'Yağmur', uk: 'Дощ' })));
+  else if (d.humidity != null) pills += pill('💧', d.humidity + '%', esc(pickLang({ de: 'Luftfeuchte', en: 'Humidity', fr: 'Humidité', es: 'Humedad', it: 'Umidità', pl: 'Wilgotność', tr: 'Nem', uk: 'Вологість' })));
+  if (d.wind != null) pills += pill('🌬️', d.wind + ' km/h', esc(pickLang({ de: 'Wind', en: 'Wind', fr: 'Vent', es: 'Viento', it: 'Vento', pl: 'Wiatr', tr: 'Rüzgâr', uk: 'Вітер' })));
+  pills += pill('🌡️', d.hi + '° / ' + d.lo + '°', esc(pickLang({ de: 'Höchst / Tief', en: 'High / Low', fr: 'Max / Min', es: 'Máx / Mín', it: 'Max / Min', pl: 'Maks / Min', tr: 'Yüksek / Düşük', uk: 'Макс / Мін' })));
+  if (d.pollen && d.pollen !== '—') pills += pill('🌸', esc(d.pollen), esc(d.pollenSub));
+  /* Vorschau der nächsten Tage (Wochentag, Symbol, Hi/Lo). */
+  const wd = (iso) => { try { return new Date(iso + 'T12:00:00').toLocaleDateString((typeof curLocale !== 'undefined' && curLocale) || 'de-DE', { weekday: 'short' }); } catch (e) { return String(iso).slice(5); } };
+  const fdays = (d.days || []).slice(1, 4);
+  const fc = fdays.length ? '<div class="wx-fc">' + fdays.map(x => '<div class="wx-fc-d"><span class="wx-fc-wd">' + esc(wd(x.date)) + '</span><span class="wx-fc-ic">' + wCode(x.code, true)[1] + '</span><span class="wx-fc-t">' + x.hi + '° / ' + x.lo + '°</span></div>').join('') + '</div>' : '';
+  const sun = (d.sunrise || d.sunset) ? '<div class="wx-sun">🌅 ' + esc(d.sunrise) + '  ·  🌇 ' + esc(d.sunset) + '</div>' : '';
   return '<div class="wx-card wx-' + d.grad + '"><button class="wx-edit" data-wx="edit" title="Ort ändern" aria-label="Ort ändern"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPin"/></svg></button>' +
     '<div class="wx-top"><div class="wx-main"><div class="wx-temp">' + d.temp + '°</div>' +
     '<div class="wx-cond">' + esc(d.text) + '</div>' +
@@ -10981,11 +11014,7 @@ function weatherCardHTML(d) {
       es: ' · sensación {f}°', it: ' · percepita {f}°', pl: ' · odczuwalna {f}°', tr: " · hissedilen {f}°", uk: " · відчувається як {f}°"
     }, { f: d.feels }) + '</div></div>' +
     '<div class="wx-icon">' + d.icon + '</div></div>' +
-    '<div class="wx-pills">' +
-    '<div class="wx-pill"><span>💧</span><b>' + (d.rain != null ? d.rain + '%' : '–') + '</b><small>Regen</small></div>' +
-    '<div class="wx-pill"><span>🌸</span><b>' + esc(d.pollen) + '</b><small>' + esc(d.pollenSub) + '</small></div>' +
-    '<div class="wx-pill"><span>🌡️</span><b>' + d.hi + '° / ' + d.lo + '°</b><small>Höchst / Tief</small></div>' +
-    '</div></div>';
+    '<div class="wx-pills">' + pills + '</div>' + fc + sun + '</div>';
 }
 
 function renderWeather() {
@@ -18756,7 +18785,10 @@ $('#btnWipe').addEventListener('click', async () => {
    die Geräteerkennung schlägt beim Ersteinrichtungs-Fenster eine Sprache vor.
    Früher gewählte, nicht mehr unterstützte Sprache → zurücksetzen (Auswahl-Fenster erscheint neu). */
 if (store.profile && store.profile.lang && SUPPORTED_LANGS.indexOf(store.profile.lang) < 0) { store.profile.lang = ''; save(); }
-applyLang((store.profile && store.profile.lang) || 'de', { silent: true, persist: !!(store.profile && store.profile.lang) });
+/* Ohne gespeicherte Sprache die GERÄTESPRACHE vorbelegen (nicht hart Deutsch),
+   damit schon das Anmelde-/Registrier-Overlay beim Erststart lokalisiert erscheint
+   (QA ONB-01). persist bleibt false → die Wahl im Sprach-Picker bestätigt/ändert sie. */
+applyLang((store.profile && store.profile.lang) || detectDeviceLang() || 'de', { silent: true, persist: !!(store.profile && store.profile.lang) });
 refreshAIStatus();
 try { startWeatherWatch(); } catch (e) {}
 try { setTimeout(maybeShowTermsGate, 900); } catch (e) {}
