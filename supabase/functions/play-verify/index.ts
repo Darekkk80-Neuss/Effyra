@@ -85,7 +85,7 @@ async function googleAccessToken(): Promise<string> {
 }
 
 // ---- Kauf bei Google prüfen (Abo vs. Einmalprodukt). Gibt Gültigkeit + Ablaufdatum zurück. ----
-async function verifyPurchase(sku: string, token: string, type: string): Promise<{ ok: boolean; expiryMs: number }> {
+async function verifyPurchase(sku: string, token: string, type: string): Promise<{ ok: boolean; expiryMs: number; status: number }> {
   const at = await googleAccessToken();
   const base = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE}`;
   // encodeURIComponent: sku und token kommen ungefiltert aus dem Client-Body.
@@ -98,13 +98,13 @@ async function verifyPurchase(sku: string, token: string, type: string): Promise
     ? `${base}/purchases/subscriptions/${sk}/tokens/${tk}`
     : `${base}/purchases/products/${sk}/tokens/${tk}`;
   const res = await fetchT(url, { headers: { authorization: 'Bearer ' + at } }, 10000);
-  if (!res.ok) return { ok: false, expiryMs: 0 };
+  if (!res.ok) return { ok: false, expiryMs: 0, status: res.status };   // Status durchreichen: 404/410 = terminal, 5xx = transient
   const d = await res.json();
   if (type === 'subs') {
     const exp = Number(d.expiryTimeMillis || 0);         // Abo: gültig, solange Ablauf in der Zukunft
-    return { ok: !exp || exp > Date.now(), expiryMs: exp };
+    return { ok: !exp || exp > Date.now(), expiryMs: exp, status: 200 };
   }
-  return { ok: d.purchaseState === 0 || d.purchaseState === undefined, expiryMs: 0 };   // Einmalkauf
+  return { ok: d.purchaseState === 0 || d.purchaseState === undefined, expiryMs: 0, status: 200 };   // Einmalkauf
 }
 
 // ---- RTDN-Authentifizierung: OIDC-Token im Header statt Secret in der URL ----
@@ -227,7 +227,15 @@ Deno.serve(async (req) => {
         // 5xx bei Google in expiryMs=0 und damit ueber to_timestamp(0) auf 1970 –
         // ALLE Abonnenten haetten in dem Moment ihren Zugang verloren. Pub/Sub
         // stellt bei 500 erneut zu, also ist Abbrechen hier das Richtige.
-        if (!v.ok && !v.expiryMs) return json({ error: 'upstream_unavailable' }, 500);
+        if (!v.ok && !v.expiryMs) {
+          // Terminaler Token-Fehler (nicht gefunden / abgelaufen / ungültig: 404/410/400) →
+          // BESTÄTIGEN, nicht 500. Genau das war die RTDN-500-Schleife: Pub/Sub stellt bei 500
+          // tagelang erneut zu, und ein abgelaufenes (Test-)Abo antwortet dauerhaft mit 404/410.
+          // Nur transiente Google-Ausfälle (5xx / Auth / Rate-Limit) liefern weiter 500, damit
+          // ein echter Abonnent bei einem kurzen Ausfall nicht fälschlich seinen Zugang verliert.
+          if (v.status === 404 || v.status === 410 || v.status === 400) { console.log('rtdn_token_terminal', v.status); return json({ ok: true, note: 'rtdn_token_invalid' }); }
+          return json({ error: 'upstream_unavailable' }, 500);
+        }
         await admin.from('play_purchases').update({ expiry_ms: v.expiryMs || null, updated_at: new Date().toISOString() }).eq('purchase_token', token);
         if (isAddon(useSku)) await admin.rpc('recompute_family_seats', { p_user: pp.user_id });   // Add-on: Sitzplätze neu
         else await admin.rpc('sync_play_expiry', { p_user: pp.user_id, p_sku: useSku, p_expiry_ms: v.expiryMs || 0 });
