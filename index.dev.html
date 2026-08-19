@@ -6638,6 +6638,61 @@ function aiQuotaAufgebraucht() {
 }
 let _aiWarned90 = false;   // Verbrauch ist server-autoritativ (applyServerUsage via consume_ai); kein client-seitiger Zähler mehr.
 /* Zentrale Prüfung vor echten KI-Aktionen. Gibt true zurück, wenn ausführbar. */
+/* ============================== HERKUNFT DER ANMELDUNG (First-Party) ==============================
+   Zweck: nachvollziehen, welche Anzeige eine Registrierung gebracht hat.
+   Bewusst OHNE Marketing-Pixel und ohne Drittanbieter – die Zusage „Keine Werbung, kein Tracking"
+   bleibt damit uneingeschraenkt wahr. Es entsteht kein Profil und keine Uebermittlung an Dritte.
+   Beim Seitenaufruf werden die Kampagnen-Kennungen NUR im Arbeitsspeicher gehalten; auf dem
+   Endgeraet wird nichts abgelegt (§ 25 TDDDG greift daher nicht). Dauerhaft gespeichert werden
+   sie ausschliesslich am eigenen Konto in Supabase – und erst dann, wenn sich jemand aktiv
+   registriert. Kein Konto, keine Speicherung. */
+const ORDELA_ATT_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_id', 'utm_content', 'utm_term', 'ttclid'];
+const ORDELA_ATT_STASH = 'ordela_att';
+const ORDELA_ATT = (function () {
+  try {
+    const q = new URLSearchParams(location.search), out = {};
+    ORDELA_ATT_KEYS.forEach(function (k) {
+      const v = q.get(k);
+      /* Laengenbremse: die Metadaten des Kontos sind kein Ablageplatz fuer beliebige Fremdwerte. */
+      if (v) out[k] = String(v).slice(0, 120);
+    });
+    if (!out.utm_source) return null;   // ohne Quelle ist der Rest wertlos
+    out.landed_at = new Date().toISOString();
+    return out;
+  } catch (e) { return null; }
+})();
+/* Google-Anmeldung verlaesst die Seite; der Arbeitsspeicher geht dabei verloren. Deshalb – und
+   ERST beim aktiven Klick auf „Mit Google anmelden", nicht schon beim Seitenaufruf – die Werte
+   fuer die Rueckkehr im sessionStorage zwischenlegen. Auf den Tab begrenzt, beim Auslesen
+   sofort geloescht. Der E-Mail-Weg braucht das nicht: dort reisen sie in signUp() mit. */
+function ordelaAttStash() {
+  try { if (ORDELA_ATT) sessionStorage.setItem(ORDELA_ATT_STASH, JSON.stringify(ORDELA_ATT)); } catch (e) {}
+}
+function ordelaAttTake() {
+  if (ORDELA_ATT) return ORDELA_ATT;
+  try {
+    const raw = sessionStorage.getItem(ORDELA_ATT_STASH);
+    if (!raw) return null;
+    sessionStorage.removeItem(ORDELA_ATT_STASH);
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+/* Herkunft nachtragen – gebraucht wird das beim Google-Weg, der kein options.data kennt.
+   Zwei Sperren: nur wenn noch keine Herkunft am Konto haengt, und nur bei Konten aus den
+   letzten 24 Stunden. Sonst wuerde ein spaeterer Anzeigenklick eines Bestandsnutzers die
+   urspruengliche Herkunft ueberschreiben und die Auswertung stillschweigend verfaelschen. */
+async function ordelaAttachAttribution(user) {
+  try {
+    if (!sb || !user) return;
+    if (user.user_metadata && user.user_metadata.attribution) return;
+    const created = Date.parse(user.created_at || '');
+    if (!created || (Date.now() - created) > 864e5) return;
+    const att = ordelaAttTake();
+    if (!att) return;
+    await sb.auth.updateUser({ data: { attribution: att } });
+  } catch (e) { /* Beiwerk – darf die Anmeldung nie stoeren */ }
+}
+
 /* ============================== RECHTLICHES & EINWILLIGUNGEN (DSGVO) ============================== */
 /* Versionsstände der einwilligungspflichtigen Zwecke – bei Änderung hochzählen → Re-Consent. */
 /* Aendert sich der Text einer Einwilligung inhaltlich, MUSS die Version hoch:
@@ -7133,6 +7188,7 @@ async function cloudSession(session, fallbackName) {
   }
   if (account.name && !store.name) { store.name = account.name; save(); }
   await pullConsents();   // Einwilligungen dieses Kontos laden (personenbezogen statt geräteweit)
+  ordelaAttachAttribution(user);   // Herkunft nachtragen (Google-Weg) – bewusst ohne await, blockiert den Start nicht
   /* Aktivität melden. Nach 24 Monaten ohne Aktivität wird das Konto gelöscht
      (Art. 5 Abs. 1 lit. e) – dafür muss Nutzung überhaupt sichtbar sein.
      last_sign_in_at taugt dafür nicht: mit langlebigen Refresh-Token meldet
@@ -7181,6 +7237,7 @@ async function googleSignIn() {
   const btn = $('#authGoogle');
   if (btn) btn.disabled = true;
   try {
+    ordelaAttStash();   // Herkunft ueber den Google-Umweg retten (siehe ordelaAttStash)
     const r = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: location.origin + location.pathname }
@@ -7263,7 +7320,7 @@ async function cloudAuth(pass, err) {
       const bday = ($('#auBirth') && $('#auBirth').value) || '';
       /* Rücksprung nach E-Mail-Bestätigung explizit auf die App-URL (verhindert 404 durch falsche Supabase-Site-URL).
          Voraussetzung: diese URL muss in Supabase unter Auth → URL Configuration → Redirect URLs erlaubt sein. */
-      const r = await sb.auth.signUp({ email, password: pass, options: { data: { name, last_name: last, birthday: bday }, emailRedirectTo: location.origin + location.pathname } });
+      const r = await sb.auth.signUp({ email, password: pass, options: { data: { name, last_name: last, birthday: bday, attribution: ORDELA_ATT || undefined }, emailRedirectTo: location.origin + location.pathname } });
       if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
       if (!r.data.session) {
         /* E-Mail-Bestätigung ist aktiviert: erst bestätigen, dann anmelden */
