@@ -1888,7 +1888,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-box{max-width:420px;width:100%;text-align:center;animation:viewIn .45s ease both;
   background:rgba(9,11,18,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border:1px solid var(--border);border-radius:12px;padding:30px 26px;
-  box-shadow:0 20px 60px rgba(0,0,0,.45)}
+  box-shadow:0 20px 60px rgba(0,0,0,.45);position:relative}
+.gate-lang{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;gap:6px;background:rgba(77,124,255,.12);border:1px solid var(--border2);color:#8FB0FF;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer;min-height:34px}
+.gate-lang:hover{background:rgba(77,124,255,.2);color:#fff}
+.gate-lang svg{flex:none}
+.gate-value{font-size:15px;font-weight:650;line-height:1.4;color:var(--text);margin:0 0 14px}
 .gate-box .logo-mark{width:88px;height:88px;margin:0 auto 12px;filter:drop-shadow(0 10px 34px rgba(77,124,255,.6))}
 .gate-brand{font-size:46px;font-weight:650;letter-spacing:-.5px;margin-bottom:2px;line-height:1;color:var(--text)}
 .brand-slogan{display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#8FB0FF;margin:0 0 14px}
@@ -2100,9 +2104,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
 <div id="auth" class="gate">
   <div class="gate-box">
+    <button class="gate-lang" id="authLang" data-noi18n aria-label="Sprache wählen / Choose language"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.4 2.5 3.7 5.6 3.7 9S14.4 18.5 12 21C9.6 18.5 8.3 15.4 8.3 12S9.6 5.5 12 3Z"/></svg><span id="authLangTxt">Deutsch</span></button>
     <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#logoSym"/></svg>
     <h1 class="gate-brand font-head">Ordela</h1>
     <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
+    <p class="gate-value" id="authValue" data-noi18n></p>
     <h2 id="authTitle">Konto erstellen</h2>
     <p class="gate-sub" id="authSub">7 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
@@ -3773,6 +3779,8 @@ function applyLang(code, opts) {
   try { ensureHolidayData(); } catch (e) {}   // Feiertags-Land folgt der Sprache (falls nicht explizit gewählt) → Daten laden
   if (curLang === 'de') { stopI18nObserver(); restoreGerman(document.body); }
   else { startI18nObserver(); scheduleSweep(); }
+  /* Login-Wand (Nutzen-Zeile + Sprach-Label) folgt der Sprache, solange sie offen ist */
+  try { var _ag = document.getElementById('auth'); if (typeof refreshAuthWall === 'function' && _ag && _ag.classList.contains('on')) refreshAuthWall(); } catch (e) {}
   /* Picker-/Datums-Übersetzungen (eigenes Dict) aus den JSON-Dateien nachladen */
   Promise.all([loadLangFile(l.code), l.code !== 'en' ? loadLangFile('en') : Promise.resolve(false)])
     .then(res => {
@@ -7091,8 +7099,17 @@ function regBirthOrErr(err) {
   if (age < 18) { err.textContent = 'Konten gibt es erst ab 18. Kinderkonten legt ein Erwachsener in der Familienzentrale an.'; return null; }
   return bday;
 }
+/* Nutzen-Zeile + Sprach-Label auf der Login-Wand – mehrsprachig via pickLang (data-noi18n,
+   damit der DOM-Sweep sie nicht überschreibt). Wird bei jedem Sprachwechsel neu gesetzt. */
+function refreshAuthWall() {
+  var v = document.getElementById('authValue');
+  if (v) v.textContent = pickLang({ de: 'Post vom Amt? Ordela erklärt sie dir – in deiner Sprache.', en: 'Letter from the authorities? Ordela explains it – in your language.', fr: 'Courrier de l’administration ? Ordela vous l’explique – dans votre langue.', es: '¿Carta de la administración? Ordela te la explica – en tu idioma.', it: 'Lettera di un ufficio pubblico? Ordela te la spiega – nella tua lingua.', pl: 'Pismo z urzędu? Ordela wyjaśni Ci je – w Twoim języku.', tr: 'Resmî bir yazı mı geldi? Ordela sana açıklar – kendi dilinde.', uk: 'Лист з відомства? Ordela пояснить його – вашою мовою.' });
+  var t = document.getElementById('authLangTxt');
+  if (t) { try { t.textContent = langMeta(curLang).native; } catch (e) {} }
+}
 function setupAuthForm() {
   $('#authErr').textContent = '';
+  refreshAuthWall();
   if (CLOUD) {
     const isReg = cloudAuthMode === 'reg';
     const isReset = cloudAuthMode === 'reset';
@@ -7621,6 +7638,7 @@ async function activatePremium(code, errEl) {
 
 $('#authGo').addEventListener('click', submitAuth);
 if ($('#authGoogle')) $('#authGoogle').addEventListener('click', googleSignIn);
+if ($('#authLang')) $('#authLang').addEventListener('click', () => openLangPicker(false));
 if ($('#ageGo')) $('#ageGo').addEventListener('click', ageGateSubmit);
 if ($('#ageBirth')) $('#ageBirth').addEventListener('keydown', e => { if (e.key === 'Enter') ageGateSubmit(); });
 if ($('#ageCancel')) $('#ageCancel').addEventListener('click', logout);
