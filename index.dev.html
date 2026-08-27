@@ -2128,6 +2128,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
       <button class="gate-reset" id="kidJoinLink" style="margin-top:4px;font-weight:700">Ich habe einen Einladungscode</button>
+      <button class="gate-reset" id="authGuest" data-noi18n style="margin-top:8px;opacity:.85">Ohne Anmeldung ansehen</button>
     </div>
     <p class="gate-note">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
   </div>
@@ -6516,6 +6517,47 @@ function saveAccount() {
   try { localStorage.setItem(ACC_KEY, JSON.stringify(account)); } catch (e) {}
 }
 
+/* ============================== GASTMODUS (Weg A) ==============================
+   Ordela lässt sich ohne Konto ansehen. Ein Konto UND der 18+-Nachweis werden
+   erst verlangt, wenn zum ersten Mal echte KI genutzt werden soll
+   (requireAI → Anmelde-Wand). Das senkt die Einstiegshürde maximal und
+   verschiebt die Altersprüfung an genau die Stelle, an der sie rechtlich zählt:
+   unmittelbar vor der KI-Nutzung. Wer nur Kalender/Aufgaben nutzt, wird nicht
+   nach dem Alter gefragt. */
+let guestMode = false;
+try { guestMode = localStorage.getItem('ordela_guest') === '1'; } catch (e) {}
+/* App als Gast betreten (Wand schließen, Gast merken). Dient zugleich als
+   „Später"-Ausweg, wenn die Wand bei einem KI-Wunsch erneut erscheint. */
+function enterGuest() {
+  guestMode = true;
+  try { localStorage.setItem('ordela_guest', '1'); } catch (e) {}
+  const a = $('#auth'); if (a) a.classList.remove('on');
+  gate();
+  try { refresh(); } catch (e) {}
+}
+/* Beim echten KI-Wunsch eines Gastes: Registrier-Wand öffnen, mit klarer
+   „kostenlos / ab 18"-Botschaft. Das Geburtsdatum wird dort (bzw. bei Google
+   im Altersnachweis danach) erhoben – die Altersabfrage erfolgt also erst VOR
+   der KI-Nutzung, nicht schon beim Betreten der App. */
+function promptAccountForAI() {
+  cloudAuthMode = 'reg';
+  const a = $('#auth'); if (a) a.classList.add('on');
+  setupAuthForm();
+  const s = $('#authSub');
+  if (s) s.textContent = pickLang({
+    de: 'Für die KI brauchst du ein kostenloses Konto – ab 18 Jahren. Danach kannst du echte Briefe analysieren lassen.',
+    en: 'AI needs a free account – for ages 18+. Then you can have real letters analysed.',
+    fr: 'L’IA nécessite un compte gratuit – à partir de 18 ans. Ensuite, tu peux faire analyser de vrais courriers.',
+    es: 'La IA necesita una cuenta gratuita, a partir de 18 años. Después podrás analizar cartas reales.',
+    it: 'L’IA richiede un account gratuito – dai 18 anni. Poi potrai far analizzare lettere reali.',
+    pl: 'AI wymaga darmowego konta – od 18 lat. Potem możesz analizować prawdziwe pisma.',
+    tr: 'Yapay zekâ için ücretsiz bir hesap gerekir – 18 yaş ve üzeri. Sonra gerçek mektupları analiz ettirebilirsin.',
+    uk: 'Для ШІ потрібен безкоштовний обліковий запис – від 18 років. Потім зможеш аналізувати справжні листи.'
+  });
+  if (curLang !== 'de') { try { sweepNow(a); } catch (e) {} }
+  const email = $('#auEmail'); if (email) setTimeout(() => { try { email.focus(); } catch (e) {} }, 80);
+}
+
 async function sha256Hex(s) {
   if (window.crypto && crypto.subtle) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -6905,7 +6947,7 @@ function requireAI() {
   if (!consentValid('ai')) { showAiConsent(); return false; }   // Typ D: ausdrückliche Einwilligung vor Drittland-/Art.9-Verarbeitung
   if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an OpenAI
   if (!BACKEND_V2) { toast('Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
-  if (!(account && account.loggedIn)) { toast('Bitte melde dich an, um die KI zu nutzen.'); return false; }
+  if (!(account && account.loggedIn)) { promptAccountForAI(); return false; }   // Gast (Weg A): jetzt Konto + 18+ verlangen – erst hier, direkt vor der KI
   if (isPaid()) {
     if (aiRemaining() <= 0) { toast('Deine KI-Credits sind aufgebraucht – buche Credits nach, um weiterzumachen.'); startCheckout('topup'); return false; }
     return true;
@@ -7061,7 +7103,12 @@ async function callAudioHosted(payload) {
 /* Zeigt je nach Zustand Login/Registrierung oder Paywall; sonst die App */
 function gate() {
   const loggedIn = !!(account && account.loggedIn);
-  $('#auth').classList.toggle('on', !loggedIn);
+  /* Einmal angemeldet, ist der Gastmodus vorbei. */
+  if (loggedIn && guestMode) { guestMode = false; try { localStorage.removeItem('ordela_guest'); } catch (e) {} }
+  /* Gastmodus (Weg A): App ohne Konto sichtbar – die Wand nur zeigen, wenn weder
+     angemeldet noch Gast. Das Dashboard rendert ohnehin hinter der Wand. */
+  const showWall = !loggedIn && !guestMode;
+  $('#auth').classList.toggle('on', showWall);
   /* Altersnachweis nachholen: ueber Google angemeldet, aber noch kein Geburtsdatum.
      Blockiert alles Weitere, damit die 18+-Pflicht auf jedem Anmeldeweg gilt. */
   const braucheAlter = ageGateNeeded();
@@ -7079,9 +7126,9 @@ function gate() {
     $('#pwSub').textContent = 'Schön, dass du Ordela getestet hast! Wähle einen Plan, um alles weiter zu nutzen – deine Daten bleiben erhalten.';
     $('#pwBack').style.display = 'none';
   }
-  if (!loggedIn) setupAuthForm();
-  /* Ersteinrichtung: nach dem Login zuerst die Sprache wählen lassen */
-  else if (!isTrialExpired() && (!store.profile || !store.profile.lang) && !$('#langPicker').classList.contains('on')) {
+  if (showWall) setupAuthForm();
+  /* Ersteinrichtung: nach dem Login zuerst die Sprache wählen lassen (nicht für Gäste) */
+  else if (loggedIn && !isTrialExpired() && (!store.profile || !store.profile.lang) && !$('#langPicker').classList.contains('on')) {
     langFirstRun = true; openLangPicker(true);
   }
 }
@@ -7106,6 +7153,8 @@ function refreshAuthWall() {
   if (v) v.textContent = pickLang({ de: 'Post vom Amt? Ordela erklärt sie dir – in deiner Sprache.', en: 'Letter from the authorities? Ordela explains it – in your language.', fr: 'Courrier de l’administration ? Ordela vous l’explique – dans votre langue.', es: '¿Carta de la administración? Ordela te la explica – en tu idioma.', it: 'Lettera di un ufficio pubblico? Ordela te la spiega – nella tua lingua.', pl: 'Pismo z urzędu? Ordela wyjaśni Ci je – w Twoim języku.', tr: 'Resmî bir yazı mı geldi? Ordela sana açıklar – kendi dilinde.', uk: 'Лист з відомства? Ordela пояснить його – вашою мовою.' });
   var t = document.getElementById('authLangTxt');
   if (t) { try { t.textContent = langMeta(curLang).native; } catch (e) {} }
+  var g = document.getElementById('authGuest');
+  if (g) g.textContent = pickLang({ de: 'Ohne Anmeldung ansehen', en: 'Look around without an account', fr: 'Découvrir sans compte', es: 'Ver sin registrarme', it: 'Dai un’occhiata senza account', pl: 'Rozejrzyj się bez konta', tr: 'Hesap açmadan göz at', uk: 'Оглянути без облікового запису' });
 }
 function setupAuthForm() {
   $('#authErr').textContent = '';
@@ -7643,6 +7692,7 @@ if ($('#ageGo')) $('#ageGo').addEventListener('click', ageGateSubmit);
 if ($('#ageBirth')) $('#ageBirth').addEventListener('keydown', e => { if (e.key === 'Enter') ageGateSubmit(); });
 if ($('#ageCancel')) $('#ageCancel').addEventListener('click', logout);
 if ($('#kidJoinLink')) $('#kidJoinLink').addEventListener('click', kidJoinOpen);
+if ($('#authGuest')) $('#authGuest').addEventListener('click', enterGuest);
 $('#auPass').addEventListener('keydown', e => { if (e.key === 'Enter') submitAuth(); });
 $('#authReset').addEventListener('click', async () => {
   if (CLOUD) {
