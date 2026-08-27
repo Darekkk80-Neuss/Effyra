@@ -17000,8 +17000,34 @@ function eventAction(label, ev) {
   return { kind: 'event', label, payload: ev, done: false };
 }
 
+/* Dezenter Anmelde-Impuls für Gäste: nach der ersten Demo-Antwort EINMAL je
+   Sitzung ein freundlicher Hinweis + Knopf zur kostenlosen Anmeldung. Nur für
+   nicht angemeldete Nutzer (Gastmodus, Weg A); angemeldete sehen ihn nie. */
+let _guestChatNudged = false;
+function maybeGuestNudge() {
+  if (_guestChatNudged) return;
+  if (account && account.loggedIn) return;   // nur Gäste
+  _guestChatNudged = true;
+  setTimeout(function () {
+    try {
+      pushBot(pickLang({
+        de: '💡 Das war eine Demo-Antwort. Mit einem kostenlosen Konto (ab 18) antworte ich frei und analysiere deine echten Briefe – erklärt, mit Terminen und fertiger Antwort-Mail.',
+        en: '💡 That was a demo reply. With a free account (18+) I answer freely and analyse your real letters – explained, with dates and a ready-to-send reply.',
+        fr: '💡 C’était une réponse de démonstration. Avec un compte gratuit (18+), je réponds librement et j’analyse tes vrais courriers – expliqués, avec les dates et un e-mail de réponse prêt.',
+        es: '💡 Esa fue una respuesta de demostración. Con una cuenta gratuita (mayores de 18) respondo con libertad y analizo tus cartas reales: explicadas, con fechas y un correo de respuesta listo.',
+        it: '💡 Questa era una risposta demo. Con un account gratuito (dai 18 anni) rispondo liberamente e analizzo le tue lettere reali: spiegate, con le scadenze e un’e-mail di risposta pronta.',
+        pl: '💡 To była odpowiedź demonstracyjna. Z darmowym kontem (18+) odpowiadam swobodnie i analizuję Twoje prawdziwe pisma – wyjaśnione, z terminami i gotową odpowiedzią e-mail.',
+        tr: '💡 Bu bir demo yanıtıydı. Ücretsiz bir hesapla (18+) serbestçe yanıt verir ve gerçek mektuplarını analiz ederim – açıklamalı, tarihlerle ve hazır yanıt e-postasıyla.',
+        uk: '💡 Це була демо-відповідь. З безкоштовним обліковим записом (18+) я відповідаю вільно й аналізую твої справжні листи – з поясненням, датами та готовою відповіддю e-mail.'
+      }), [{ kind: 'signin', label: pickLang({ de: 'Kostenlos anmelden', en: 'Sign up free', fr: 'S’inscrire gratuitement', es: 'Regístrate gratis', it: 'Registrati gratis', pl: 'Załóż darmowe konto', tr: 'Ücretsiz kaydol', uk: 'Зареєструватися безкоштовно' }), payload: null, done: false }]);
+      if (RENDERERS && RENDERERS.chat && currentView === 'chat') RENDERERS.chat();
+    } catch (e) {}
+  }, 1200);
+}
+
 /* --- Demo-Intent-Engine (funktioniert ohne API-Key wirklich) --- */
 function demoReply(text) {
+  maybeGuestNudge();   // Gäste: nach der Demo-Antwort einmalig zur kostenlosen Anmeldung einladen
   const t = text.toLowerCase();
   const name = store.name ? ' ' + store.name : '';
 
@@ -18496,6 +18522,7 @@ $('#chatMsgs').addEventListener('click', e => {
     addEvent(a.payload.title, a.payload.date, a.payload.time || null, a.payload.note || '', 'chat');
     toast('Termin eingetragen ✓');
   }
+  if (a.kind === 'signin') { promptAccountForAI(); return; }   // Gast → Registrier-Wand öffnen (Chip NICHT als erledigt markieren)
   a.done = true;
   save();
   RENDERERS.chat();
