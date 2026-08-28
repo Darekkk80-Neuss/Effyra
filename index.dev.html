@@ -1918,6 +1918,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-note{margin-top:20px;color:var(--faint);font-size:12.5px;line-height:1.6}
 .gate-note a{color:#8FB0FF;cursor:pointer;text-decoration:underline}
 .gate-reset{background:none;border:none;color:var(--faint);font-size:13px;text-decoration:underline}
+/* Gast-Einstieg (Weg A): bewusst auffaellig – grosser Button direkt unter dem primaeren CTA,
+   mit ruhigem „Atmen" (Glow-Puls) statt hartem Blinken. Reduced-Motion schaltet den Puls ab. */
+.gate-guest{width:100%;margin:12px 0 2px;padding:13px;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:rgba(77,124,255,.12);color:#CDDBFF;border:1.5px solid rgba(77,124,255,.55);border-radius:12px;
+  font-size:15.5px;font-weight:750;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  animation:guestPulse 2.6s ease-in-out infinite}
+.gate-guest:hover{background:rgba(77,124,255,.22);color:#fff;border-color:rgba(77,124,255,.95)}
+.gate-guest:active{transform:translateY(1px)}
+.gate-guest svg{width:18px;height:18px;flex:none}
+@keyframes guestPulse{0%,100%{box-shadow:0 0 0 0 rgba(77,124,255,0)}50%{box-shadow:0 0 0 7px rgba(77,124,255,.14)}}
+@media (prefers-reduced-motion:reduce){.gate-guest{animation:none}}
 .pw-icon{font-size:52px;margin-bottom:12px}
 .up-box{max-width:480px}
 .tier-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;text-align:left}
@@ -2125,10 +2136,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <input type="password" id="auPass" placeholder="Passwort (mind. 6 Zeichen)" maxlength="80" autocomplete="current-password">
       <div class="auth-err" id="authErr" role="alert"></div>
       <button class="btn btn-primary gate-cta" id="authGo">Kostenlos starten</button>
+      <button class="gate-guest" id="authGuest" data-noi18n><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3.2"/></svg><span id="authGuestTxt">Ohne Anmeldung ansehen</span></button>
       <button class="gate-reset" id="authToggle" style="display:none">Schon ein Konto? Hier anmelden</button>
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
       <button class="gate-reset" id="kidJoinLink" style="margin-top:4px;font-weight:700">Ich habe einen Einladungscode</button>
-      <button class="gate-reset" id="authGuest" data-noi18n style="margin-top:8px;opacity:.85">Ohne Anmeldung ansehen</button>
     </div>
     <p class="gate-note">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
   </div>
@@ -7153,7 +7164,7 @@ function refreshAuthWall() {
   if (v) v.textContent = pickLang({ de: 'Post vom Amt? Ordela erklärt sie dir – in deiner Sprache.', en: 'Letter from the authorities? Ordela explains it – in your language.', fr: 'Courrier de l’administration ? Ordela vous l’explique – dans votre langue.', es: '¿Carta de la administración? Ordela te la explica – en tu idioma.', it: 'Lettera di un ufficio pubblico? Ordela te la spiega – nella tua lingua.', pl: 'Pismo z urzędu? Ordela wyjaśni Ci je – w Twoim języku.', tr: 'Resmî bir yazı mı geldi? Ordela sana açıklar – kendi dilinde.', uk: 'Лист з відомства? Ordela пояснить його – вашою мовою.' });
   var t = document.getElementById('authLangTxt');
   if (t) { try { t.textContent = langMeta(curLang).native; } catch (e) {} }
-  var g = document.getElementById('authGuest');
+  var g = document.getElementById('authGuestTxt') || document.getElementById('authGuest');
   if (g) g.textContent = pickLang({ de: 'Ohne Anmeldung ansehen', en: 'Look around without an account', fr: 'Découvrir sans compte', es: 'Ver sin registrarme', it: 'Dai un’occhiata senza account', pl: 'Rozejrzyj się bez konta', tr: 'Hesap açmadan göz at', uk: 'Оглянути без облікового запису' });
 }
 function setupAuthForm() {
