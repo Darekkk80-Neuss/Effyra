@@ -1918,17 +1918,15 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-note{margin-top:20px;color:var(--faint);font-size:12.5px;line-height:1.6}
 .gate-note a{color:#8FB0FF;cursor:pointer;text-decoration:underline}
 .gate-reset{background:none;border:none;color:var(--faint);font-size:13px;text-decoration:underline}
-/* Gast-Einstieg (Weg A): bewusst auffaellig – grosser Button direkt unter dem primaeren CTA,
-   mit ruhigem „Atmen" (Glow-Puls) statt hartem Blinken. Reduced-Motion schaltet den Puls ab. */
+/* Gast-Einstieg (Weg A): bewusst auffaellig – grosser Button direkt unter dem primaeren CTA.
+   Statisch (KEIN Blinken/Puls), nur dezenter Glow-Rahmen – ruhig, aber gut sichtbar. */
 .gate-guest{width:100%;margin:12px 0 2px;padding:13px;display:flex;align-items:center;justify-content:center;gap:9px;
-  background:rgba(77,124,255,.12);color:#CDDBFF;border:1.5px solid rgba(77,124,255,.55);border-radius:12px;
+  background:rgba(77,124,255,.12);color:#CDDBFF;border:1.5px solid rgba(77,124,255,.6);border-radius:12px;
   font-size:15.5px;font-weight:750;cursor:pointer;-webkit-tap-highlight-color:transparent;
-  animation:guestPulse 2.6s ease-in-out infinite}
+  box-shadow:0 0 0 4px rgba(77,124,255,.08)}
 .gate-guest:hover{background:rgba(77,124,255,.22);color:#fff;border-color:rgba(77,124,255,.95)}
 .gate-guest:active{transform:translateY(1px)}
 .gate-guest svg{width:18px;height:18px;flex:none}
-@keyframes guestPulse{0%,100%{box-shadow:0 0 0 0 rgba(77,124,255,0)}50%{box-shadow:0 0 0 7px rgba(77,124,255,.14)}}
-@media (prefers-reduced-motion:reduce){.gate-guest{animation:none}}
 .pw-icon{font-size:52px;margin-bottom:12px}
 .up-box{max-width:480px}
 .tier-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;text-align:left}
