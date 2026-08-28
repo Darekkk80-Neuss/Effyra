@@ -7501,6 +7501,11 @@ async function submitAuth() {
 }
 
 async function logout() {
+  /* Explizite Abmeldung beendet auch den Gastmodus – sonst unterdrueckt gate()
+     die Anmelde-Wand (showWall = !loggedIn && !guestMode) und man landet auf einer
+     leeren App ohne Weg zurueck zum Login. */
+  guestMode = false;
+  try { localStorage.removeItem('ordela_guest'); } catch (e) {}
   if (CLOUD) {
     try { await sb.auth.signOut(); } catch (e) {}
     try { localStorage.removeItem(ACC_KEY); } catch (e) {}   // evtl. gespeicherten Kindermodus-Account entfernen
@@ -7510,10 +7515,8 @@ async function logout() {
     gate();
     return;
   }
-  if (!account) return;
-  account.loggedIn = false;
-  saveAccount();
-  gate();
+  if (account) { account.loggedIn = false; saveAccount(); }
+  gate();   // auch fuer Gast (account == null): Anmelde-Wand wieder zeigen
 }
 
 /* ===================== KINDER-ZUGANG (Kindermodus, v1: nur lesend) =====================
