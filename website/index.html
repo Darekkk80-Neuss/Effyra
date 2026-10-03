@@ -31,6 +31,9 @@
   #rivello .pf-frame { background: linear-gradient(150deg,#171B25,#0B0D12); }
   #rivello .pf-frame::before { background: radial-gradient(50% 50% at 50% 50%, rgba(226,48,42,.30), transparent 70%); }
   #rivello .sc-browser { background: #0B0D12; }
+  /* Telefon vom dunklen Panel absetzen: heller Rahmen, tieferer Schatten, roter Saum */
+  #rivello .sc-phone { border-color: rgba(255,255,255,.30);
+    box-shadow: 0 26px 52px rgba(0,0,0,.78), 0 0 0 1px rgba(226,48,42,.45); }
   /* Weitere Spots */
   .pf-more { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-5); margin-top: var(--sp-7); }
   .pf-more figure { margin: 0; }
