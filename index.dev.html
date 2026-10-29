@@ -12497,13 +12497,23 @@ function plusInit() {
   store.plus = { trialStart: Date.now(), legacy: !!legacy };
   save();
 }
+/* Google erstattet Einmalkaeufe, die nicht binnen 3 Tagen bestaetigt werden. Die
+   Billing-Bibliothek der App bestaetigt selbst; zusaetzlich bestaetigt der
+   Ordela-Worker (POST /ack) ueber die Play Developer API. Doppelt schadet nicht. */
+const PLUS_ACK_URL = 'https://ordela-ki.ki-worker.workers.dev/ack';
+function plusAck(token) {
+  if (!token) return;
+  fetch(PLUS_ACK_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, sku: PLUS_SKU }) }).catch(() => {});
+}
 async function plusRestore(silent) {
   if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) toast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
-    const found = (list || []).some(p => p.itemId === PLUS_SKU);
+    const own = (list || []).filter(p => p.itemId === PLUS_SKU);
+    const found = own.length > 0;
     if (found) { try { localStorage.setItem(PLUS_KEY, 'bought'); } catch (e) {} }
+    own.forEach(p => plusAck(p.purchaseToken));   // bei jedem Start nachbestaetigen – billig, und rettet vergessene Bestaetigungen
     if (!silent) toast(found
       ? pickLang({ de: 'Ordela Plus wiederhergestellt ✓', en: 'Ordela Plus restored ✓', fr: 'Ordela Plus restauré ✓', es: 'Ordela Plus restaurado ✓', it: 'Ordela Plus ripristinato ✓', pl: 'Ordela Plus przywrócone ✓', tr: 'Ordela Plus geri yüklendi ✓', uk: 'Ordela Plus відновлено ✓' })
       : pickLang({ de: 'Kein Kauf gefunden.', en: 'No purchase found.', fr: 'Aucun achat trouvé.', es: 'No se encontró ninguna compra.', it: 'Nessun acquisto trovato.', pl: 'Nie znaleziono zakupu.', tr: 'Satın alma bulunamadı.', uk: 'Покупку не знайдено.' }));
@@ -12521,6 +12531,7 @@ async function plusBuy() {
     /* Ältere Digital-Goods-Versionen kennen acknowledge() noch – dann ausdrücklich bestätigen,
        sonst erstattet Google einen unbestätigten Kauf nach 3 Tagen. */
     try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); if (svc && typeof svc.acknowledge === 'function' && resp.details && resp.details.token) await svc.acknowledge(resp.details.token, 'onetime'); } catch (e) {}
+    plusAck(resp.details && (resp.details.purchaseToken || resp.details.token));   // Absicherung ueber den Server
     try { localStorage.setItem(PLUS_KEY, 'bought'); } catch (e) {}
     const ov = document.getElementById('plusOv'); if (ov) ov.classList.remove('on');
     toast(pickLang({ de: 'Danke! Ordela Plus ist aktiv ✓', en: 'Thank you! Ordela Plus is active ✓', fr: 'Merci ! Ordela Plus est actif ✓', es: '¡Gracias! Ordela Plus está activo ✓', it: 'Grazie! Ordela Plus è attivo ✓', pl: 'Dziękujemy! Ordela Plus jest aktywne ✓', tr: 'Teşekkürler! Ordela Plus etkin ✓', uk: 'Дякуємо! Ordela Plus активовано ✓' }));
