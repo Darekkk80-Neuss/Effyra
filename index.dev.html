@@ -2139,7 +2139,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
       <button class="gate-reset" id="kidJoinLink" style="margin-top:4px;font-weight:700">Ich habe einen Einladungscode</button>
     </div>
-    <p class="gate-note">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
+    <p class="gate-note" id="authNote">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
   </div>
 </div>
 
@@ -3131,6 +3131,7 @@ if (store.settings && !/^gpt-5/.test(store.settings.model || '')) store.settings
 if (store.settings && !store.settings.bootFxRestoreMigr) { store.settings.bootFx = 'full'; store.settings.bootFxOffMigr = true; store.settings.bootFxRestoreMigr = true; }
 
 function save() {
+  if (window.__ordelaNoSave) return;   // Sicherung wird geladen / Daten werden geloescht – nicht zurueckschreiben
   if (!syncApplying) store._ts = Date.now();   // lokaler Änderungszeitpunkt (für Cloud-Sync-LWW)
   try { localStorage.setItem(DATA_KEY, JSON.stringify(store)); }
   catch (e) { toast('Speicher voll – ältestes Dokument entfernen'); }
@@ -6480,7 +6481,14 @@ const SUPABASE_ANON_KEY = 'sb_publishable_y6i6D_CKUN5SQqtvA0I9SQ_pAbfJqlj';   /*
    (kein Zugriff auf dieses Supabase). Neue eigene Domain? Hier ergänzen. */
 const ALLOWED_HOSTS = ['darekkk80-neuss.github.io', 'localhost', '127.0.0.1'];
 const HOST_OK = ALLOWED_HOSTS.indexOf(location.hostname) !== -1;
-const CLOUD = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && HOST_OK);
+/* OFFLINE-MODUS (Weg B, ab Okt. 2026): Ordela läuft komplett OHNE Backend.
+   Alle Daten bleiben ausschließlich auf dem Gerät; die Anmeldung ist ein lokaler
+   Nickname + Passwort (gesalzener SHA-256-Hash, kein Server-Abgleich). Echte KI
+   nur mit eigenem API-Schlüssel. Das frühere Supabase-Projekt existiert nicht mehr.
+   Zurück zur Cloud: false setzen UND SUPABASE_URL/KEY auf ein neues Projekt zeigen
+   lassen (SQL + Edge Functions laut RUNBOOK neu aufsetzen). */
+const OFFLINE_ONLY = true;
+const CLOUD = !OFFLINE_ONLY && !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase && HOST_OK);
 const sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 /* Läuft die App als installierte Android-App (Trusted Web Activity)? TWAs setzen den Referrer
    auf android-app://<package>. Dann sind Käufe ausschließlich über Google Play Billing erlaubt. */
@@ -6488,13 +6496,13 @@ const IS_TWA = (typeof document !== 'undefined' && typeof document.referrer === 
 /* Kauf-Buttons sichtbar (App ist kostenpflichtig). In der TWA laufen Käufe über Google Play Billing
    (Digital Goods API); im echten Browser über den Web-Checkout. STORE_SAFE nur setzen, wenn Käufe
    komplett versteckt werden sollen (z. B. reiner Vorschau-Build). */
-const STORE_SAFE = false;
+const STORE_SAFE = OFFLINE_ONLY;   // offline gibt es (noch) keinen Kaufweg → Kauf-Buttons ausblenden
 
 /* Phase-2-Backend: auf true setzen, sobald die Edge Functions + das SQL
    (supabase-tiers.sql) deployt sind. Dann läuft gehostete KI über den Proxy
    und die Käufe über Stripe. Solange false: Phase-1-Verhalten (eigener
    Schlüssel + Freischalt-Codes), damit nichts bricht. */
-const BACKEND_V2 = true;
+const BACKEND_V2 = !OFFLINE_ONLY;   // offline: Phase-1-Verhalten (KI nur mit eigenem Schlüssel)
 const FN_URL = (name) => SUPABASE_URL + '/functions/v1/' + name;
 /* Echte OpenAI-Sprachein-/-ausgabe (STT gpt-4o-mini-transcribe / TTS gpt-4o-mini-tts) statt Browser-WebSpeech.
    Fällt automatisch auf die Browser-Sprachfunktion zurück, wenn nicht eingeloggt/offline. */
@@ -6522,6 +6530,13 @@ const PREMIUM_HASHES = [
 let account = (() => {
   try { return JSON.parse(localStorage.getItem(ACC_KEY)); } catch (e) { return null; }
 })();
+/* Offline: Konten aus der Cloud-Zeit (cloud/Kinder-Session, kein lokales Passwort)
+   taugen nicht mehr zum Entsperren → verwerfen. Die Daten selbst liegen unter
+   DATA_KEY und bleiben erhalten; man legt nur einen neuen Nickname + Passwort an. */
+if (OFFLINE_ONLY && account && (account.cloud || account.kidMode || !account.hash || !account.salt)) {
+  account = null;
+  try { localStorage.removeItem(ACC_KEY); } catch (e) {}
+}
 function saveAccount() {
   try { localStorage.setItem(ACC_KEY, JSON.stringify(account)); } catch (e) {}
 }
@@ -7116,7 +7131,8 @@ function gate() {
   if (loggedIn && guestMode) { guestMode = false; try { localStorage.removeItem('ordela_guest'); } catch (e) {} }
   /* Gastmodus (Weg A): App ohne Konto sichtbar – die Wand nur zeigen, wenn weder
      angemeldet noch Gast. Das Dashboard rendert ohnehin hinter der Wand. */
-  const showWall = !loggedIn && !guestMode;
+  /* Offline schützt die Sperre die persönlichen Daten auf dem Gerät → kein Gastmodus. */
+  const showWall = !loggedIn && (OFFLINE_ONLY || !guestMode);
   $('#auth').classList.toggle('on', showWall);
   /* Altersnachweis nachholen: ueber Google angemeldet, aber noch kein Geburtsdatum.
      Blockiert alles Weitere, damit die 18+-Pflicht auf jedem Anmeldeweg gilt. */
@@ -7165,6 +7181,35 @@ function refreshAuthWall() {
   var g = document.getElementById('authGuestTxt') || document.getElementById('authGuest');
   if (g) g.textContent = pickLang({ de: 'Ohne Anmeldung ansehen', en: 'Look around without an account', fr: 'Découvrir sans compte', es: 'Ver sin registrarme', it: 'Dai un’occhiata senza account', pl: 'Rozejrzyj się bez konta', tr: 'Hesap açmadan göz at', uk: 'Оглянути без облікового запису' });
 }
+/* Offline-Anmeldung (Weg B): nur Nickname + Passwort, rein lokal. Kein E-Mail,
+   kein Geburtsdatum, kein Google, kein Einladungscode, kein Gastmodus. */
+function setupLocalAuthForm(isReg) {
+  const L = pickLang;
+  const nm = $('#auName');
+  nm.style.display = isReg ? '' : 'none';
+  nm.placeholder = L({ de: 'Nickname', en: 'Nickname', fr: 'Pseudo', es: 'Apodo', it: 'Nickname', pl: 'Pseudonim', tr: 'Takma ad', uk: 'Нікнейм' });
+  nm.setAttribute('autocomplete', 'username');
+  regFieldsShow(false);
+  $('#auEmail').style.display = 'none';
+  const pw = $('#auPass');
+  pw.placeholder = L({ de: 'Passwort (mind. 6 Zeichen)', en: 'Password (min. 6 characters)', fr: 'Mot de passe (min. 6 caractères)', es: 'Contraseña (mín. 6 caracteres)', it: 'Password (min. 6 caratteri)', pl: 'Hasło (min. 6 znaków)', tr: 'Şifre (en az 6 karakter)', uk: 'Пароль (мін. 6 символів)' });
+  pw.setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
+  $('#authTitle').textContent = isReg
+    ? L({ de: 'Profil anlegen', en: 'Create your profile', fr: 'Créer ton profil', es: 'Crea tu perfil', it: 'Crea il tuo profilo', pl: 'Utwórz profil', tr: 'Profilini oluştur', uk: 'Створіть профіль' })
+    : L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' });
+  $('#authSub').textContent = isReg
+    ? L({ de: 'Wähle einen Nickname und ein Passwort. Alles bleibt auf diesem Gerät – kein Konto bei uns, kein Server, funktioniert auch ohne Internet.', en: 'Choose a nickname and a password. Everything stays on this device – no account with us, no server, works without internet too.', fr: 'Choisis un pseudo et un mot de passe. Tout reste sur cet appareil – pas de compte chez nous, pas de serveur, fonctionne aussi sans internet.', es: 'Elige un apodo y una contraseña. Todo se queda en este dispositivo: sin cuenta con nosotros, sin servidor y también funciona sin internet.', it: 'Scegli un nickname e una password. Tutto resta su questo dispositivo: nessun account da noi, nessun server, funziona anche senza internet.', pl: 'Wybierz pseudonim i hasło. Wszystko zostaje na tym urządzeniu – bez konta u nas, bez serwera, działa też bez internetu.', tr: 'Bir takma ad ve şifre seç. Her şey bu cihazda kalır – bizde hesap yok, sunucu yok, internetsiz de çalışır.', uk: 'Оберіть нікнейм і пароль. Усе залишається на цьому пристрої – без облікового запису в нас, без сервера, працює й без інтернету.' })
+    : L({ de: 'Entsperren als {n}', en: 'Unlock as {n}', fr: 'Déverrouiller en tant que {n}', es: 'Desbloquear como {n}', it: 'Sblocca come {n}', pl: 'Odblokuj jako {n}', tr: '{n} olarak kilidi aç', uk: 'Розблокувати як {n}' }).replace('{n}', account.name || '');
+  $('#authGo').textContent = isReg
+    ? L({ de: 'Los geht’s', en: 'Get started', fr: 'C’est parti', es: 'Empezar', it: 'Iniziamo', pl: 'Zaczynamy', tr: 'Başlayalım', uk: 'Почати' })
+    : L({ de: 'Entsperren', en: 'Unlock', fr: 'Déverrouiller', es: 'Desbloquear', it: 'Sblocca', pl: 'Odblokuj', tr: 'Kilidi aç', uk: 'Розблокувати' });
+  $('#authToggle').style.display = 'none';
+  $('#authReset').style.display = isReg ? 'none' : '';
+  $('#authReset').textContent = L({ de: 'Passwort vergessen? Neu anlegen – deine Daten bleiben', en: 'Forgot your password? Set a new one – your data stays', fr: 'Mot de passe oublié ? En créer un nouveau – tes données restent', es: '¿Olvidaste la contraseña? Crea una nueva: tus datos se mantienen', it: 'Password dimenticata? Creane una nuova: i tuoi dati restano', pl: 'Nie pamiętasz hasła? Ustaw nowe – dane zostają', tr: 'Şifreni mi unuttun? Yenisini oluştur – verilerin kalır', uk: 'Забули пароль? Створіть новий – ваші дані залишаться' });
+  ['#authGoogle', '#authOr', '#kidJoinLink', '#authGuest'].forEach(s => { const el = $(s); if (el) el.style.display = 'none'; });
+  const note = $('#authNote');
+  if (note) note.textContent = L({ de: 'Offline-Modus: Deine Daten liegen nur auf diesem Gerät und werden nirgendwohin übertragen. Keine Werbung, kein Tracking. Tipp: Sichere sie ab und zu unter Einstellungen → Sicherung speichern.', en: 'Offline mode: your data stays only on this device and is never sent anywhere. No ads, no tracking. Tip: back it up now and then in Settings → Save backup.', fr: 'Mode hors ligne : tes données restent uniquement sur cet appareil et ne sont envoyées nulle part. Pas de pub, pas de pistage. Astuce : sauvegarde-les de temps en temps dans Réglages → Enregistrer une sauvegarde.', es: 'Modo sin conexión: tus datos solo están en este dispositivo y no se envían a ningún sitio. Sin publicidad ni seguimiento. Consejo: haz una copia de vez en cuando en Ajustes → Guardar copia.', it: 'Modalità offline: i tuoi dati restano solo su questo dispositivo e non vengono inviati da nessuna parte. Niente pubblicità, niente tracciamento. Consiglio: salvali ogni tanto in Impostazioni → Salva backup.', pl: 'Tryb offline: dane są tylko na tym urządzeniu i nigdzie nie są wysyłane. Bez reklam i śledzenia. Wskazówka: od czasu do czasu zrób kopię w Ustawienia → Zapisz kopię.', tr: 'Çevrimdışı mod: Verilerin yalnızca bu cihazda durur ve hiçbir yere gönderilmez. Reklam yok, izleme yok. İpucu: Ara sıra Ayarlar → Yedeği kaydet ile yedekle.', uk: 'Офлайн-режим: ваші дані зберігаються лише на цьому пристрої й нікуди не передаються. Без реклами, без стеження. Порада: час від часу робіть копію в Налаштуваннях → Зберегти копію.' });
+}
 function setupAuthForm() {
   $('#authErr').textContent = '';
   refreshAuthWall();
@@ -7195,6 +7240,7 @@ function setupAuthForm() {
     return;
   }
   const isReg = !account;
+  if (OFFLINE_ONLY) { setupLocalAuthForm(isReg); return; }
   $('#auName').style.display = isReg ? '' : 'none';
   regFieldsShow(isReg);
   $('#auEmail').style.display = isReg ? '' : 'none';
@@ -7444,6 +7490,38 @@ async function cloudAuth(pass, err) {
   }
 }
 
+/* Offline-Anmeldung: Profil = Nickname + gesalzener Passwort-Hash, nur im Gerät.
+   Hinweis: Das ist eine Zugangssperre für das Gerät, keine Verschlüsselung der Daten. */
+async function localAuth(err) {
+  const L = pickLang;
+  const pwEl = $('#auPass'), nmEl = $('#auName');
+  [pwEl, nmEl].forEach(el => el && el.removeAttribute('aria-invalid'));
+  const pass = pwEl.value;
+  if (!account) {
+    const nick = (nmEl.value || '').trim();
+    if (nick.length < 2) { err.textContent = L({ de: 'Bitte einen Nickname eingeben (mind. 2 Zeichen).', en: 'Please enter a nickname (at least 2 characters).', fr: 'Saisis un pseudo (au moins 2 caractères).', es: 'Introduce un apodo (mínimo 2 caracteres).', it: 'Inserisci un nickname (almeno 2 caratteri).', pl: 'Podaj pseudonim (min. 2 znaki).', tr: 'Lütfen bir takma ad gir (en az 2 karakter).', uk: 'Введіть нікнейм (щонайменше 2 символи).' }); nmEl.setAttribute('aria-invalid', 'true'); nmEl.focus(); return; }
+    if (pass.length < 6) { err.textContent = L({ de: 'Das Passwort braucht mindestens 6 Zeichen.', en: 'The password needs at least 6 characters.', fr: 'Le mot de passe doit contenir au moins 6 caractères.', es: 'La contraseña necesita al menos 6 caracteres.', it: 'La password deve avere almeno 6 caratteri.', pl: 'Hasło musi mieć co najmniej 6 znaków.', tr: 'Şifre en az 6 karakter olmalı.', uk: 'Пароль має містити щонайменше 6 символів.' }); pwEl.setAttribute('aria-invalid', 'true'); pwEl.focus(); return; }
+    const salt = uid();
+    const hash = await sha256Hex(salt + ':' + pass);
+    account = { name: nick, lastName: '', email: '', role: 'owner', local: true, salt, hash, plan: 'free', trialStart: Date.now(), createdAt: Date.now(), loggedIn: true };
+    saveAccount();
+    if (!store.name) { store.name = nick; save(); }
+    pwEl.value = ''; nmEl.value = '';
+    gate();
+    if (!store.onboarded) { $('#onboarding').classList.add('on'); obShow(0); $('#obName').value = store.name || nick; }
+    toast(L({ de: 'Profil angelegt – alles bleibt auf diesem Gerät ✓', en: 'Profile created – everything stays on this device ✓', fr: 'Profil créé – tout reste sur cet appareil ✓', es: 'Perfil creado: todo se queda en este dispositivo ✓', it: 'Profilo creato: tutto resta su questo dispositivo ✓', pl: 'Profil utworzony – wszystko zostaje na tym urządzeniu ✓', tr: 'Profil oluşturuldu – her şey bu cihazda kalır ✓', uk: 'Профіль створено – усе залишається на цьому пристрої ✓' }));
+    refresh();
+    return;
+  }
+  const hash = await sha256Hex(account.salt + ':' + pass);
+  if (hash !== account.hash) { err.textContent = L({ de: 'Falsches Passwort.', en: 'Wrong password.', fr: 'Mot de passe incorrect.', es: 'Contraseña incorrecta.', it: 'Password errata.', pl: 'Nieprawidłowe hasło.', tr: 'Yanlış şifre.', uk: 'Неправильний пароль.' }); pwEl.setAttribute('aria-invalid', 'true'); pwEl.value = ''; pwEl.focus(); return; }
+  account.loggedIn = true;
+  saveAccount();
+  pwEl.value = '';
+  gate();
+  toast(L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' }) + (account.name ? ', ' + account.name : ''));
+  refresh();
+}
 async function submitAuth() {
   const err = $('#authErr');
   err.textContent = '';
@@ -7453,6 +7531,7 @@ async function submitAuth() {
      täte dann gar nichts. cloudAuth prüft als Erstes die E-Mail-Adresse und
      erledigt danach den Reset-Zweig. */
   if (CLOUD && cloudAuthMode === 'reset') { await cloudAuth('', err); return; }
+  if (OFFLINE_ONLY) { await localAuth(err); return; }
   const isReg = CLOUD ? (cloudAuthMode === 'reg') : !account;
   /* E-Mail zuerst prüfen (es ist das erste Feld) – sonst meldete der Button bei
      gleichzeitig ungültiger E-Mail UND fehlendem Geburtsdatum zuerst den
@@ -7714,6 +7793,13 @@ $('#authReset').addEventListener('click', async () => {
     setupAuthForm();
     $('#authErr').textContent = '';
     setTimeout(() => { const f = $('#auEmail'); if (f) f.focus(); }, 60);
+    return;
+  }
+  if (OFFLINE_ONLY) {
+    if (!confirm(pickLang({ de: 'Neues Passwort festlegen? Nickname und Passwort werden gelöscht und du legst beides neu an. Deine Aufgaben, Termine, Dokumente und Notfalldaten bleiben erhalten.', en: 'Set a new password? Your nickname and password are removed and you create new ones. Your tasks, events, documents and emergency data are kept.', fr: 'Définir un nouveau mot de passe ? Ton pseudo et ton mot de passe sont supprimés et tu en crées de nouveaux. Tes tâches, rendez-vous, documents et données d’urgence sont conservés.', es: '¿Establecer una nueva contraseña? Se borran tu apodo y tu contraseña y creas otros nuevos. Tus tareas, citas, documentos y datos de emergencia se conservan.', it: 'Impostare una nuova password? Nickname e password vengono eliminati e ne crei di nuovi. Attività, appuntamenti, documenti e dati di emergenza restano.', pl: 'Ustawić nowe hasło? Pseudonim i hasło zostaną usunięte, a ty ustawisz nowe. Zadania, terminy, dokumenty i dane awaryjne zostają.', tr: 'Yeni şifre belirlensin mi? Takma adın ve şifren silinir, yenilerini oluşturursun. Görevlerin, randevuların, belgelerin ve acil durum verilerin korunur.', uk: 'Встановити новий пароль? Нікнейм і пароль буде видалено, ви створите нові. Завдання, події, документи та екстрені дані збережуться.' }))) return;
+    try { localStorage.removeItem(ACC_KEY); } catch (e) {}
+    account = null;
+    setupAuthForm();
     return;
   }
   if (!confirm(pickLang({ de: 'Konto zurücksetzen? Du kannst dich danach neu registrieren. Aufgaben, Termine und Dokumente bleiben erhalten, die Testphase läuft weiter.', en: 'Reset account? You can register again afterwards. Tasks, events and documents are kept; the trial keeps running.', fr: 'Réinitialiser le compte ? Tu pourras te réinscrire ensuite. Tâches, rendez-vous et documents sont conservés, l’essai continue.', es: '¿Restablecer la cuenta? Después podrás registrarte de nuevo. Tareas, citas y documentos se conservan; la prueba sigue activa.', it: 'Reimpostare l’account? Potrai registrarti di nuovo. Attività, appuntamenti e documenti restano; la prova continua.', pl: 'Zresetować konto? Potem możesz zarejestrować się ponownie. Zadania, terminy i dokumenty zostaną zachowane, okres próbny trwa dalej.', tr: "Hesap sıfırlansın mı? Ardından yeniden kayıt olabilirsin. Görevler, randevular ve belgeler korunur, deneme süresi devam eder.", uk: "Скинути обліковий запис? Після цього можеш зареєструватися знову. Завдання, події та документи зберігаються, пробний період триває далі." }))) return;
@@ -18558,7 +18644,7 @@ RENDERERS.settings = function () {
   renderLegalCard();
   $$('#themeSeg button').forEach(b => b.classList.toggle('active', b.dataset.themeSet === themePref()));
   $$('#rtSilSeg button').forEach(b => b.classList.toggle('active', Number(b.dataset.rtsil) === rtSilenceMs()));
-  $('#bootFxSeg button').forEach(b => b.classList.toggle('active', b.dataset.bootfx === bootFxMode()));
+  $$('#bootFxSeg button').forEach(b => b.classList.toggle('active', b.dataset.bootfx === bootFxMode()));
   tidySyncCard();
   syncEntitlements().then(() => { if (currentView === 'settings') renderAccountCard(); });
 };
@@ -18599,7 +18685,7 @@ $('#rtSilSeg').addEventListener('click', e => {
 $('#bootFxSeg').addEventListener('click', e => {
   const b = e.target.closest('[data-bootfx]'); if (!b) return;
   store.settings.bootFx = b.dataset.bootfx; save();
-  $('#bootFxSeg button').forEach(x => x.classList.toggle('active', x === b));
+  $$('#bootFxSeg button').forEach(x => x.classList.toggle('active', x === b));
   if (b.dataset.bootfx !== 'off') { _bootDone = false; bootExperience(); }   // Vorschau (Ton spielt, da Nutzer gerade getippt hat)
 });
 
@@ -18808,6 +18894,69 @@ async function exportAllData() {
     if (btn) { btn.disabled = false; btn.textContent = origText; }
   }
 }
+/* ===== DATENSICHERUNG (Offline-Modus) =====
+   Ohne Cloud liegen alle Daten nur auf dem Gerät. Sicherung = komplette App-Daten als
+   JSON-Datei (ohne Passwort und ohne eigenen API-Schlüssel); Laden ersetzt die Daten
+   auf diesem Gerät. Das Profil (Nickname/Passwort) wird bewusst NICHT mitgesichert. */
+const BACKUP_TS_KEY = 'ordela_last_backup';
+function backupCardHTML() {
+  const L = pickLang;
+  let last = 0; try { last = parseInt(localStorage.getItem(BACKUP_TS_KEY) || '0', 10) || 0; } catch (e) {}
+  const lastTxt = last
+    ? L({ de: 'Letzte Sicherung: {d}', en: 'Last backup: {d}', fr: 'Dernière sauvegarde : {d}', es: 'Última copia: {d}', it: 'Ultimo backup: {d}', pl: 'Ostatnia kopia: {d}', tr: 'Son yedek: {d}', uk: 'Остання копія: {d}' }).replace('{d}', new Date(last).toLocaleDateString())
+    : L({ de: 'Noch keine Sicherung gespeichert.', en: 'No backup saved yet.', fr: 'Aucune sauvegarde pour l’instant.', es: 'Aún no hay ninguna copia.', it: 'Nessun backup salvato.', pl: 'Brak zapisanej kopii.', tr: 'Henüz yedek kaydedilmedi.', uk: 'Копію ще не збережено.' });
+  return '<div class="note-box" style="margin-bottom:12px" data-noi18n><b>' + esc(L({ de: 'Datensicherung', en: 'Backup', fr: 'Sauvegarde', es: 'Copia de seguridad', it: 'Backup', pl: 'Kopia zapasowa', tr: 'Yedekleme', uk: 'Резервна копія' })) + '</b>' +
+    '<div class="sub" style="margin-top:4px">' + esc(L({ de: 'Deine Daten liegen nur auf diesem Gerät. Speichere regelmäßig eine Sicherung (z. B. auf einen USB-Stick oder in deinen eigenen Cloud-Speicher) – sonst sind sie bei Handywechsel oder gelöschten Browserdaten verloren.', en: 'Your data lives only on this device. Save a backup regularly (e.g. to a USB stick or your own cloud storage) – otherwise it is lost when you change phones or clear browser data.', fr: 'Tes données ne sont que sur cet appareil. Enregistre régulièrement une sauvegarde (clé USB ou ton propre stockage en ligne) – sinon elles sont perdues en cas de changement de téléphone ou d’effacement des données du navigateur.', es: 'Tus datos solo están en este dispositivo. Guarda una copia con regularidad (p. ej. en un USB o en tu propia nube); si no, se pierden al cambiar de móvil o borrar los datos del navegador.', it: 'I tuoi dati sono solo su questo dispositivo. Salva regolarmente un backup (ad es. su una chiavetta USB o nel tuo cloud): altrimenti vanno persi cambiando telefono o cancellando i dati del browser.', pl: 'Dane są tylko na tym urządzeniu. Regularnie zapisuj kopię (np. na pendrive lub we własnej chmurze) – inaczej przepadną przy zmianie telefonu lub wyczyszczeniu danych przeglądarki.', tr: 'Verilerin yalnızca bu cihazda. Düzenli olarak yedek kaydet (ör. USB belleğe veya kendi bulut depolamana) – yoksa telefon değiştirdiğinde veya tarayıcı verilerini sildiğinde kaybolur.', uk: 'Ваші дані є лише на цьому пристрої. Регулярно зберігайте копію (напр. на флешку чи у власну хмару) – інакше вони зникнуть при зміні телефона чи очищенні даних браузера.' })) + '</div>' +
+    '<div class="sub" style="margin-top:6px">' + esc(lastTxt) + '</div>' +
+    '<div class="set-row" style="margin-top:10px;gap:8px;flex-wrap:wrap">' +
+    '<button class="btn btn-sm btn-primary" id="btnBackupSave">' + esc(L({ de: 'Sicherung speichern', en: 'Save backup', fr: 'Enregistrer une sauvegarde', es: 'Guardar copia', it: 'Salva backup', pl: 'Zapisz kopię', tr: 'Yedeği kaydet', uk: 'Зберегти копію' })) + '</button>' +
+    '<button class="btn btn-sm" id="btnBackupLoad">' + esc(L({ de: 'Sicherung laden', en: 'Restore backup', fr: 'Restaurer une sauvegarde', es: 'Restaurar copia', it: 'Ripristina backup', pl: 'Przywróć kopię', tr: 'Yedeği geri yükle', uk: 'Відновити копію' })) + '</button>' +
+    '<input type="file" id="backupFile" accept=".json,application/json" style="display:none"></div></div>';
+}
+function saveBackup() {
+  const L = pickLang;
+  try {
+    let data; try { data = JSON.parse(localStorage.getItem(DATA_KEY)); } catch (e) {}
+    const datei = { format: 'ordela-sicherung', version: 1, erstelltAm: new Date().toISOString(), store: data || store };
+    const blob = new Blob([JSON.stringify(datei)], { type: 'application/json' });
+    const u = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = u; a.download = 'ordela-sicherung-' + todayISO() + '.json';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000);
+    try { localStorage.setItem(BACKUP_TS_KEY, String(Date.now())); } catch (e) {}
+    toast(L({ de: 'Sicherung gespeichert ✓', en: 'Backup saved ✓', fr: 'Sauvegarde enregistrée ✓', es: 'Copia guardada ✓', it: 'Backup salvato ✓', pl: 'Kopia zapisana ✓', tr: 'Yedek kaydedildi ✓', uk: 'Копію збережено ✓' }));
+    renderAccountCard();
+  } catch (e) {
+    toast(L({ de: 'Sicherung fehlgeschlagen.', en: 'Backup failed.', fr: 'La sauvegarde a échoué.', es: 'No se pudo guardar la copia.', it: 'Backup non riuscito.', pl: 'Nie udało się zapisać kopii.', tr: 'Yedekleme başarısız.', uk: 'Не вдалося зберегти копію.' }));
+  }
+}
+async function loadBackup(file) {
+  const L = pickLang;
+  let d = null;
+  try { d = JSON.parse(await file.text()); } catch (e) {}
+  if (!d || d.format !== 'ordela-sicherung' || !d.store || typeof d.store !== 'object' || Array.isArray(d.store)) {
+    toast(L({ de: 'Das ist keine gültige Ordela-Sicherung.', en: 'This is not a valid Ordela backup.', fr: 'Ce n’est pas une sauvegarde Ordela valide.', es: 'No es una copia válida de Ordela.', it: 'Non è un backup Ordela valido.', pl: 'To nie jest prawidłowa kopia Ordela.', tr: 'Bu geçerli bir Ordela yedeği değil.', uk: 'Це не дійсна копія Ordela.' }));
+    return;
+  }
+  const wann = d.erstelltAm ? new Date(d.erstelltAm).toLocaleString() : '?';
+  if (!confirm(L({ de: 'Sicherung vom {d} laden? Die aktuellen Daten auf diesem Gerät werden dabei ersetzt.', en: 'Restore the backup from {d}? The current data on this device will be replaced.', fr: 'Restaurer la sauvegarde du {d} ? Les données actuelles de cet appareil seront remplacées.', es: '¿Restaurar la copia del {d}? Los datos actuales de este dispositivo se sustituirán.', it: 'Ripristinare il backup del {d}? I dati attuali su questo dispositivo verranno sostituiti.', pl: 'Przywrócić kopię z {d}? Obecne dane na tym urządzeniu zostaną zastąpione.', tr: '{d} tarihli yedek geri yüklensin mi? Bu cihazdaki mevcut veriler değiştirilecek.', uk: 'Відновити копію від {d}? Поточні дані на цьому пристрої буде замінено.' }).replace('{d}', wann))) return;
+  try {
+    window.__ordelaNoSave = true;
+    localStorage.setItem(DATA_KEY, JSON.stringify(d.store));
+  } catch (e) {
+    window.__ordelaNoSave = false;
+    toast(L({ de: 'Nicht genug Speicherplatz für diese Sicherung.', en: 'Not enough storage for this backup.', fr: 'Pas assez d’espace pour cette sauvegarde.', es: 'No hay espacio suficiente para esta copia.', it: 'Spazio insufficiente per questo backup.', pl: 'Za mało miejsca na tę kopię.', tr: 'Bu yedek için yeterli alan yok.', uk: 'Недостатньо місця для цієї копії.' }));
+    return;
+  }
+  location.reload();
+}
+function wireBackupCard() {
+  const sv = $('#btnBackupSave'); if (sv) sv.addEventListener('click', saveBackup);
+  const ld = $('#btnBackupLoad'), fi = $('#backupFile');
+  if (ld && fi) {
+    ld.addEventListener('click', () => fi.click());
+    fi.addEventListener('change', () => { const f = fi.files && fi.files[0]; fi.value = ''; if (f) loadBackup(f); });
+  }
+}
 function renderAccountCard() {
   const card = $('#accountCard');
   if (!account) { card.style.display = 'none'; return; }
@@ -18818,7 +18967,7 @@ function renderAccountCard() {
     agentMsg({ de: '⏳ noch {d}', en: '⏳ {d} left', fr: '⏳ encore {d}', es: '⏳ quedan {d}', it: '⏳ ancora {d}', pl: '⏳ jeszcze {d}', tr: "⏳ {d} kaldı", uk: "⏳ залишилось {d}" }, { d: daysPhrase(days) }) + '</span>';
 
   let html = '<h3 aria-level="2">Dein Konto</h3>' +
-    '<p class="sub">' + (account.name ? esc(account.name) + ' · ' : '') + esc(account.email) + '</p>' +
+    '<p class="sub">' + esc(account.name || '') + (account.email ? ' · ' + esc(account.email) : '') + (account.local ? ' · ' + esc(pickLang({ de: 'Offline-Profil auf diesem Gerät', en: 'Offline profile on this device', fr: 'Profil hors ligne sur cet appareil', es: 'Perfil sin conexión en este dispositivo', it: 'Profilo offline su questo dispositivo', pl: 'Profil offline na tym urządzeniu', tr: 'Bu cihazda çevrimdışı profil', uk: 'Офлайн-профіль на цьому пристрої' })) : '') + '</p>' +
     '<div style="margin-bottom:14px">' + planHtml + '</div>';
 
   /* Beide Toepfe GETRENNT ausweisen. Vorher stand hier eine einzige Zahl
@@ -18850,9 +18999,11 @@ function renderAccountCard() {
 
   if (tier !== 'premium' && !STORE_SAFE) html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">Plan ansehen / upgraden</button>';
 
-  html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
+  if (OFFLINE_ONLY) html += backupCardHTML();
+  else html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
     '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
-    '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>' +
+    '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>';
+  html +=
     '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>' +
     '<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px"><button class="btn btn-sm" id="btnDeleteAcc" style="color:var(--danger);border-color:var(--danger)">Konto endgültig löschen</button><div class="sub" style="margin-top:5px;font-size:11.5px;color:var(--faint)">Löscht dein Konto und alle zugehörigen Daten unwiderruflich (Recht auf Löschung, Art. 17 DSGVO).</div></div>';
 
@@ -18862,6 +19013,7 @@ function renderAccountCard() {
   const go = $('#setCodeGo'); if (go) go.addEventListener('click', async () => { if (await activatePremium($('#setCode').value, $('#setCodeErr'))) renderAccountCard(); });
   const tu = card.querySelector('[data-buy="topup"]'); if (tu) tu.addEventListener('click', () => startCheckout('topup'));
   $('#btnLogout').addEventListener('click', logout);
+  if (OFFLINE_ONLY) wireBackupCard();
   const del = $('#btnDeleteAcc'); if (del) del.addEventListener('click', deleteAccount);
 }
 /* Konto-Löschung (Art. 17 DSGVO): Bestätigung → Server-Löschung (delete-account) → alle lokalen Daten entfernen. */
@@ -18872,10 +19024,18 @@ function deleteAccount() {
     '<p style="color:var(--muted);font-size:13.5px;margin-bottom:14px;line-height:1.45">Dein Konto und alle zugehörigen Cloud-Daten (Profil, Familie, Push-Abo, Abo-Status) werden <b>dauerhaft gelöscht</b>. Auch die lokalen Daten auf diesem Gerät werden entfernt. Das lässt sich <b>nicht rückgängig</b> machen.</p>' +
     '<div class="fam-alert-btns"><button class="btn btn-sm" id="delCancel">Abbrechen</button><button class="btn btn-sm" id="delGo" style="background:#dc2626;border-color:#dc2626;color:#fff">Endgültig löschen</button></div></div>';
   ov.classList.add('on');
+  if (OFFLINE_ONLY) { const tx = ov.querySelector('p'); if (tx) { tx.setAttribute('data-noi18n', ''); tx.textContent = pickLang({ de: 'Dein Profil und alle Daten auf diesem Gerät (Aufgaben, Termine, Dokumente, Notfalldaten) werden dauerhaft gelöscht. Das lässt sich nicht rückgängig machen – speichere vorher eine Sicherung, wenn du die Daten behalten willst.', en: 'Your profile and all data on this device (tasks, events, documents, emergency data) will be permanently deleted. This cannot be undone – save a backup first if you want to keep your data.', fr: 'Ton profil et toutes les données de cet appareil (tâches, rendez-vous, documents, données d’urgence) seront définitivement supprimés. Action irréversible – enregistre d’abord une sauvegarde si tu veux garder tes données.', es: 'Tu perfil y todos los datos de este dispositivo (tareas, citas, documentos, datos de emergencia) se eliminarán para siempre. No se puede deshacer: guarda antes una copia si quieres conservarlos.', it: 'Il tuo profilo e tutti i dati su questo dispositivo (attività, appuntamenti, documenti, dati di emergenza) verranno eliminati definitivamente. Non si può annullare: salva prima un backup se vuoi conservarli.', pl: 'Twój profil i wszystkie dane na tym urządzeniu (zadania, terminy, dokumenty, dane awaryjne) zostaną trwale usunięte. Tego nie da się cofnąć – najpierw zapisz kopię, jeśli chcesz je zachować.', tr: 'Profilin ve bu cihazdaki tüm veriler (görevler, randevular, belgeler, acil durum verileri) kalıcı olarak silinecek. Geri alınamaz – verileri saklamak istiyorsan önce yedek kaydet.', uk: 'Ваш профіль і всі дані на цьому пристрої (завдання, події, документи, екстрені дані) буде остаточно видалено. Це неможливо скасувати – спершу збережіть копію, якщо хочете зберегти дані.' }); } }
   ov.querySelector('#delCancel').onclick = () => ov.classList.remove('on');
   ov.querySelector('#delGo').onclick = async () => { ov.classList.remove('on'); await performAccountDeletion(); };
 }
 async function performAccountDeletion() {
+  if (OFFLINE_ONLY) {   // offline gibt es nur die Daten auf diesem Gerät
+    window.__ordelaNoSave = true;
+    try { [DATA_KEY, KEY_KEY, ACC_KEY, FAM_BASE_KEY, TRIAL0_KEY, BACKUP_TS_KEY, 'ordela_guest'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
+    toast(pickLang({ de: 'Profil und alle Daten auf diesem Gerät gelöscht.', en: 'Profile and all data on this device deleted.', fr: 'Profil et toutes les données de cet appareil supprimés.', es: 'Perfil y todos los datos de este dispositivo eliminados.', it: 'Profilo e tutti i dati su questo dispositivo eliminati.', pl: 'Profil i wszystkie dane na tym urządzeniu usunięte.', tr: 'Profil ve bu cihazdaki tüm veriler silindi.', uk: 'Профіль і всі дані на цьому пристрої видалено.' }));
+    setTimeout(() => location.reload(), 900);
+    return;
+  }
   /* Ohne Cloud-Verbindung, aber mit angemeldetem Konto: NICHT loeschen und
      NICHTS behaupten. Sonst wuerde der lokale Speicher geleert und "geloescht"
      gemeldet, waehrend das Konto serverseitig unberuehrt weiterbesteht. */
