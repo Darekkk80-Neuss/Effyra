@@ -8,12 +8,11 @@
    hiess in der Praxis: wer nur index.dev.html änderte, liess sw.js byte-gleich. Der
    Browser sieht dann keine neue Datei, installiert keinen neuen Worker – und im
    laufenden Tab feuert nie 'updatefound'. Der Zeitstempel erzwingt beides. */
-const BUILD = '20261029-0629';
+const BUILD = '20261029-0636';
 const CACHE = 'effyra-' + BUILD;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './bg.jpg',
   './impressum.html', './datenschutz.html', './nutzungsbedingungen.html', './konto-loeschen.html', './barrierefreiheit.html', './anleitung.html',
   './datenschutz.tr.html', './datenschutz.uk.html', './nutzungsbedingungen.tr.html', './nutzungsbedingungen.uk.html',
-  './fonts/effyra-fonts.css', './vendor/supabase.min.js',
   './selbstfuersorge.json', './selbstfuersorge.en.json', './selbstfuersorge.fr.json',
   './selbstfuersorge.es.json', './selbstfuersorge.it.json', './selbstfuersorge.pl.json',
   './selbstfuersorge.tr.json', './selbstfuersorge.uk.json',
@@ -29,9 +28,9 @@ const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './
   './translation/tr.json', './translation/uk.json',
   // Icons + Schriften, damit die App auch ganz ohne Netz vollständig aussieht
   './icon-192.png', './icon-512.png', './icon-180.png',
-  './fonts/inter-400-latin.woff2', './fonts/inter-500-latin.woff2', './fonts/inter-600-latin.woff2', './fonts/inter-700-latin.woff2',
-  './fonts/inter-400-latin-ext.woff2', './fonts/inter-600-latin-ext.woff2',
-  './fonts/spacegrotesk-600-latin.woff2', './fonts/spacegrotesk-700-latin.woff2', './fonts/caveat-600-latin.woff2'];
+  // (variable Schriften: eine Datei je Zeichensatz deckt alle Gewichte ab)
+  './fonts/inter-400-latin.woff2', './fonts/inter-400-latin-ext.woff2',
+  './fonts/spacegrotesk-500-latin.woff2', './fonts/caveat-600-latin.woff2'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
