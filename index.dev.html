@@ -2756,7 +2756,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
       <div class="card set-card">
         <h3 aria-level="2">Eigener KI-Schlüssel</h3>
-        <p class="sub">Du hast einen eigenen OpenAI-Zugang? Dann kannst du ihn hier hinterlegen und die KI <b>ohne unser Credit-Limit</b> nutzen – die Nutzung rechnest du direkt mit OpenAI ab. Die Freischaltung dieser Möglichkeit ist kostenpflichtig.</p>
+        <p class="sub" id="byokIntro">Du hast einen eigenen OpenAI-Zugang? Dann kannst du ihn hier hinterlegen und die KI <b>ohne unser Credit-Limit</b> nutzen – die Nutzung rechnest du direkt mit OpenAI ab. Die Freischaltung dieser Möglichkeit ist kostenpflichtig.</p>
         <div id="byokBox"></div>
       </div>
 
@@ -6681,6 +6681,9 @@ function aiPct() { const l = aiLimit(); return l ? Math.min(100, Math.round(aiUs
    (Monatsabo oder einmalig dauerhaft). Vor dem 24.07.2026 war sie gratis. */
 function hasByokLicense() {
   if (!account) return false;
+  /* Offline ist der eigene Schlüssel der EINZIGE Weg zur KI – und es gibt keinen Kaufweg
+     für eine Freischaltung. Ohne diese Ausnahme ließe sich gar kein Schlüssel eingeben. */
+  if (OFFLINE_ONLY) return true;
   if (account.byokLifetime) return true;
   return !!(account.byokUntil && new Date(account.byokUntil).getTime() > Date.now());
 }
@@ -13369,6 +13372,7 @@ function creditTableHtml() {
   return h;
 }
 function famAiPanel() {
+  if (OFFLINE_ONLY) return '';   // offline: kein gemeinsames Credit-Kontingent, KI nur mit eigenem Schlüssel
   const adults = store.family.members.filter(m => m.role !== 'child');
   /* GEMEINSAMER Familien-Topf (passt zum Server: families.ai_used): EIN Kontingent für alle
      Erwachsenen. Größe = Basis 1600 + 500 je ZUSÄTZLICHEM Erwachsenen (Add-on). Serverwerte
@@ -13414,6 +13418,7 @@ function famPersonen() {
     '<button class="btn btn-primary btn-sm" data-fam="addMem" style="width:100%">+ Person hinzufügen</button></div></details>';
   /* Zusatzmitglieder als Add-on (Google Play Billing) */
   const addA = (store.family.addons && store.family.addons.adult) || 0, addC = (store.family.addons && store.family.addons.child) || 0;
+  if (!OFFLINE_ONLY) {   // offline: kein Kaufweg → keine Zusatzplätze mit Preisen
   h += '<div class="note-box" style="margin-bottom:14px"><b>Zusatzmitglieder</b>' +
     '<div class="sub" style="margin-top:2px">Enthalten: ' + FAMILY_MAX_ADULTS + ' Erwachsene, ' + FAMILY_MAX_CHILDREN + ' Kinder' + (addA || addC ? ' · hinzugebucht: ' + addA + ' Erw., ' + addC + ' Kind(er)' : '') + '.</div>';
   if (hasPlayBilling()) {
@@ -13424,6 +13429,7 @@ function famPersonen() {
     h += '<div class="sub" style="margin-top:6px;color:var(--faint)">Weitere Mitglieder buchst du in der Ordela-App (Google Play).</div>';
   }
   h += '</div>';
+  }
   store.family.members.forEach(m => {
     const meta = FAM_ROLE_META[m.role] || FAM_ROLE_META.adult;
     const age = ageFrom(m.birthday);
@@ -19101,7 +19107,7 @@ function renderAccountCard() {
 
   let html = '<h3 aria-level="2">Dein Konto</h3>' +
     '<p class="sub">' + esc(account.name || '') + (account.email ? ' · ' + esc(account.email) : '') + (account.local ? ' · ' + esc(pickLang({ de: 'Offline-Profil auf diesem Gerät', en: 'Offline profile on this device', fr: 'Profil hors ligne sur cet appareil', es: 'Perfil sin conexión en este dispositivo', it: 'Profilo offline su questo dispositivo', pl: 'Profil offline na tym urządzeniu', tr: 'Bu cihazda çevrimdışı profil', uk: 'Офлайн-профіль на цьому пристрої' })) : '') + '</p>' +
-    '<div style="margin-bottom:14px">' + planHtml + '</div>';
+    (OFFLINE_ONLY ? '' : '<div style="margin-bottom:14px">' + planHtml + '</div>');   // offline gibt es keine Tarife
 
   /* Beide Toepfe GETRENNT ausweisen. Vorher stand hier eine einzige Zahl
      (verbraucht / Gesamt). Weil eine Buchung aus dem GEKAUFTEN Topf die
@@ -19110,7 +19116,7 @@ function renderAccountCard() {
      unguenstigste Missverstaendnis.
      Ausserdem galt der Kasten nur fuer Premium: wer in der Testphase Credits
      dazugekauft hatte, sah seinen Stand ueberhaupt nicht. */
-  if (!usingOwnKey() && (aiMonthBase() > 0 || aiExtraCredits() > 0)) {
+  if (!OFFLINE_ONLY && !usingOwnKey() && (aiMonthBase() > 0 || aiExtraCredits() > 0)) {   // offline: KI nur mit eigenem Schlüssel, keine Credits
     const used = aiUsed(), basis = aiMonthBase(), extra = aiExtraCredits();
     const monatOffen = Math.max(0, basis - used);
     const pct = basis ? Math.min(100, Math.round(used / basis * 100)) : 100;
@@ -19253,6 +19259,7 @@ $('#setNameSave').addEventListener('click', () => {
    verwaltung. Kinderkonten bekommen den Bereich gar nicht erst zu sehen. */
 function renderByokBox() {
   const box = $('#byokBox'); if (!box) return;
+  const intro = $('#byokIntro'); if (intro && OFFLINE_ONLY) intro.style.display = 'none';   // Text über Credit-Limit/Freischaltung gilt offline nicht
   if (isChildUser()) { box.innerHTML = '<div class="note-box">Für Kinderkonten nicht verfügbar.</div>'; return; }
   if (!hasByokLicense()) {
     box.innerHTML =
@@ -19266,11 +19273,13 @@ function renderByokBox() {
     box.querySelectorAll('[data-buy]').forEach(b => b.addEventListener('click', () => startCheckout(b.dataset.buy)));
     return;
   }
-  const bis = account.byokLifetime
+  const bis = (OFFLINE_ONLY || account.byokLifetime)
     ? 'dauerhaft freigeschaltet'
     : 'freigeschaltet bis ' + fmtDate(toISO(new Date(account.byokUntil)));
   box.innerHTML =
-    '<div class="note-box" style="margin-bottom:10px">✓ Eigener Schlüssel <b>' + bis + '</b>.</div>' +
+    (OFFLINE_ONLY
+      ? '<div class="note-box" style="margin-bottom:10px" data-noi18n>' + esc(pickLang({ de: 'Kostenlos: Lege bei platform.openai.com einen eigenen Schlüssel an und füge ihn hier ein. Die KI-Kosten rechnet OpenAI direkt mit dir ab (meist wenige Cent pro Brief).', en: 'Free: create your own key at platform.openai.com and paste it here. OpenAI bills the AI usage to you directly (usually a few cents per letter).', fr: 'Gratuit : crée ta propre clé sur platform.openai.com et colle-la ici. OpenAI te facture directement l’usage de l’IA (en général quelques centimes par courrier).', es: 'Gratis: crea tu propia clave en platform.openai.com y pégala aquí. OpenAI te cobra el uso de la IA directamente (normalmente unos céntimos por carta).', it: 'Gratis: crea la tua chiave su platform.openai.com e incollala qui. OpenAI ti addebita direttamente l’uso dell’IA (di solito pochi centesimi a lettera).', pl: 'Za darmo: utwórz własny klucz na platform.openai.com i wklej go tutaj. OpenAI rozlicza użycie AI bezpośrednio z Tobą (zwykle kilka centów za pismo).', tr: 'Ücretsiz: platform.openai.com adresinde kendi anahtarını oluştur ve buraya yapıştır. Yapay zekâ kullanımını OpenAI doğrudan senden ücretlendirir (genellikle mektup başına birkaç sent).', uk: 'Безкоштовно: створіть власний ключ на platform.openai.com і вставте його сюди. OpenAI виставляє рахунок за ШІ напряму вам (зазвичай кілька центів за лист).' })) + '</div>'
+      : '<div class="note-box" style="margin-bottom:10px">✓ Eigener Schlüssel <b>' + bis + '</b>.</div>') +
     '<div class="set-row"><input type="password" id="setKey" placeholder="sk-…" autocomplete="off" value="' + (getKey() ? '••••••••••••••••' : '') + '"><button class="btn btn-primary" id="setKeySave">Speichern</button></div>' +
     '<div class="note-box" style="margin-top:10px"><b>Privat:</b> Der Schlüssel wird nur auf deinem Gerät gespeichert und direkt an OpenAI gesendet – niemals an unsere Server.</div>' +
     (getKey() ? '<div style="margin-top:10px"><button class="btn btn-sm btn-danger" id="setKeyClear">Schlüssel entfernen</button></div>' : '');
