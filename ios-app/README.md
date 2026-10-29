@@ -104,9 +104,10 @@ Erst dann kennt der Live-Worker die iOS-App.
 
 1. https://codemagic.io → anmelden → **Add application** → GitHub → Repository **Effyra** →
    Projekttyp **„Other“** bzw. **„codemagic.yaml“**.
-2. **Teams → (dein Team) → Integrations → Developer Portal → Connect**:
-   - Name: **`Ordela ASC`** (genau so – steht in `codemagic.yaml`)
-   - Issuer ID und Key ID aus **A5**, `.p8`-Datei aus **A5** hochladen.
+2. **Settings → Integrations → Developer Portal**: Hier ist schon der Schlüssel von RIVELLO
+   eingetragen (Name **`RIVELLO_ASC`**). Teamschlüssel gelten für alle Apps des Kontos – Ordela
+   nutzt ihn mit, `codemagic.yaml` verweist genau auf diesen Namen. Nur falls er fehlt:
+   **Add key** → Name `RIVELLO_ASC`, Issuer ID, Key ID und `.p8`-Datei aus **A5**.
 3. Fertig – Zertifikat und Bereitstellungsprofil erzeugt Codemagic automatisch.
 
 ## Teil D – App bauen und zu TestFlight schicken

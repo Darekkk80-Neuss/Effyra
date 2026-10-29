@@ -2,8 +2,9 @@
 # Anleitung (Deutsch, Schritt fuer Schritt): ios-app/README.md
 #
 # Voraussetzungen in Codemagic (einmalig, macht der Nutzer selbst):
-#   Teams → Integrations → "Developer Portal" → App-Store-Connect-API-Schluessel
-#   hinzufuegen und genau so benennen: Ordela ASC
+#   Settings → Integrations → "Developer Portal" → App-Store-Connect-API-Schluessel.
+#   Ordela nutzt den vorhandenen Teamschluessel von RIVELLO (Name in Codemagic: RIVELLO_ASC);
+#   der Name muss genau mit "app_store_connect" unten uebereinstimmen.
 # Geheimnisse liegen NUR in Codemagic, nie in diesem Repo.
 #
 # Der Web-Build (index.dev.html → build.mjs → index.html) wird hier NICHT veraendert:
@@ -15,7 +16,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: Ordela ASC
+      app_store_connect: RIVELLO_ASC
     environment:
       ios_signing:
         distribution_type: app_store
