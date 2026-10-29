@@ -2782,7 +2782,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
       <div class="card set-card">
         <h3 aria-level="2">Aufräumen</h3>
-        <p class="sub">Längst Erledigtes verschwindet nach einer Weile von selbst. Das hält eure Familiendaten klein – sie werden bei jeder Änderung komplett an alle Geräte übertragen.</p>
+        <p class="sub" id="tidyIntro">Längst Erledigtes verschwindet nach einer Weile von selbst. Das hält eure Familiendaten klein – sie werden bei jeder Änderung komplett an alle Geräte übertragen.</p>
         <div class="set-row" style="align-items:center">
           <span style="flex:1;font-weight:600" id="tidyStatusLbl">Automatisch aufräumen</span>
           <button class="btn" id="tidyToggle" role="switch" aria-checked="true">An&nbsp;✓</button>
@@ -2792,7 +2792,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <button class="btn btn-sm" id="tidyExport">Verlauf sichern</button>
           <button class="btn btn-sm" id="tidyNow">Jetzt aufräumen</button>
         </div>
-        <div class="note-box">Geburtstage &amp; Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben <b>immer</b> erhalten. Der Schalter gilt für die ganze Familie – ihr habt eine gemeinsame Liste.</div>
+        <div class="note-box" id="tidyNote">Geburtstage &amp; Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben <b>immer</b> erhalten. Der Schalter gilt für die ganze Familie – ihr habt eine gemeinsame Liste.</div>
       </div>
 
       <div class="card set-card">
@@ -6794,7 +6794,8 @@ async function ordelaAttachAttribution(user) {
    neu eingeholt. 21.07.2026: ai – Google als Empfaenger der Sprachausgabe
    aufgenommen (vorher nur OpenAI genannt); terms – Haftungs- und
    Aenderungsklausel neu gefasst. */
-const LEGAL_VERSIONS = { ai: '2026-07-21', push: '2026-07-17', terms: '2026-07-21', privacy: '2026-07-17', fit: '2026-07-17', emergency: '2026-07-17', kids: '2026-07-17' };
+// terms 29.10.2026: Ordela Plus (Ziffer 4) – alle bestaetigen einmal neu.
+const LEGAL_VERSIONS = { ai: '2026-07-21', push: '2026-07-17', terms: '2026-10-29', privacy: '2026-07-17', fit: '2026-07-17', emergency: '2026-07-17', kids: '2026-07-17' };
 function getConsent(id) { return (store.consents && store.consents[id]) || null; }
 function consentValid(id) { const c = getConsent(id); return !!(c && c.status === 'granted' && c.version === LEGAL_VERSIONS[id]); }
 function setConsent(id, status) {
@@ -6973,8 +6974,22 @@ function showTermsGate() {
     priv2: pickLang({ de: ' zur Kenntnis genommen zu haben.', en: '.', fr: '.', es: '.', it: '.', pl: '.', tr: " belgesini okuduğumu onaylıyorum.", uk: "." }),
     go: pickLang({ de: 'Weiter', en: 'Continue', fr: 'Continuer', es: 'Continuar', it: 'Continua', pl: 'Dalej', tr: "İleri", uk: "Далі" }),
   };
+  /* Wer schon einmal zugestimmt hat, sieht, WAS sich geaendert hat (29.10.2026: Ordela Plus).
+     Fuer diese Nutzer bleibt alles frei (plusInit → legacy), das sagen wir ausdruecklich. */
+  const prev = getConsent('terms');
+  const upd = !!(prev && prev.status === 'granted');
+  const updNote = upd ? '<p style="font-size:13.5px;line-height:1.45;margin:0 0 12px">' + esc(pickLang({
+    de: 'Wir haben die Nutzungsbedingungen aktualisiert: Neu ist das optionale Ordela Plus (Einmalkauf, kein Abo). Für dich ändert sich nichts – alles, was du bisher kostenlos genutzt hast, bleibt kostenlos.',
+    en: 'We have updated the Terms of Use: new is the optional Ordela Plus (one-off purchase, no subscription). Nothing changes for you – everything you have used for free so far stays free.',
+    fr: 'Nous avons mis à jour les conditions d’utilisation : nouveauté, l’option Ordela Plus (achat unique, sans abonnement). Rien ne change pour toi – tout ce que tu utilisais gratuitement reste gratuit.',
+    es: 'Hemos actualizado las condiciones de uso: la novedad es Ordela Plus, opcional (pago único, sin suscripción). Para ti no cambia nada: todo lo que usabas gratis sigue siendo gratis.',
+    it: 'Abbiamo aggiornato le condizioni d’uso: la novità è Ordela Plus, facoltativo (acquisto unico, nessun abbonamento). Per te non cambia nulla – tutto ciò che usavi gratis resta gratis.',
+    pl: 'Zaktualizowaliśmy warunki korzystania: nowością jest opcjonalne Ordela Plus (jednorazowy zakup, bez subskrypcji). Dla Ciebie nic się nie zmienia – wszystko, z czego korzystałeś(-aś) za darmo, pozostaje darmowe.',
+    tr: 'Kullanım koşullarını güncelledik: yeni olan, isteğe bağlı Ordela Plus (tek seferlik satın alma, abonelik yok). Senin için hiçbir şey değişmiyor – şimdiye kadar ücretsiz kullandığın her şey ücretsiz kalıyor.',
+    uk: 'Ми оновили умови користування: нове – необов’язковий Ordela Plus (разова покупка, без підписки). Для тебе нічого не змінюється – усе, чим ти досі користувався безкоштовно, залишається безкоштовним.'
+  })) + '</p>' : '';
   ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" data-noi18n style="max-width:440px;text-align:left">' +
-    '<h3 style="margin-bottom:10px">' + T.head + '</h3>' +
+    '<h3 style="margin-bottom:10px">' + T.head + '</h3>' + updNote +
     '<label style="display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45;margin-bottom:12px;cursor:pointer"><input type="checkbox" id="termsChk" style="width:auto;flex:none;margin-top:2px">' +
     '<span>' + T.agree + '<a href="#" id="termsLink" style="color:#4D7CFF">' + T.terms + '</a>' + T.agreeEnd + '</span></label>' +
     '<p style="color:var(--muted);font-size:12px;line-height:1.45;margin-bottom:16px">' + T.priv1 + '<a href="#" id="privLink" style="color:#4D7CFF">' + T.priv + '</a>' + T.priv2 + '</p>' +
@@ -12190,15 +12205,14 @@ const PLAY_PRODUCTS = {
    unbegrenztes Dokumentenarchiv, weitere Familienprofile, Arbeitszeit, Fahrzeuge.
    - Keine Testphase (29.10.2026 entschieden): neue Konten starten in der
      kostenlosen Version. PLUS_TRIAL_DAYS > 0 schaltet sie wieder ein.
-   - Bestandsnutzer (Konto vor PLUS_LEGACY_BEFORE): Plus geschenkt.
+   - Bestandsnutzer (Profil schon vor dem ersten Start mit Plus): Plus geschenkt.
    - Kauf wird lokal gemerkt und beim Start über listPurchases() wiederhergestellt.
    PLUS_ENABLED erst einschalten, wenn das App-Update mit Billing 8 und das
    Produkt „ordela_plus" (Einmalkauf) in der Play Console live sind. */
-const PLUS_ENABLED = false;
+const PLUS_ENABLED = true;
 const PLUS_SKU = 'ordela_plus';
 const PLUS_KEY = 'ordela_plus';
 const PLUS_TRIAL_DAYS = 0;
-const PLUS_LEGACY_BEFORE = new Date(2026, 9, 29).getTime();   // Konten vor dem 29.10.2026 (Ortszeit) behalten Plus kostenlos
 const PLUS_FREE_TPL = ['miet-kuend', 'handy-kuend', 'umzug', 'adress-behoerde', 'aenderungsmitteilung', 'frei'];
 const PLUS_FREE_DOCS = 20;
 const PLUS_MODULES = { work: 1, vehicles: 1 };
@@ -12212,17 +12226,25 @@ function plusState() {
   return left > 0 ? { active: true, why: 'trial', left } : { active: false, why: 'free' };
 }
 const plusActive = () => plusState().active;
-/* Einmalig beim ersten Start mit Plus: Bestandsnutzer erkennen und die Testphase starten. */
+/* Einmalig beim ersten Start einer Version mit Plus: Bestandsnutzer erkennen.
+   Bestandsnutzer = Profil gab es schon, bevor Plus auf diesem Geraet lief. Wer
+   es vorher angelegt hat, hat den Nutzungsbedingungen „vollstaendig kostenlos,
+   bisher kostenlose Funktionen bleiben unberuehrt" zugestimmt – deshalb bleibt
+   fuer ihn alles frei (rechtlich geboten, nicht nur Kulanz). Wer das Profil erst
+   mit der Plus-Version anlegt, hat die neuen Bedingungen bestaetigt.
+   plusInit laeuft 2,5 s nach dem Start; ein neues Profil entsteht erst danach
+   im Onboarding – account ist dann noch null. Die 2 Minuten Puffer fangen nur
+   Uhr-Ungenauigkeiten ab. Sehr alte Konten ohne createdAt: aeltester Eintrag. */
 function plusInit() {
   if (!PLUS_ENABLED || !OFFLINE_ONLY || (store.plus && store.plus.trialStart)) return;
-  /* Bestandsnutzer = Konto vor dem Stichtag angelegt (Wiederveroeffentlichung
-     29.10.2026). Wer ab dann einsteigt, bekommt die kostenlose Version – auch
-     wenn er vor dem Plus-Start schon installiert hat.
-     Sehr alte Konten ohne createdAt: am aeltesten Eintrag erkennen. */
-  const vorStichtag = (t) => !!t && t < PLUS_LEGACY_BEFORE;
+  const vorPlus = (t) => !!t && t < Date.now() - 2 * 60e3;
   const aeltester = [].concat(store.tasks || [], store.docs || [], store.vault || [], store.contracts || [])
     .reduce((min, x) => (x && x.createdAt && x.createdAt < min) ? x.createdAt : min, Infinity);
-  const legacy = account && account.createdAt ? vorStichtag(account.createdAt) : vorStichtag(aeltester);
+  /* Wer den ALTEN Bedingungen („vollstaendig kostenlos") zugestimmt hat, ist in jedem Fall
+     Bestandsnutzer – unabhaengig vom Profil-Datum. */
+  const tc = getConsent('terms');
+  const alteZustimmung = !!(tc && tc.status === 'granted' && (tc.version !== LEGAL_VERSIONS.terms || vorPlus(Date.parse(tc.ts))));
+  const legacy = alteZustimmung || (account && account.createdAt ? vorPlus(account.createdAt) : vorPlus(aeltester));
   store.plus = { trialStart: Date.now(), legacy: !!legacy };
   save();
 }
@@ -18990,9 +19012,48 @@ $('#bootFxSeg').addEventListener('click', e => {
 function tidySyncCard() {
   const p = famTidyPrefs(), b = $('#tidyToggle'), i = $('#tidyInfo');
   if (b) { b.textContent = p.on ? 'An ✓' : 'Aus'; b.classList.toggle('btn-primary', p.on); b.setAttribute('aria-checked', p.on ? 'true' : 'false'); }
+  if (OFFLINE_ONLY) { tidyOfflineTexts(p); return; }
   if (i) i.textContent = p.on
     ? 'Erledigte Familienaufgaben: ' + p.taskDays + ' Tage (höchstens ' + p.taskKeep + ') · abgehakte Einkäufe: ' + p.shopDays + ' Tage · vergangene Familientermine: ' + p.evDays + ' Tage.'
     : 'Es wird nichts automatisch entfernt. Ab 2 MB nimmt der Server keine Änderung mehr an – dann räumt Ordela einmalig selbst auf, damit ihr weiter speichern könnt.';
+}
+/* Offline-Version (29.10.2026, Nutzerhinweis): Die Karte sprach noch vom
+   Abgleich „an alle Geräte" und vom Server-Limit – beides gibt es offline
+   nicht mehr und widersprach der Datensicherungs-Karte. Hier steht nur noch,
+   was wirklich passiert: lokales Aufräumen der Familienliste, sonst nichts. */
+function tidyOfflineTexts(p) {
+  const L = pickLang, set = (id, html) => { const el = $(id); if (el) { el.innerHTML = html; el.setAttribute('data-noi18n', ''); } };
+  const txt = (el, o) => { if (el) { el.textContent = L(o); el.setAttribute('data-noi18n', ''); } };
+  const intro = $('#tidyIntro');
+  txt(intro && intro.closest('.card') && intro.closest('.card').querySelector('h3'), { de: 'Aufräumen', en: 'Tidy up', fr: 'Rangement', es: 'Ordenar', it: 'Riordino', pl: 'Porządkowanie', tr: 'Temizleme', uk: 'Прибирання' });
+  txt($('#tidyExport'), { de: 'Verlauf sichern', en: 'Save history', fr: 'Sauvegarder l’historique', es: 'Guardar historial', it: 'Salva cronologia', pl: 'Zapisz historię', tr: 'Geçmişi kaydet', uk: 'Зберегти історію' });
+  txt($('#tidyNow'), { de: 'Jetzt aufräumen', en: 'Tidy up now', fr: 'Ranger maintenant', es: 'Ordenar ahora', it: 'Riordina ora', pl: 'Uporządkuj teraz', tr: 'Şimdi temizle', uk: 'Прибрати зараз' });
+  const lbl = $('#tidyStatusLbl'); if (lbl) { lbl.textContent = L({ de: 'Automatisch aufräumen', en: 'Tidy up automatically', fr: 'Ranger automatiquement', es: 'Ordenar automáticamente', it: 'Riordina automaticamente', pl: 'Porządkuj automatycznie', tr: 'Otomatik temizle', uk: 'Автоматично прибирати' }); lbl.setAttribute('data-noi18n', ''); }
+  const b = $('#tidyToggle'); if (b) { b.textContent = p.on ? L({ de: 'An', en: 'On', fr: 'Activé', es: 'Activado', it: 'Attivo', pl: 'Wł.', tr: 'Açık', uk: 'Увімк.' }) + ' ✓' : L({ de: 'Aus', en: 'Off', fr: 'Désactivé', es: 'Desactivado', it: 'Disattivo', pl: 'Wył.', tr: 'Kapalı', uk: 'Вимк.' }); b.setAttribute('data-noi18n', ''); }
+  set('#tidyIntro', esc(L({
+    de: 'Hält die Familienliste übersichtlich: Ist der Schalter an, verschwinden erledigte Familienaufgaben, abgehakte Einkäufe und vergangene Familientermine nach einer Weile. Alles passiert nur auf diesem Gerät.',
+    en: 'Keeps the family list tidy: when switched on, completed family tasks, ticked-off shopping items and past family events disappear after a while. Everything happens only on this device.',
+    fr: 'Garde la liste familiale claire : si l’option est activée, les tâches familiales terminées, les achats cochés et les événements familiaux passés disparaissent après un certain temps. Tout se passe uniquement sur cet appareil.',
+    es: 'Mantiene ordenada la lista familiar: si está activado, las tareas familiares hechas, las compras marcadas y los eventos familiares pasados desaparecen al cabo de un tiempo. Todo ocurre solo en este dispositivo.',
+    it: 'Mantiene ordinata la lista di famiglia: se attivo, le attività di famiglia completate, gli acquisti spuntati e gli eventi di famiglia passati spariscono dopo un po’. Tutto avviene solo su questo dispositivo.',
+    pl: 'Utrzymuje porządek na liście rodzinnej: gdy włączone, wykonane zadania rodzinne, odhaczone zakupy i minione wydarzenia rodzinne po pewnym czasie znikają. Wszystko dzieje się tylko na tym urządzeniu.',
+    tr: 'Aile listesini düzenli tutar: açıksa tamamlanan aile görevleri, işaretlenen alışveriş kalemleri ve geçmiş aile etkinlikleri bir süre sonra kaybolur. Her şey yalnızca bu cihazda olur.',
+    uk: 'Підтримує порядок у сімейному списку: якщо увімкнено, виконані сімейні завдання, відмічені покупки та минулі сімейні події через деякий час зникають. Усе відбувається лише на цьому пристрої.'
+  })));
+  set('#tidyInfo', esc(p.on
+    ? L({ de: 'Erledigte Familienaufgaben nach {t} Tagen (höchstens {k} behalten) · abgehakte Einkäufe nach {s} Tagen · vergangene Familientermine nach {e} Tagen.', en: 'Completed family tasks after {t} days (keep at most {k}) · ticked-off shopping after {s} days · past family events after {e} days.', fr: 'Tâches familiales terminées après {t} jours (au plus {k} conservées) · achats cochés après {s} jours · événements familiaux passés après {e} jours.', es: 'Tareas familiares hechas tras {t} días (máximo {k}) · compras marcadas tras {s} días · eventos familiares pasados tras {e} días.', it: 'Attività di famiglia completate dopo {t} giorni (al massimo {k}) · acquisti spuntati dopo {s} giorni · eventi di famiglia passati dopo {e} giorni.', pl: 'Wykonane zadania rodzinne po {t} dniach (maks. {k}) · odhaczone zakupy po {s} dniach · minione wydarzenia rodzinne po {e} dniach.', tr: 'Tamamlanan aile görevleri {t} gün sonra (en fazla {k} tutulur) · işaretlenen alışveriş {s} gün sonra · geçmiş aile etkinlikleri {e} gün sonra.', uk: 'Виконані сімейні завдання через {t} дн. (не більше {k}) · відмічені покупки через {s} дн. · минулі сімейні події через {e} дн.' })
+        .replace('{t}', p.taskDays).replace('{k}', p.taskKeep).replace('{s}', p.shopDays).replace('{e}', p.evDays)
+    : L({ de: 'Es wird nichts automatisch entfernt.', en: 'Nothing is removed automatically.', fr: 'Rien n’est supprimé automatiquement.', es: 'No se elimina nada automáticamente.', it: 'Non viene rimosso nulla automaticamente.', pl: 'Nic nie jest usuwane automatycznie.', tr: 'Hiçbir şey otomatik olarak silinmez.', uk: 'Нічого не видаляється автоматично.' })));
+  set('#tidyNote', esc(L({
+    de: 'Notfallmappe, Dokumente, Tresor, Geburtstage und Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben immer erhalten. Das Aufräumen hat nichts mit „Dauerhafter Speicher“ zu tun: Der sorgt nur dafür, dass das Handy die Daten von Ordela nicht von selbst löscht.',
+    en: 'Emergency folder, documents, vault, birthdays and occasions, recurring events, working hours and fuel logs are always kept. Tidying up has nothing to do with “persistent storage”: that only makes sure the phone does not delete Ordela’s data on its own.',
+    fr: 'Dossier d’urgence, documents, coffre, anniversaires et occasions, événements récurrents, temps de travail et pleins sont toujours conservés. Le rangement n’a rien à voir avec le « stockage durable » : celui-ci empêche seulement le téléphone de supprimer les données d’Ordela de lui-même.',
+    es: 'La carpeta de emergencia, los documentos, la caja fuerte, los cumpleaños y ocasiones, los eventos periódicos, el horario laboral y los repostajes se conservan siempre. Ordenar no tiene nada que ver con el «almacenamiento permanente»: este solo evita que el móvil borre por sí solo los datos de Ordela.',
+    it: 'Cartella di emergenza, documenti, cassaforte, compleanni e ricorrenze, eventi ricorrenti, orari di lavoro e rifornimenti restano sempre. Il riordino non c’entra con la «memoria permanente»: questa evita solo che il telefono cancelli da solo i dati di Ordela.',
+    pl: 'Teczka awaryjna, dokumenty, sejf, urodziny i okazje, wydarzenia cykliczne, czas pracy i tankowania zawsze zostają. Porządkowanie nie ma nic wspólnego z „trwałą pamięcią”: ona tylko sprawia, że telefon sam nie usunie danych Ordela.',
+    tr: 'Acil durum klasörü, belgeler, kasa, doğum günleri ve özel günler, tekrarlayan etkinlikler, çalışma saatleri ve yakıt kayıtları her zaman korunur. Temizleme “kalıcı depolama” ile ilgili değildir: o yalnızca telefonun Ordela verilerini kendiliğinden silmemesini sağlar.',
+    uk: 'Екстрена тека, документи, сейф, дні народження й події, повторювані події, робочий час і заправки зберігаються завжди. Прибирання не пов’язане з «постійним сховищем»: воно лише гарантує, що телефон сам не видалить дані Ordela.'
+  })));
 }
 if ($('#tidyToggle')) $('#tidyToggle').addEventListener('click', () => {
   const p = famTidyPrefs(); p.on = !p.on; save();
