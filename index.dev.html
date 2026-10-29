@@ -6990,7 +6990,10 @@ function requireAI() {
   if (isChildUser()) { toast('KI ist für Kinderkonten nicht verfügbar.'); return false; }
   if (!consentValid('ai')) { showAiConsent(); return false; }   // Typ D: ausdrückliche Einwilligung vor Drittland-/Art.9-Verarbeitung
   if (usingOwnKey()) return true;                    // eigener Schlüssel: direkt an OpenAI
-  if (!BACKEND_V2) { toast('Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false; }
+  if (!BACKEND_V2) {
+    if (kiPackOn() && currentView === 'docs') { kiPackSheet(); return false; }   // Brief-Erklaerung gibt es auch als Paket
+    toast('Für echte KI einen eigenen API-Schlüssel in den Einstellungen hinterlegen.'); showView('settings'); return false;
+  }
   if (!(account && account.loggedIn)) { promptAccountForAI(); return false; }   // Gast (Weg A): jetzt Konto + 18+ verlangen – erst hier, direkt vor der KI
   if (isPaid()) {
     if (aiRemaining() <= 0) { toast('Deine KI-Credits sind aufgebraucht – buche Credits nach, um weiterzumachen.'); startCheckout('topup'); return false; }
@@ -12301,6 +12304,118 @@ function plusCardHTML() {
   return '<div class="note-box" style="margin-bottom:12px" data-noi18n><b>Ordela Plus</b><div class="sub" style="margin-top:4px">' + esc(txt) + '</div>' + btn + '</div>';
 }
 if (PLUS_ENABLED) setTimeout(() => { try { plusInit(); plusRestore(true); } catch (e) {} }, 2500);
+
+/* ============================== KI-PAKETE ==============================
+   Brief-Erklaerung ohne eigenen OpenAI-Schluessel: der Nutzer kauft ein Paket
+   (Google Play, Verbrauchsartikel), der Cloudflare-Worker in ki-worker/ prueft
+   den Kauf, fuehrt das Guthaben und reicht den Brief an OpenAI weiter.
+   Kein Konto: das Guthaben haengt an einer zufaelligen Geldboersen-Id im
+   Speicher der App (wandert mit der Sicherungsdatei mit). Genutzt wird das
+   Guthaben NUR fuer die Brief-Analyse (aiAnalyze) – Chat, Sprache usw. bleiben
+   beim eigenen Schluessel, sonst waere ein Paket nach ein paar Nachrichten leer.
+   KI_PACK_URL leer = Funktion aus (vor dem Deploy des Workers). */
+const KI_PACK_URL = '';
+const KI_PACK_SKU = 'ordela_ki_25';
+const KI_PACK_SIZE = 25;
+const KI_PACK_FALLBACK_PRICE = '3,99 €';
+const kiPackOn = () => !!(KI_PACK_URL && OFFLINE_ONLY);
+const kiCredits = () => kiPackOn() ? (store.kiCredits || 0) : 0;
+const canPackAI = () => kiPackOn() && !isChildUser() && consentValid('ai') && kiCredits() > 0;
+function kiWallet() {
+  if (!store.kiWallet) {
+    const a = new Uint8Array(16); crypto.getRandomValues(a);
+    store.kiWallet = Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); save();
+  }
+  return store.kiWallet;
+}
+async function kiApi(path, body) {
+  let r;
+  try {
+    r = await fetch(KI_PACK_URL + path, body
+      ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({ wallet: kiWallet() }, body)) }
+      : undefined);
+  } catch (e) { throw new Error(pickLang({ de: 'Keine Verbindung. Bist du online?', en: 'No connection. Are you online?', fr: 'Pas de connexion. Es-tu en ligne ?', es: 'Sin conexión. ¿Estás en línea?', it: 'Nessuna connessione. Sei online?', pl: 'Brak połączenia. Czy jesteś online?', tr: 'Bağlantı yok. Çevrimiçi misin?', uk: 'Немає з’єднання. Ти онлайн?' })); }
+  const j = await r.json().catch(() => ({}));
+  if (typeof j.credits === 'number') { store.kiCredits = j.credits; save(); }
+  return { ok: r.ok, status: r.status, j };
+}
+async function kiRefresh() {
+  if (!kiPackOn()) return;
+  try { await kiApi('/balance?wallet=' + kiWallet()); } catch (e) {}
+}
+async function kiRedeem(token) {
+  const { ok, j } = await kiApi('/redeem', { token, sku: KI_PACK_SKU });
+  return ok && j.ok;
+}
+/* Gekaufte, aber noch nicht eingeloeste Pakete nachholen (z. B. Netz weg direkt nach dem Kauf).
+   Der Worker verbraucht den Kauf bei Google – was hier noch auftaucht, ist offen. */
+async function kiRestore() {
+  if (!kiPackOn() || !hasPlayBilling()) return;
+  try {
+    const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
+    const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
+    for (const p of (list || [])) if (p.itemId === KI_PACK_SKU && p.purchaseToken) await kiRedeem(p.purchaseToken).catch(() => {});
+  } catch (e) {}
+}
+async function kiPrice() {
+  if (!hasPlayBilling()) return KI_PACK_FALLBACK_PRICE;
+  try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); const d = await svc.getDetails([KI_PACK_SKU]); return (d && d[0] && fmtPlayPrice(d[0].price)) || KI_PACK_FALLBACK_PRICE; }
+  catch (e) { return KI_PACK_FALLBACK_PRICE; }
+}
+async function kiBuy() {
+  const L = pickLang;
+  if (!hasPlayBilling()) { toast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
+  try {
+    const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: KI_PACK_SKU } }],
+      { total: { label: 'Ordela KI-Paket', amount: { currency: 'EUR', value: '0' } } });
+    const resp = await req.show();
+    const token = resp.details && (resp.details.purchaseToken || resp.details.token);
+    await resp.complete('success');
+    const ok = token ? await kiRedeem(token).catch(() => false) : false;
+    const ov = document.getElementById('kiOv'); if (ov) ov.classList.remove('on');
+    toast(ok
+      ? L({ de: 'Danke! Du kannst jetzt {n} Briefe erklären lassen ✓', en: 'Thank you! You can now have {n} letters explained ✓', fr: 'Merci ! Tu peux faire expliquer {n} lettres ✓', es: '¡Gracias! Ya puedes pedir que te expliquen {n} cartas ✓', it: 'Grazie! Ora puoi farti spiegare {n} lettere ✓', pl: 'Dziękujemy! Możesz teraz objaśnić {n} pism ✓', tr: 'Teşekkürler! Artık {n} mektubu açıklatabilirsin ✓', uk: 'Дякуємо! Тепер можна пояснити {n} листів ✓' }).replace('{n}', kiCredits())
+      : L({ de: 'Kauf erhalten – das Guthaben wird beim nächsten Start gutgeschrieben.', en: 'Purchase received – the credit will be added on next start.', fr: 'Achat reçu – le crédit sera ajouté au prochain démarrage.', es: 'Compra recibida: el saldo se añadirá en el próximo inicio.', it: 'Acquisto ricevuto – il credito verrà aggiunto al prossimo avvio.', pl: 'Zakup otrzymany – saldo zostanie dodane przy następnym uruchomieniu.', tr: 'Satın alma alındı – bakiye bir sonraki açılışta eklenecek.', uk: 'Покупку отримано – баланс буде додано під час наступного запуску.' }));
+    refresh(); if (currentView === 'settings') RENDERERS.settings(); if (currentView === 'docs') RENDERERS.docs();
+  } catch (e) {
+    toast(e && e.name === 'AbortError'
+      ? L({ de: 'Kauf abgebrochen.', en: 'Purchase cancelled.', fr: 'Achat annulé.', es: 'Compra cancelada.', it: 'Acquisto annullato.', pl: 'Zakup anulowany.', tr: 'Satın alma iptal edildi.', uk: 'Покупку скасовано.' })
+      : L({ de: 'Kauf nicht möglich – bitte später erneut versuchen.', en: 'Purchase not possible – please try again later.', fr: 'Achat impossible – réessaie plus tard.', es: 'No se pudo comprar; inténtalo más tarde.', it: 'Acquisto non riuscito – riprova più tardi.', pl: 'Zakup niemożliwy – spróbuj później.', tr: 'Satın alınamadı – lütfen daha sonra tekrar dene.', uk: 'Покупка неможлива – спробуйте пізніше.' }));
+  }
+}
+/* Gleiche Schnittstelle wie callClaude(): gibt den Antworttext zurueck. */
+async function callKiPack(payload) {
+  const { ok, status, j } = await kiApi('/explain', { system: payload.system, messages: payload.messages, max_tokens: payload.max_tokens });
+  if (ok && j.ok) return j.content;
+  if (status === 402 || j.error === 'no_credits') { setTimeout(kiPackSheet, 300); throw new Error(pickLang({ de: 'Dein KI-Paket ist aufgebraucht.', en: 'Your AI pack is used up.', fr: 'Ton pack IA est épuisé.', es: 'Tu paquete de IA se ha agotado.', it: 'Il tuo pacchetto IA è esaurito.', pl: 'Twój pakiet AI został wykorzystany.', tr: 'Yapay zekâ paketin bitti.', uk: 'Твій пакет ШІ вичерпано.' })); }
+  if (j.error === 'too_large') throw new Error('Das Foto ist zu groß. Bitte noch einmal versuchen.');
+  throw new Error('Die Erklärung hat gerade nicht geklappt. Dein Guthaben wurde nicht belastet – versuch es bitte gleich noch einmal.');
+}
+async function kiPackSheet() {
+  if (!kiPackOn()) return;
+  let ov = document.getElementById('kiOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'kiOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10002'; document.body.appendChild(ov); }
+  const L = pickLang, price = await kiPrice(), n = kiCredits();
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="kiHead" data-noi18n><h3 id="kiHead" style="margin-bottom:6px">' + esc(L({ de: 'Briefe erklären lassen', en: 'Get letters explained', fr: 'Faire expliquer des lettres', es: 'Que te expliquen cartas', it: 'Farsi spiegare le lettere', pl: 'Objaśnianie pism', tr: 'Mektupları açıklat', uk: 'Пояснення листів' })) + '</h3>' +
+    '<p class="sub" style="margin-bottom:10px">' + esc(L({ de: 'Foto machen – Ordela erklärt den Brief in einfachen Worten, findet Fristen und schlägt eine Antwort vor.', en: 'Take a photo – Ordela explains the letter in plain words, finds deadlines and suggests a reply.', fr: 'Prends une photo – Ordela explique la lettre simplement, trouve les délais et propose une réponse.', es: 'Haz una foto: Ordela explica la carta con palabras sencillas, encuentra plazos y propone una respuesta.', it: 'Scatta una foto – Ordela spiega la lettera in parole semplici, trova le scadenze e propone una risposta.', pl: 'Zrób zdjęcie – Ordela wyjaśni pismo prostymi słowami, znajdzie terminy i zaproponuje odpowiedź.', tr: 'Fotoğraf çek – Ordela mektubu sade bir dille açıklar, süreleri bulur ve yanıt önerir.', uk: 'Зроби фото – Ordela пояснить лист простими словами, знайде строки й запропонує відповідь.' })) + '</p>' +
+    '<p style="margin-bottom:10px"><b>' + esc(L({ de: '{n} Briefe – {p}, einmalig, kein Abo', en: '{n} letters – {p}, one-off, no subscription', fr: '{n} lettres – {p}, achat unique, sans abonnement', es: '{n} cartas – {p}, pago único, sin suscripción', it: '{n} lettere – {p}, una tantum, nessun abbonamento', pl: '{n} pism – {p}, jednorazowo, bez subskrypcji', tr: '{n} mektup – {p}, tek seferlik, abonelik yok', uk: '{n} листів – {p}, одноразово, без підписки' }).replace('{n}', KI_PACK_SIZE).replace('{p}', price)) + '</b></p>' +
+    '<p class="sub" style="margin-bottom:14px">' + esc(L({ de: 'Noch übrig: {c}. Dein Brief wird nur für die Erklärung an OpenAI übertragen und nicht gespeichert. Mit eigenem OpenAI-Schlüssel (Einstellungen) geht es auch ohne Paket.', en: 'Remaining: {c}. Your letter is sent to OpenAI only for the explanation and is not stored. With your own OpenAI key (Settings) it also works without a pack.', fr: 'Restant : {c}. Ta lettre n’est envoyée à OpenAI que pour l’explication et n’est pas conservée. Avec ta propre clé OpenAI (Réglages), ça marche aussi sans pack.', es: 'Quedan: {c}. Tu carta solo se envía a OpenAI para la explicación y no se guarda. Con tu propia clave de OpenAI (Ajustes) también funciona sin paquete.', it: 'Rimaste: {c}. La lettera viene inviata a OpenAI solo per la spiegazione e non viene salvata. Con la tua chiave OpenAI (Impostazioni) funziona anche senza pacchetto.', pl: 'Pozostało: {c}. Pismo trafia do OpenAI tylko w celu objaśnienia i nie jest zapisywane. Z własnym kluczem OpenAI (Ustawienia) działa też bez pakietu.', tr: 'Kalan: {c}. Mektubun yalnızca açıklama için OpenAI’ye gönderilir ve saklanmaz. Kendi OpenAI anahtarınla (Ayarlar) paket olmadan da çalışır.', uk: 'Залишилось: {c}. Лист передається в OpenAI лише для пояснення й не зберігається. З власним ключем OpenAI (Налаштування) працює й без пакета.' }).replace('{c}', n)) + '</p>' +
+    '<div class="fam-alert-btns" style="flex-direction:column;gap:8px">' +
+    '<button class="btn btn-primary" id="kiBuyBtn">' + esc(L({ de: 'Paket kaufen – {p}', en: 'Buy pack – {p}', fr: 'Acheter le pack – {p}', es: 'Comprar paquete – {p}', it: 'Acquista pacchetto – {p}', pl: 'Kup pakiet – {p}', tr: 'Paketi satın al – {p}', uk: 'Купити пакет – {p}' }).replace('{p}', price)) + '</button>' +
+    '<button class="btn btn-sm btn-ghost" id="kiLaterBtn">' + esc(L({ de: 'Jetzt nicht', en: 'Not now', fr: 'Pas maintenant', es: 'Ahora no', it: 'Non ora', pl: 'Nie teraz', tr: 'Şimdi değil', uk: 'Не зараз' })) + '</button></div></div>';
+  ov.classList.add('on');
+  ov.querySelector('#kiBuyBtn').onclick = kiBuy;
+  ov.querySelector('#kiLaterBtn').onclick = () => ov.classList.remove('on');
+}
+/* Kasten in den Einstellungen: Guthaben + Kaufknopf. */
+function kiPackCardHTML() {
+  if (!kiPackOn() || usingOwnKey()) return '';
+  const L = pickLang;
+  return '<div class="note-box" style="margin-bottom:12px" data-noi18n><b>' + esc(L({ de: 'KI-Paket: Briefe erklären', en: 'AI pack: explain letters', fr: 'Pack IA : expliquer des lettres', es: 'Paquete de IA: explicar cartas', it: 'Pacchetto IA: spiegare lettere', pl: 'Pakiet AI: objaśnianie pism', tr: 'Yapay zekâ paketi: mektup açıklama', uk: 'Пакет ШІ: пояснення листів' })) + '</b>' +
+    '<div class="sub" style="margin-top:4px">' + esc(L({ de: 'Noch {c} Briefe übrig.', en: '{c} letters left.', fr: 'Encore {c} lettres.', es: 'Quedan {c} cartas.', it: 'Ancora {c} lettere.', pl: 'Pozostało pism: {c}.', tr: '{c} mektup kaldı.', uk: 'Залишилось листів: {c}.' }).replace('{c}', kiCredits())) + '</div>' +
+    '<button class="btn btn-sm btn-primary" id="btnKiPack" style="margin-top:8px">' + esc(L({ de: 'Paket kaufen', en: 'Buy pack', fr: 'Acheter un pack', es: 'Comprar paquete', it: 'Acquista pacchetto', pl: 'Kup pakiet', tr: 'Paket satın al', uk: 'Купити пакет' })) + '</button></div>';
+}
+if (kiPackOn()) setTimeout(() => { kiRestore().then(kiRefresh); }, 3000);
 /* ---- Echte Preise aus Google Play holen ----
    Die Preise in PLAY_PRODUCTS/ADDON_PRODUCTS sind nur Rückfallwerte für den
    Browser. In der Play-App gilt der Preis, den Google für das Land des Nutzers
@@ -16539,7 +16654,8 @@ async function aiAnalyze(dataUrl) {
     'Beim Kündigungsdatum: Rechne aus Laufzeitende und Frist das späteste Datum aus, an dem noch gekündigt werden kann. Ist eines von beiden unbekannt, date:null – lieber keine Frist als eine falsche.\n' +
     '- note: {"type":"note","title":"..."}\n' +
     'Erfinde nichts – nur real Vorhandenes. Fehlende Felder = null/leer.';
-  const text = await aiCall({
+  const call = (!usingOwnKey() && canPackAI()) ? callKiPack : aiCall;   // KI-Paket nur, wenn kein eigener Schluessel
+  const text = await call({
     op: 'scan',
     model: store.settings.model,
     max_tokens: 3000,
@@ -16910,12 +17026,14 @@ async function handleDocFile(file) {
      Vorher pruefte diese Funktion nur canRealAI() – ein freies Konto ohne
      erteilte Einwilligung landete damit dauerhaft in der Demo, obwohl Frist
      und Credits reichten. */
-  if (!canRealAI() && !aiQuotaAufgebraucht()) {
+  const realScan = canRealAI() || canPackAI();   // eigener Schluessel ODER KI-Paket mit Guthaben
+  if (!realScan && !aiQuotaAufgebraucht()) {
     /* Das bereits aufgenommene Foto NICHT wegwerfen. Vorher brach der Scan hier
        ab, und nach dem Zustimmen musste dasselbe Dokument noch einmal
        fotografiert werden – unnoetig und aergerlich. Jetzt wird nach erteilter
        Einwilligung direkt mit derselben Datei weitergemacht. */
     if (!consentValid('ai')) { showAiConsent(() => { handleDocFile(file); }); return; }
+    if (kiPackOn() && !isChildUser()) { kiPackSheet(); return; }   // offline ohne Schluessel: Paket anbieten
     requireAI(); return;
   }
   const box = $('#analyzing');
@@ -16931,7 +17049,7 @@ async function handleDocFile(file) {
     const thumb = await readAndResize(file, 200, 0.7);
     $('#scanImg').src = thumb;
     let result, demo;
-    if (canRealAI()) {
+    if (realScan) {
       const full = await readAndResize(file, 1568, 0.85);
       result = await aiAnalyze(full);
       demo = false;
@@ -17126,8 +17244,10 @@ RENDERERS.docs = function () {
   const _hero = $('#docHero'); if (_hero) _hero.style.display = store.settings.docHeroHidden ? 'none' : '';
   /* Den Grund NENNEN statt pauschal auf den eigenen API-Schluessel zu verweisen:
      fuer ein freies Konto mit Credits ist dieser Hinweis schlicht falsch. */
-  $('#demoHintDocs').innerHTML = canRealAI() ? '' : (
-    !consentValid('ai')
+  $('#demoHintDocs').innerHTML = (canRealAI() || canPackAI()) ? '' : (
+    (kiPackOn() && consentValid('ai') && !isChildUser())
+      ? '<div class="demo-hint" data-noi18n>' + esc(pickLang({ de: 'Briefe erklären lassen: Kauf ein KI-Paket oder hinterlege einen eigenen OpenAI-Schlüssel in den Einstellungen.', en: 'Get letters explained: buy an AI pack or add your own OpenAI key in Settings.', fr: 'Faire expliquer des lettres : achète un pack IA ou ajoute ta clé OpenAI dans les Réglages.', es: 'Que te expliquen cartas: compra un paquete de IA o añade tu clave de OpenAI en Ajustes.', it: 'Farsi spiegare le lettere: acquista un pacchetto IA o inserisci la tua chiave OpenAI nelle Impostazioni.', pl: 'Objaśnianie pism: kup pakiet AI lub dodaj własny klucz OpenAI w Ustawieniach.', tr: 'Mektupları açıklat: bir yapay zekâ paketi al ya da Ayarlar’a kendi OpenAI anahtarını ekle.', uk: 'Пояснення листів: купи пакет ШІ або додай власний ключ OpenAI в Налаштуваннях.' })) + ' <a data-ki-pack>' + esc(pickLang({ de: 'Paket ansehen', en: 'View pack', fr: 'Voir le pack', es: 'Ver paquete', it: 'Vedi pacchetto', pl: 'Zobacz pakiet', tr: 'Paketi gör', uk: 'Переглянути пакет' })) + '</a></div>'
+    : !consentValid('ai')
       ? '<div class="demo-hint"><b>KI noch nicht freigegeben:</b> Für die Analyse deiner echten Briefe brauchen wir einmal deine ausdrückliche Einwilligung – <a data-ai-consent>jetzt erteilen</a>.</div>'
       : aiQuotaAufgebraucht()
         ? '<div class="demo-hint"><b>Demo-Modus:</b> ' + (aiTrialOver() ? 'Deine Testphase ist abgelaufen.' : 'Deine KI-Credits sind aufgebraucht.') + ' Der Upload zeigt eine Beispiel-Analyse – <a data-go-upgrade>Abo ansehen</a>.</div>'
@@ -17135,6 +17255,8 @@ RENDERERS.docs = function () {
   );
   const link = $('#demoHintDocs [data-go-settings]');
   if (link) link.addEventListener('click', () => showView('settings'));
+  const lnkKi = $('#demoHintDocs [data-ki-pack]');
+  if (lnkKi) lnkKi.addEventListener('click', kiPackSheet);
   const lnkConsent = $('#demoHintDocs [data-ai-consent]');
   if (lnkConsent) lnkConsent.addEventListener('click', () => { try { showAiConsent(); } catch (e) {} });
   const lnkUp = $('#demoHintDocs [data-go-upgrade]');
@@ -19274,6 +19396,7 @@ async function showPersistState() {
 function wireBackupCard() {
   showPersistState();
   const pb = $('#btnPlusInfo'); if (pb) pb.addEventListener('click', plusSheet);
+  const kb = $('#btnKiPack'); if (kb) kb.addEventListener('click', kiPackSheet);
   const sv = $('#btnBackupSave'); if (sv) sv.addEventListener('click', saveBackup);
   const ld = $('#btnBackupLoad'), fi = $('#backupFile');
   if (ld && fi) {
@@ -19323,7 +19446,7 @@ function renderAccountCard() {
 
   if (tier !== 'premium' && !STORE_SAFE) html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">Plan ansehen / upgraden</button>';
 
-  if (OFFLINE_ONLY) html += plusCardHTML() + backupCardHTML();
+  if (OFFLINE_ONLY) html += plusCardHTML() + kiPackCardHTML() + backupCardHTML();
   else html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
     '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
     '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>';

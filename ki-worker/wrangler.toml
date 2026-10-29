@@ -1,0 +1,15 @@
+name = "ordela-ki"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+PACKAGE_NAME = "app.effyra.twa"
+ALLOWED_ORIGINS = "https://darekkk80-neuss.github.io"
+# Produkt-Id in der Play Console -> Anzahl Briefe
+SKU_CREDITS = '{"ordela_ki_25":25}'
+MODEL = "gpt-5-mini"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ordela-ki"
+database_id = "HIER_NACH_wrangler_d1_create_EINTRAGEN"
