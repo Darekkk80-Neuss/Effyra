@@ -12601,10 +12601,14 @@ if (PLUS_ENABLED) setTimeout(() => { try { plusInit(); plusRestore(true); } catc
    Guthaben NUR fuer die Brief-Analyse (aiAnalyze) – Chat, Sprache usw. bleiben
    beim eigenen Schluessel, sonst waere ein Paket nach ein paar Nachrichten leer.
    KI_PACK_URL leer = Funktion aus (vor dem Deploy des Workers). */
-const KI_PACK_URL = '';
-const KI_PACK_SKU = 'ordela_ki_25';
-const KI_PACK_SIZE = 25;
-const KI_PACK_FALLBACK_PRICE = '3,99 €';
+const KI_PACK_URL = 'https://ordela-ki.ki-worker.workers.dev';
+/* Zwei Paketgroessen; Preise kommen aus Google Play, die Werte hier sind nur Rueckfall.
+   Muss zu SKU_CREDITS in ki-worker/wrangler.toml passen. */
+const KI_PACKS = [
+  { sku: 'ordela_ki_25', n: 25, fallback: '3,99 €' },
+  { sku: 'ordela_ki_50', n: 50, fallback: '6,99 €' }
+];
+const kiPackBySku = (sku) => KI_PACKS.find(p => p.sku === sku) || KI_PACKS[0];
 const kiPackOn = () => !!(KI_PACK_URL && OFFLINE_ONLY);
 const kiCredits = () => kiPackOn() ? (store.kiCredits || 0) : 0;
 const canPackAI = () => kiPackOn() && !isChildUser() && consentValid('ai') && kiCredits() > 0;
@@ -12630,8 +12634,8 @@ async function kiRefresh() {
   if (!kiPackOn()) return;
   try { await kiApi('/balance?wallet=' + kiWallet()); } catch (e) {}
 }
-async function kiRedeem(token) {
-  const { ok, j } = await kiApi('/redeem', { token, sku: KI_PACK_SKU });
+async function kiRedeem(token, sku) {
+  const { ok, j } = await kiApi('/redeem', { token, sku });
   return ok && j.ok;
 }
 /* Gekaufte, aber noch nicht eingeloeste Pakete nachholen (z. B. Netz weg direkt nach dem Kauf).
@@ -12641,24 +12645,31 @@ async function kiRestore() {
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
-    for (const p of (list || [])) if (p.itemId === KI_PACK_SKU && p.purchaseToken) await kiRedeem(p.purchaseToken).catch(() => {});
+    for (const p of (list || [])) if (KI_PACKS.some(k => k.sku === p.itemId) && p.purchaseToken) await kiRedeem(p.purchaseToken, p.itemId).catch(() => {});
   } catch (e) {}
 }
-async function kiPrice() {
-  if (!hasPlayBilling()) return KI_PACK_FALLBACK_PRICE;
-  try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); const d = await svc.getDetails([KI_PACK_SKU]); return (d && d[0] && fmtPlayPrice(d[0].price)) || KI_PACK_FALLBACK_PRICE; }
-  catch (e) { return KI_PACK_FALLBACK_PRICE; }
+/* Preise beider Pakete auf einmal: { sku: '3,99 €', … } */
+async function kiPrices() {
+  const out = {}; KI_PACKS.forEach(p => { out[p.sku] = p.fallback; });
+  if (!hasPlayBilling()) return out;
+  try {
+    const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
+    const d = await svc.getDetails(KI_PACKS.map(p => p.sku));
+    (d || []).forEach(x => { if (x && x.itemId && x.price) out[x.itemId] = fmtPlayPrice(x.price) || out[x.itemId]; });
+  } catch (e) {}
+  return out;
 }
-async function kiBuy() {
+async function kiBuy(sku) {
+  sku = kiPackBySku(sku).sku;
   const L = pickLang;
   if (!hasPlayBilling()) { toast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
-    const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: KI_PACK_SKU } }],
+    const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku } }],
       { total: { label: 'Ordela KI-Paket', amount: { currency: 'EUR', value: '0' } } });
     const resp = await req.show();
     const token = resp.details && (resp.details.purchaseToken || resp.details.token);
     await resp.complete('success');
-    const ok = token ? await kiRedeem(token).catch(() => false) : false;
+    const ok = token ? await kiRedeem(token, sku).catch(() => false) : false;
     const ov = document.getElementById('kiOv'); if (ov) ov.classList.remove('on');
     toast(ok
       ? L({ de: 'Danke! Du kannst jetzt {n} Briefe erklären lassen ✓', en: 'Thank you! You can now have {n} letters explained ✓', fr: 'Merci ! Tu peux faire expliquer {n} lettres ✓', es: '¡Gracias! Ya puedes pedir que te expliquen {n} cartas ✓', it: 'Grazie! Ora puoi farti spiegare {n} lettere ✓', pl: 'Dziękujemy! Możesz teraz objaśnić {n} pism ✓', tr: 'Teşekkürler! Artık {n} mektubu açıklatabilirsin ✓', uk: 'Дякуємо! Тепер можна пояснити {n} листів ✓' }).replace('{n}', kiCredits())
@@ -12682,16 +12693,16 @@ async function kiPackSheet() {
   if (!kiPackOn()) return;
   let ov = document.getElementById('kiOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'kiOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10002'; document.body.appendChild(ov); }
-  const L = pickLang, price = await kiPrice(), n = kiCredits();
+  const L = pickLang, prices = await kiPrices(), n = kiCredits();
   ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="kiHead" data-noi18n><h3 id="kiHead" style="margin-bottom:6px">' + esc(L({ de: 'Briefe erklären lassen', en: 'Get letters explained', fr: 'Faire expliquer des lettres', es: 'Que te expliquen cartas', it: 'Farsi spiegare le lettere', pl: 'Objaśnianie pism', tr: 'Mektupları açıklat', uk: 'Пояснення листів' })) + '</h3>' +
     '<p class="sub" style="margin-bottom:10px">' + esc(L({ de: 'Foto machen – Ordela erklärt den Brief in einfachen Worten, findet Fristen und schlägt eine Antwort vor.', en: 'Take a photo – Ordela explains the letter in plain words, finds deadlines and suggests a reply.', fr: 'Prends une photo – Ordela explique la lettre simplement, trouve les délais et propose une réponse.', es: 'Haz una foto: Ordela explica la carta con palabras sencillas, encuentra plazos y propone una respuesta.', it: 'Scatta una foto – Ordela spiega la lettera in parole semplici, trova le scadenze e propone una risposta.', pl: 'Zrób zdjęcie – Ordela wyjaśni pismo prostymi słowami, znajdzie terminy i zaproponuje odpowiedź.', tr: 'Fotoğraf çek – Ordela mektubu sade bir dille açıklar, süreleri bulur ve yanıt önerir.', uk: 'Зроби фото – Ordela пояснить лист простими словами, знайде строки й запропонує відповідь.' })) + '</p>' +
-    '<p style="margin-bottom:10px"><b>' + esc(L({ de: '{n} Briefe – {p}, einmalig, kein Abo', en: '{n} letters – {p}, one-off, no subscription', fr: '{n} lettres – {p}, achat unique, sans abonnement', es: '{n} cartas – {p}, pago único, sin suscripción', it: '{n} lettere – {p}, una tantum, nessun abbonamento', pl: '{n} pism – {p}, jednorazowo, bez subskrypcji', tr: '{n} mektup – {p}, tek seferlik, abonelik yok', uk: '{n} листів – {p}, одноразово, без підписки' }).replace('{n}', KI_PACK_SIZE).replace('{p}', price)) + '</b></p>' +
-    '<p class="sub" style="margin-bottom:14px">' + esc(L({ de: 'Noch übrig: {c}. Dein Brief wird nur für die Erklärung an OpenAI übertragen und nicht gespeichert. Mit eigenem OpenAI-Schlüssel (Einstellungen) geht es auch ohne Paket.', en: 'Remaining: {c}. Your letter is sent to OpenAI only for the explanation and is not stored. With your own OpenAI key (Settings) it also works without a pack.', fr: 'Restant : {c}. Ta lettre n’est envoyée à OpenAI que pour l’explication et n’est pas conservée. Avec ta propre clé OpenAI (Réglages), ça marche aussi sans pack.', es: 'Quedan: {c}. Tu carta solo se envía a OpenAI para la explicación y no se guarda. Con tu propia clave de OpenAI (Ajustes) también funciona sin paquete.', it: 'Rimaste: {c}. La lettera viene inviata a OpenAI solo per la spiegazione e non viene salvata. Con la tua chiave OpenAI (Impostazioni) funziona anche senza pacchetto.', pl: 'Pozostało: {c}. Pismo trafia do OpenAI tylko w celu objaśnienia i nie jest zapisywane. Z własnym kluczem OpenAI (Ustawienia) działa też bez pakietu.', tr: 'Kalan: {c}. Mektubun yalnızca açıklama için OpenAI’ye gönderilir ve saklanmaz. Kendi OpenAI anahtarınla (Ayarlar) paket olmadan da çalışır.', uk: 'Залишилось: {c}. Лист передається в OpenAI лише для пояснення й не зберігається. З власним ключем OpenAI (Налаштування) працює й без пакета.' }).replace('{c}', n)) + '</p>' +
+    '<p style="margin-bottom:10px"><b>' + esc(L({ de: 'Einmalig kaufen, kein Abo – nachkaufen, wenn es aufgebraucht ist.', en: 'One-off purchase, no subscription – buy more when it is used up.', fr: 'Achat unique, sans abonnement – rachète quand c’est épuisé.', es: 'Pago único, sin suscripción: vuelve a comprar cuando se agote.', it: 'Acquisto unico, nessun abbonamento – riacquista quando è finito.', pl: 'Jednorazowy zakup, bez subskrypcji – dokup, gdy się skończy.', tr: 'Tek seferlik, abonelik yok – bitince yeniden al.', uk: 'Разова покупка, без підписки – докупи, коли закінчиться.' })) + '</b></p>' +
+    '<p class="sub" style="margin-bottom:14px">' + esc(L({ de: 'Noch übrig: {c}. Ordela speichert deinen Brief nicht; für die Erklärung geht er an OpenAI (kein Training, Löschung spätestens nach 30 Tagen). Mit eigenem OpenAI-Schlüssel (Einstellungen) geht es auch ohne Paket.', en: 'Remaining: {c}. Ordela does not store your letter; for the explanation it is sent to OpenAI (no training, deleted after 30 days at the latest). With your own OpenAI key (Settings) it also works without a pack.', fr: 'Restant : {c}. Ordela ne conserve pas ta lettre ; pour l’explication, elle est envoyée à OpenAI (pas d’entraînement, supprimée au plus tard après 30 jours). Avec ta propre clé OpenAI (Réglages), ça marche aussi sans pack.', es: 'Quedan: {c}. Ordela no guarda tu carta; para la explicación se envía a OpenAI (sin entrenamiento, se borra como máximo a los 30 días). Con tu propia clave de OpenAI (Ajustes) también funciona sin paquete.', it: 'Rimaste: {c}. Ordela non salva la tua lettera; per la spiegazione viene inviata a OpenAI (nessun addestramento, cancellata al più tardi dopo 30 giorni). Con la tua chiave OpenAI (Impostazioni) funziona anche senza pacchetto.', pl: 'Pozostało: {c}. Ordela nie zapisuje Twojego pisma; w celu objaśnienia trafia ono do OpenAI (bez trenowania, usuwane najpóźniej po 30 dniach). Z własnym kluczem OpenAI (Ustawienia) działa też bez pakietu.', tr: 'Kalan: {c}. Ordela mektubunu saklamaz; açıklama için OpenAI’ye gönderilir (eğitimde kullanılmaz, en geç 30 gün sonra silinir). Kendi OpenAI anahtarınla (Ayarlar) paket olmadan da çalışır.', uk: 'Залишилось: {c}. Ordela не зберігає твій лист; для пояснення він передається в OpenAI (без навчання, видаляється не пізніше ніж через 30 днів). З власним ключем OpenAI (Налаштування) працює й без пакета.' }).replace('{c}', n)) + '</p>' +
     '<div class="fam-alert-btns" style="flex-direction:column;gap:8px">' +
-    '<button class="btn btn-primary" id="kiBuyBtn">' + esc(L({ de: 'Paket kaufen – {p}', en: 'Buy pack – {p}', fr: 'Acheter le pack – {p}', es: 'Comprar paquete – {p}', it: 'Acquista pacchetto – {p}', pl: 'Kup pakiet – {p}', tr: 'Paketi satın al – {p}', uk: 'Купити пакет – {p}' }).replace('{p}', price)) + '</button>' +
+    KI_PACKS.map((p, i) => '<button class="btn' + (i === 0 ? ' btn-primary' : '') + '" data-kibuy="' + p.sku + '">' + esc(L({ de: '{n} Briefe – {p}', en: '{n} letters – {p}', fr: '{n} lettres – {p}', es: '{n} cartas – {p}', it: '{n} lettere – {p}', pl: '{n} pism – {p}', tr: '{n} mektup – {p}', uk: '{n} листів – {p}' }).replace('{n}', p.n).replace('{p}', prices[p.sku])) + '</button>').join('') +
     '<button class="btn btn-sm btn-ghost" id="kiLaterBtn">' + esc(L({ de: 'Jetzt nicht', en: 'Not now', fr: 'Pas maintenant', es: 'Ahora no', it: 'Non ora', pl: 'Nie teraz', tr: 'Şimdi değil', uk: 'Не зараз' })) + '</button></div></div>';
   ov.classList.add('on');
-  ov.querySelector('#kiBuyBtn').onclick = kiBuy;
+  ov.querySelectorAll('[data-kibuy]').forEach(b => { b.onclick = () => kiBuy(b.dataset.kibuy); });
   ov.querySelector('#kiLaterBtn').onclick = () => ov.classList.remove('on');
 }
 /* Kasten in den Einstellungen: Guthaben + Kaufknopf. */

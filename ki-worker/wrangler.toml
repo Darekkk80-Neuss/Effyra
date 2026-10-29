@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 PACKAGE_NAME = "app.effyra.twa"
 ALLOWED_ORIGINS = "https://darekkk80-neuss.github.io"
 # Produkt-Id in der Play Console -> Anzahl Briefe
-SKU_CREDITS = '{"ordela_ki_25":25}'
+SKU_CREDITS = '{"ordela_ki_25":25,"ordela_ki_50":50}'
 MODEL = "gpt-5-mini"
 
 [[d1_databases]]
