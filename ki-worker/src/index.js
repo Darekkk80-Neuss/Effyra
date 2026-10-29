@@ -97,6 +97,8 @@ async function redeem(env, w, sku, token) {
   const base ='https://androidpublisher.googleapis.com/androidpublisher/v3/applications/' +
     encodeURIComponent(env.PACKAGE_NAME) + '/purchases/products/' + encodeURIComponent(sku) + '/tokens/' + encodeURIComponent(token);
   const r = await fetch(base, { headers: { authorization: 'Bearer ' + at } });
+  // 401/403 = Dienstkonto (noch) ohne Rechte in der Play Console – von „Kauf unbekannt" trennen.
+  if (r.status === 401 || r.status === 403) throw new Fail('google_permission', 503);
   if (!r.ok) throw new Fail('purchase_not_found', 402);
   const p = await r.json();
   if (p.purchaseState !== 0) throw new Fail('purchase_not_completed', 402);   // 0 = gekauft, 1 = storniert, 2 = ausstehend
