@@ -6119,6 +6119,7 @@ function showView(name) {
   if (isKidMode() && KID_ALLOWED.indexOf(name) < 0) { toast('Im Kindermodus nicht verfügbar.'); if (currentView !== 'dashboard') showView('dashboard'); return; }
   /* Modul für die aktuelle Stufe gesperrt? → Upgrade-Ansicht statt Modul */
   if (account && account.loggedIn && !isTrialExpired() && !moduleAllowed(name)) { showUpgrade(name); return; }
+  if (PLUS_MODULES[name] && !plusActive()) { plusSheet(); return; }   // Ordela Plus: Arbeitszeit, Fahrzeuge
   if (currentView === 'fit' && name !== 'fit' && typeof fitSession !== 'undefined' && fitSession) { try { fitStop(true); } catch (e) {} }   // Einheit beim Verlassen sichern + Sensoren stoppen
   if (!_navBack && currentView && currentView !== name) viewHistory.push(currentView);   // Verlauf für „Zurück"
   currentView = name;
@@ -10533,6 +10534,7 @@ $('#dgRoot').addEventListener('click', e => {
   const el = e.target.closest('[data-dg]'); if (!el) return;
   const act = el.dataset.dg;
   if (act === 'fav') { e.stopPropagation(); const id = el.dataset.id, i = store.docFavs.indexOf(id); i < 0 ? store.docFavs.push(id) : store.docFavs.splice(i, 1); save(); RENDERERS.docgen(); return; }
+  if (act === 'open' && !plusActive() && PLUS_FREE_TPL.indexOf(el.dataset.id) < 0) { plusSheet(); return; }   // Ordela Plus: alle Vorlagen
   if (act === 'open' || act === 'free') { dgActiveId = act === 'free' ? 'frei' : el.dataset.id; dgValues = {}; dgOverrideBody = null; dgSign = true; dgKuendArt = null; dgKuendConfirmed = false; dgProfileOpen = !profileComplete(); dgState = 'form'; RENDERERS.docgen(); return; }
   if (act === 'back') { dgState = 'browse'; RENDERERS.docgen(); return; }
   if (act === 'toform') { dgState = 'form'; RENDERERS.docgen(); return; }
@@ -12119,6 +12121,116 @@ const PLAY_PRODUCTS = {
   byokMonthly:  { id: 'effyra_byok_monthly',  type: 'subs',  kind: 'byok_monthly',  label: 'Eigener KI-Schlüssel (Monat)', price: '1,99 €/Mon.' },
   byokLifetime: { id: 'effyra_byok_lifetime', type: 'inapp', kind: 'byok_lifetime', label: 'Eigener KI-Schlüssel (dauerhaft)', price: '24,99 €' }
 };
+/* ============================== ORDELA PLUS ==============================
+   Offline-Monetarisierung: EIN Einmalkauf über Google Play, kein Abo, kein Server.
+   Alles Wichtige bleibt kostenlos (Fristen, Erinnerungen, Notfall, Vorrat, Backup,
+   KI mit eigenem Schlüssel). Plus schaltet Komfort frei: alle Musterbriefe,
+   unbegrenztes Dokumentenarchiv, weitere Familienprofile, Arbeitszeit, Fahrzeuge.
+   - Testphase: 14 Tage ab dem ersten Start mit Plus-Code (nichts wird abgebucht).
+   - Bestandsnutzer (Profil oder Daten schon vor dem Plus-Start): Plus geschenkt.
+   - Kauf wird lokal gemerkt und beim Start über listPurchases() wiederhergestellt.
+   PLUS_ENABLED erst einschalten, wenn das App-Update mit Billing 8 und das
+   Produkt „ordela_plus" (Einmalkauf) in der Play Console live sind. */
+const PLUS_ENABLED = false;
+const PLUS_SKU = 'ordela_plus';
+const PLUS_KEY = 'ordela_plus';
+const PLUS_TRIAL_DAYS = 14;
+const PLUS_FREE_TPL = ['miet-kuend', 'handy-kuend', 'umzug', 'adress-behoerde', 'aenderungsmitteilung', 'frei'];
+const PLUS_FREE_DOCS = 20;
+const PLUS_MODULES = { work: 1, vehicles: 1 };
+const PLUS_FALLBACK_PRICE = '9,99 €';
+function plusState() {
+  if (!PLUS_ENABLED || !OFFLINE_ONLY) return { active: true, why: 'off' };
+  try { if (localStorage.getItem(PLUS_KEY) === 'bought') return { active: true, why: 'bought' }; } catch (e) {}
+  if (store.plus && store.plus.legacy) return { active: true, why: 'legacy' };
+  const start = (store.plus && store.plus.trialStart) || Date.now();
+  const left = Math.ceil((start + PLUS_TRIAL_DAYS * 864e5 - Date.now()) / 864e5);
+  return left > 0 ? { active: true, why: 'trial', left } : { active: false, why: 'free' };
+}
+const plusActive = () => plusState().active;
+/* Einmalig beim ersten Start mit Plus: Bestandsnutzer erkennen und die Testphase starten. */
+function plusInit() {
+  if (!PLUS_ENABLED || !OFFLINE_ONLY || (store.plus && store.plus.trialStart)) return;
+  const hatDaten = (store.tasks || []).length || (store.events || []).length || (store.docs || []).length || (store.emergency && (store.emergency.contacts || []).length);
+  const altesProfil = account && account.createdAt && account.createdAt < Date.now() - 10 * 60e3;
+  store.plus = { trialStart: Date.now(), legacy: !!(hatDaten || altesProfil) };
+  save();
+}
+async function plusRestore(silent) {
+  if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) toast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
+  try {
+    const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
+    const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
+    const found = (list || []).some(p => p.itemId === PLUS_SKU);
+    if (found) { try { localStorage.setItem(PLUS_KEY, 'bought'); } catch (e) {} }
+    if (!silent) toast(found
+      ? pickLang({ de: 'Ordela Plus wiederhergestellt ✓', en: 'Ordela Plus restored ✓', fr: 'Ordela Plus restauré ✓', es: 'Ordela Plus restaurado ✓', it: 'Ordela Plus ripristinato ✓', pl: 'Ordela Plus przywrócone ✓', tr: 'Ordela Plus geri yüklendi ✓', uk: 'Ordela Plus відновлено ✓' })
+      : pickLang({ de: 'Kein Kauf gefunden.', en: 'No purchase found.', fr: 'Aucun achat trouvé.', es: 'No se encontró ninguna compra.', it: 'Nessun acquisto trovato.', pl: 'Nie znaleziono zakupu.', tr: 'Satın alma bulunamadı.', uk: 'Покупку не знайдено.' }));
+    if (found) { refresh(); if (currentView === 'settings') RENDERERS.settings(); }
+    return found;
+  } catch (e) { return false; }
+}
+async function plusBuy() {
+  if (!hasPlayBilling()) { toast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
+  try {
+    const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: PLUS_SKU } }],
+      { total: { label: 'Ordela Plus', amount: { currency: 'EUR', value: '0' } } });
+    const resp = await req.show();
+    await resp.complete('success');
+    /* Ältere Digital-Goods-Versionen kennen acknowledge() noch – dann ausdrücklich bestätigen,
+       sonst erstattet Google einen unbestätigten Kauf nach 3 Tagen. */
+    try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); if (svc && typeof svc.acknowledge === 'function' && resp.details && resp.details.token) await svc.acknowledge(resp.details.token, 'onetime'); } catch (e) {}
+    try { localStorage.setItem(PLUS_KEY, 'bought'); } catch (e) {}
+    const ov = document.getElementById('plusOv'); if (ov) ov.classList.remove('on');
+    toast(pickLang({ de: 'Danke! Ordela Plus ist aktiv ✓', en: 'Thank you! Ordela Plus is active ✓', fr: 'Merci ! Ordela Plus est actif ✓', es: '¡Gracias! Ordela Plus está activo ✓', it: 'Grazie! Ordela Plus è attivo ✓', pl: 'Dziękujemy! Ordela Plus jest aktywne ✓', tr: 'Teşekkürler! Ordela Plus etkin ✓', uk: 'Дякуємо! Ordela Plus активовано ✓' }));
+    refresh(); if (currentView === 'settings') RENDERERS.settings();
+  } catch (e) {
+    toast(e && e.name === 'AbortError'
+      ? pickLang({ de: 'Kauf abgebrochen.', en: 'Purchase cancelled.', fr: 'Achat annulé.', es: 'Compra cancelada.', it: 'Acquisto annullato.', pl: 'Zakup anulowany.', tr: 'Satın alma iptal edildi.', uk: 'Покупку скасовано.' })
+      : pickLang({ de: 'Kauf nicht möglich – bitte später erneut versuchen.', en: 'Purchase not possible – please try again later.', fr: 'Achat impossible – réessaie plus tard.', es: 'No se pudo comprar; inténtalo más tarde.', it: 'Acquisto non riuscito – riprova più tardi.', pl: 'Zakup niemożliwy – spróbuj później.', tr: 'Satın alınamadı – lütfen daha sonra tekrar dene.', uk: 'Покупка неможлива – спробуйте пізніше.' }));
+  }
+}
+async function plusPrice() {
+  if (!hasPlayBilling()) return PLUS_FALLBACK_PRICE;
+  try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); const d = await svc.getDetails([PLUS_SKU]); return (d && d[0] && fmtPlayPrice(d[0].price)) || PLUS_FALLBACK_PRICE; }
+  catch (e) { return PLUS_FALLBACK_PRICE; }
+}
+/* Info-Fenster: was Plus bringt, ehrlich und ohne Druck. */
+async function plusSheet() {
+  let ov = document.getElementById('plusOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'plusOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10002'; document.body.appendChild(ov); }
+  const L = pickLang, price = await plusPrice();
+  const pts = [
+    L({ de: 'Alle 35+ Musterbriefe', en: 'All 35+ letter templates', fr: 'Plus de 35 modèles de lettres', es: 'Los más de 35 modelos de carta', it: 'Tutti gli oltre 35 modelli di lettera', pl: 'Wszystkie ponad 35 wzorów pism', tr: '35’ten fazla mektup şablonunun tamamı', uk: 'Усі понад 35 зразків листів' }),
+    L({ de: 'Unbegrenztes Dokumentenarchiv', en: 'Unlimited document archive', fr: 'Archive de documents illimitée', es: 'Archivo de documentos ilimitado', it: 'Archivio documenti illimitato', pl: 'Nieograniczone archiwum dokumentów', tr: 'Sınırsız belge arşivi', uk: 'Необмежений архів документів' }),
+    L({ de: 'Familienprofile', en: 'Family profiles', fr: 'Profils famille', es: 'Perfiles familiares', it: 'Profili famiglia', pl: 'Profile rodzinne', tr: 'Aile profilleri', uk: 'Сімейні профілі' }),
+    L({ de: 'Arbeitszeit und Fahrzeuge', en: 'Working hours and vehicles', fr: 'Temps de travail et véhicules', es: 'Horario laboral y vehículos', it: 'Orario di lavoro e veicoli', pl: 'Czas pracy i pojazdy', tr: 'Çalışma saatleri ve araçlar', uk: 'Робочий час і транспорт' })
+  ];
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="plusHead" data-noi18n><h3 id="plusHead" style="margin-bottom:6px">Ordela Plus</h3>' +
+    '<p class="sub" style="margin-bottom:10px">' + esc(L({ de: 'Einmal zahlen, für immer behalten – kein Abo.', en: 'Pay once, keep it forever – no subscription.', fr: 'Paie une fois, garde-le pour toujours – sans abonnement.', es: 'Paga una vez y quédatelo para siempre, sin suscripción.', it: 'Paghi una volta, tuo per sempre – nessun abbonamento.', pl: 'Płacisz raz, masz na zawsze – bez subskrypcji.', tr: 'Bir kez öde, sonsuza kadar kullan – abonelik yok.', uk: 'Платиш один раз – назавжди, без підписки.' })) + '</p>' +
+    '<ul style="margin:0 0 12px 18px">' + pts.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul>' +
+    '<p class="sub" style="margin-bottom:14px">' + esc(L({ de: 'Fristen, Erinnerungen, Notfall, Vorrat, Sicherung und KI mit eigenem Schlüssel bleiben immer kostenlos.', en: 'Deadlines, reminders, emergency, supplies, backup and AI with your own key always stay free.', fr: 'Délais, rappels, urgences, réserves, sauvegarde et IA avec ta clé restent toujours gratuits.', es: 'Plazos, recordatorios, emergencias, reservas, copia de seguridad e IA con tu clave siguen siendo gratis.', it: 'Scadenze, promemoria, emergenze, scorte, backup e IA con la tua chiave restano sempre gratis.', pl: 'Terminy, przypomnienia, sytuacje awaryjne, zapasy, kopia i AI z własnym kluczem zawsze za darmo.', tr: 'Süreler, hatırlatmalar, acil durum, stok, yedekleme ve kendi anahtarınla yapay zekâ her zaman ücretsiz.', uk: 'Строки, нагадування, екстрені дані, запаси, резервна копія та ШІ з власним ключем – завжди безкоштовно.' })) + '</p>' +
+    '<div class="fam-alert-btns" style="flex-direction:column;gap:8px">' +
+    '<button class="btn btn-primary" id="plusBuyBtn">' + esc(L({ de: 'Ordela Plus kaufen – {p}', en: 'Buy Ordela Plus – {p}', fr: 'Acheter Ordela Plus – {p}', es: 'Comprar Ordela Plus – {p}', it: 'Acquista Ordela Plus – {p}', pl: 'Kup Ordela Plus – {p}', tr: 'Ordela Plus satın al – {p}', uk: 'Купити Ordela Plus – {p}' }).replace('{p}', price)) + '</button>' +
+    '<button class="btn btn-sm" id="plusRestoreBtn">' + esc(L({ de: 'Kauf wiederherstellen', en: 'Restore purchase', fr: 'Restaurer l’achat', es: 'Restaurar compra', it: 'Ripristina acquisto', pl: 'Przywróć zakup', tr: 'Satın almayı geri yükle', uk: 'Відновити покупку' })) + '</button>' +
+    '<button class="btn btn-sm btn-ghost" id="plusLaterBtn">' + esc(L({ de: 'Jetzt nicht', en: 'Not now', fr: 'Pas maintenant', es: 'Ahora no', it: 'Non ora', pl: 'Nie teraz', tr: 'Şimdi değil', uk: 'Не зараз' })) + '</button></div></div>';
+  ov.classList.add('on');
+  ov.querySelector('#plusBuyBtn').onclick = plusBuy;
+  ov.querySelector('#plusRestoreBtn').onclick = async () => { if (await plusRestore(false)) ov.classList.remove('on'); };
+  ov.querySelector('#plusLaterBtn').onclick = () => ov.classList.remove('on');
+}
+/* Statuszeile + Knöpfe für die Einstellungen (nur wenn Plus eingeschaltet ist). */
+function plusCardHTML() {
+  if (!PLUS_ENABLED || !OFFLINE_ONLY) return '';
+  const L = pickLang, st = plusState();
+  const txt = st.why === 'bought' ? L({ de: 'Ordela Plus aktiv – danke!', en: 'Ordela Plus active – thank you!', fr: 'Ordela Plus actif – merci !', es: 'Ordela Plus activo, ¡gracias!', it: 'Ordela Plus attivo – grazie!', pl: 'Ordela Plus aktywne – dziękujemy!', tr: 'Ordela Plus etkin – teşekkürler!', uk: 'Ordela Plus активний – дякуємо!' })
+    : st.why === 'legacy' ? L({ de: 'Ordela Plus – als Dankeschön für Bestandsnutzer geschenkt.', en: 'Ordela Plus – a free gift for existing users.', fr: 'Ordela Plus – offert aux utilisateurs existants.', es: 'Ordela Plus: regalo para usuarios existentes.', it: 'Ordela Plus – in regalo per gli utenti esistenti.', pl: 'Ordela Plus – prezent dla dotychczasowych użytkowników.', tr: 'Ordela Plus – mevcut kullanıcılara hediye.', uk: 'Ordela Plus – подарунок для наявних користувачів.' })
+    : st.why === 'trial' ? L({ de: 'Ordela Plus gratis testen: noch {d} Tage. Danach wird nichts abgebucht.', en: 'Try Ordela Plus free: {d} days left. Nothing is charged afterwards.', fr: 'Essai gratuit d’Ordela Plus : encore {d} jours. Rien n’est débité ensuite.', es: 'Prueba gratis de Ordela Plus: quedan {d} días. Después no se cobra nada.', it: 'Prova gratuita di Ordela Plus: ancora {d} giorni. Poi non viene addebitato nulla.', pl: 'Darmowy test Ordela Plus: zostało {d} dni. Potem nic nie zostanie pobrane.', tr: 'Ordela Plus ücretsiz deneme: {d} gün kaldı. Sonrasında ücret alınmaz.', uk: 'Безкоштовна спроба Ordela Plus: залишилось {d} дн. Потім нічого не списується.' }).replace('{d}', st.left)
+    : L({ de: 'Kostenlose Version. Ordela Plus schaltet Komfortfunktionen frei – einmalig, kein Abo.', en: 'Free version. Ordela Plus unlocks convenience features – one-off, no subscription.', fr: 'Version gratuite. Ordela Plus débloque des fonctions pratiques – achat unique, sans abonnement.', es: 'Versión gratuita. Ordela Plus desbloquea funciones extra: pago único, sin suscripción.', it: 'Versione gratuita. Ordela Plus sblocca funzioni comode – una tantum, nessun abbonamento.', pl: 'Wersja darmowa. Ordela Plus odblokowuje dodatkowe funkcje – jednorazowo, bez subskrypcji.', tr: 'Ücretsiz sürüm. Ordela Plus ek özellikleri açar – tek seferlik, abonelik yok.', uk: 'Безкоштовна версія. Ordela Plus відкриває зручні функції – одноразово, без підписки.' });
+  const btn = (st.why === 'bought' || st.why === 'legacy') ? '' : '<button class="btn btn-sm btn-primary" id="btnPlusInfo" style="margin-top:8px">Ordela Plus</button>';
+  return '<div class="note-box" style="margin-bottom:12px" data-noi18n><b>Ordela Plus</b><div class="sub" style="margin-top:4px">' + esc(txt) + '</div>' + btn + '</div>';
+}
+if (PLUS_ENABLED) setTimeout(() => { try { plusInit(); plusRestore(true); } catch (e) {} }, 2500);
 /* ---- Echte Preise aus Google Play holen ----
    Die Preise in PLAY_PRODUCTS/ADDON_PRODUCTS sind nur Rückfallwerte für den
    Browser. In der Play-App gilt der Preis, den Google für das Land des Nutzers
@@ -13654,6 +13766,7 @@ $('#famRoot').addEventListener('click', e => {
   const b = e.target.closest('[data-fam]'); if (!b) return;
   const a = b.dataset.fam, q = s => $('#famRoot ' + s);
   if (a === 'addMem') {
+    if (!plusActive() && store.family.members.length >= 1) { plusSheet(); return; }   // Ordela Plus: weitere Familienprofile
     const name = q('#famName').value.trim(); if (!name) { q('#famName').focus(); return; }
     const type = q('#famType').value, bday = q('#famBday').value || '', age = ageFrom(bday);
     if (type === 'child' && age != null && age >= 18) { toast('Ein Kinderkonto ist nur für unter 18-Jährige.'); return; }
@@ -16718,6 +16831,7 @@ const ANALYZE_STEPS = ['Lese Dokument …', 'Erkenne Absender und Betreff …', 
 
 async function handleDocFile(file) {
   if (!file || !file.type.startsWith('image/')) { toast('Bitte ein Foto auswählen'); return; }
+  if (!plusActive() && (store.docs || []).length >= PLUS_FREE_DOCS) { plusSheet(); return; }   // Ordela Plus: unbegrenztes Archiv
   /* Die Demo ist NUR der richtige Rueckfall, wenn das Kontingent erschoepft ist
      (Testphase vorbei oder Credits leer). Fehlt dagegen bloss die
      KI-Einwilligung oder die Anmeldung, wird das jetzt nachgefragt statt
@@ -19089,6 +19203,7 @@ async function showPersistState() {
 }
 function wireBackupCard() {
   showPersistState();
+  const pb = $('#btnPlusInfo'); if (pb) pb.addEventListener('click', plusSheet);
   const sv = $('#btnBackupSave'); if (sv) sv.addEventListener('click', saveBackup);
   const ld = $('#btnBackupLoad'), fi = $('#backupFile');
   if (ld && fi) {
@@ -19138,7 +19253,7 @@ function renderAccountCard() {
 
   if (tier !== 'premium' && !STORE_SAFE) html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">Plan ansehen / upgraden</button>';
 
-  if (OFFLINE_ONLY) html += backupCardHTML();
+  if (OFFLINE_ONLY) html += plusCardHTML() + backupCardHTML();
   else html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
     '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
     '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>';
