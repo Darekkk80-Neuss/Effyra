@@ -22,7 +22,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: app.ordela.ios
       node: 22
-      xcode: latest
+      xcode: 26.6
     scripts:
       - name: Web-App pruefen (index.html passt zur Quelle)
         script: |

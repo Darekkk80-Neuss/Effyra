@@ -108,7 +108,14 @@ Erst dann kennt der Live-Worker die iOS-App.
    eingetragen (Name **`RIVELLO_ASC`**). Teamschlüssel gelten für alle Apps des Kontos – Ordela
    nutzt ihn mit, `codemagic.yaml` verweist genau auf diesen Namen. Nur falls er fehlt:
    **Add key** → Name `RIVELLO_ASC`, Issuer ID, Key ID und `.p8`-Datei aus **A5**.
-3. Fertig – Zertifikat und Bereitstellungsprofil erzeugt Codemagic automatisch.
+3. **Bereitstellungsprofil** (einmalig): developer.apple.com → Profiles → **+** → *App Store Connect* →
+   App-ID `app.ordela.ios` → das vorhandene Vertriebszertifikat → Name `Ordela App Store` → Generate.
+   Dann in Codemagic **Settings → Code signing identities → iOS provisioning profiles → Fetch profiles**
+   → „Ordela App Store“ anhaken, Referenzname `ordela_appstore` → *Download selected*.
+   Das Vertriebszertifikat (`rivello_dist`) liegt dort schon und gilt für beide Apps.
+4. **Repository:** Das Codemagic-GitHub-Konto sieht nur RIVELLO. Ordela ist deshalb über
+   *Add application → Other → `https://github.com/Darekkk80-Neuss/Effyra.git` → Public repository*
+   eingebunden (App-Name in Codemagic: „Effyra“). Builds startet man per **Start new build**.
 
 ## Teil D – App bauen und zu TestFlight schicken
 
