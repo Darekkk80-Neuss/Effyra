@@ -3,6 +3,7 @@
    - POST /redeem   Google-Play-Kauf pruefen, verbrauchen, Guthaben gutschreiben
    - GET  /balance  Guthaben einer Geldboerse abfragen
    - POST /explain  Brief an OpenAI weiterreichen, 1 Brief abziehen
+   - POST /ics      Kalender-Abo: ICS-Link abrufen und durchreichen (CORS)
    Es gibt keine Konten: die App erzeugt eine zufaellige Geldboersen-Id
    (128 Bit) und schickt sie mit. Gespeichert werden nur Id + Guthaben und die
    bereits eingeloesten Kauf-Tokens – KEINE Briefe, keine Antworten.
@@ -48,6 +49,10 @@ export default {
         const w = wallet(b.wallet);
         if (!w || !Array.isArray(b.messages)) return json({ error: 'bad_request' }, 400);
         return await explain(env, w, b, json);
+      }
+      if (url.pathname === '/ics' && req.method === 'POST') {
+        const b = await body(req);
+        return json(await fetchIcs(b.url));
       }
       return json({ error: 'not_found' }, 404);
     } catch (e) {
@@ -148,6 +153,31 @@ async function googleToken(env) {
 function b64url(bytes) {
   let s = ''; for (const b of bytes) s += String.fromCharCode(b);
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/* ---------- Kalender-Abo (ICS-Link) ----------
+   Google & Co. senden keine CORS-Header – eine Web-App kann den Link nicht
+   selbst laden. Der Worker reicht den Kalender nur durch: nichts wird
+   gespeichert oder protokolliert. Nur https, keine IP-Adressen/localhost,
+   hoechstens 4 MB, und es muss wirklich ein iCalendar sein. */
+const ICS_MAX = 4 * 1024 * 1024;
+async function fetchIcs(raw) {
+  let u;
+  try { u = new URL(String(raw || '').trim().replace(/^webcal:/i, 'https:')); } catch (e) { throw new Fail('bad_url', 400); }
+  if (u.protocol !== 'https:') throw new Fail('bad_url', 400);
+  const h = u.hostname.toLowerCase();
+  if (h === 'localhost' || h.endsWith('.local') || h.endsWith('.internal') || /^[\d.]+$/.test(h) || h.includes(':')) throw new Fail('bad_url', 400);
+  let r;
+  try { r = await fetch(u.toString(), { headers: { accept: 'text/calendar, */*' }, redirect: 'follow', signal: AbortSignal.timeout(12000) }); }
+  catch (e) { throw new Fail('ics_unreachable', 502); }
+  if (r.status === 404 || r.status === 401 || r.status === 403) throw new Fail('ics_not_found', 404);
+  if (!r.ok) throw new Fail('ics_unreachable', 502);
+  const len = +r.headers.get('content-length') || 0;
+  if (len > ICS_MAX) throw new Fail('ics_too_large', 413);
+  const txt = await r.text();
+  if (txt.length > ICS_MAX) throw new Fail('ics_too_large', 413);
+  if (!/BEGIN:VCALENDAR/i.test(txt.slice(0, 2000))) throw new Fail('not_ics', 422);
+  return { ok: true, ics: txt };
 }
 
 /* ---------- Brief erklaeren ---------- */
