@@ -9897,7 +9897,7 @@ async function calSubSync(sub) {
   }
 }
 function calSubSyncDue(force) {
-  if (document.hidden && !force) return;
+  if ((document.hidden && !force) || !plusActive()) return;
   calSubs().forEach(s => { if (force || !s.last || Date.now() - s.last > CAL_SUB_EVERY) calSubSync(s); });
 }
 setTimeout(() => { try { calSubSyncDue(); } catch (e) {} }, 3500);
@@ -9915,7 +9915,7 @@ function calSubCardHTML() {
       '<button class="btn btn-sm" data-calsub="sync" data-id="' + s.id + '" aria-label="' + esc(L({ de: 'Jetzt aktualisieren', en: 'Update now', fr: 'Mettre à jour', es: 'Actualizar ahora', it: 'Aggiorna ora', pl: 'Aktualizuj teraz', tr: 'Şimdi güncelle', uk: 'Оновити зараз' }) + ': ' + s.name) + '">↻</button>' +
       '<button class="t-del" data-calsub="del" data-id="' + s.id + '" aria-label="' + esc(L({ de: 'Abo entfernen', en: 'Remove subscription', fr: 'Supprimer l’abonnement', es: 'Quitar suscripción', it: 'Rimuovi iscrizione', pl: 'Usuń subskrypcję', tr: 'Aboneliği kaldır', uk: 'Видалити підписку' }) + ': ' + s.name) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icTrash"/></svg></button></div>';
   });
-  h += '<button class="btn btn-sm btn-primary" data-calsub="add" style="margin-top:4px">+ ' + esc(L({ de: 'Kalender abonnieren', en: 'Subscribe to calendar', fr: 'S’abonner à un calendrier', es: 'Suscribirse a un calendario', it: 'Iscriviti a un calendario', pl: 'Subskrybuj kalendarz', tr: 'Takvime abone ol', uk: 'Підписатися на календар' })) + '</button></div>';
+  h += '<button class="btn btn-sm btn-primary" data-calsub="add" style="margin-top:4px">+ ' + esc(L({ de: 'Kalender abonnieren', en: 'Subscribe to calendar', fr: 'S’abonner à un calendrier', es: 'Suscribirse a un calendario', it: 'Iscriviti a un calendario', pl: 'Subskrybuj kalendarz', tr: 'Takvime abone ol', uk: 'Підписатися на календар' })) + (plusActive() ? '' : ' · Plus') + '</button></div>';
   return h;
 }
 function calSubAddSheet() {
@@ -9967,7 +9967,7 @@ function calSubAddSheet() {
 document.addEventListener('click', (ev) => {
   const b = ev.target.closest('[data-calsub]'); if (!b) return;
   const a = b.dataset.calsub, sub = calSubs().find(s => s.id === b.dataset.id);
-  if (a === 'add') { calSubAddSheet(); return; }
+  if (a === 'add') { if (!plusActive()) { plusSheet(); return; } calSubAddSheet(); return; }   // Kalender-Abos gehören zu Ordela Plus
   if (a === 'sync' && sub) { sub.last = 0; calSubSync(sub); toast(pickLang({ de: 'Wird aktualisiert …', en: 'Updating …', fr: 'Mise à jour …', es: 'Actualizando …', it: 'Aggiornamento …', pl: 'Aktualizowanie …', tr: 'Güncelleniyor …', uk: 'Оновлення …' })); return; }
   if (a === 'del' && sub) {
     store.calSubs = calSubs().filter(s => s !== sub); _calSubIdx = null; save(); RENDERERS.calendar();
@@ -12545,7 +12545,8 @@ async function plusSheet() {
     L({ de: 'Alle 35+ Musterbriefe', en: 'All 35+ letter templates', fr: 'Plus de 35 modèles de lettres', es: 'Los más de 35 modelos de carta', it: 'Tutti gli oltre 35 modelli di lettera', pl: 'Wszystkie ponad 35 wzorów pism', tr: '35’ten fazla mektup şablonunun tamamı', uk: 'Усі понад 35 зразків листів' }),
     L({ de: 'Unbegrenztes Dokumentenarchiv', en: 'Unlimited document archive', fr: 'Archive de documents illimitée', es: 'Archivo de documentos ilimitado', it: 'Archivio documenti illimitato', pl: 'Nieograniczone archiwum dokumentów', tr: 'Sınırsız belge arşivi', uk: 'Необмежений архів документів' }),
     L({ de: 'Familienprofile', en: 'Family profiles', fr: 'Profils famille', es: 'Perfiles familiares', it: 'Profili famiglia', pl: 'Profile rodzinne', tr: 'Aile profilleri', uk: 'Сімейні профілі' }),
-    L({ de: 'Arbeitszeit und Fahrzeuge', en: 'Working hours and vehicles', fr: 'Temps de travail et véhicules', es: 'Horario laboral y vehículos', it: 'Orario di lavoro e veicoli', pl: 'Czas pracy i pojazdy', tr: 'Çalışma saatleri ve araçlar', uk: 'Робочий час і транспорт' })
+    L({ de: 'Arbeitszeit und Fahrzeuge', en: 'Working hours and vehicles', fr: 'Temps de travail et véhicules', es: 'Horario laboral y vehículos', it: 'Orario di lavoro e veicoli', pl: 'Czas pracy i pojazdy', tr: 'Çalışma saatleri ve araçlar', uk: 'Робочий час і транспорт' }),
+    L({ de: 'Kalender-Abos (z. B. Google Kalender, automatisch aktuell)', en: 'Calendar subscriptions (e.g. Google Calendar, updated automatically)', fr: 'Abonnements de calendrier (p. ex. Google Agenda, mis à jour automatiquement)', es: 'Suscripciones de calendario (p. ej. Google Calendar, se actualizan solas)', it: 'Iscrizioni ai calendari (es. Google Calendar, aggiornate automaticamente)', pl: 'Subskrypcje kalendarzy (np. Kalendarz Google, aktualizowane automatycznie)', tr: 'Takvim abonelikleri (ör. Google Takvim, otomatik güncel)', uk: 'Підписки на календарі (напр. Google Календар, оновлюються автоматично)' })
   ];
   ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="plusHead" data-noi18n><h3 id="plusHead" style="margin-bottom:6px">Ordela Plus</h3>' +
     '<p class="sub" style="margin-bottom:10px">' + esc(L({ de: 'Einmal zahlen, für immer behalten – kein Abo.', en: 'Pay once, keep it forever – no subscription.', fr: 'Paie une fois, garde-le pour toujours – sans abonnement.', es: 'Paga una vez y quédatelo para siempre, sin suscripción.', it: 'Paghi una volta, tuo per sempre – nessun abbonamento.', pl: 'Płacisz raz, masz na zawsze – bez subskrypcji.', tr: 'Bir kez öde, sonsuza kadar kullan – abonelik yok.', uk: 'Платиш один раз – назавжди, без підписки.' })) + '</p>' +
