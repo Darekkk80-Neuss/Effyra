@@ -1,0 +1,24 @@
+{
+  "appId": "app.ordela.ios",
+  "appName": "Ordela",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "limitsNavigationsToAppBoundDomains": false,
+    "preferredContentMode": "mobile"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "backgroundColor": "#E5F1E8",
+      "showSpinner": false
+    },
+    "LocalNotifications": {
+      "presentationOptions": [
+        "banner",
+        "sound",
+        "list"
+      ]
+    }
+  }
+}

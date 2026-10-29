@@ -1,0 +1,11 @@
+node_modules/
+www/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/App/build/
+ios/App/DerivedData/
+ios/App/Pods/
+ios/DerivedData/
+xcuserdata/
+*.ipa

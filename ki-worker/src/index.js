@@ -5,6 +5,10 @@
    - POST /explain  Brief an OpenAI weiterreichen, 1 Brief abziehen
    - POST /ics      Kalender-Abo: ICS-Link abrufen und durchreichen (CORS)
    - POST /ack      Ordela-Plus-Kauf bei Google bestaetigen (Absicherung gegen Auto-Erstattung)
+                    bzw. bei Apple pruefen (platform: 'apple')
+   iOS-App: /redeem und /ack nehmen auch { platform: 'apple', transactionId, sku }.
+   Der Worker fragt die Transaktion bei Apple ab (App Store Server API) – erst
+   Produktion, bei "unbekannt" die Sandbox (TestFlight/Test-Kaeufe).
    Es gibt keine Konten: die App erzeugt eine zufaellige Geldboersen-Id
    (128 Bit) und schickt sie mit. Gespeichert werden nur Id + Guthaben und die
    bereits eingeloesten Kauf-Tokens – KEINE Briefe, keine Antworten.
@@ -12,7 +16,11 @@
    Geheimnisse (wrangler secret put …, nie ins Repo):
      OPENAI_API_KEY   Server-Schluessel fuer OpenAI
      GOOGLE_SA_JSON   JSON des Play-Dienstkontos (Kaufpruefung)
-   Variablen (wrangler.toml): PACKAGE_NAME, ALLOWED_ORIGINS, SKU_CREDITS, MODEL */
+     APPLE_IAP_KEY    Inhalt der .p8-Datei ("In-App-Kauf"-Schluessel aus App Store Connect)
+     APPLE_KEY_ID     Schluessel-ID dazu (10 Zeichen)
+     APPLE_ISSUER_ID  Aussteller-ID (UUID, App Store Connect → Benutzer und Zugriff → Integrationen)
+   Variablen (wrangler.toml): PACKAGE_NAME, ALLOWED_ORIGINS, SKU_CREDITS, MODEL,
+     APPLE_BUNDLE_ID, APPLE_SANDBOX ("1" = Sandbox-Kaeufe annehmen, fuer TestFlight) */
 
 const MAX_BODY = 8 * 1024 * 1024;        // ein verkleinertes Foto ist ~0,5–2 MB
 const MAX_TOKENS = 3000;
@@ -42,6 +50,10 @@ export default {
       if (url.pathname === '/redeem' && req.method === 'POST') {
         const b = await body(req);
         const w = wallet(b.wallet);
+        if (b.platform === 'apple') {
+          if (!w || !appleTxId(b.transactionId) || typeof b.sku !== 'string') return json({ error: 'bad_request' }, 400);
+          return json(await redeemApple(env, w, b.sku, String(b.transactionId)));
+        }
         if (!w || typeof b.token !== 'string' || typeof b.sku !== 'string') return json({ error: 'bad_request' }, 400);
         return json(await redeem(env, w, b.sku, b.token));
       }
@@ -53,6 +65,10 @@ export default {
       }
       if (url.pathname === '/ack' && req.method === 'POST') {
         const b = await body(req);
+        if (b.platform === 'apple') {
+          if (!appleTxId(b.transactionId) || typeof b.sku !== 'string') return json({ error: 'bad_request' }, 400);
+          return json(await checkApplePlus(env, b.sku, String(b.transactionId)));
+        }
         if (typeof b.token !== 'string' || typeof b.sku !== 'string') return json({ error: 'bad_request' }, 400);
         return json(await acknowledge(env, b.sku, b.token));
       }
@@ -144,6 +160,92 @@ async function acknowledge(env, sku, token) {
   const a = await fetch(base + ':acknowledge', { method: 'POST', headers: { authorization: 'Bearer ' + at, 'content-type': 'application/json' }, body: '{}' });
   if (!a.ok) throw new Fail('ack_failed', 502);
   return { ok: true, acknowledged: true };
+}
+
+/* ---------- Apple (iOS-App) ----------
+   Die App schickt nur die Transaktions-Id. Der Worker holt die Transaktion selbst
+   bei Apple (App Store Server API, signiertes JWT mit dem In-App-Kauf-Schluessel)
+   – eine gefaelschte Id kann so nichts gutschreiben. Antwort kommt als JWS ueber
+   TLS direkt von Apple; geprueft werden Bundle-Id, Produkt, Erstattung und bei
+   KI-Paketen, dass der Kauf fuer genau diese Geldboerse gemacht wurde
+   (appAccountToken = Geldboersen-Id als UUID). */
+const appleTxId = (v) => (typeof v === 'string' || typeof v === 'number') && /^\d{1,20}$/.test(String(v));
+const walletToUuid = (w) => w.slice(0, 8) + '-' + w.slice(8, 12) + '-' + w.slice(12, 16) + '-' + w.slice(16, 20) + '-' + w.slice(20, 32);
+
+async function redeemApple(env, w, sku, txId) {
+  const map = JSON.parse(env.SKU_CREDITS || '{}');
+  const add = map[sku];
+  if (!add) throw new Fail('unknown_sku', 400);
+  const key = 'apple:' + txId;
+  const seen = await env.DB.prepare('SELECT wallet FROM redeemed WHERE token = ?').bind(key).first();
+  if (seen) return { ok: true, credits: await credits(env, seen.wallet), already: true };
+
+  if (!(env.DEV_FAKE_PURCHASES === '1' && txId.startsWith('9999'))) {
+    const tx = await appleTransaction(env, txId);
+    if (tx.productId !== sku) throw new Fail('wrong_product', 402);
+    if (tx.type && tx.type !== 'Consumable') throw new Fail('wrong_product', 402);
+    if (tx.revocationDate) throw new Fail('purchase_revoked', 402);
+    if (tx.appAccountToken && tx.appAccountToken.toLowerCase() !== walletToUuid(w)) throw new Fail('wallet_mismatch', 403);
+  }
+  await env.DB.batch([
+    env.DB.prepare('INSERT INTO redeemed (token, wallet, sku, ts) VALUES (?, ?, ?, ?)').bind(key, w, sku, Date.now()),
+    env.DB.prepare('INSERT INTO wallets (id, credits, updated) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET credits = credits + excluded.credits, updated = excluded.updated').bind(w, add, Date.now())
+  ]);
+  return { ok: true, credits: await credits(env, w) };
+}
+
+/* Plus (Einmalkauf): nur pruefen und Ergebnis melden – freigeschaltet wird in der
+   App (StoreKit prueft dort selbst). Dient als Gegenprobe/Protokoll wie /ack bei Google. */
+async function checkApplePlus(env, sku, txId) {
+  const allowed = (env.ACK_SKUS || 'ordela_plus').split(',').map(s => s.trim());
+  if (!allowed.includes(sku)) throw new Fail('unknown_sku', 400);
+  const tx = await appleTransaction(env, txId);
+  if (tx.productId !== sku) throw new Fail('wrong_product', 402);
+  return { ok: !tx.revocationDate, active: !tx.revocationDate, environment: tx.environment };
+}
+
+async function appleTransaction(env, txId) {
+  const jwt = await appleJwt(env);
+  const hosts = ['https://api.storekit.itunes.apple.com'];
+  if (env.APPLE_SANDBOX === '1') hosts.push('https://api.storekit-sandbox.itunes.apple.com');
+  for (const host of hosts) {
+    const r = await fetch(host + '/inApps/v1/transactions/' + encodeURIComponent(txId), { headers: { authorization: 'Bearer ' + jwt } });
+    if (r.status === 401) throw new Fail('apple_auth', 503);
+    if (r.status === 404) continue;            // in dieser Umgebung unbekannt → naechste
+    if (!r.ok) throw new Fail('apple_unreachable', 502);
+    const j = await r.json();
+    const tx = jwsPayload(j.signedTransactionInfo);
+    if (!tx || tx.bundleId !== env.APPLE_BUNDLE_ID) throw new Fail('wrong_app', 402);
+    return tx;
+  }
+  throw new Fail('purchase_not_found', 402);
+}
+
+function jwsPayload(jws) {
+  try {
+    const p = String(jws).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(p + '='.repeat((4 - p.length % 4) % 4));
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+  } catch (e) { return null; }
+}
+
+/* JWT fuer die App Store Server API (ES256, hoechstens 60 Min. gueltig). */
+let appleTok = null;
+async function appleJwt(env) {
+  const now = Math.floor(Date.now() / 1000);
+  if (appleTok && appleTok.exp > now + 60) return appleTok.v;
+  if (!env.APPLE_IAP_KEY || !env.APPLE_KEY_ID || !env.APPLE_ISSUER_ID || !env.APPLE_BUNDLE_ID) throw new Fail('server_not_configured', 503);
+  const enc = (o) => b64url(new TextEncoder().encode(JSON.stringify(o)));
+  const exp = now + 1800;
+  const unsigned = enc({ alg: 'ES256', kid: env.APPLE_KEY_ID, typ: 'JWT' }) + '.' + enc({
+    iss: env.APPLE_ISSUER_ID, iat: now, exp, aud: 'appstoreconnect-v1', bid: env.APPLE_BUNDLE_ID
+  });
+  const pem = env.APPLE_IAP_KEY.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const key = await crypto.subtle.importKey('pkcs8', Uint8Array.from(atob(pem), c => c.charCodeAt(0)),
+    { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(unsigned));
+  appleTok = { v: unsigned + '.' + b64url(new Uint8Array(sig)), exp };   // WebCrypto liefert ES256 bereits im JWS-Format (r||s)
+  return appleTok.v;
 }
 
 /* Zugriffstoken fuer die Play Developer API aus dem Dienstkonto (JWT, RS256).
