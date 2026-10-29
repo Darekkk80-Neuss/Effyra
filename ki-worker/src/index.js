@@ -4,6 +4,7 @@
    - GET  /balance  Guthaben einer Geldboerse abfragen
    - POST /explain  Brief an OpenAI weiterreichen, 1 Brief abziehen
    - POST /ics      Kalender-Abo: ICS-Link abrufen und durchreichen (CORS)
+   - POST /ack      Ordela-Plus-Kauf bei Google bestaetigen (Absicherung gegen Auto-Erstattung)
    Es gibt keine Konten: die App erzeugt eine zufaellige Geldboersen-Id
    (128 Bit) und schickt sie mit. Gespeichert werden nur Id + Guthaben und die
    bereits eingeloesten Kauf-Tokens – KEINE Briefe, keine Antworten.
@@ -49,6 +50,11 @@ export default {
         const w = wallet(b.wallet);
         if (!w || !Array.isArray(b.messages)) return json({ error: 'bad_request' }, 400);
         return await explain(env, w, b, json);
+      }
+      if (url.pathname === '/ack' && req.method === 'POST') {
+        const b = await body(req);
+        if (typeof b.token !== 'string' || typeof b.sku !== 'string') return json({ error: 'bad_request' }, 400);
+        return json(await acknowledge(env, b.sku, b.token));
       }
       if (url.pathname === '/ics' && req.method === 'POST') {
         const b = await body(req);
@@ -117,6 +123,27 @@ async function redeem(env, w, sku, token) {
     await fetch(base + ':consume', { method: 'POST', headers: { authorization: 'Bearer ' + at } }).catch(() => {});
   }
   return { ok: true, credits: await credits(env, w) };
+}
+
+/* ---------- Einmalkauf bestaetigen (Ordela Plus) ----------
+   Google erstattet Kaeufe, die nicht binnen 3 Tagen bestaetigt werden. Die App
+   bestaetigt ueber die Billing-Bibliothek; dieser Aufruf ist die Absicherung
+   und darf beliebig oft kommen (bereits bestaetigt = nichts zu tun). */
+async function acknowledge(env, sku, token) {
+  const allowed = (env.ACK_SKUS || 'ordela_plus').split(',').map(s => s.trim());
+  if (!allowed.includes(sku)) throw new Fail('unknown_sku', 400);
+  const at = await googleToken(env);
+  const base = 'https://androidpublisher.googleapis.com/androidpublisher/v3/applications/' +
+    encodeURIComponent(env.PACKAGE_NAME) + '/purchases/products/' + encodeURIComponent(sku) + '/tokens/' + encodeURIComponent(token);
+  const r = await fetch(base, { headers: { authorization: 'Bearer ' + at } });
+  if (r.status === 401 || r.status === 403) throw new Fail('google_permission', 503);
+  if (!r.ok) throw new Fail('purchase_not_found', 402);
+  const p = await r.json();
+  if (p.purchaseState !== 0) return { ok: false, state: p.purchaseState };   // storniert/ausstehend: nicht bestaetigen
+  if (p.acknowledgementState === 1) return { ok: true, acknowledged: true, already: true };
+  const a = await fetch(base + ':acknowledge', { method: 'POST', headers: { authorization: 'Bearer ' + at, 'content-type': 'application/json' }, body: '{}' });
+  if (!a.ok) throw new Fail('ack_failed', 502);
+  return { ok: true, acknowledged: true };
 }
 
 /* Zugriffstoken fuer die Play Developer API aus dem Dienstkonto (JWT, RS256).
