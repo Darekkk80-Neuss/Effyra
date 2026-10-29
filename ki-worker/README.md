@@ -56,3 +56,15 @@ npx wrangler@4 dev --local --persist-to C:/tmp/kiw --port 8787
 
 Test-Käufe: `POST /redeem` mit `token: "test-…"` schreibt ohne Google gut –
 nur wenn `DEV_FAKE_PURCHASES=1` gesetzt ist, also nie im Live-Worker.
+
+## iOS-App (Apple)
+
+`/redeem` und `/ack` nehmen zusätzlich `{ platform: "apple", transactionId, sku }`
+(bei `/redeem` plus `wallet`). Der Worker holt die Transaktion selbst bei Apple
+(App Store Server API, erst Produktion, dann Sandbox) und prüft Bundle-Id, Produkt,
+Erstattung und – bei KI-Paketen – dass der Kauf für genau diese Geldbörse war.
+
+Zusätzliche Geheimnisse (Dashboard → Settings → Variables and Secrets oder `secret put`):
+`APPLE_IAP_KEY` (Inhalt der .p8-Datei „In-App-Kauf“), `APPLE_KEY_ID`, `APPLE_ISSUER_ID`.
+Variablen in `wrangler.toml`: `APPLE_BUNDLE_ID`, `APPLE_SANDBOX` („1“ = TestFlight-Käufe annehmen),
+`ALLOWED_ORIGINS` enthält `capacitor://localhost`. Schritt für Schritt: `ios-app/README.md`.

@@ -1,0 +1,24 @@
+{
+  "name": "ordela-ios",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ordela als iOS-App (Capacitor-Huelle um die fertige index.html)",
+  "scripts": {
+    "web": "node scripts/copy-web.mjs",
+    "sync": "node scripts/copy-web.mjs && npx cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/camera": "^8.2.6",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/ios": "^8.6.0",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  }
+}

@@ -3094,6 +3094,64 @@ async function copyText(text) {
   }
 }
 
+/* ============================== iOS-APP (Capacitor) ==============================
+   In der iPhone-App (ios-app/) laeuft dieselbe index.html in einer WebView mit
+   nativen Modulen. Alles hier greift NUR, wenn window.Capacitor eine native
+   Plattform meldet – im Browser und in der Android-TWA ist NATIVE false und
+   nichts aendert sich.
+   - Speicher-Spiegel: iOS darf WebView-Daten bei Platzmangel loeschen. Die
+     effyra_- und ordela_-Eintraege werden deshalb zusaetzlich als Datei im
+     App-Bibliotheksordner gesichert und beim Start zurueckgeholt, falls weg.
+   - Downloads (<a download>): WKWebView kann keine Dateien herunterladen –
+     stattdessen Datei schreiben und das iOS-Teilen-Menue oeffnen. */
+const NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+const NAT = (name) => (NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
+const NATIVE_MIRROR = 'ordela-speicher.json';
+const nativeMirrorKeys = () => { const out = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^(effyra_|ordela_)/.test(k) && k !== 'effyra_i18n_cache') out[k] = localStorage.getItem(k); } } catch (e) {} return out; };
+let _mirrorTimer = null;
+function nativeMirrorSoon() {
+  if (!NAT('Filesystem')) return;
+  clearTimeout(_mirrorTimer);
+  _mirrorTimer = setTimeout(() => {
+    NAT('Filesystem').writeFile({ path: NATIVE_MIRROR, directory: 'LIBRARY', encoding: 'utf8', data: JSON.stringify({ ts: Date.now(), keys: nativeMirrorKeys() }) }).catch(() => {});
+  }, 1500);
+}
+if (NAT('Filesystem')) {
+  /* Daten weg, Spiegel da → zurueckschreiben und neu laden (einmal pro Sitzung). */
+  let leer = true; try { leer = !localStorage.getItem('effyra_data') && !localStorage.getItem('effyra_account'); } catch (e) {}
+  let schonVersucht = false; try { schonVersucht = sessionStorage.getItem('ordela_mirror_tried') === '1'; } catch (e) {}
+  if (leer && !schonVersucht) {
+    try { sessionStorage.setItem('ordela_mirror_tried', '1'); } catch (e) {}
+    NAT('Filesystem').readFile({ path: NATIVE_MIRROR, directory: 'LIBRARY', encoding: 'utf8' }).then((r) => {
+      const m = JSON.parse(r.data || '{}');
+      const keys = (m && m.keys) || {};
+      if (!keys.effyra_data && !keys.effyra_account) return;
+      window.__ordelaNoSave = true;
+      Object.keys(keys).forEach((k) => { try { localStorage.setItem(k, keys[k]); } catch (e) {} });
+      location.reload();
+    }).catch(() => {});
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) nativeMirrorSoon(); });
+}
+async function nativeShareFile(href, name) {
+  const fs = NAT('Filesystem'), sh = NAT('Share');
+  const blob = await (await fetch(href)).blob();
+  const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(blob); });
+  const safe = String(name || 'ordela-datei').replace(/[\/\\:*?"<>|]+/g, '_');
+  const w = await fs.writeFile({ path: safe, directory: 'CACHE', data: b64 });
+  await sh.share({ title: safe, files: [w.uri] });
+}
+if (NAT('Filesystem') && NAT('Share')) {
+  const origClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () {
+    if (this.hasAttribute('download') && /^(blob:|data:)/.test(this.href)) {
+      nativeShareFile(this.href, this.getAttribute('download')).catch((e) => { if (!/cancel/i.test(String(e && e.message))) toast(pickLang({ de: 'Speichern nicht möglich.', en: 'Could not save.', fr: 'Enregistrement impossible.', es: 'No se pudo guardar.', it: 'Impossibile salvare.', pl: 'Nie udało się zapisać.', tr: 'Kaydedilemedi.', uk: 'Не вдалося зберегти.' })); });
+      return;
+    }
+    return origClick.call(this);
+  };
+}
+
 /* ============================== STORE ============================== */
 const DATA_KEY = 'effyra_data';
 const KEY_KEY = 'effyra_key';
@@ -3150,6 +3208,7 @@ function save() {
   if (!syncApplying) store._ts = Date.now();   // lokaler Änderungszeitpunkt (für Cloud-Sync-LWW)
   try { localStorage.setItem(DATA_KEY, JSON.stringify(store)); }
   catch (e) { toast('Speicher voll – ältestes Dokument entfernen'); }
+  if (NATIVE) nativeMirrorSoon();
   if (!syncApplying) schedulePush();
 }
 /* ===== CLOUD-STATE-SYNC (local-first + Mehrgeräte-Backup) =====
@@ -7922,7 +7981,45 @@ function remindAtMs(item, dateISO) {
   else d.setHours(9, 0, 0, 0);            // ohne Uhrzeit: 9 Uhr als Bezug, sonst käme die Erinnerung um Mitternacht
   return d.getTime() - Number(item.remind) * 60000;
 }
+/* iOS-App: Erinnerungen als echte lokale Benachrichtigungen beim System anmelden –
+   die kommen auch, wenn die App geschlossen ist. iOS erlaubt hoechstens 64 geplante,
+   deshalb nur die naechsten 60. Neu geplant wird nur, wenn sich etwas geaendert hat. */
+const remindNotifId = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return (h % 2000000000) + 1; };
+let _nativeRemindSig = '';
+async function nativeSyncReminders() {
+  const LN = NAT('LocalNotifications');
+  if (!LN) return;
+  try {
+    const perm = await LN.checkPermissions();
+    if (perm.display !== 'granted') return;
+    const jetzt = Date.now(), list = [];
+    const add = (item, dateISO) => {
+      const at = remindAtMs(item, dateISO);
+      if (at == null || at <= jetzt + 5000 || item.remindedAt) return;
+      const zeit = item.time ? (item.time + ' ' + pickLang({ de: 'Uhr', en: '', fr: '', es: '', it: '', pl: '', tr: '', uk: '' })).trim() : fmtDateShort(dateISO);
+      list.push({ id: remindNotifId(String(item.id || item.title) + '|' + dateISO + '|' + item.remind), title: String(item.title || 'Ordela'), body: pickLang({ de: 'Fällig: ', en: 'Due: ', fr: 'Échéance : ', es: 'Vence: ', it: 'Scadenza: ', pl: 'Termin: ', tr: 'Son tarih: ', uk: 'Строк: ' }) + zeit, schedule: { at: new Date(at), allowWhileIdle: true } });
+    };
+    (store.events || []).forEach(e => add(e, e.date));
+    (store.tasks || []).forEach(t => { if (!t.done) add(t, t.due); });
+    list.sort((a, b) => a.schedule.at - b.schedule.at);
+    const next = list.slice(0, 60);
+    const sig = next.map(n => n.id + '@' + (+n.schedule.at) + n.title).join(',');
+    if (sig === _nativeRemindSig) return;
+    const pend = await LN.getPending();
+    if (pend && pend.notifications && pend.notifications.length) await LN.cancel({ notifications: pend.notifications.map(n => ({ id: n.id })) });
+    if (next.length) await LN.schedule({ notifications: next });
+    _nativeRemindSig = sig;
+  } catch (e) { console.warn('[Ordela iOS Erinnerungen]', e); }
+}
 function askNotifyPermission() {
+  const LN = NAT('LocalNotifications');
+  if (LN) {
+    LN.requestPermissions().then(p => {
+      if (p.display !== 'granted') toast('Ohne Erlaubnis erscheint die Erinnerung nur als Hinweis in der App.');
+      else nativeSyncReminders();
+    }).catch(() => { });
+    return;
+  }
   try {
     if (typeof Notification === 'undefined') { toast('Dieses Gerät kann keine Erinnerungen anzeigen.'); return; }
     if (Notification.permission === 'granted') return;
@@ -7959,6 +8056,7 @@ function checkReminders() {
   (store.events || []).forEach(e => faellig(e, e.date, ''));
   (store.tasks || []).forEach(t => { if (!t.done) faellig(t, t.due, ''); });
   if (geaendert) save();
+  if (NATIVE) nativeSyncReminders();
 }
 /* Jede Minute prüfen, solange die App offen ist – plus sofort beim Öffnen/Zurückkehren. */
 setInterval(() => { try { checkReminders(); } catch (e) { } }, 60000);
@@ -9565,7 +9663,7 @@ RENDERERS.dashboard = function () {
   if (dashOn('meal')) renderMeal(); else $('#mealWidget').innerHTML = '';
 };
 
-$('#qaDoc').addEventListener('click', () => { showView('docs'); setTimeout(() => $('#docInput').click(), 250); });
+$('#qaDoc').addEventListener('click', () => { showView('docs'); setTimeout(() => pickDocInput(), 250); });
 $('#qaChat').addEventListener('click', () => showView('chat'));
 $('#qaTask').addEventListener('click', () => { showView('tasks'); setTimeout(() => $('#taskTitle').focus(), 250); });
 if ($('#dashCustomize')) $('#dashCustomize').addEventListener('click', dashCustomizeOpen);
@@ -12469,6 +12567,93 @@ const PLUS_FREE_TPL = ['miet-kuend', 'handy-kuend', 'umzug', 'adress-behoerde', 
 const PLUS_FREE_DOCS = 20;
 const PLUS_MODULES = { work: 1, vehicles: 1 };
 const PLUS_FALLBACK_PRICE = '9,99 €';
+/* ---------- Kaeufe in der iOS-App (Apple StoreKit 2) ----------
+   Native Bruecke "OrdelaStore" (ios-app/ios/App/App/OrdelaStorePlugin.swift).
+   Gleiche Produkt-Ids wie in Google Play. Plus: Einmalkauf (nicht verbrauchbar),
+   von StoreKit auf dem Geraet geprueft und ueber currentEntitlements wiederhergestellt.
+   KI-Pakete: Verbrauchsartikel – der Worker prueft den Kauf bei Apple (App Store
+   Server API) und schreibt gut; erst DANACH wird die Transaktion abgeschlossen
+   (finish). Nicht abgeschlossene holt kiRestore beim naechsten Start nach.
+   appAccountToken = Geldboersen-Id als UUID: der Worker schreibt nur der Geldboerse
+   gut, fuer die gekauft wurde. Im Browser und in der Android-App ist appleIap() null. */
+const appleIap = () => NAT('OrdelaStore');
+const walletUuid = (w) => w.slice(0, 8) + '-' + w.slice(8, 12) + '-' + w.slice(12, 16) + '-' + w.slice(16, 20) + '-' + w.slice(20, 32);
+const IAP_MSG = {
+  cancelled: { de: 'Kauf abgebrochen.', en: 'Purchase cancelled.', fr: 'Achat annulé.', es: 'Compra cancelada.', it: 'Acquisto annullato.', pl: 'Zakup anulowany.', tr: 'Satın alma iptal edildi.', uk: 'Покупку скасовано.' },
+  failed: { de: 'Kauf nicht möglich – bitte später erneut versuchen.', en: 'Purchase not possible – please try again later.', fr: 'Achat impossible – réessaie plus tard.', es: 'No se pudo comprar; inténtalo más tarde.', it: 'Acquisto non riuscito – riprova più tardi.', pl: 'Zakup niemożliwy – spróbuj później.', tr: 'Satın alınamadı – lütfen daha sonra tekrar dene.', uk: 'Покупка неможлива – спробуйте пізніше.' },
+  pending: { de: 'Der Kauf wartet noch auf Bestätigung (z. B. „Kaufen anfragen“). Ordela schaltet ihn frei, sobald er bestätigt ist.', en: 'The purchase is still waiting for approval (e.g. “Ask to Buy”). Ordela unlocks it as soon as it is approved.', fr: 'L’achat attend encore une validation (p. ex. « Demander l’autorisation »). Ordela le débloque dès qu’il est validé.', es: 'La compra aún espera aprobación (p. ej. «Pedir la compra»). Ordela la activará en cuanto se apruebe.', it: 'L’acquisto è in attesa di approvazione (es. «Chiedi di acquistare»). Ordela lo sblocca appena approvato.', pl: 'Zakup czeka jeszcze na zatwierdzenie (np. „Pytaj o zakup”). Ordela odblokuje go po zatwierdzeniu.', tr: 'Satın alma hâlâ onay bekliyor (ör. “Satın Alma İsteği”). Onaylanınca Ordela açar.', uk: 'Покупка ще чекає на підтвердження (напр. «Запит на купівлю»). Ordela відкриє її, щойно її підтвердять.' }
+};
+async function applePrices(ids) {
+  const out = {};
+  try { const r = await appleIap().products({ ids }); (r.products || []).forEach(p => { if (p.id && p.displayPrice) out[p.id] = p.displayPrice; }); } catch (e) {}
+  return out;
+}
+function plusAckApple(transactionId) {
+  if (!transactionId) return;
+  fetch(PLUS_ACK_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ platform: 'apple', transactionId: String(transactionId), sku: PLUS_SKU }) }).catch(() => {});
+}
+function plusMarkBought() {
+  try { localStorage.setItem(PLUS_KEY, 'bought'); } catch (e) {}
+  if (NATIVE) nativeMirrorSoon();
+}
+async function appleRestorePlus(silent) {
+  const L = pickLang, iap = appleIap();
+  try {
+    if (!silent) { try { await iap.sync(); } catch (e) {} }   // nur auf Knopfdruck: kann nach der Apple-ID fragen
+    const r = await iap.currentEntitlements();
+    const own = (r.transactions || []).filter(t => t.productId === PLUS_SKU);
+    const found = own.length > 0;
+    if (found) { plusMarkBought(); own.forEach(t => plusAckApple(t.id)); }
+    const offen = await iap.unfinished().catch(() => ({}));
+    for (const t of (offen.transactions || [])) if (t.productId === PLUS_SKU) await iap.finish({ id: t.id }).catch(() => {});
+    if (!silent) toast(found
+      ? L({ de: 'Ordela Plus wiederhergestellt ✓', en: 'Ordela Plus restored ✓', fr: 'Ordela Plus restauré ✓', es: 'Ordela Plus restaurado ✓', it: 'Ordela Plus ripristinato ✓', pl: 'Ordela Plus przywrócone ✓', tr: 'Ordela Plus geri yüklendi ✓', uk: 'Ordela Plus відновлено ✓' })
+      : L({ de: 'Kein Kauf gefunden.', en: 'No purchase found.', fr: 'Aucun achat trouvé.', es: 'No se encontró ninguna compra.', it: 'Nessun acquisto trovato.', pl: 'Nie znaleziono zakupu.', tr: 'Satın alma bulunamadı.', uk: 'Покупку не знайдено.' }));
+    if (found) { refresh(); if (currentView === 'settings') RENDERERS.settings(); }
+    return found;
+  } catch (e) { return false; }
+}
+async function appleBuyPlus() {
+  const L = pickLang, iap = appleIap();
+  try {
+    const r = await iap.purchase({ id: PLUS_SKU });
+    if (r.status === 'cancelled') { toast(L(IAP_MSG.cancelled)); return; }
+    if (r.status === 'pending') { toast(L(IAP_MSG.pending), 6000); return; }
+    if (r.status !== 'purchased' || !r.transaction) throw new Error(r.status || 'failed');
+    plusMarkBought();
+    await iap.finish({ id: r.transaction.id }).catch(() => {});
+    plusAckApple(r.transaction.id);
+    const ov = document.getElementById('plusOv'); if (ov) ov.classList.remove('on');
+    toast(L({ de: 'Danke! Ordela Plus ist aktiv ✓', en: 'Thank you! Ordela Plus is active ✓', fr: 'Merci ! Ordela Plus est actif ✓', es: '¡Gracias! Ordela Plus está activo ✓', it: 'Grazie! Ordela Plus è attivo ✓', pl: 'Dziękujemy! Ordela Plus jest aktywne ✓', tr: 'Teşekkürler! Ordela Plus etkin ✓', uk: 'Дякуємо! Ordela Plus активовано ✓' }));
+    refresh(); if (currentView === 'settings') RENDERERS.settings();
+  } catch (e) { console.warn('[Ordela Apple Plus]', e); toast(L(IAP_MSG.failed)); }
+}
+async function appleRestoreKi() {
+  const iap = appleIap();
+  try {
+    const r = await iap.unfinished();
+    for (const t of (r.transactions || [])) {
+      if (!KI_PACKS.some(k => k.sku === t.productId)) continue;
+      if (await kiRedeemApple(t.id, t.productId).catch(() => false)) await iap.finish({ id: t.id }).catch(() => {});
+    }
+  } catch (e) {}
+}
+async function appleBuyKi(sku) {
+  const L = pickLang, iap = appleIap();
+  try {
+    const r = await iap.purchase({ id: sku, appAccountToken: walletUuid(kiWallet()) });
+    if (r.status === 'cancelled') { toast(L(IAP_MSG.cancelled)); return; }
+    if (r.status === 'pending') { toast(L(IAP_MSG.pending), 6000); return; }
+    if (r.status !== 'purchased' || !r.transaction) throw new Error(r.status || 'failed');
+    const ok = await kiRedeemApple(r.transaction.id, sku).catch(() => false);
+    if (ok) await iap.finish({ id: r.transaction.id }).catch(() => {});
+    const ov = document.getElementById('kiOv'); if (ov) ov.classList.remove('on');
+    toast(ok
+      ? L({ de: 'Danke! Du kannst jetzt {n} Briefe erklären lassen ✓', en: 'Thank you! You can now have {n} letters explained ✓', fr: 'Merci ! Tu peux faire expliquer {n} lettres ✓', es: '¡Gracias! Ya puedes pedir que te expliquen {n} cartas ✓', it: 'Grazie! Ora puoi farti spiegare {n} lettere ✓', pl: 'Dziękujemy! Możesz teraz objaśnić {n} pism ✓', tr: 'Teşekkürler! Artık {n} mektubu açıklatabilirsin ✓', uk: 'Дякуємо! Тепер можна пояснити {n} листів ✓' }).replace('{n}', kiCredits())
+      : L({ de: 'Kauf erhalten – das Guthaben wird beim nächsten Start gutgeschrieben.', en: 'Purchase received – the credit will be added on next start.', fr: 'Achat reçu – le crédit sera ajouté au prochain démarrage.', es: 'Compra recibida: el saldo se añadirá en el próximo inicio.', it: 'Acquisto ricevuto – il credito verrà aggiunto al prossimo avvio.', pl: 'Zakup otrzymany – saldo zostanie dodane przy następnym uruchomieniu.', tr: 'Satın alma alındı – bakiye bir sonraki açılışta eklenecek.', uk: 'Покупку отримано – баланс буде додано під час наступного запуску.' }));
+    refresh(); if (currentView === 'settings') RENDERERS.settings(); if (currentView === 'docs') RENDERERS.docs();
+  } catch (e) { console.warn('[Ordela Apple KI]', e); toast(L(IAP_MSG.failed)); }
+}
 function plusState() {
   if (!PLUS_ENABLED || !OFFLINE_ONLY) return { active: true, why: 'off' };
   try { if (localStorage.getItem(PLUS_KEY) === 'bought') return { active: true, why: 'bought' }; } catch (e) {}
@@ -12509,6 +12694,7 @@ function plusAck(token) {
   fetch(PLUS_ACK_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, sku: PLUS_SKU }) }).catch(() => {});
 }
 async function plusRestore(silent) {
+  if (PLUS_ENABLED && appleIap()) return appleRestorePlus(silent);
   if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) toast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
@@ -12525,6 +12711,7 @@ async function plusRestore(silent) {
   } catch (e) { return false; }
 }
 async function plusBuy() {
+  if (appleIap()) return appleBuyPlus();
   if (!hasPlayBilling()) { toast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: PLUS_SKU } }],
@@ -12546,6 +12733,7 @@ async function plusBuy() {
   }
 }
 async function plusPrice() {
+  if (appleIap()) return (await applePrices([PLUS_SKU]))[PLUS_SKU] || PLUS_FALLBACK_PRICE;
   if (!hasPlayBilling()) return PLUS_FALLBACK_PRICE;
   try { const svc = await window.getDigitalGoodsService('https://play.google.com/billing'); const d = await svc.getDetails([PLUS_SKU]); return (d && d[0] && fmtPlayPrice(d[0].price)) || PLUS_FALLBACK_PRICE; }
   catch (e) { return PLUS_FALLBACK_PRICE; }
@@ -12638,9 +12826,14 @@ async function kiRedeem(token, sku) {
   const { ok, j } = await kiApi('/redeem', { token, sku });
   return ok && j.ok;
 }
+async function kiRedeemApple(transactionId, sku) {
+  const { ok, j } = await kiApi('/redeem', { platform: 'apple', transactionId: String(transactionId), sku });
+  return ok && j.ok;
+}
 /* Gekaufte, aber noch nicht eingeloeste Pakete nachholen (z. B. Netz weg direkt nach dem Kauf).
    Der Worker verbraucht den Kauf bei Google – was hier noch auftaucht, ist offen. */
 async function kiRestore() {
+  if (kiPackOn() && appleIap()) return appleRestoreKi();
   if (!kiPackOn() || !hasPlayBilling()) return;
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
@@ -12651,6 +12844,7 @@ async function kiRestore() {
 /* Preise beider Pakete auf einmal: { sku: '3,99 €', … } */
 async function kiPrices() {
   const out = {}; KI_PACKS.forEach(p => { out[p.sku] = p.fallback; });
+  if (appleIap()) return Object.assign(out, await applePrices(KI_PACKS.map(p => p.sku)));
   if (!hasPlayBilling()) return out;
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
@@ -12662,6 +12856,7 @@ async function kiPrices() {
 async function kiBuy(sku) {
   sku = kiPackBySku(sku).sku;
   const L = pickLang;
+  if (appleIap()) return appleBuyKi(sku);
   if (!hasPlayBilling()) { toast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku } }],
@@ -12714,6 +12909,12 @@ function kiPackCardHTML() {
     '<button class="btn btn-sm btn-primary" id="btnKiPack" style="margin-top:8px">' + esc(L({ de: 'Paket kaufen', en: 'Buy pack', fr: 'Acheter un pack', es: 'Comprar paquete', it: 'Acquista pacchetto', pl: 'Kup pakiet', tr: 'Paket satın al', uk: 'Купити пакет' })) + '</button></div>';
 }
 if (kiPackOn()) setTimeout(() => { kiRestore().then(kiRefresh); }, 3000);
+/* iOS-App: Kaeufe, die spaeter ankommen ("Kaufen anfragen" genehmigt, anderes Geraet) gleich verarbeiten. */
+if (appleIap() && typeof appleIap().addListener === 'function') appleIap().addListener('transaction', (e) => {
+  const id = e && e.transaction && e.transaction.productId;
+  if (id === PLUS_SKU) appleRestorePlus(true);
+  else if (KI_PACKS.some(k => k.sku === id)) appleRestoreKi().then(kiRefresh);
+});
 /* ---- Echte Preise aus Google Play holen ----
    Die Preise in PLAY_PRODUCTS/ADDON_PRODUCTS sind nur Rückfallwerte für den
    Browser. In der Play-App gilt der Preis, den Google für das Land des Nutzers
@@ -17630,7 +17831,38 @@ RENDERERS.docs = function () {
     }).join('');
 };
 
-$('#dropzone').addEventListener('click', () => $('#docInput').click());
+/* iOS-App: Brief per nativer Kamera aufnehmen (scharf, ohne Umweg ueber das Datei-Menue).
+   PDF/Word weiterhin ueber die normale Dateiauswahl. Im Browser/TWA: unveraendert. */
+async function nativeCameraFile(source) {
+  const cam = NAT('Camera');
+  const m = source === 'CAMERA'
+    ? await cam.takePhoto({ quality: 85, targetWidth: 2400, correctOrientation: true, saveToGallery: false, editable: 'no' })
+    : ((await cam.chooseFromGallery({ mediaType: 0, allowMultipleSelection: false, limit: 1 })).results || [])[0];
+  if (!m || !m.webPath) throw new Error('cancelled');
+  const blob = await (await fetch(m.webPath)).blob();
+  return new File([blob], 'brief-' + Date.now() + '.jpg', { type: blob.type || 'image/jpeg' });
+}
+function pickDocInput() {
+  if (!NAT('Camera')) { $('#docInput').click(); return; }
+  const L = pickLang;
+  let ov = document.getElementById('nativePickOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'nativePickOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10002'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" data-noi18n><div class="fam-alert-btns" style="flex-direction:column;gap:8px">' +
+    '<button class="btn btn-primary" data-src="CAMERA">' + esc(L({ de: 'Brief fotografieren', en: 'Take a photo of a letter', fr: 'Photographier une lettre', es: 'Fotografiar una carta', it: 'Fotografa una lettera', pl: 'Zrób zdjęcie pisma', tr: 'Mektubun fotoğrafını çek', uk: 'Сфотографувати лист' })) + '</button>' +
+    '<button class="btn" data-src="PHOTOS">' + esc(L({ de: 'Aus Fotos wählen', en: 'Choose from photos', fr: 'Choisir dans les photos', es: 'Elegir de las fotos', it: 'Scegli dalle foto', pl: 'Wybierz ze zdjęć', tr: 'Fotoğraflardan seç', uk: 'Вибрати з фото' })) + '</button>' +
+    '<button class="btn" data-src="FILE">' + esc(L({ de: 'Datei wählen (PDF, Word)', en: 'Choose file (PDF, Word)', fr: 'Choisir un fichier (PDF, Word)', es: 'Elegir archivo (PDF, Word)', it: 'Scegli file (PDF, Word)', pl: 'Wybierz plik (PDF, Word)', tr: 'Dosya seç (PDF, Word)', uk: 'Вибрати файл (PDF, Word)' })) + '</button>' +
+    '<button class="btn btn-sm btn-ghost" data-src="">' + esc(L({ de: 'Abbrechen', en: 'Cancel', fr: 'Annuler', es: 'Cancelar', it: 'Annulla', pl: 'Anuluj', tr: 'İptal', uk: 'Скасувати' })) + '</button></div></div>';
+  ov.classList.add('on');
+  ov.querySelectorAll('[data-src]').forEach(b => { b.onclick = async () => {
+    ov.classList.remove('on');
+    const src = b.dataset.src;
+    if (src === 'FILE') { $('#docInput').click(); return; }
+    if (!src) return;
+    try { openDocCrop(await nativeCameraFile(src)); }
+    catch (e) { if (!/cancel/i.test(String(e && e.message))) toast(L({ de: 'Kamera nicht verfügbar – bitte in den iPhone-Einstellungen erlauben.', en: 'Camera not available – please allow it in the iPhone settings.', fr: 'Appareil photo indisponible – autorise-le dans les réglages de l’iPhone.', es: 'Cámara no disponible: permítela en los ajustes del iPhone.', it: 'Fotocamera non disponibile – consentila nelle impostazioni dell’iPhone.', pl: 'Aparat niedostępny – zezwól na dostęp w ustawieniach iPhone’a.', tr: 'Kamera kullanılamıyor – lütfen iPhone ayarlarından izin ver.', uk: 'Камера недоступна – дозвольте її в налаштуваннях iPhone.' })); }
+  }; });
+}
+$('#dropzone').addEventListener('click', () => pickDocInput());
 $('#dropzone').addEventListener('dragover', e => { e.preventDefault(); $('#dropzone').classList.add('drag'); });
 $('#dropzone').addEventListener('dragleave', () => $('#dropzone').classList.remove('drag'));
 $('#dropzone').addEventListener('drop', e => {
@@ -19716,6 +19948,7 @@ async function loadBackup(file) {
 /* Dauerhafter Speicher: bittet den Browser, die App-Daten bei Platzmangel NICHT
    automatisch zu löschen. Installierte Apps (TWA/PWA) bekommen das meist ohne Rückfrage. */
 async function ensurePersistentStorage() {
+  if (NAT('Filesystem')) { nativeMirrorSoon(); return true; }   // iOS-App: Daten zusaetzlich als Datei im App-Ordner gespiegelt
   try {
     if (!(navigator.storage && navigator.storage.persist)) return null;
     return (await navigator.storage.persisted()) || (await navigator.storage.persist());

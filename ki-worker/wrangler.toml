@@ -4,10 +4,15 @@ compatibility_date = "2026-10-01"
 
 [vars]
 PACKAGE_NAME = "app.effyra.twa"
-ALLOWED_ORIGINS = "https://darekkk80-neuss.github.io"
+# capacitor://localhost = iOS-App (Capacitor-WebView)
+ALLOWED_ORIGINS = "https://darekkk80-neuss.github.io,capacitor://localhost"
 # Produkt-Id in der Play Console -> Anzahl Briefe
 SKU_CREDITS = '{"ordela_ki_25":25,"ordela_ki_50":50}'
 MODEL = "gpt-5-mini"
+# iOS-App: Bundle-Id fuer die Apple-Kaufpruefung. APPLE_SANDBOX="1" nimmt auch Sandbox-/TestFlight-Kaeufe an
+# (Apple empfiehlt: erst Produktion, dann Sandbox fragen). Schluessel: siehe src/index.js (Geheimnisse).
+APPLE_BUNDLE_ID = "app.ordela.ios"
+APPLE_SANDBOX = "1"
 
 [[d1_databases]]
 binding = "DB"

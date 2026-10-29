@@ -1,0 +1,54 @@
+# Codemagic – Ordela als iOS-App bauen, signieren und zu TestFlight hochladen.
+# Anleitung (Deutsch, Schritt fuer Schritt): ios-app/README.md
+#
+# Voraussetzungen in Codemagic (einmalig, macht der Nutzer selbst):
+#   Teams → Integrations → "Developer Portal" → App-Store-Connect-API-Schluessel
+#   hinzufuegen und genau so benennen: Ordela ASC
+# Geheimnisse liegen NUR in Codemagic, nie in diesem Repo.
+#
+# Der Web-Build (index.dev.html → build.mjs → index.html) wird hier NICHT veraendert:
+# gebaut wird die eingecheckte index.html; check-build.mjs stellt sicher, dass sie
+# zur Quelle passt.
+workflows:
+  ios-testflight:
+    name: Ordela iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Ordela ASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: app.ordela.ios
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Web-App pruefen (index.html passt zur Quelle)
+        script: |
+          npm ci
+          node check-build.mjs
+      - name: Capacitor – Web-Dateien ins iOS-Projekt kopieren
+        working_directory: ios-app
+        script: |
+          npm ci
+          npm run sync
+      - name: Signierprofile einsetzen
+        script: |
+          xcode-project use-profiles --project ios-app/ios/App/App.xcodeproj
+      - name: Build-Nummer hochzaehlen
+        working_directory: ios-app/ios/App
+        script: |
+          agvtool new-version -all $(($BUILD_NUMBER + 100))
+      - name: IPA bauen
+        script: |
+          xcode-project build-ipa \
+            --project ios-app/ios/App/App.xcodeproj \
+            --scheme App \
+            --config Release
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

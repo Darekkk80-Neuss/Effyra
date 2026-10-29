@@ -61,6 +61,7 @@ Rich docs already exist — consult them rather than re-deriving:
 | `BUILD.md` | Build details and rationale |
 | `BACKEND.md` | Supabase backend setup |
 | `ANDROID.md`, `GOOGLE_PLAY_SETUP.md` | TWA packaging + Google Play (the Android build toolchain lives outside this repo) |
+| `ios-app/README.md`, `ios-app/APP_STORE.md` | iOS app (Capacitor shell, StoreKit, Codemagic → TestFlight). Native code paths in `index.dev.html` are gated on `NATIVE` (true only inside the iOS app) |
 | `KONZEPT.md` | Product concept, tiers, pricing/credit model |
 | `legal/` | DSGVO/compliance, data-flow, disclaimers, audit trail |
 
