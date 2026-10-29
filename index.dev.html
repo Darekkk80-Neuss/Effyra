@@ -12135,6 +12135,7 @@ const PLUS_ENABLED = false;
 const PLUS_SKU = 'ordela_plus';
 const PLUS_KEY = 'ordela_plus';
 const PLUS_TRIAL_DAYS = 14;
+const PLUS_LEGACY_BEFORE = new Date(2026, 9, 29).getTime();   // Konten vor dem 29.10.2026 (Ortszeit) behalten Plus kostenlos
 const PLUS_FREE_TPL = ['miet-kuend', 'handy-kuend', 'umzug', 'adress-behoerde', 'aenderungsmitteilung', 'frei'];
 const PLUS_FREE_DOCS = 20;
 const PLUS_MODULES = { work: 1, vehicles: 1 };
@@ -12151,9 +12152,15 @@ const plusActive = () => plusState().active;
 /* Einmalig beim ersten Start mit Plus: Bestandsnutzer erkennen und die Testphase starten. */
 function plusInit() {
   if (!PLUS_ENABLED || !OFFLINE_ONLY || (store.plus && store.plus.trialStart)) return;
-  const hatDaten = (store.tasks || []).length || (store.events || []).length || (store.docs || []).length || (store.emergency && (store.emergency.contacts || []).length);
-  const altesProfil = account && account.createdAt && account.createdAt < Date.now() - 10 * 60e3;
-  store.plus = { trialStart: Date.now(), legacy: !!(hatDaten || altesProfil) };
+  /* Bestandsnutzer = Konto vor dem Stichtag angelegt (Wiederveroeffentlichung
+     29.10.2026). Wer ab dann einsteigt, bekommt die Testphase und danach die
+     kostenlose Version – auch wenn er vor dem Plus-Start schon installiert hat.
+     Sehr alte Konten ohne createdAt: am aeltesten Eintrag erkennen. */
+  const vorStichtag = (t) => !!t && t < PLUS_LEGACY_BEFORE;
+  const aeltester = [].concat(store.tasks || [], store.docs || [], store.vault || [], store.contracts || [])
+    .reduce((min, x) => (x && x.createdAt && x.createdAt < min) ? x.createdAt : min, Infinity);
+  const legacy = account && account.createdAt ? vorStichtag(account.createdAt) : vorStichtag(aeltester);
+  store.plus = { trialStart: Date.now(), legacy: !!legacy };
   save();
 }
 async function plusRestore(silent) {
