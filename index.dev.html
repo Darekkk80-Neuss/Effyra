@@ -2477,6 +2477,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       </div>
       <div class="sec-title"><h2>Anstehend</h2></div>
       <div id="upcomingList"></div>
+      <div id="calSubSlot" style="margin-top:16px"></div>
     </section>
 
     <!-- ============================== SCHULE ============================== -->
@@ -9191,7 +9192,7 @@ RENDERERS.dashboard = function () {
   if (heroArt) heroArt.className = 'dash-hero-art ' + tagesZeit;
 
   const today = todayISO();
-  const evTodayList = eventsOn(today);
+  const evTodayList = eventsOn(today).concat(calSubAsEvents(today));   // inkl. abonnierter Kalender
   const open = store.tasks.filter(t => !t.done).length;
   const evToday = evTodayList.length;
   const attention = store.tasks.filter(t => !t.done && t.due && dayDiff(t.due) <= 0).length;
@@ -9739,6 +9740,241 @@ function askCalendarImport() {
   ov.querySelector('#calImpLater').onclick = () => ov.classList.remove('on');
   ov.querySelector('#calImpNow').onclick = () => { ov.classList.remove('on'); const i = $('#calImportFile'); if (i) i.click(); };
 }
+/* ============================== KALENDER-ABOS ==============================
+   ICS-Links (z. B. Googles „Privatadresse im iCal-Format") abonnieren: Ordela
+   holt sie beim Start und alle 15 Minuten, solange die App offen ist. Google &
+   Co. erlauben Web-Apps keinen Direktabruf (CORS) – der Abruf laeuft deshalb
+   ueber den Ordela-Worker (ki-worker/, POST /ics), der nur durchreicht.
+   Abo-Termine liegen bewusst NICHT in store.events (wie die Muellabholungen):
+   sie gehoeren dem fremden Kalender, sind schreibgeschuetzt und werden bei
+   jedem Abruf komplett ersetzt – so gibt es weder Doppelte noch Leichen.
+   Gespeichert werden nur die Vorkommen im Fenster -30 … +366 Tage. */
+const CAL_SUB_PROXY = 'https://ordela-ki.ki-worker.workers.dev/ics';
+const CAL_SUB_EVERY = 15 * 60e3;
+const CAL_SUB_COLORS = ['#4D7CFF', '#E5484D', '#30A46C', '#F59E0B', '#8E4EC6', '#0EA5E9'];
+const CAL_SUB_PAST = 30, CAL_SUB_AHEAD = 366, CAL_SUB_MAX = 1500;
+let _calSubIdx = null;   // Datum → [{s, o}] (nur Sitzung, wird bei Bedarf neu gebaut)
+const _calSubBusy = {};
+
+function icsEvents(text) {
+  const raw = String(text).replace(/\r\n/g, '\n').replace(/\n[ \t]/g, '');
+  const out = []; let cur = null;
+  raw.split('\n').forEach(ln => {
+    if (ln === 'BEGIN:VEVENT') { cur = { ex: [] }; return; }
+    if (ln === 'END:VEVENT') { if (cur && cur.start) out.push(cur); cur = null; return; }
+    if (!cur) return;
+    const ci = ln.indexOf(':'); if (ci < 0) return;
+    const head = ln.slice(0, ci), val = ln.slice(ci + 1), key = head.split(';')[0].toUpperCase();
+    const allDay = /VALUE=DATE(?!-)/i.test(head) || /^\d{8}$/.test(val.trim());
+    if (key === 'SUMMARY') cur.title = icsUnescape(val).slice(0, 120);
+    else if (key === 'DESCRIPTION') cur.note = icsUnescape(val).slice(0, 200);
+    else if (key === 'LOCATION') cur.loc = icsUnescape(val).slice(0, 120);
+    else if (key === 'UID') cur.uid = val.trim();
+    else if (key === 'STATUS') cur.status = val.trim().toUpperCase();
+    else if (key === 'RRULE') cur.rrule = val.trim();
+    else if (key === 'DTSTART') { const d = icsDate(val); if (d) cur.start = { date: d.date, time: allDay ? '' : (d.time || '') }; }
+    else if (key === 'DTEND') { const d = icsDate(val); if (d) cur.end = { date: d.date, allDay }; }
+    else if (key === 'EXDATE') val.split(',').forEach(v => { const d = icsDate(v); if (d) cur.ex.push(d.date); });
+    else if (key === 'RECURRENCE-ID') { const d = icsDate(val); if (d) cur.recId = d.date; }
+  });
+  return out;
+}
+/* Wiederholungen ausrollen. Abgedeckt: DAILY/WEEKLY/MONTHLY/YEARLY mit INTERVAL,
+   COUNT, UNTIL, BYDAY (auch „2MO"/„-1FR"), BYMONTHDAY, BYMONTH – das, was
+   Google, Apple und Outlook in der Praxis erzeugen. */
+function icsRuleDates(startISO, rrule, fromISO, endISO, exSet) {
+  const R = {}; String(rrule).split(';').forEach(p => { const kv = p.split('='); if (kv[1] != null) R[kv[0].toUpperCase()] = kv[1]; });
+  const freq = R.FREQ, iv = Math.max(1, +R.INTERVAL || 1), count = +R.COUNT || 0;
+  const until = R.UNTIL ? (icsDate(R.UNTIL) || {}).date : null;
+  const byday = R.BYDAY ? R.BYDAY.split(',').map(s => { const m = s.match(/^([+-]?\d+)?([A-Z]{2})$/); return m ? { n: m[1] ? +m[1] : 0, wd: ICAL_WD_NUM[m[2]] } : null; }).filter(Boolean) : [];
+  const bymd = R.BYMONTHDAY ? R.BYMONTHDAY.split(',').map(Number) : [];
+  const bymo = R.BYMONTH ? R.BYMONTH.split(',').map(Number) : [];
+  const s = parseISO(startISO), sY = s.getFullYear(), sM = s.getMonth(), sD = s.getDate(), sW = s.getDay();
+  const mondayOf = d => { const x = new Date(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); x.setHours(0, 0, 0, 0); return x; };
+  const sMon = mondayOf(s).getTime();
+  const nthOk = (d, b) => {
+    if (d.getDay() !== b.wd) return false;
+    if (!b.n) return true;
+    const dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    return b.n > 0 ? Math.ceil(d.getDate() / 7) === b.n : Math.ceil((dim - d.getDate() + 1) / 7) === -b.n;
+  };
+  const mdOk = d => { const dim = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); return bymd.some(x => x > 0 ? d.getDate() === x : d.getDate() === dim + x + 1); };
+  const hit = d => {
+    if (freq === 'DAILY') return Math.round((d - s) / 864e5) % iv === 0 && (!byday.length || byday.some(b => d.getDay() === b.wd));
+    if (freq === 'WEEKLY') return Math.round((mondayOf(d) - sMon) / (7 * 864e5)) % iv === 0 && (byday.length ? byday.some(b => d.getDay() === b.wd) : d.getDay() === sW);
+    if (freq === 'MONTHLY') {
+      if (((d.getFullYear() - sY) * 12 + d.getMonth() - sM) % iv) return false;
+      if (byday.length) return byday.some(b => nthOk(d, b));
+      return bymd.length ? mdOk(d) : d.getDate() === sD;
+    }
+    if (freq === 'YEARLY') {
+      if ((d.getFullYear() - sY) % iv) return false;
+      if (bymo.length ? bymo.indexOf(d.getMonth() + 1) < 0 : (d.getMonth() !== sM && !byday.length)) return false;
+      if (byday.length) return byday.some(b => nthOk(d, b));
+      return bymd.length ? mdOk(d) : d.getDate() === sD;
+    }
+    return false;
+  };
+  if (['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].indexOf(freq) < 0) return [startISO];
+  const out = []; let n = 0;
+  // Ohne COUNT darf direkt am Fensteranfang begonnen werden (Abstaende rechnen ab DTSTART).
+  let cur = new Date(count ? s : (startISO < fromISO ? parseISO(fromISO) : s));
+  const end = until && until < endISO ? until : endISO;
+  for (let guard = 0; guard < 20000; guard++) {
+    const iso = toISO(cur);
+    if (iso > end) break;
+    if (iso >= startISO && hit(cur)) {
+      n++;
+      if (!exSet.has(iso) && iso >= fromISO) out.push(iso);
+      if (count && n >= count) break;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+function icsOccurrences(text) {
+  const from = addDays(todayISO(), -CAL_SUB_PAST), to = addDays(todayISO(), CAL_SUB_AHEAD);
+  const evs = icsEvents(text);
+  const moved = {};   // UID → Daten, die durch eine Einzelaenderung (RECURRENCE-ID) ersetzt wurden
+  evs.forEach(e => { if (e.recId && e.uid) (moved[e.uid] = moved[e.uid] || new Set()).add(e.recId); });
+  const occ = [];
+  evs.forEach(e => {
+    if (e.status === 'CANCELLED') return;
+    let span = 0;
+    if (e.end && e.end.date > e.start.date) span = Math.round((parseISO(e.end.date) - parseISO(e.start.date)) / 864e5) - (e.end.allDay ? 1 : 0);
+    const ex = new Set(e.ex.concat(e.uid && moved[e.uid] && !e.recId ? Array.from(moved[e.uid]) : []));
+    const dates = (e.rrule && !e.recId) ? icsRuleDates(e.start.date, e.rrule, addDays(from, -span), to, ex) : [e.start.date];
+    dates.forEach(d => {
+      const dEnd = span > 0 ? addDays(d, span) : d;
+      if (dEnd < from || d > to) return;
+      const o = { d: d, t: e.start.time || '', ti: e.title || '(ohne Titel)' };
+      if (span > 0) o.e = dEnd;
+      const note = [e.loc, e.note].filter(Boolean).join(' · ');
+      if (note) o.n = note.slice(0, 160);
+      occ.push(o);
+    });
+  });
+  occ.sort((a, b) => (a.d + a.t) < (b.d + b.t) ? -1 : 1);
+  return occ.slice(0, CAL_SUB_MAX);
+}
+const calSubs = () => (store.calSubs = store.calSubs || []);
+function calSubIndex() {
+  if (_calSubIdx) return _calSubIdx;
+  const idx = {};
+  calSubs().forEach(s => (s.occ || []).forEach(o => {
+    let d = o.d; const last = o.e || o.d;
+    for (let g = 0; d <= last && g < 60; g++, d = addDays(d, 1)) (idx[d] = idx[d] || []).push({ s, o });
+  }));
+  return (_calSubIdx = idx);
+}
+const calSubOn = (iso) => (calSubIndex()[iso] || []).slice().sort((a, b) => (a.o.t || '99') < (b.o.t || '99') ? -1 : 1);
+/* Fuer Uebersichten (Dashboard, „Demnaechst"): wie ein Termin aussehend, aber schreibgeschuetzt. */
+const calSubAsEvents = (iso) => calSubOn(iso).map(x => ({ id: 'abo-' + x.s.id + '-' + x.o.d + '-' + x.o.t + '-' + x.o.ti, title: x.o.ti, date: iso, time: x.o.t, note: x.o.n || '', abo: x.s }));
+
+function calSubErrText(code) {
+  const L = pickLang;
+  if (code === 'offline') return L({ de: 'Keine Verbindung – es werden die zuletzt geladenen Termine gezeigt.', en: 'No connection – showing the last loaded events.', fr: 'Pas de connexion – affichage des derniers rendez-vous chargés.', es: 'Sin conexión: se muestran las últimas citas cargadas.', it: 'Nessuna connessione – vengono mostrati gli ultimi appuntamenti caricati.', pl: 'Brak połączenia – pokazane są ostatnio wczytane terminy.', tr: 'Bağlantı yok – en son yüklenen etkinlikler gösteriliyor.', uk: 'Немає з’єднання – показано останні завантажені події.' });
+  if (code === 'ics_not_found' || code === 'bad_url' || code === 'not_ics') return L({ de: 'Der Link funktioniert nicht (mehr). Bitte prüfe ihn – bei Google: „Privatadresse im iCal-Format“.', en: 'The link does not work (any more). Please check it – for Google: “Secret address in iCal format”.', fr: 'Le lien ne fonctionne pas (plus). Vérifie-le – pour Google : « Adresse secrète au format iCal ».', es: 'El enlace no funciona (ya). Revísalo; en Google: «Dirección secreta en formato iCal».', it: 'Il link non funziona (più). Controllalo – per Google: «Indirizzo segreto in formato iCal».', pl: 'Link nie działa (już). Sprawdź go – w Google: „Tajny adres w formacie iCal”.', tr: 'Bağlantı çalışmıyor (artık). Lütfen kontrol et – Google’da: „iCal biçiminde gizli adres”.', uk: 'Посилання не працює (більше). Перевір його – у Google: «Секретна адреса у форматі iCal».' });
+  return L({ de: 'Der Kalender ließ sich gerade nicht laden. Ordela versucht es später erneut.', en: 'The calendar could not be loaded right now. Ordela will try again later.', fr: 'Le calendrier n’a pas pu être chargé. Ordela réessaiera plus tard.', es: 'No se pudo cargar el calendario. Ordela lo intentará más tarde.', it: 'Il calendario non è stato caricato. Ordela riproverà più tardi.', pl: 'Nie udało się wczytać kalendarza. Ordela spróbuje ponownie później.', tr: 'Takvim şu anda yüklenemedi. Ordela daha sonra yeniden deneyecek.', uk: 'Не вдалося завантажити календар. Ordela спробує пізніше.' });
+}
+async function calSubSync(sub) {
+  if (_calSubBusy[sub.id]) return false;
+  _calSubBusy[sub.id] = true;
+  try {
+    let r;
+    try { r = await fetch(CAL_SUB_PROXY, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: sub.url }) }); }
+    catch (e) { sub.err = 'offline'; return false; }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { sub.err = j.error || 'failed'; return false; }
+    try { sub.occ = icsOccurrences(j.ics); } catch (e) { sub.err = 'not_ics'; return false; }
+    sub.last = Date.now(); sub.err = null;
+    return true;
+  } finally {
+    delete _calSubBusy[sub.id]; _calSubIdx = null;
+    try { save(); } catch (e) {}
+    if (currentView === 'calendar') RENDERERS.calendar();
+    else if (currentView === 'dashboard') try { refresh(); } catch (e) {}
+  }
+}
+function calSubSyncDue(force) {
+  if (document.hidden && !force) return;
+  calSubs().forEach(s => { if (force || !s.last || Date.now() - s.last > CAL_SUB_EVERY) calSubSync(s); });
+}
+setTimeout(() => { try { calSubSyncDue(); } catch (e) {} }, 3500);
+setInterval(() => { try { calSubSyncDue(); } catch (e) {} }, 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { try { calSubSyncDue(); } catch (e) {} } });
+
+function calSubCardHTML() {
+  const L = pickLang, subs = calSubs();
+  const ago = (t) => { if (!t) return L({ de: 'noch nie geladen', en: 'never loaded', fr: 'jamais chargé', es: 'nunca cargado', it: 'mai caricato', pl: 'jeszcze nie wczytano', tr: 'hiç yüklenmedi', uk: 'ще не завантажено' }); const m = Math.max(0, Math.round((Date.now() - t) / 60e3)); return L({ de: 'aktualisiert vor {m} Min.', en: 'updated {m} min ago', fr: 'mis à jour il y a {m} min', es: 'actualizado hace {m} min', it: 'aggiornato {m} min fa', pl: 'zaktualizowano {m} min temu', tr: '{m} dk önce güncellendi', uk: 'оновлено {m} хв тому' }).replace('{m}', m); };
+  let h = '<div class="card" id="calSubCard" data-noi18n style="margin-bottom:12px"><h3 style="font-size:15px;margin-bottom:6px">' + esc(L({ de: 'Abonnierte Kalender', en: 'Subscribed calendars', fr: 'Calendriers abonnés', es: 'Calendarios suscritos', it: 'Calendari iscritti', pl: 'Subskrybowane kalendarze', tr: 'Abone olunan takvimler', uk: 'Підписані календарі' })) + '</h3>' +
+    '<p class="sub" style="margin-bottom:10px">' + esc(L({ de: 'Termine aus Google- oder anderen Kalendern automatisch anzeigen – zum Ansehen, ändern weiterhin im Original.', en: 'Show events from Google or other calendars automatically – view only, edit them in the original.', fr: 'Afficher automatiquement les rendez-vous de Google ou d’autres calendriers – en lecture seule, modification dans l’original.', es: 'Muestra automáticamente citas de Google u otros calendarios: solo lectura, se editan en el original.', it: 'Mostra automaticamente gli appuntamenti di Google o altri calendari – sola lettura, si modificano nell’originale.', pl: 'Automatycznie pokazuj terminy z Google lub innych kalendarzy – tylko do odczytu, edycja w oryginale.', tr: 'Google veya başka takvimlerdeki etkinlikleri otomatik göster – yalnızca görüntüleme, düzenleme asıl takvimde.', uk: 'Автоматично показувати події з Google чи інших календарів – лише перегляд, змінювати в оригіналі.' })) + '</p>';
+  subs.forEach(s => {
+    h += '<div class="ev" style="margin-bottom:6px"><span aria-hidden="true" style="width:12px;height:12px;border-radius:50%;flex:none;background:' + esc(s.color) + '"></span>' +
+      '<div class="ev-tx">' + esc(s.name) + '<small>' + esc(s.err ? calSubErrText(s.err) : ago(s.last) + ' · ' + (s.occ || []).length + ' ' + L({ de: 'Termine', en: 'events', fr: 'rendez-vous', es: 'citas', it: 'appuntamenti', pl: 'terminów', tr: 'etkinlik', uk: 'подій' })) + '</small></div>' +
+      '<button class="btn btn-sm" data-calsub="sync" data-id="' + s.id + '" aria-label="' + esc(L({ de: 'Jetzt aktualisieren', en: 'Update now', fr: 'Mettre à jour', es: 'Actualizar ahora', it: 'Aggiorna ora', pl: 'Aktualizuj teraz', tr: 'Şimdi güncelle', uk: 'Оновити зараз' }) + ': ' + s.name) + '">↻</button>' +
+      '<button class="t-del" data-calsub="del" data-id="' + s.id + '" aria-label="' + esc(L({ de: 'Abo entfernen', en: 'Remove subscription', fr: 'Supprimer l’abonnement', es: 'Quitar suscripción', it: 'Rimuovi iscrizione', pl: 'Usuń subskrypcję', tr: 'Aboneliği kaldır', uk: 'Видалити підписку' }) + ': ' + s.name) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icTrash"/></svg></button></div>';
+  });
+  h += '<button class="btn btn-sm btn-primary" data-calsub="add" style="margin-top:4px">+ ' + esc(L({ de: 'Kalender abonnieren', en: 'Subscribe to calendar', fr: 'S’abonner à un calendrier', es: 'Suscribirse a un calendario', it: 'Iscriviti a un calendario', pl: 'Subskrybuj kalendarz', tr: 'Takvime abone ol', uk: 'Підписатися на календар' })) + '</button></div>';
+  return h;
+}
+function calSubAddSheet() {
+  const L = pickLang;
+  let ov = document.getElementById('calSubOv');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'calSubOv'; ov.className = 'fam-alert-ov'; ov.style.zIndex = '10002'; document.body.appendChild(ov); }
+  const used = calSubs().map(s => s.color), col = CAL_SUB_COLORS.find(c => used.indexOf(c) < 0) || CAL_SUB_COLORS[0];
+  const steps = L({
+    de: ['calendar.google.com am Computer öffnen.', 'Links beim gewünschten Kalender auf ⋮ → <b>Einstellungen und Freigabe</b>.', 'Ganz unten <b>Privatadresse im iCal-Format</b> kopieren.', 'Hier einfügen. Für jeden Kalender (z. B. Familie, Kinder) ein eigenes Abo anlegen.'],
+    en: ['Open calendar.google.com on a computer.', 'On the left, next to the calendar, ⋮ → <b>Settings and sharing</b>.', 'At the bottom copy the <b>Secret address in iCal format</b>.', 'Paste it here. Add one subscription per calendar (e.g. family, kids).'],
+    fr: ['Ouvre calendar.google.com sur un ordinateur.', 'À gauche, à côté du calendrier, ⋮ → <b>Paramètres et partage</b>.', 'Tout en bas, copie l’<b>adresse secrète au format iCal</b>.', 'Colle-la ici. Un abonnement par calendrier (p. ex. famille, enfants).'],
+    es: ['Abre calendar.google.com en un ordenador.', 'A la izquierda, junto al calendario, ⋮ → <b>Configuración y uso compartido</b>.', 'Abajo del todo copia la <b>dirección secreta en formato iCal</b>.', 'Pégala aquí. Una suscripción por calendario (p. ej. familia, niños).'],
+    it: ['Apri calendar.google.com su un computer.', 'A sinistra, accanto al calendario, ⋮ → <b>Impostazioni e condivisione</b>.', 'In fondo copia l’<b>indirizzo segreto in formato iCal</b>.', 'Incollalo qui. Un’iscrizione per calendario (es. famiglia, figli).'],
+    pl: ['Otwórz calendar.google.com na komputerze.', 'Po lewej przy kalendarzu ⋮ → <b>Ustawienia i udostępnianie</b>.', 'Na samym dole skopiuj <b>tajny adres w formacie iCal</b>.', 'Wklej go tutaj. Jedna subskrypcja na kalendarz (np. rodzina, dzieci).'],
+    tr: ['calendar.google.com adresini bilgisayarda aç.', 'Solda takvimin yanında ⋮ → <b>Ayarlar ve paylaşım</b>.', 'En altta <b>iCal biçiminde gizli adres</b>i kopyala.', 'Buraya yapıştır. Her takvim için ayrı abonelik (ör. aile, çocuklar).'],
+    uk: ['Відкрий calendar.google.com на комп’ютері.', 'Ліворуч біля календаря ⋮ → <b>Налаштування й доступ</b>.', 'У самому низу скопіюй <b>секретну адресу у форматі iCal</b>.', 'Встав її тут. Окрема підписка для кожного календаря (напр. сім’я, діти).']
+  });
+  ov.innerHTML = '<div class="fam-alert" role="dialog" aria-modal="true" aria-labelledby="calSubHead" data-noi18n style="max-width:460px;text-align:left"><h3 id="calSubHead" style="margin-bottom:8px">' + esc(L({ de: 'Kalender abonnieren', en: 'Subscribe to calendar', fr: 'S’abonner à un calendrier', es: 'Suscribirse a un calendario', it: 'Iscriviti a un calendario', pl: 'Subskrybuj kalendarz', tr: 'Takvime abone ol', uk: 'Підписатися на календар' })) + '</h3>' +
+    '<ol style="margin:0 0 10px 18px;padding:0;font-size:13px;line-height:1.5">' + steps.map(s => '<li>' + s + '</li>').join('') + '</ol>' +
+    '<label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px" for="calSubName">' + esc(L({ de: 'Name', en: 'Name', fr: 'Nom', es: 'Nombre', it: 'Nome', pl: 'Nazwa', tr: 'Ad', uk: 'Назва' })) + '</label>' +
+    '<input id="calSubName" maxlength="40" placeholder="' + esc(L({ de: 'z. B. Familie', en: 'e.g. Family', fr: 'p. ex. Famille', es: 'p. ej. Familia', it: 'es. Famiglia', pl: 'np. Rodzina', tr: 'ör. Aile', uk: 'напр. Сім’я' })) + '" style="width:100%;margin-bottom:10px">' +
+    '<label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px" for="calSubUrl">' + esc(L({ de: 'iCal-Link', en: 'iCal link', fr: 'Lien iCal', es: 'Enlace iCal', it: 'Link iCal', pl: 'Link iCal', tr: 'iCal bağlantısı', uk: 'Посилання iCal' })) + '</label>' +
+    '<input id="calSubUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://…/basic.ics" style="width:100%;margin-bottom:10px">' +
+    '<div role="radiogroup" aria-label="' + esc(L({ de: 'Farbe', en: 'Colour', fr: 'Couleur', es: 'Color', it: 'Colore', pl: 'Kolor', tr: 'Renk', uk: 'Колір' })) + '" style="display:flex;gap:8px;margin-bottom:10px">' + CAL_SUB_COLORS.map((c, i) => '<button type="button" role="radio" aria-checked="' + (c === col) + '" aria-label="' + esc(L({ de: 'Farbe', en: 'Colour', fr: 'Couleur', es: 'Color', it: 'Colore', pl: 'Kolor', tr: 'Renk', uk: 'Колір' })) + ' ' + (i + 1) + '" data-col="' + c + '" style="width:30px;height:30px;border-radius:50%;border:3px solid ' + (c === col ? 'var(--text, #fff)' : 'transparent') + ';background:' + c + ';padding:0"></button>').join('') + '</div>' +
+    '<p class="sub" style="font-size:12px;margin-bottom:12px">' + esc(L({ de: 'Der Link ist wie ein Passwort: Wer ihn hat, sieht alle Termine. Ordela speichert ihn nur auf diesem Gerät. Zum Abrufen wird der Kalender kurz über den Ordela-Server geleitet und dort nicht gespeichert.', en: 'The link is like a password: anyone who has it sees all events. Ordela stores it only on this device. To fetch it, the calendar briefly passes through the Ordela server and is not stored there.', fr: 'Le lien est comme un mot de passe : qui l’a voit tous les rendez-vous. Ordela ne l’enregistre que sur cet appareil. Pour le récupérer, le calendrier transite brièvement par le serveur Ordela, sans y être enregistré.', es: 'El enlace es como una contraseña: quien lo tiene ve todas las citas. Ordela solo lo guarda en este dispositivo. Para obtenerlo, el calendario pasa brevemente por el servidor de Ordela y no se guarda allí.', it: 'Il link è come una password: chi lo ha vede tutti gli appuntamenti. Ordela lo salva solo su questo dispositivo. Per scaricarlo, il calendario passa brevemente dal server Ordela e non vi viene salvato.', pl: 'Link jest jak hasło: kto go ma, widzi wszystkie terminy. Ordela zapisuje go tylko na tym urządzeniu. Przy pobieraniu kalendarz przechodzi krótko przez serwer Ordela i nie jest tam zapisywany.', tr: 'Bağlantı bir şifre gibidir: ona sahip olan tüm etkinlikleri görür. Ordela onu yalnızca bu cihazda saklar. Takvim alınırken kısa süreliğine Ordela sunucusundan geçer ve orada saklanmaz.', uk: 'Посилання – як пароль: хто його має, бачить усі події. Ordela зберігає його лише на цьому пристрої. Під час завантаження календар коротко проходить через сервер Ordela і там не зберігається.' })) + '</p>' +
+    '<p id="calSubMsg" role="status" style="font-size:13px;margin-bottom:8px"></p>' +
+    '<div class="fam-alert-btns" style="flex-direction:column;gap:8px"><button class="btn btn-primary" id="calSubSave">' + esc(L({ de: 'Abonnieren', en: 'Subscribe', fr: 'S’abonner', es: 'Suscribirse', it: 'Iscriviti', pl: 'Subskrybuj', tr: 'Abone ol', uk: 'Підписатися' })) + '</button>' +
+    '<button class="btn btn-sm btn-ghost" id="calSubCancel">' + esc(L({ de: 'Abbrechen', en: 'Cancel', fr: 'Annuler', es: 'Cancelar', it: 'Annulla', pl: 'Anuluj', tr: 'İptal', uk: 'Скасувати' })) + '</button></div></div>';
+  ov.classList.add('on');
+  let color = col;
+  ov.querySelectorAll('[data-col]').forEach(b => b.onclick = () => { color = b.dataset.col; ov.querySelectorAll('[data-col]').forEach(x => { const on = x === b; x.setAttribute('aria-checked', on); x.style.borderColor = on ? 'var(--text, #fff)' : 'transparent'; }); });
+  ov.querySelector('#calSubCancel').onclick = () => ov.classList.remove('on');
+  ov.querySelector('#calSubSave').onclick = async () => {
+    const name = ov.querySelector('#calSubName').value.trim() || L({ de: 'Kalender', en: 'Calendar', fr: 'Calendrier', es: 'Calendario', it: 'Calendario', pl: 'Kalendarz', tr: 'Takvim', uk: 'Календар' });
+    const url = ov.querySelector('#calSubUrl').value.trim().replace(/^webcal:/i, 'https:');
+    const msg = ov.querySelector('#calSubMsg');
+    if (!/^https:\/\/\S+$/i.test(url)) { msg.textContent = calSubErrText('bad_url'); return; }
+    if (calSubs().some(s => s.url === url)) { msg.textContent = L({ de: 'Diesen Kalender hast du schon abonniert.', en: 'You already subscribed to this calendar.', fr: 'Tu es déjà abonné(e) à ce calendrier.', es: 'Ya estás suscrito a este calendario.', it: 'Sei già iscritto a questo calendario.', pl: 'Ten kalendarz już subskrybujesz.', tr: 'Bu takvime zaten abonesin.', uk: 'Ти вже підписаний на цей календар.' }); return; }
+    msg.textContent = L({ de: 'Lade Kalender …', en: 'Loading calendar …', fr: 'Chargement du calendrier …', es: 'Cargando calendario …', it: 'Caricamento del calendario …', pl: 'Wczytywanie kalendarza …', tr: 'Takvim yükleniyor …', uk: 'Завантаження календаря …' });
+    const sub = { id: uid(), name: name.slice(0, 40), url, color, occ: [], last: 0, err: null };
+    calSubs().push(sub);
+    const ok = await calSubSync(sub).catch(() => { sub.err = sub.err || 'failed'; return false; });
+    if (!ok) { store.calSubs = calSubs().filter(s => s !== sub); _calSubIdx = null; save(); msg.textContent = calSubErrText(sub.err); if (currentView === 'calendar') RENDERERS.calendar(); return; }
+    ov.classList.remove('on');
+    toast(L({ de: '„{n}“ abonniert – {c} Termine ✓', en: '“{n}” subscribed – {c} events ✓', fr: '« {n} » abonné – {c} rendez-vous ✓', es: '«{n}» suscrito: {c} citas ✓', it: '«{n}» iscritto – {c} appuntamenti ✓', pl: '„{n}” subskrybowany – {c} terminów ✓', tr: '„{n}“ abone olundu – {c} etkinlik ✓', uk: '«{n}» підписано – {c} подій ✓' }).replace('{n}', sub.name).replace('{c}', sub.occ.length));
+  };
+  setTimeout(() => { const n = ov.querySelector('#calSubName'); if (n) n.focus(); }, 50);
+}
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-calsub]'); if (!b) return;
+  const a = b.dataset.calsub, sub = calSubs().find(s => s.id === b.dataset.id);
+  if (a === 'add') { calSubAddSheet(); return; }
+  if (a === 'sync' && sub) { sub.last = 0; calSubSync(sub); toast(pickLang({ de: 'Wird aktualisiert …', en: 'Updating …', fr: 'Mise à jour …', es: 'Actualizando …', it: 'Aggiornamento …', pl: 'Aktualizowanie …', tr: 'Güncelleniyor …', uk: 'Оновлення …' })); return; }
+  if (a === 'del' && sub) {
+    store.calSubs = calSubs().filter(s => s !== sub); _calSubIdx = null; save(); RENDERERS.calendar();
+    toast(pickLang({ de: 'Abo entfernt – die Termine sind aus Ordela verschwunden, im Original bleiben sie.', en: 'Subscription removed – the events are gone from Ordela but stay in the original.', fr: 'Abonnement supprimé – les rendez-vous disparaissent d’Ordela mais restent dans l’original.', es: 'Suscripción eliminada: las citas desaparecen de Ordela, pero siguen en el original.', it: 'Iscrizione rimossa – gli appuntamenti spariscono da Ordela ma restano nell’originale.', pl: 'Subskrypcja usunięta – terminy znikają z Ordela, ale zostają w oryginale.', tr: 'Abonelik kaldırıldı – etkinlikler Ordela’dan kalktı, asıl takvimde duruyor.', uk: 'Підписку видалено – події зникли з Ordela, але лишилися в оригіналі.' }));
+  }
+});
+
 RENDERERS.calendar = function () {
   const first = new Date(calCur.y, calCur.m, 1);
   $('#calTitle').textContent = first.toLocaleDateString(curLocale, { month: 'long', year: 'numeric' });
@@ -9753,16 +9989,18 @@ RENDERERS.calendar = function () {
     const dim = d.getMonth() !== calCur.m;
     const evs = eventsOn(iso);
     const wst = wasteOn(iso);                       // Abholungen mit anzeigen (lagen vorher nur im Müllmodul)
-    const nEv = evs.length, nW = wst.length;
+    const abo = calSubOn(iso);                      // abonnierte Kalender (schreibgeschützt)
+    const nEv = evs.length + abo.length, nW = wst.length;
     const aLbl = esc(d.toLocaleDateString(curLocale, { weekday: 'long', day: 'numeric', month: 'long' }) +
       (nEv ? ', ' + nEv + ' ' + (nEv === 1 ? 'Termin' : 'Termine') : '') +
       (nW ? ', ' + wst.map(x => x.w.label || x.ty.l).join(', ') : '') +
       (iso === today ? ', heute' : '') + (iso === selDate ? ', ausgewählt' : ''));
-    const dots = evs.slice(0, 3).map(() => '<i></i>').join('') + wst.slice(0, 2).map(() => '<i class="dot-waste"></i>').join('');
+    const dots = evs.slice(0, 3).map(() => '<i></i>').join('') + abo.slice(0, Math.max(0, 3 - evs.length)).map(x => '<i style="background:' + esc(x.s.color) + '"></i>').join('') + wst.slice(0, 2).map(() => '<i class="dot-waste"></i>').join('');
     html += '<button class="cal-day' + (dim ? ' dim' : '') + (iso === today ? ' today' : '') + (iso === selDate ? ' sel' : '') + '" data-date="' + iso + '" aria-label="' + aLbl + '"' + (iso === today ? ' aria-current="date"' : '') + '><span aria-hidden="true">' +
       d.getDate() + '</span><span class="dots" aria-hidden="true">' + dots + '</span></button>';
   }
   $('#calGrid').innerHTML = html;
+  const slot = $('#calSubSlot'); if (slot) slot.innerHTML = calSubCardHTML();
   renderDayPanel();
   renderUpcoming();
 };
@@ -9783,13 +10021,24 @@ function renderDayPanel() {
     '<div class="ev"><span class="ev-time">' + x.ty.i + '</span>' +
     '<div class="ev-tx">' + esc(x.w.label || x.ty.l) + '<small>Abholung</small></div>' +
     '<span class="src-badge">Müllkalender</span></div>').join('');
-  $('#dayEvents').innerHTML = (!evs.length && !wst.length)
+  /* Abo-Termine ohne Löschknopf: geändert wird im Originalkalender. */
+  const abo = calSubOn(selDate);
+  const aboHTML = abo.map(x =>
+    '<div class="ev" data-noi18n><span class="ev-time">' + (x.o.t ? esc(x.o.t) : '–') + '</span>' +
+    '<div class="ev-tx">' + esc(x.o.ti) + (x.o.n ? '<small>' + esc(x.o.n) + '</small>' : '') + '</div>' +
+    '<span class="src-badge" style="border-color:' + esc(x.s.color) + ';color:' + esc(x.s.color) + '">' + esc(x.s.name) + '</span></div>').join('');
+  $('#dayEvents').innerHTML = (!evs.length && !wst.length && !abo.length)
     ? '<div class="empty">Keine Termine an diesem Tag.</div>'
-    : (evHTML + wsHTML);
+    : (evHTML + aboHTML + wsHTML);
 }
 
 function renderUpcoming() {
-  const evs = upcomingEvents(5);
+  /* Eigene Termine + Abo-Termine der naechsten 60 Tage gemeinsam sortieren. */
+  const today = todayISO(), now = new Date().toTimeString().slice(0, 5);
+  let abo = [];
+  for (let i = 0; i <= 60 && abo.length < 5; i++) { const d = addDays(today, i); abo = abo.concat(calSubAsEvents(d).filter(e => i > 0 || !e.time || e.time >= now)); }
+  const evs = upcomingEvents(5).concat(abo)
+    .sort((a, b) => (a.date + (a.time || '')) < (b.date + (b.time || '')) ? -1 : 1).slice(0, 5);
   $('#upcomingList').innerHTML = !evs.length
     ? '<div class="empty">Nichts geplant. Zeit für neue Pläne</div>'
     : '<div class="mini-list">' + evs.map((e, i) =>
