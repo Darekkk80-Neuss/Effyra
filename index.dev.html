@@ -11471,9 +11471,11 @@ function mealLocalize(m) {
   // Wird gerade übersetzt? Nur wenn KI verfügbar und noch nicht fehlgeschlagen → sonst ist der Platzhalter das Endergebnis.
   const willTr = mealCanTranslate() && _mealTr[m.id + '|' + lang] !== 'fail';
   if (willTr) mealAutoTranslate(m, lang);
-  if (lang === 'de') return { ready: !willTr, title: m.name_de || m.name_en, names: m.ingredients.map(i => i.de || i.en), instr: m.instr_en };
-  return { ready: !willTr, title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
+  // orig: Zubereitung liegt nur auf Englisch vor → Karte zeigt statt des Textes einen Hinweis.
+  if (lang === 'de') return { ready: !willTr, orig: true, title: m.name_de || m.name_en, names: m.ingredients.map(i => i.de || i.en), instr: m.instr_en };
+  return { ready: !willTr, orig: true, title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
 }
+let _mealShowEn = false;   // Nutzer will die englische Originalanleitung sehen (nur Session)
 /* Uebersetzt ueber die Server-Function meal-translate: einmal je Rezept+Sprache,
    serverseitig gecacht und danach fuer ALLE Nutzer sofort da. Kostet KEINE
    KI-Credits und braucht KEINE KI-Einwilligung – es geht ausschliesslich das
@@ -11482,7 +11484,22 @@ function mealLocalize(m) {
    (keine Einwilligung oder kein Guthaben), sah die Zubereitung dauerhaft auf
    Englisch – genau der gemeldete Fehler. */
 function mealCanTranslate() {
-  return !!(typeof CLOUD !== 'undefined' && CLOUD && typeof sb !== 'undefined' && sb);
+  return mealCloudTr() || mealOwnKeyTr();
+}
+const mealCloudTr = () => !!(typeof CLOUD !== 'undefined' && CLOUD && typeof sb !== 'undefined' && sb);
+/* Offline-Version (29.10.2026): meal-translate gibt es ohne Server nicht mehr.
+   Mit eigenem OpenAI-Schluessel + KI-Einwilligung uebersetzt das Geraet selbst –
+   es geht nur das oeffentliche Rezept raus, keine Nutzerdaten. */
+const mealOwnKeyTr = () => !isChildUser() && usingOwnKey() && consentValid('ai');
+const MEAL_LANG_NAMES = { de: 'German', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish', tr: 'Turkish', uk: 'Ukrainian' };
+async function mealTranslateOwnKey(m, lang) {
+  const src = { title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
+  const txt = await callClaude({
+    model: 'gpt-5-mini', max_tokens: 2500,
+    system: 'You translate recipes. Translate the JSON values into ' + (MEAL_LANG_NAMES[lang] || lang) + '. Keep the array length and order. Reply with JSON only: {"title":"","names":[],"instr":""}.',
+    messages: [{ role: 'user', content: JSON.stringify(src) }]
+  });
+  return extractJSON(txt);
 }
 async function mealAutoTranslate(m, lang) {
   if (lang === 'en' || (m.tr && m.tr[lang])) return;
@@ -11490,6 +11507,23 @@ async function mealAutoTranslate(m, lang) {
   if (_mealTr[key]) return;                                     // läuft/schon versucht
   if (!mealCanTranslate()) return;                              // ohne Cloud: Platzhalter bleibt
   _mealTr[key] = 'busy';
+  if (!mealCloudTr()) {
+    try {
+      const j = await mealTranslateOwnKey(m, lang);
+      if (j && j.title) {
+        const on = Array.isArray(j.names) ? j.names : [];
+        m.tr = m.tr || {};
+        m.tr[lang] = {
+          title: String(j.title),
+          names: m.ingredients.map((ing, i) => on[i] ? String(on[i]) : (lang === 'de' ? (ing.de || ing.en) : ing.en)),
+          instr: String(j.instr || m.instr_en)
+        };
+        _mealTr[key] = 'done'; save();
+      } else { _mealTr[key] = 'fail'; }
+    } catch (e) { _mealTr[key] = 'fail'; }
+    if (currentView === 'dashboard') renderMeal();
+    return;
+  }
   try {
     const { data: sd } = await sb.auth.getSession();
     const s = sd && sd.session;
@@ -11538,7 +11572,19 @@ function mealCardHTML(m) {
       (m.nutri
         ? '<div class="meal-sec-t" style="margin-top:14px">Nährwerte je Portion</div><div class="meal-nutri"><span><b>' + (m.nutri.kcal != null ? m.nutri.kcal : '–') + '</b> kcal</span><span><b>' + (m.nutri.protein != null ? m.nutri.protein : '–') + '</b> g Eiweiß</span><span><b>' + (m.nutri.carbs != null ? m.nutri.carbs : '–') + '</b> g KH</span><span><b>' + (m.nutri.fat != null ? m.nutri.fat : '–') + '</b> g Fett</span></div><div class="meal-note">Schätzung (Spoonacular)</div>'
         : '') +
-      '<div class="meal-sec-t" style="margin-top:14px">Zubereitung</div><p class="meal-instr">' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>';
+      '<div class="meal-sec-t" style="margin-top:14px">Zubereitung</div>' +
+      (L.orig && L.ready && !_mealShowEn
+        ? '<p class="meal-note" style="margin:6px 0 8px">' + esc(pickLang({
+            de: 'Die Anleitung gibt es nur auf Englisch. Mit eigenem KI-Schlüssel (Einstellungen) übersetzt Ordela sie automatisch.',
+            en: 'The instructions are only available in English.',
+            fr: 'Les instructions ne sont disponibles qu’en anglais. Avec votre propre clé IA (Réglages), Ordela les traduit automatiquement.',
+            es: 'Las instrucciones solo están en inglés. Con tu propia clave de IA (Ajustes), Ordela las traduce automáticamente.',
+            it: 'Le istruzioni sono disponibili solo in inglese. Con la tua chiave IA (Impostazioni) Ordela le traduce automaticamente.',
+            pl: 'Instrukcja jest dostępna tylko po angielsku. Z własnym kluczem AI (Ustawienia) Ordela przetłumaczy ją automatycznie.',
+            tr: 'Tarif adımları yalnızca İngilizce. Kendi yapay zekâ anahtarınızla (Ayarlar) Ordela bunları otomatik çevirir.',
+            uk: 'Інструкція доступна лише англійською. З власним ключем ШІ (Налаштування) Ordela перекладе її автоматично.'
+          })) + '</p><button class="btn btn-sm" data-meal="showen">' + esc(pickLang({ de: 'Englische Anleitung zeigen', en: 'Show instructions', fr: 'Afficher en anglais', es: 'Mostrar en inglés', it: 'Mostra in inglese', pl: 'Pokaż po angielsku', tr: 'İngilizcesini göster', uk: 'Показати англійською' })) + '</button></div>'
+        : '<p class="meal-instr"' + (L.orig ? ' lang="en"' : '') + '>' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>');
   }
   h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">Zutaten auf die Liste</button>'
     /* Beschriftung ueber pickLang statt fest deutsch: der DOM-Sweep uebersetzt
@@ -11632,6 +11678,7 @@ if ($('#mealWidget')) $('#mealWidget').addEventListener('click', e => {
   const b = e.target.closest('[data-meal]'); if (!b) return;
   store.meal = store.meal || {}; const M = store.meal, a = b.dataset.meal;
   if (a === 'toggle') { M.open = !M.open; save(); renderMeal(); return; }
+  if (a === 'showen') { _mealShowEn = true; renderMeal(); return; }
   if (a === 'pplus') { M.servings = Math.min(12, (M.servings || 2) + 1); save(); renderMeal(); return; }
   if (a === 'pminus') { M.servings = Math.max(1, (M.servings || 2) - 1); save(); renderMeal(); return; }
   if (a === 'hide') { M.hiddenDate = todayISO(); M.open = false; save(); renderMeal(); toast('Für heute ausgeblendet – morgen gibt es einen neuen Vorschlag'); return; }
