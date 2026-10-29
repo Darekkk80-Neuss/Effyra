@@ -52,7 +52,7 @@ App Store Connect → App → **App-Datenschutz**. Antworten so wie im Google-Pl
 Das gleiche steht maschinenlesbar in `ios/App/App/PrivacyInfo.xcprivacy`.
 
 **Datenschutzerklärung-URL:** `https://darekkk80-neuss.github.io/Effyra/datenschutz.html`
-> ⚠️ Vor der Einreichung ergänzen (de/en/tr/uk): Käufe in der iOS-App laufen über **Apple (App Store)**;
+> Ergänzt am 29.10.2026 (de/en/tr/uk, PR „Rechtstexte: Apple App Store“): Käufe in der iOS-App laufen über **Apple (App Store)**;
 > der Ordela-Worker fragt dazu die Transaktion bei Apple ab (App Store Server API). Bisher nennt
 > der Text nur Google Play.
 
