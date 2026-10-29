@@ -202,6 +202,40 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 html.plus-on .plus-badge{display:inline-flex}
 /* iOS-App: Seite wandert nicht seitlich, kein Gummiband nach links/rechts */
 html.native,html.native body{overflow-x:hidden;overscroll-behavior-x:none}
+/* iOS-App: die WebView reicht bis unter Uhr/Akku – Kopfzeile und Login-Sprachknopf darunter ruecken.
+   --topbar-h waechst mit, damit alles, was darauf aufbaut (Inhalt, Hinweise), mitwandert. */
+html.native{--topbar-h:calc(58px + env(safe-area-inset-top))}
+html.native .topbar{padding-top:env(safe-area-inset-top)}
+html.native .gate-lang{top:calc(12px + env(safe-area-inset-top))}
+
+/* ===== KI-Briefkontingent (Startseite): bewusst noch edler als das Plus-Abzeichen –
+   Obsidian mit Champagner-Haarlinie, Gold-Ring zeigt den echten Restverbrauch. ===== */
+.ki-quota{position:relative;display:flex;align-items:center;gap:16px;padding:18px 18px 18px 16px;border-radius:22px;cursor:pointer;overflow:hidden;
+  color:#f4ead2;background:radial-gradient(120% 140% at 0% 0%,#2a2416 0%,#14120d 45%,#0b0a08 100%);
+  border:1px solid transparent;background-clip:padding-box;box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,236,190,.08);
+  -webkit-tap-highlight-color:transparent;text-align:left;width:100%;font:inherit;margin-bottom:var(--gap-card)}
+.ki-quota::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,226,160,.85),rgba(160,120,50,.25) 35%,rgba(255,240,205,.7) 60%,rgba(140,100,40,.3));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.ki-quota::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,236,190,.10),transparent);animation:kiSheen 7s ease-in-out infinite}
+@keyframes kiSheen{0%,70%{left:-60%}100%{left:130%}}
+@media (prefers-reduced-motion:reduce){.ki-quota::after{animation:none;display:none}}
+.ki-quota:active{transform:scale(.985)}
+.ki-ring{position:relative;flex:none;width:76px;height:76px}
+.ki-ring svg{width:76px;height:76px;transform:rotate(-90deg)}
+.ki-ring .trk{fill:none;stroke:rgba(255,226,160,.12);stroke-width:6}
+.ki-ring .val{fill:none;stroke:url(#kiGold);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1)}
+.ki-ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:26px;font-weight:700;letter-spacing:-.5px;
+  background:linear-gradient(180deg,#fff4d6,#e3b866);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ki-q-tx{flex:1;min-width:0}
+.ki-q-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#d9b56a}
+.ki-q-eyebrow svg{width:11px;height:11px;fill:#e3b866}
+.ki-q-title{display:block;margin-top:3px;font-family:var(--font-head);font-size:18px;font-weight:650;color:#fbf3df;line-height:1.25}
+.ki-q-sub{display:block;margin-top:3px;font-size:13px;color:rgba(244,234,210,.66)}
+.ki-q-cta{display:inline-flex;align-items:center;gap:5px;margin-top:9px;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;
+  color:#2b1f05;background:linear-gradient(135deg,#fff0c8,#e2b55c);box-shadow:0 2px 10px rgba(226,181,92,.25)}
+.ki-quota.low .ki-q-sub{color:#f3c97a}
 /* ===== Boot-Erlebnis: kurzer „Plattform fährt hoch"-Moment beim App-Start ===== */
 #bootFx{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:radial-gradient(120% 90% at 50% 38%,#141a2b 0%,var(--bg) 72%);opacity:1;transition:opacity .6s ease}
@@ -2356,6 +2390,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <div id="dashBlocks">
         <div class="dash-block" data-block="firststeps" id="fsWidget"></div>
         <div class="dash-block" data-block="brief" id="briefWidget"></div>
+        <div class="dash-block" data-block="kipack" id="kiWidget"></div>
         <div class="dash-block" data-block="weather" id="weatherWidget"></div>
         <div class="dash-block" data-block="holidays" id="holidaysWidget"></div>
         <div class="dash-block" data-block="fuel" id="fuelWidget"></div>
@@ -5215,6 +5250,7 @@ const TDICT_SRC = {
   'Arbeitszeit öffnen': { en: 'Open working hours', fr: 'Ouvrir le temps de travail', es: 'Abrir jornada laboral', it: 'Apri orario di lavoro', pl: 'Otwórz czas pracy', tr: "Çalışma saatini aç", uk: "Відкрити робочий час" },
   'Spritpreise': { en: 'Fuel prices', fr: 'Prix des carburants', es: 'Precios de combustible', it: 'Prezzi carburante', pl: 'Ceny paliw', tr: "Yakıt fiyatları", uk: "Ціни на пальне" },
   'Spritpreise': { en: 'Fuel prices', fr: 'Prix des carburants', es: 'Precios de combustible', it: 'Prezzi carburante', pl: 'Ceny paliw', tr: "Yakıt fiyatları", uk: "Ціни на пальне" },
+  'KI-Briefkontingent': { en: 'AI letter allowance', fr: 'Quota de lettres IA', es: 'Cupo de cartas IA', it: 'Quota lettere IA', pl: 'Limit pism AI', tr: "Yapay zekâ mektup kotası", uk: "Ліміт листів ШІ" },
   'Gericht des Tages': { en: 'Dish of the day', fr: 'Plat du jour', es: 'Plato del día', it: 'Piatto del giorno', pl: 'Danie dnia', tr: "Günün yemeği", uk: "Страва дня" },
   'Gericht des Tages · frisch & ausgewogen': { en: 'Dish of the day · fresh & balanced', fr: 'Plat du jour · frais & équilibré', es: 'Plato del día · fresco y equilibrado', it: 'Piatto del giorno · fresco ed equilibrato', pl: 'Danie dnia · świeże i zbilansowane', tr: "Günün yemeği · taze & dengeli", uk: "Страва дня · свіжа та збалансована" },
   'gesund & frisch': { en: 'healthy & fresh', fr: 'sain & frais', es: 'sano y fresco', it: 'sano e fresco', pl: 'zdrowe i świeże', tr: "sağlıklı & taze", uk: "здорова та свіжа" },
@@ -9194,6 +9230,7 @@ let dashShopOpen = false;   // Einkaufs-Sektion auf dem Dashboard eingeklappt (D
    Inhaltslose Blöcke bleiben ohnehin unsichtbar (Bedingungen im Render). */
 const DASH_BLOCKS = [
   { id: 'brief', name: 'Dein Tag heute', icon: '☀️' },
+  { id: 'kipack', name: 'KI-Briefkontingent', icon: '✨' },   // nur sichtbar, wenn ein KI-Paket gekauft wurde
   { id: 'weather', name: 'Wetter', icon: '🌤️' },
   { id: 'holidays', name: 'Feiertage & Brückentage', icon: '🎉' },
   { id: 'fuel', name: 'Spritpreise', icon: '⛽', deOnly: true },   // in DE standardmäßig AN (Nutzer kann abschalten); Datenquelle Tankerkönig = NUR Deutschland → außerhalb DE komplett ausgeblendet
@@ -9231,7 +9268,8 @@ function dashOrderList() {
   const isDE = holidayCountry() === 'DE';
   const all = DASH_BLOCKS.filter(b => isDE || !b.deOnly).map(b => b.id);   // DE-only-Blöcke außerhalb DE auch im Personalisierungs-Picker verbergen
   const saved = Array.isArray(store.dashOrder) ? store.dashOrder.filter(id => all.indexOf(id) >= 0) : [];
-  all.forEach(id => { if (saved.indexOf(id) < 0) saved.push(id); });
+  /* Neue Bloecke an ihren Platz in DASH_BLOCKS einsortieren (hinter ihren Vorgaenger), nicht ans Ende. */
+  all.forEach((id, i) => { if (saved.indexOf(id) < 0) saved.splice(i > 0 ? saved.indexOf(all[i - 1]) + 1 : 0, 0, id); });
   return saved;
 }
 /* Füllt die Sektions-Wrapper, blendet feste Blöcke per Auswahl aus und wendet die Reihenfolge an.
@@ -9502,6 +9540,7 @@ RENDERERS.dashboard = function () {
     briefBody +
     '</section>';
   if (!dashOn('brief')) $('#briefWidget').innerHTML = '';
+  renderKiQuota();
   /* Abhaken in „Dein Tag heute": Termin/Aufgabe/Medikament/Müll als erledigt markieren
      → verschwindet sofort. Delegierter Listener, EINMAL gebunden (überlebt innerHTML-Neurender). */
   if (!window._briefBound) {
@@ -12837,7 +12876,13 @@ async function kiApi(path, body) {
       : undefined);
   } catch (e) { throw new Error(pickLang({ de: 'Keine Verbindung. Bist du online?', en: 'No connection. Are you online?', fr: 'Pas de connexion. Es-tu en ligne ?', es: 'Sin conexión. ¿Estás en línea?', it: 'Nessuna connessione. Sei online?', pl: 'Brak połączenia. Czy jesteś online?', tr: 'Bağlantı yok. Çevrimiçi misin?', uk: 'Немає з’єднання. Ти онлайн?' })); }
   const j = await r.json().catch(() => ({}));
-  if (typeof j.credits === 'number') { store.kiCredits = j.credits; save(); }
+  if (typeof j.credits === 'number') {
+    /* kiTotal = Groesse des laufenden Kontingents fuer den Ring auf der Startseite:
+       steigt das Guthaben (Kauf), beginnt ein neues Kontingent; beim Verbrauch bleibt es. */
+    if (j.credits > (store.kiCredits || 0) || !(store.kiTotal >= j.credits)) store.kiTotal = j.credits;
+    store.kiCredits = j.credits; save();
+    if (currentView === 'dashboard') renderKiQuota();
+  }
   return { ok: r.ok, status: r.status, j };
 }
 async function kiRefresh() {
@@ -12921,6 +12966,32 @@ async function kiPackSheet() {
   ov.classList.add('on');
   ov.querySelectorAll('[data-kibuy]').forEach(b => { b.onclick = () => kiBuy(b.dataset.kibuy); });
   ov.querySelector('#kiLaterBtn').onclick = () => ov.classList.remove('on');
+}
+/* Startseite: KI-Briefkontingent mit Ring (Rest / Kontingent). Erscheint erst, wenn ein Paket
+   gekauft wurde; ist es aufgebraucht, bleibt die Karte als Nachkauf-Hinweis stehen. */
+function renderKiQuota() {
+  const box = document.getElementById('kiWidget'); if (!box) return;
+  const total = Math.max(store.kiTotal || 0, kiCredits());
+  if (!kiPackOn() || isChildUser() || !total || !dashOn('kipack')) { box.innerHTML = ''; return; }
+  const L = pickLang, c = kiCredits(), low = c <= Math.max(3, Math.round(total * 0.15));
+  const R = 32, U = 2 * Math.PI * R, off = U * (1 - c / total);
+  box.innerHTML = '<button type="button" class="ki-quota' + (low ? ' low' : '') + '" id="kiQuotaCard" data-noi18n aria-label="' +
+    esc(L({ de: 'KI-Briefkontingent: noch {c} von {t}', en: 'AI letter allowance: {c} of {t} left', fr: 'Quota de lettres IA : {c} sur {t} restantes', es: 'Cupo de cartas IA: quedan {c} de {t}', it: 'Quota lettere IA: {c} su {t} rimaste', pl: 'Limit pism AI: zostało {c} z {t}', tr: 'Yapay zekâ mektup kotası: {t} içinden {c} kaldı', uk: 'Ліміт листів ШІ: залишилось {c} з {t}' }).replace('{c}', c).replace('{t}', total)) + '">' +
+    '<span class="ki-ring" aria-hidden="true"><svg viewBox="0 0 76 76"><defs><linearGradient id="kiGold" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="#fff2cc"/><stop offset=".55" stop-color="#e2b55c"/><stop offset="1" stop-color="#a87a2c"/></linearGradient></defs>' +
+    '<circle class="trk" cx="38" cy="38" r="' + R + '"/><circle class="val" cx="38" cy="38" r="' + R + '" stroke-dasharray="' + U.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg><b>' + c + '</b></span>' +
+    '<span class="ki-q-tx"><span class="ki-q-eyebrow"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>' +
+    esc(L({ de: 'KI-Briefkontingent', en: 'AI letter allowance', fr: 'Quota de lettres IA', es: 'Cupo de cartas IA', it: 'Quota lettere IA', pl: 'Limit pism AI', tr: 'Yapay zekâ mektup kotası', uk: 'Ліміт листів ШІ' })) + '</span>' +
+    '<span class="ki-q-title">' + esc(c > 0
+      ? L({ de: 'Noch {c} von {t} Briefen', en: '{c} of {t} letters left', fr: 'Encore {c} lettres sur {t}', es: 'Quedan {c} de {t} cartas', it: 'Ancora {c} lettere su {t}', pl: 'Zostało {c} z {t} pism', tr: '{t} mektuptan {c} kaldı', uk: 'Залишилось {c} з {t} листів' }).replace('{c}', c).replace('{t}', total)
+      : L({ de: 'Kontingent aufgebraucht', en: 'Allowance used up', fr: 'Quota épuisé', es: 'Cupo agotado', it: 'Quota esaurita', pl: 'Limit wyczerpany', tr: 'Kota doldu', uk: 'Ліміт вичерпано' })) + '</span>' +
+    '<span class="ki-q-sub">' + esc(c > 0
+      ? L({ de: 'Foto machen – Ordela erklärt den Brief.', en: 'Take a photo – Ordela explains the letter.', fr: 'Prends une photo – Ordela explique la lettre.', es: 'Haz una foto: Ordela explica la carta.', it: 'Scatta una foto – Ordela spiega la lettera.', pl: 'Zrób zdjęcie – Ordela objaśni pismo.', tr: 'Fotoğraf çek – Ordela mektubu açıklar.', uk: 'Зроби фото – Ordela пояснить лист.' })
+      : L({ de: 'Neues Paket kaufen, kein Abo.', en: 'Buy a new pack, no subscription.', fr: 'Acheter un nouveau pack, sans abonnement.', es: 'Compra un paquete nuevo, sin suscripción.', it: 'Acquista un nuovo pacchetto, nessun abbonamento.', pl: 'Kup nowy pakiet, bez subskrypcji.', tr: 'Yeni paket al, abonelik yok.', uk: 'Купи новий пакет, без підписки.' })) + '</span>' +
+    (low ? '<span class="ki-q-cta">' + esc(L({ de: 'Nachkaufen', en: 'Top up', fr: 'Recharger', es: 'Recargar', it: 'Ricarica', pl: 'Doładuj', tr: 'Yükle', uk: 'Поповнити' })) + ' ›</span>' : '') +
+    '</span></button>';
+  /* Mit Guthaben: direkt zum Brief-Foto; leer/knapp: Kauffenster. */
+  box.querySelector('#kiQuotaCard').onclick = () => { if (c > 0 && !low) showView('docs'); else kiPackSheet(); };
 }
 /* Kasten in den Einstellungen: Guthaben + Kaufknopf. */
 function kiPackCardHTML() {
