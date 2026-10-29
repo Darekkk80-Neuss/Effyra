@@ -195,6 +195,13 @@ main{flex:1;width:100%;max-width:760px;margin:0 auto;
 .topbar-actions{display:flex;align-items:center;gap:4px}
 .brand .logo-mark{width:32px;height:32px;flex:none}
 .brand b{font-family:var(--font-head);font-size:20px;letter-spacing:.2px;font-weight:650;color:var(--text)}
+/* Abzeichen fuer gekaufte Ordela Plus (nicht Testphase/Bestandsnutzer) */
+.plus-badge{display:none;align-items:center;gap:3px;padding:2px 8px 2px 6px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.3px;line-height:1.5;
+  color:#3b2a00;background:linear-gradient(135deg,#ffe08a,#f5b83d);box-shadow:0 1px 6px rgba(245,184,61,.35)}
+.plus-badge svg{width:11px;height:11px;fill:currentColor}
+html.plus-on .plus-badge{display:inline-flex}
+/* iOS-App: Seite wandert nicht seitlich, kein Gummiband nach links/rechts */
+html.native,html.native body{overflow-x:hidden;overscroll-behavior-x:none}
 /* ===== Boot-Erlebnis: kurzer „Plattform fährt hoch"-Moment beim App-Start ===== */
 #bootFx{position:fixed;inset:0;z-index:4000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   background:radial-gradient(120% 90% at 50% 38%,#141a2b 0%,var(--bg) 72%);opacity:1;transition:opacity .6s ease}
@@ -2289,7 +2296,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 <div id="app">
 
   <aside class="sidebar">
-    <a class="brand" aria-hidden="true"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b></a>
+    <a class="brand" aria-hidden="true"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b><span class="plus-badge" data-noi18n><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Plus</span></a>
     <nav class="snav" aria-label="Hauptnavigation">
       <button data-view="dashboard"><svg viewBox="0 0 24 24"><use href="#icHome"/></svg><span data-i18n="nav.dashboard">Start</span></button>
       <button data-view="chat"><svg viewBox="0 0 24 24"><use href="#icSpark"/></svg><span data-i18n="nav.chat">Ordela AI Sprachassistent</span></button>
@@ -2320,7 +2327,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   </aside>
 
   <header class="topbar">
-    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b></a>
+    <a class="brand"><svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg><b>Ordela</b><span class="plus-badge" data-noi18n aria-label="Ordela Plus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg>Plus</span></a>
     <div class="topbar-actions"><button class="icon-btn" id="btnTopHelp" title="Hilfe &amp; Anleitung" aria-label="Hilfe zum aktuellen Bereich"><svg viewBox="0 0 24 24"><use href="#icHelp"/></svg></button><button class="icon-btn" id="btnTopSettings" title="Einstellungen" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><use href="#icGear"/></svg></button></div>
   </header>
 
@@ -3106,6 +3113,15 @@ async function copyText(text) {
      stattdessen Datei schreiben und das iOS-Teilen-Menue oeffnen. */
 const NATIVE = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
 const NAT = (name) => (NATIVE && window.Capacitor.Plugins && window.Capacitor.Plugins[name]) || null;
+/* Wie eine App, nicht wie eine Webseite: iOS zoomt beim Tippen in Felder unter 16px
+   heran und bleibt dann verschoben; ausserdem laesst WKWebView die Seite seitlich
+   wandern. Kein Zoom und kein Seitwaerts-Scrollen der ganzen Seite (Listen, die
+   selbst seitlich scrollen, funktionieren weiter). */
+if (NATIVE) {
+  document.documentElement.classList.add('native');
+  const vp = document.querySelector('meta[name="viewport"]');
+  if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+}
 const NATIVE_MIRROR = 'ordela-speicher.json';
 const nativeMirrorKeys = () => { const out = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^(effyra_|ordela_)/.test(k) && k !== 'effyra_i18n_cache') out[k] = localStorage.getItem(k); } } catch (e) {} return out; };
 let _mirrorTimer = null;
@@ -6240,7 +6256,13 @@ if ($('#dashLogout')) $('#dashLogout').addEventListener('click', () => {
   if (!confirm(pickLang({ de: 'Wirklich abmelden?', en: 'Really log out?', fr: 'Vraiment se déconnecter ?', es: '¿Cerrar sesión?', it: 'Disconnettersi davvero?', pl: 'Na pewno się wylogować?', tr: 'Gerçekten çıkış yapılsın mı?', uk: 'Справді вийти?' }))) return;
   logout();
 });
-function refresh() { if (RENDERERS[currentView]) RENDERERS[currentView](); }
+function refresh() { plusBadge(); if (RENDERERS[currentView]) RENDERERS[currentView](); }
+/* Goldenes „Plus" neben dem Logo – nur wer Ordela Plus gekauft hat, nicht in der Testphase. */
+function plusBadge() {
+  let on = false;
+  try { on = plusState().why === 'bought'; } catch (e) {}
+  document.documentElement.classList.toggle('plus-on', on);
+}
 
 const viewLabel = (v) => { try { return t('nav.' + v); } catch (e) { return v; } };
 /* Upgrade-Ansicht: für gesperrte Module (mit Zurück) oder als Plan-Auswahl */
