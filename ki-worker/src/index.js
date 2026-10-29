@@ -208,9 +208,12 @@ async function appleTransaction(env, txId) {
   const jwt = await appleJwt(env);
   const hosts = ['https://api.storekit.itunes.apple.com'];
   if (env.APPLE_SANDBOX === '1') hosts.push('https://api.storekit-sandbox.itunes.apple.com');
+  /* Produktion antwortet 401, solange die App noch nie im App Store war – dann trotzdem
+     die Sandbox fragen (TestFlight). apple_auth nur, wenn KEINE Umgebung uns annimmt. */
+  let auth401 = 0;
   for (const host of hosts) {
     const r = await fetch(host + '/inApps/v1/transactions/' + encodeURIComponent(txId), { headers: { authorization: 'Bearer ' + jwt } });
-    if (r.status === 401) throw new Fail('apple_auth', 503);
+    if (r.status === 401) { auth401++; continue; }
     if (r.status === 404) continue;            // in dieser Umgebung unbekannt → naechste
     if (!r.ok) throw new Fail('apple_unreachable', 502);
     const j = await r.json();
@@ -218,6 +221,7 @@ async function appleTransaction(env, txId) {
     if (!tx || tx.bundleId !== env.APPLE_BUNDLE_ID) throw new Fail('wrong_app', 402);
     return tx;
   }
+  if (auth401 === hosts.length) throw new Fail('apple_auth', 503);
   throw new Fail('purchase_not_found', 402);
 }
 
