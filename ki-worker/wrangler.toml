@@ -12,4 +12,4 @@ MODEL = "gpt-5-mini"
 [[d1_databases]]
 binding = "DB"
 database_name = "ordela-ki"
-database_id = "HIER_NACH_wrangler_d1_create_EINTRAGEN"
+database_id = "933594d7-c910-4df5-a276-419c86181310"   # Region WEUR (Westeuropa)
