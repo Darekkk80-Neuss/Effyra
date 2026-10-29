@@ -37,7 +37,17 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <!-- Schriften self-hosted (kein Abruf von Google beim Laden; §25 TDDDG / kein Drittland-Transfer) -->
-<link href="fonts/effyra-fonts.css" rel="stylesheet">
+<!-- Schriften inline statt fonts/effyra-fonts.css: spart einen render-blockierenden
+     Abruf. Inter/Space Grotesk sind variabel → eine Datei je Zeichensatz. -->
+<link rel="preload" href="fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/inter-400-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/inter-400-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500 700; font-display: swap; src: url(fonts/spacegrotesk-500-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500 700; font-display: swap; src: url(fonts/spacegrotesk-500-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/caveat-600-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 600; font-display: swap; src: url(fonts/caveat-600-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+</style>
 <style>
 /* ============================== TOKENS ============================== */
 /* ============================ FARBSYSTEM ============================
@@ -2916,7 +2926,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   </defs>
 </svg>
 
-<script src="vendor/supabase.min.js"></script><!-- self-hosted @supabase/supabase-js 2.110.2 -->
+<!-- vendor/supabase.min.js (self-hosted @supabase/supabase-js 2.110.2) wird in der
+     Offline-Version (OFFLINE_ONLY) nicht geladen: 200 KB, die den Start blockierten
+     und nie benutzt wurden. Zurueck zur Cloud: hier das Script-Tag fuer
+     vendor/supabase.min.js wieder einfuegen. -->
 
 <script>
 (() => {
@@ -11292,7 +11305,9 @@ function renderWeather() {
          zeigt seine eigene Erlaubnis-Abfrage – nichts passiert heimlich). Danach
          nie wieder automatisch (store.geoAsked gemerkt), damit die Abfrage nicht
          bei jedem Start nervt. Abgelehnt/kein GPS → Profil-Stadt. */
-      if (!store.geoAsked && navigator.geolocation) {
+      /* Erst nach Anmeldung fragen – nicht schon beim Laden der Seite (vor dem
+         Konto ist der Grund fuer die Abfrage nicht erkennbar). */
+      if (!store.geoAsked && navigator.geolocation && account && account.loggedIn) {
         store.geoAsked = 1; save();
         w.innerHTML = weatherLoadingHTML();
         setWeatherByGPS({ silent: true, onFail: stadtFallback });
@@ -11473,9 +11488,11 @@ function mealLocalize(m) {
   // Wird gerade übersetzt? Nur wenn KI verfügbar und noch nicht fehlgeschlagen → sonst ist der Platzhalter das Endergebnis.
   const willTr = mealCanTranslate() && _mealTr[m.id + '|' + lang] !== 'fail';
   if (willTr) mealAutoTranslate(m, lang);
-  if (lang === 'de') return { ready: !willTr, title: m.name_de || m.name_en, names: m.ingredients.map(i => i.de || i.en), instr: m.instr_en };
-  return { ready: !willTr, title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
+  // orig: Zubereitung liegt nur auf Englisch vor → Karte zeigt statt des Textes einen Hinweis.
+  if (lang === 'de') return { ready: !willTr, orig: true, title: m.name_de || m.name_en, names: m.ingredients.map(i => i.de || i.en), instr: m.instr_en };
+  return { ready: !willTr, orig: true, title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
 }
+let _mealShowEn = false;   // Nutzer will die englische Originalanleitung sehen (nur Session)
 /* Uebersetzt ueber die Server-Function meal-translate: einmal je Rezept+Sprache,
    serverseitig gecacht und danach fuer ALLE Nutzer sofort da. Kostet KEINE
    KI-Credits und braucht KEINE KI-Einwilligung – es geht ausschliesslich das
@@ -11484,7 +11501,22 @@ function mealLocalize(m) {
    (keine Einwilligung oder kein Guthaben), sah die Zubereitung dauerhaft auf
    Englisch – genau der gemeldete Fehler. */
 function mealCanTranslate() {
-  return !!(typeof CLOUD !== 'undefined' && CLOUD && typeof sb !== 'undefined' && sb);
+  return mealCloudTr() || mealOwnKeyTr();
+}
+const mealCloudTr = () => !!(typeof CLOUD !== 'undefined' && CLOUD && typeof sb !== 'undefined' && sb);
+/* Offline-Version (29.10.2026): meal-translate gibt es ohne Server nicht mehr.
+   Mit eigenem OpenAI-Schluessel + KI-Einwilligung uebersetzt das Geraet selbst –
+   es geht nur das oeffentliche Rezept raus, keine Nutzerdaten. */
+const mealOwnKeyTr = () => !isChildUser() && usingOwnKey() && consentValid('ai');
+const MEAL_LANG_NAMES = { de: 'German', fr: 'French', es: 'Spanish', it: 'Italian', pl: 'Polish', tr: 'Turkish', uk: 'Ukrainian' };
+async function mealTranslateOwnKey(m, lang) {
+  const src = { title: m.name_en, names: m.ingredients.map(i => i.en), instr: m.instr_en };
+  const txt = await callClaude({
+    model: 'gpt-5-mini', max_tokens: 2500,
+    system: 'You translate recipes. Translate the JSON values into ' + (MEAL_LANG_NAMES[lang] || lang) + '. Keep the array length and order. Reply with JSON only: {"title":"","names":[],"instr":""}.',
+    messages: [{ role: 'user', content: JSON.stringify(src) }]
+  });
+  return extractJSON(txt);
 }
 async function mealAutoTranslate(m, lang) {
   if (lang === 'en' || (m.tr && m.tr[lang])) return;
@@ -11492,6 +11524,23 @@ async function mealAutoTranslate(m, lang) {
   if (_mealTr[key]) return;                                     // läuft/schon versucht
   if (!mealCanTranslate()) return;                              // ohne Cloud: Platzhalter bleibt
   _mealTr[key] = 'busy';
+  if (!mealCloudTr()) {
+    try {
+      const j = await mealTranslateOwnKey(m, lang);
+      if (j && j.title) {
+        const on = Array.isArray(j.names) ? j.names : [];
+        m.tr = m.tr || {};
+        m.tr[lang] = {
+          title: String(j.title),
+          names: m.ingredients.map((ing, i) => on[i] ? String(on[i]) : (lang === 'de' ? (ing.de || ing.en) : ing.en)),
+          instr: String(j.instr || m.instr_en)
+        };
+        _mealTr[key] = 'done'; save();
+      } else { _mealTr[key] = 'fail'; }
+    } catch (e) { _mealTr[key] = 'fail'; }
+    if (currentView === 'dashboard') renderMeal();
+    return;
+  }
   try {
     const { data: sd } = await sb.auth.getSession();
     const s = sd && sd.session;
@@ -11540,7 +11589,19 @@ function mealCardHTML(m) {
       (m.nutri
         ? '<div class="meal-sec-t" style="margin-top:14px">Nährwerte je Portion</div><div class="meal-nutri"><span><b>' + (m.nutri.kcal != null ? m.nutri.kcal : '–') + '</b> kcal</span><span><b>' + (m.nutri.protein != null ? m.nutri.protein : '–') + '</b> g Eiweiß</span><span><b>' + (m.nutri.carbs != null ? m.nutri.carbs : '–') + '</b> g KH</span><span><b>' + (m.nutri.fat != null ? m.nutri.fat : '–') + '</b> g Fett</span></div><div class="meal-note">Schätzung (Spoonacular)</div>'
         : '') +
-      '<div class="meal-sec-t" style="margin-top:14px">Zubereitung</div><p class="meal-instr">' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>';
+      '<div class="meal-sec-t" style="margin-top:14px">Zubereitung</div>' +
+      (L.orig && L.ready && !_mealShowEn
+        ? '<p class="meal-note" style="margin:6px 0 8px">' + esc(pickLang({
+            de: 'Die Anleitung gibt es nur auf Englisch. Mit eigenem KI-Schlüssel (Einstellungen) übersetzt Ordela sie automatisch.',
+            en: 'The instructions are only available in English.',
+            fr: 'Les instructions ne sont disponibles qu’en anglais. Avec votre propre clé IA (Réglages), Ordela les traduit automatiquement.',
+            es: 'Las instrucciones solo están en inglés. Con tu propia clave de IA (Ajustes), Ordela las traduce automáticamente.',
+            it: 'Le istruzioni sono disponibili solo in inglese. Con la tua chiave IA (Impostazioni) Ordela le traduce automaticamente.',
+            pl: 'Instrukcja jest dostępna tylko po angielsku. Z własnym kluczem AI (Ustawienia) Ordela przetłumaczy ją automatycznie.',
+            tr: 'Tarif adımları yalnızca İngilizce. Kendi yapay zekâ anahtarınızla (Ayarlar) Ordela bunları otomatik çevirir.',
+            uk: 'Інструкція доступна лише англійською. З власним ключем ШІ (Налаштування) Ordela перекладе її автоматично.'
+          })) + '</p><button class="btn btn-sm" data-meal="showen">' + esc(pickLang({ de: 'Englische Anleitung zeigen', en: 'Show instructions', fr: 'Afficher en anglais', es: 'Mostrar en inglés', it: 'Mostra in inglese', pl: 'Pokaż po angielsku', tr: 'İngilizcesini göster', uk: 'Показати англійською' })) + '</button></div>'
+        : '<p class="meal-instr"' + (L.orig ? ' lang="en"' : '') + '>' + esc(L.instr).replace(/\r?\n/g, '<br>') + '</p></div>');
   }
   h += '<div class="meal-actions"><button class="btn btn-primary btn-sm" data-meal="addlist">Zutaten auf die Liste</button>'
     /* Beschriftung ueber pickLang statt fest deutsch: der DOM-Sweep uebersetzt
@@ -11634,6 +11695,7 @@ if ($('#mealWidget')) $('#mealWidget').addEventListener('click', e => {
   const b = e.target.closest('[data-meal]'); if (!b) return;
   store.meal = store.meal || {}; const M = store.meal, a = b.dataset.meal;
   if (a === 'toggle') { M.open = !M.open; save(); renderMeal(); return; }
+  if (a === 'showen') { _mealShowEn = true; renderMeal(); return; }
   if (a === 'pplus') { M.servings = Math.min(12, (M.servings || 2) + 1); save(); renderMeal(); return; }
   if (a === 'pminus') { M.servings = Math.max(1, (M.servings || 2) - 1); save(); renderMeal(); return; }
   if (a === 'hide') { M.hiddenDate = todayISO(); M.open = false; save(); renderMeal(); toast('Für heute ausgeblendet – morgen gibt es einen neuen Vorschlag'); return; }
