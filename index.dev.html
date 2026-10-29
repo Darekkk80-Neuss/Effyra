@@ -2782,7 +2782,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
       <div class="card set-card">
         <h3 aria-level="2">Aufräumen</h3>
-        <p class="sub">Längst Erledigtes verschwindet nach einer Weile von selbst. Das hält eure Familiendaten klein – sie werden bei jeder Änderung komplett an alle Geräte übertragen.</p>
+        <p class="sub" id="tidyIntro">Längst Erledigtes verschwindet nach einer Weile von selbst. Das hält eure Familiendaten klein – sie werden bei jeder Änderung komplett an alle Geräte übertragen.</p>
         <div class="set-row" style="align-items:center">
           <span style="flex:1;font-weight:600" id="tidyStatusLbl">Automatisch aufräumen</span>
           <button class="btn" id="tidyToggle" role="switch" aria-checked="true">An&nbsp;✓</button>
@@ -2792,7 +2792,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
           <button class="btn btn-sm" id="tidyExport">Verlauf sichern</button>
           <button class="btn btn-sm" id="tidyNow">Jetzt aufräumen</button>
         </div>
-        <div class="note-box">Geburtstage &amp; Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben <b>immer</b> erhalten. Der Schalter gilt für die ganze Familie – ihr habt eine gemeinsame Liste.</div>
+        <div class="note-box" id="tidyNote">Geburtstage &amp; Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben <b>immer</b> erhalten. Der Schalter gilt für die ganze Familie – ihr habt eine gemeinsame Liste.</div>
       </div>
 
       <div class="card set-card">
@@ -18868,9 +18868,48 @@ $('#bootFxSeg').addEventListener('click', e => {
 function tidySyncCard() {
   const p = famTidyPrefs(), b = $('#tidyToggle'), i = $('#tidyInfo');
   if (b) { b.textContent = p.on ? 'An ✓' : 'Aus'; b.classList.toggle('btn-primary', p.on); b.setAttribute('aria-checked', p.on ? 'true' : 'false'); }
+  if (OFFLINE_ONLY) { tidyOfflineTexts(p); return; }
   if (i) i.textContent = p.on
     ? 'Erledigte Familienaufgaben: ' + p.taskDays + ' Tage (höchstens ' + p.taskKeep + ') · abgehakte Einkäufe: ' + p.shopDays + ' Tage · vergangene Familientermine: ' + p.evDays + ' Tage.'
     : 'Es wird nichts automatisch entfernt. Ab 2 MB nimmt der Server keine Änderung mehr an – dann räumt Ordela einmalig selbst auf, damit ihr weiter speichern könnt.';
+}
+/* Offline-Version (29.10.2026, Nutzerhinweis): Die Karte sprach noch vom
+   Abgleich „an alle Geräte" und vom Server-Limit – beides gibt es offline
+   nicht mehr und widersprach der Datensicherungs-Karte. Hier steht nur noch,
+   was wirklich passiert: lokales Aufräumen der Familienliste, sonst nichts. */
+function tidyOfflineTexts(p) {
+  const L = pickLang, set = (id, html) => { const el = $(id); if (el) { el.innerHTML = html; el.setAttribute('data-noi18n', ''); } };
+  const txt = (el, o) => { if (el) { el.textContent = L(o); el.setAttribute('data-noi18n', ''); } };
+  const intro = $('#tidyIntro');
+  txt(intro && intro.closest('.card') && intro.closest('.card').querySelector('h3'), { de: 'Aufräumen', en: 'Tidy up', fr: 'Rangement', es: 'Ordenar', it: 'Riordino', pl: 'Porządkowanie', tr: 'Temizleme', uk: 'Прибирання' });
+  txt($('#tidyExport'), { de: 'Verlauf sichern', en: 'Save history', fr: 'Sauvegarder l’historique', es: 'Guardar historial', it: 'Salva cronologia', pl: 'Zapisz historię', tr: 'Geçmişi kaydet', uk: 'Зберегти історію' });
+  txt($('#tidyNow'), { de: 'Jetzt aufräumen', en: 'Tidy up now', fr: 'Ranger maintenant', es: 'Ordenar ahora', it: 'Riordina ora', pl: 'Uporządkuj teraz', tr: 'Şimdi temizle', uk: 'Прибрати зараз' });
+  const lbl = $('#tidyStatusLbl'); if (lbl) { lbl.textContent = L({ de: 'Automatisch aufräumen', en: 'Tidy up automatically', fr: 'Ranger automatiquement', es: 'Ordenar automáticamente', it: 'Riordina automaticamente', pl: 'Porządkuj automatycznie', tr: 'Otomatik temizle', uk: 'Автоматично прибирати' }); lbl.setAttribute('data-noi18n', ''); }
+  const b = $('#tidyToggle'); if (b) { b.textContent = p.on ? L({ de: 'An', en: 'On', fr: 'Activé', es: 'Activado', it: 'Attivo', pl: 'Wł.', tr: 'Açık', uk: 'Увімк.' }) + ' ✓' : L({ de: 'Aus', en: 'Off', fr: 'Désactivé', es: 'Desactivado', it: 'Disattivo', pl: 'Wył.', tr: 'Kapalı', uk: 'Вимк.' }); b.setAttribute('data-noi18n', ''); }
+  set('#tidyIntro', esc(L({
+    de: 'Hält die Familienliste übersichtlich: Ist der Schalter an, verschwinden erledigte Familienaufgaben, abgehakte Einkäufe und vergangene Familientermine nach einer Weile. Alles passiert nur auf diesem Gerät.',
+    en: 'Keeps the family list tidy: when switched on, completed family tasks, ticked-off shopping items and past family events disappear after a while. Everything happens only on this device.',
+    fr: 'Garde la liste familiale claire : si l’option est activée, les tâches familiales terminées, les achats cochés et les événements familiaux passés disparaissent après un certain temps. Tout se passe uniquement sur cet appareil.',
+    es: 'Mantiene ordenada la lista familiar: si está activado, las tareas familiares hechas, las compras marcadas y los eventos familiares pasados desaparecen al cabo de un tiempo. Todo ocurre solo en este dispositivo.',
+    it: 'Mantiene ordinata la lista di famiglia: se attivo, le attività di famiglia completate, gli acquisti spuntati e gli eventi di famiglia passati spariscono dopo un po’. Tutto avviene solo su questo dispositivo.',
+    pl: 'Utrzymuje porządek na liście rodzinnej: gdy włączone, wykonane zadania rodzinne, odhaczone zakupy i minione wydarzenia rodzinne po pewnym czasie znikają. Wszystko dzieje się tylko na tym urządzeniu.',
+    tr: 'Aile listesini düzenli tutar: açıksa tamamlanan aile görevleri, işaretlenen alışveriş kalemleri ve geçmiş aile etkinlikleri bir süre sonra kaybolur. Her şey yalnızca bu cihazda olur.',
+    uk: 'Підтримує порядок у сімейному списку: якщо увімкнено, виконані сімейні завдання, відмічені покупки та минулі сімейні події через деякий час зникають. Усе відбувається лише на цьому пристрої.'
+  })));
+  set('#tidyInfo', esc(p.on
+    ? L({ de: 'Erledigte Familienaufgaben nach {t} Tagen (höchstens {k} behalten) · abgehakte Einkäufe nach {s} Tagen · vergangene Familientermine nach {e} Tagen.', en: 'Completed family tasks after {t} days (keep at most {k}) · ticked-off shopping after {s} days · past family events after {e} days.', fr: 'Tâches familiales terminées après {t} jours (au plus {k} conservées) · achats cochés après {s} jours · événements familiaux passés après {e} jours.', es: 'Tareas familiares hechas tras {t} días (máximo {k}) · compras marcadas tras {s} días · eventos familiares pasados tras {e} días.', it: 'Attività di famiglia completate dopo {t} giorni (al massimo {k}) · acquisti spuntati dopo {s} giorni · eventi di famiglia passati dopo {e} giorni.', pl: 'Wykonane zadania rodzinne po {t} dniach (maks. {k}) · odhaczone zakupy po {s} dniach · minione wydarzenia rodzinne po {e} dniach.', tr: 'Tamamlanan aile görevleri {t} gün sonra (en fazla {k} tutulur) · işaretlenen alışveriş {s} gün sonra · geçmiş aile etkinlikleri {e} gün sonra.', uk: 'Виконані сімейні завдання через {t} дн. (не більше {k}) · відмічені покупки через {s} дн. · минулі сімейні події через {e} дн.' })
+        .replace('{t}', p.taskDays).replace('{k}', p.taskKeep).replace('{s}', p.shopDays).replace('{e}', p.evDays)
+    : L({ de: 'Es wird nichts automatisch entfernt.', en: 'Nothing is removed automatically.', fr: 'Rien n’est supprimé automatiquement.', es: 'No se elimina nada automáticamente.', it: 'Non viene rimosso nulla automaticamente.', pl: 'Nic nie jest usuwane automatycznie.', tr: 'Hiçbir şey otomatik olarak silinmez.', uk: 'Нічого не видаляється автоматично.' })));
+  set('#tidyNote', esc(L({
+    de: 'Notfallmappe, Dokumente, Tresor, Geburtstage und Anlässe, Serientermine, Arbeitszeiten und Tankvorgänge bleiben immer erhalten. Das Aufräumen hat nichts mit „Dauerhafter Speicher“ zu tun: Der sorgt nur dafür, dass das Handy die Daten von Ordela nicht von selbst löscht.',
+    en: 'Emergency folder, documents, vault, birthdays and occasions, recurring events, working hours and fuel logs are always kept. Tidying up has nothing to do with “persistent storage”: that only makes sure the phone does not delete Ordela’s data on its own.',
+    fr: 'Dossier d’urgence, documents, coffre, anniversaires et occasions, événements récurrents, temps de travail et pleins sont toujours conservés. Le rangement n’a rien à voir avec le « stockage durable » : celui-ci empêche seulement le téléphone de supprimer les données d’Ordela de lui-même.',
+    es: 'La carpeta de emergencia, los documentos, la caja fuerte, los cumpleaños y ocasiones, los eventos periódicos, el horario laboral y los repostajes se conservan siempre. Ordenar no tiene nada que ver con el «almacenamiento permanente»: este solo evita que el móvil borre por sí solo los datos de Ordela.',
+    it: 'Cartella di emergenza, documenti, cassaforte, compleanni e ricorrenze, eventi ricorrenti, orari di lavoro e rifornimenti restano sempre. Il riordino non c’entra con la «memoria permanente»: questa evita solo che il telefono cancelli da solo i dati di Ordela.',
+    pl: 'Teczka awaryjna, dokumenty, sejf, urodziny i okazje, wydarzenia cykliczne, czas pracy i tankowania zawsze zostają. Porządkowanie nie ma nic wspólnego z „trwałą pamięcią”: ona tylko sprawia, że telefon sam nie usunie danych Ordela.',
+    tr: 'Acil durum klasörü, belgeler, kasa, doğum günleri ve özel günler, tekrarlayan etkinlikler, çalışma saatleri ve yakıt kayıtları her zaman korunur. Temizleme “kalıcı depolama” ile ilgili değildir: o yalnızca telefonun Ordela verilerini kendiliğinden silmemesini sağlar.',
+    uk: 'Екстрена тека, документи, сейф, дні народження й події, повторювані події, робочий час і заправки зберігаються завжди. Прибирання не пов’язане з «постійним сховищем»: воно лише гарантує, що телефон сам не видалить дані Ordela.'
+  })));
 }
 if ($('#tidyToggle')) $('#tidyToggle').addEventListener('click', () => {
   const p = famTidyPrefs(); p.on = !p.on; save();
