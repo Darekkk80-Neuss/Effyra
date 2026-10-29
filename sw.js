@@ -8,7 +8,7 @@
    hiess in der Praxis: wer nur index.dev.html änderte, liess sw.js byte-gleich. Der
    Browser sieht dann keine neue Datei, installiert keinen neuen Worker – und im
    laufenden Tab feuert nie 'updatefound'. Der Zeitstempel erzwingt beides. */
-const BUILD = '20261029-0328';
+const BUILD = '20261029-0435';
 const CACHE = 'effyra-' + BUILD;
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './bg.jpg',
   './impressum.html', './datenschutz.html', './nutzungsbedingungen.html', './konto-loeschen.html', './barrierefreiheit.html', './anleitung.html',
@@ -26,11 +26,18 @@ const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './
   // Musterbriefe = Recht des Wohnsitz-Landes (Deutschland nutzt eingebaute Vorlagen)
   './briefe.PL.pl.json', './briefe.FR.fr.json', './briefe.ES.es.json',
   './briefe.IT.it.json', './briefe.TR.tr.json', './briefe.UA.uk.json',
-  './translation/tr.json', './translation/uk.json'];
+  './translation/tr.json', './translation/uk.json',
+  // Icons + Schriften, damit die App auch ganz ohne Netz vollständig aussieht
+  './icon-192.png', './icon-512.png', './icon-180.png',
+  './fonts/inter-400-latin.woff2', './fonts/inter-500-latin.woff2', './fonts/inter-600-latin.woff2', './fonts/inter-700-latin.woff2',
+  './fonts/inter-400-latin-ext.woff2', './fonts/inter-600-latin-ext.woff2',
+  './fonts/spacegrotesk-600-latin.woff2', './fonts/spacegrotesk-700-latin.woff2', './fonts/caveat-600-latin.woff2'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL).catch(() => {})));
+  /* Einzeln statt addAll: addAll bricht komplett ab, sobald EINE Datei fehlt – dann
+     läge offline gar nichts im Cache. So fehlt im schlimmsten Fall nur diese eine. */
+  e.waitUntil(caches.open(CACHE).then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => {})))));
 });
 
 self.addEventListener('activate', (e) => {

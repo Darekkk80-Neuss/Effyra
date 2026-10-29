@@ -32,106 +32,79 @@
 
 <section id="tr">
 <h1>Gizlilik Politikası</h1>
-<p class="muted">Son güncelleme: 26. Juli 2026</p>
+<p class="muted">Son güncelleme: 29.10.2026</p>
 
-<h2>1. Sorumlu (Veri Sorumlusu)</h2>
+<h2>1. Veri sorumlusu</h2>
 <p>Gonsoft labs – Darius Gonschior, Herzogstr. 27, 41468 Neuss, Deutschland.<br>
 E-posta: <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> · Telefon: 0151 56109742.<br>
-Yasal olarak bir veri koruma görevlisi (Datenschutzbeauftragter) atanmamıştır. Veri korumaya ilişkin tüm talepleriniz için lütfen yukarıda belirtilen e-posta adresini kullanın.</p>
+Yasal olarak bir veri koruma görevlisi atanmamıştır. Veri korumaya ilişkin tüm talepleriniz için lütfen yukarıda belirtilen e-posta adresini kullanın.</p>
 
-<h2>2. Temel ilke: „Local-first"</h2>
-<p>Ordela içeriklerinizi esas olarak <b>cihazınızda yerel olarak</b> saklar (tarayıcı belleği/IndexedDB). Oturum açtığınızda, belirli veriler ayrıca hizmet sağlayıcımız <b>Supabase (AB'deki sunucular)</b> nezdindeki hesabınızda güvence altına alınır (yedekleme, cihazlar arası senkronizasyon, aile işlevleri, abonelik durumu). Reklam göstermiyor ve reklam amaçlı hiçbir izleme yapmıyoruz.</p>
+<h2>2. Temel ilke: Her şey cihazınızda kalır</h2>
+<div class="note">Ordela <b>kendine ait bir sunucu olmadan ve bizde bir hesap olmadan</b> çalışır. Profiliniz (serbestçe seçtiğiniz bir takma ad ve parola) ve tüm içerikler – görevler, randevular, belgeler, acil durum verileri vb. – <b>yalnızca cihazınızda yerel olarak</b> saklanır (tarayıcı belleği/IndexedDB). <b>Bu verilerin hiçbiri bize ulaşmaz</b>; bunları ne görüntüleyebilir ne de geri yükleyebiliriz. Reklam göstermiyor ve izleme (tracking) yapmıyoruz.</div>
+<p>Veriler cihazınızdan yalnızca, harici bir hizmete ihtiyaç duyan bir işlevi bizzat kullandığınızda (3. ve 4. madde) veya bir dosyayı (yedek, acil durum dosyası, mektup) bizzat kaydettiğinizde ya da paylaştığınızda çıkar.</p>
 
 <h2>3. İşlenen veriler, amaçlar ve hukuki dayanaklar</h2>
-<h3>a) Hesap</h3>
-<p>Kayıt sırasında: e-posta adresi, ad, doğum tarihi (yaş beyanınız). Amaç: hesabın sağlanması, yedekleme/senkronizasyon, aile ve abonelik işlevleri. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO (sözleşme).</p>
-<p><b>Google ile oturum açma:</b> Alternatif olarak Google hesabınızla oturum açabilirsiniz. Bu sırada Google'a yönlendirilirsiniz; <b>Google böylece Ordela'yı kullandığınızı öğrenir</b> ve oradaki onayınızın ardından bize e-posta adresinizi ve adınızı iletir. Ayrıca hangi yolla oturum açtığınızı da saklarız. Bunu istemiyorsanız, e-posta ve parola ile oturum açmayı kullanın – bu, eşdeğer olarak sunulmaktadır. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO.</p>
+<h3>a) Yerel profil</h3>
+<p>Takma adınız ve parolanızdan oluşturulan, tuzlanmış bir doğrulama değeri (SHA-256) yalnızca cihazınızda saklanır. Bunlar, uygulamanın bu cihazdaki erişim kilidi işlevini görür. Bizde veya üçüncü taraflarda e-posta adresi, doğum tarihi ya da oturum açma yoktur. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO (Genel Veri Koruma Tüzüğü (GDPR/DSGVO)).</p>
 <h3>b) Uygulama içerikleri</h3>
-<p>Görevler, randevular, notlar, çalışma saatleri, araç, bütçe, alışveriş ve takvim verileri vb. Yerel olarak saklanır; oturum açıldığında ayrıca hesabınızda (AB). Hukuki dayanak: Art. 6 Abs. 1 lit. b ve f DSGVO.</p>
-<h3>c) Yapay zekâ işlevleri (belge/görüntü analizi, sohbet, ses)</h3>
-<div class="note">Yapay zekâyı kullandığınızda, girdileriniz – <b>sağlık veya resmî makam verileri de içerebilen, fotoğraflanmış veya yüklenmiş belgeler dâhil</b> – işlenmek üzere <b>OpenAI Ireland Ltd. (işleme ayrıca ABD'deki OpenAI, L.L.C. tarafından da yapılır) (ABD)</b> şirketine iletilir. Bu, yalnızca <b>açık rızanızdan</b> sonra gerçekleşir (Art. 6 Abs. 1 lit. a ve, özel kategoriler söz konusu olduğunda, Art. 9 Abs. 2 lit. a DSGVO). OpenAI, API verilerini modellerini eğitmek için kullanmaz ve bunları en geç 30 gün sonra siler. Üçüncü ülkeye aktarım için 5. maddeye bakın. Zorlu yaşam durumlarında (ör. ayrılık, ölüm/yas) <b>duygu odaklı refakatçi</b> de bu yapay zekâyı kullanır; bu tür görüşmeler çok kişisel olabilir – lütfen bu sırada mümkün olduğunca üçüncü kişilere ait kimlik belirtici veriler girmeyin. Sohbetleriniz bunun dışında yalnızca yerel olarak geçmişinizde kalır ve yapay zekâ hizmet sağlayıcısında kalıcı olarak saklanmaz.</div>
-<h3>d) Hava durumu, polen, şiddetli hava (fırtına) uyarıları, resmî makam kılavuzu, yakıt fiyatları</h3>
-<p>Bu işlevler için – yalnızca bunları kullanırsanız – konumunuz veya yaklaşık koordinatlarınız ya da posta kodunuz ilgili hizmetlere (bkz. 4. madde) iletilir. Hukuki dayanak: Art. 6 Abs. 1 lit. a ve f DSGVO. Cihaz konumunu kullanırsanız, bu yalnızca tarayıcı/işletim sistemindeki izninizle gerçekleşir.</p>
-<p><b>Çöp takvimi</b> bölümünde belediyenizin atık takvimini bir <b>iCal/ICS bağlantısı</b> üzerinden yüklerseniz, bu bağlantı sunucumuza (Function „ics-proxy", AB) iletilir; sunucu takvimi belediyeden ya da atık toplama kuruluşundan alır ve size geri verir; bağlantı orada yalnızca talebinizin işlenmesi için kullanılır ve saklanmaz. Bunun yerine bir <b>ICS dosyası</b> yüklerseniz, bu sırada hiçbir şey cihazınızdan çıkmaz. Toplama tarihlerini Ordela yerel olarak saklar. Hukuki dayanak: Art. 6 Abs. 1 lit. b ve f DSGVO.</p>
+<p>Görevler, randevular, notlar, belgeler, acil durum, erzak, bütçe, araç, çalışma saati ve takvim verileri vb. yalnızca yerel olarak saklanır. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO.</p>
+<h3>c) Kendi OpenAI anahtarınızla isteğe bağlı yapay zekâ</h3>
+<div class="note">Yapay zekâ işlevleri (belge/görüntü analizi, sohbet, sesli kontrol, sesli okuma) <b>isteğe bağlıdır</b> ve yalnızca ayarlarda <b>OpenAI'den aldığınız kendi API anahtarınızı</b> kaydettiğinizde çalışır. Anahtar cihazınızda kalır. Bir yapay zekâ işlevini kullandığınızda, bilinçli olarak analiz ettirdiğiniz içerikler – <b>sağlık veya resmî makam verileri içerebilen fotoğraflanmış belgeler dâhil</b> – bizim üzerimizden değil, <b>doğrudan cihazınızdan OpenAI'ye</b> (OpenAI Ireland Ltd.; işleme ayrıca ABD'deki OpenAI, L.L.C. tarafından da yapılır) gider. Bu, yalnızca uygulamadaki <b>açık rızanızdan</b> sonra gerçekleşir (Art. 6 Abs. 1 lit. a ve, özel kategoriler söz konusu olduğunda, Art. 9 Abs. 2 lit. a DSGVO). İşleme sizin kendi OpenAI hesabınızda gerçekleşir; OpenAI'nin koşulları ve gizlilik politikası geçerlidir (OpenAI'ye göre API verileri eğitim için kullanılmaz ve kural olarak en geç 30 gün sonra silinir). Anahtar olmadan uygulama tamamen kullanılabilir kalır, yalnızca yapay zekâ olmadan.</div>
+<h3>d) Hava durumu, polen, şiddetli hava uyarıları, resmî tatiller, resmî makam kılavuzu, tarifler</h3>
+<p>Yalnızca bu işlevleri kullandığınızda, seçtiğiniz yer ya da koordinatlar veya posta kodunuz ilgili hizmetlere (4. madde) iletilir. Ordela cihaz konumunu yalnızca işletim sistemindeki izninizden sonra kullanır. „Günün yemeği" için herkese açık bir tarif çağrılır – bu sırada hakkınızda hiçbir bilgi iletilmez (teknik olarak IP adresi hariç). Hukuki dayanak: Art. 6 Abs. 1 lit. a ve f DSGVO.</p>
 <h3>e) Örnek mektuplar &amp; mektup oluşturucu</h3>
-<p>Örnek mektuplar için <b>gönderen verilerini</b> (ad, adres, gerekirse e-posta/telefon), <b>alıcı verilerini</b> ve şablona bağlı olarak başka bilgileri – kısmen <b>banka verilerini (IBAN)</b>, ör. depozito iadesi veya banka bağlantısının değiştirilmesi durumunda – işlersiniz. Bu veriler <b>cihazınızda</b> işlenir ve – oturum açtıysanız – diğer uygulama içerikleriniz gibi hesabınızda (AB) güvence altına alınır. Üçüncü kişilere aktarım <b>otomatik olarak gerçekleşmez</b>: Tamamlanan mektup, ancak siz onu bizzat gönderir, yazdırır veya paylaşırsanız cihazınızdan çıkar. <b>„Yapay zekâ ile iyileştir"</b> düğmesini kullanırsanız, mektup metni – içindeki bilgiler dâhil – yapay zekâ hizmet sağlayıcısına iletilir (bkz. 3c ve 4. madde); lütfen önceden metnin hassas veriler içerip içermediğini kontrol edin. Şablon metinlerinin kendisi statik dosyalar olarak sunulur ve kişisel veri içermez. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO (sözleşmenin ifası), yapay zekâ iyileştirmesi için ayrıca Art. 6 Abs. 1 lit. a DSGVO uyarınca rızanız.</p>
+<p>Gönderen, alıcı ve gerekirse banka verileri (IBAN) <b>yalnızca cihazınızda</b> işlenir. Tamamlanan mektup, ancak siz onu bizzat gönderir, yazdırır veya paylaşırsanız cihazınızdan çıkar. „Yapay zekâ ile iyileştir", mektup metnini OpenAI'ye iletir (3c madde). Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO, yapay zekâ için ayrıca Art. 6 Abs. 1 lit. a DSGVO.</p>
+<h3>f) Hatırlatıcılar</h3>
+<p>Randevular, görevler ve ilaçlar için hatırlatıcılar <b>yalnızca cihazınızda</b> oluşur. Bunun için hiçbir veri aktarılmaz; yalnızca bildirim izni gereklidir.</p>
+<h3>g) Veri yedekleme ve acil durum dosyası</h3>
+<p>Bir yedek veya acil durum dosyasını kaydettiğinizde, uygulama cihazınızda bir dosya oluşturur. Bu dosyayı nerede sakladığınıza (ör. USB bellek, kendi bulut depolama alanınız) siz karar verirsiniz; bu saklama yerinden ilgili sağlayıcı sorumludur. Dosyalar sağlık verileri içerebilir – lütfen bunları güvenli bir şekilde saklayın.</p>
+<h3>h) Barındırma / sunucu günlükleri</h3>
+<p>Uygulama dosyaları GitHub Pages üzerinden sunulur. Uygulama yüklenirken ve güncellenirken orada teknik nedenlerle sunucu günlük verileri (ör. IP adresi) oluşur. Hukuki dayanak: Art. 6 Abs. 1 lit. f DSGVO (güvenli işletim). Sonrasında uygulama internet olmadan da çalışır.</p>
+<h3>i) Google Play</h3>
+<p>Ordela, Google Play üzerinden dağıtılır. İndirme ve güncellemeler için Google'ın gizlilik hükümleri geçerlidir. Uygulamada şu anda hiçbir satın alma yoktur.</p>
 
-<h3>e2) Kendi yapay zekâ anahtarınız (ücretli aktivasyon)</h3>
-<p>„Kendi yapay zekâ anahtarı" aktivasyonunu satın aldıysanız, bir yapay zekâ sağlayıcısının (şu anda OpenAI) <b>kendi erişim anahtarınızı</b> kaydedebilirsiniz. Anahtar <b>yalnızca cihazınızda yerel olarak</b> saklanır (tarayıcı belleği) ve <b>hiçbir zaman sunucularımıza aktarılmaz</b>. Yapay zekâ talepleriniz bu durumda <b>doğrudan cihazınızdan yapay zekâ sağlayıcısına</b> gider – bizim üzerimizden değil. Bu işlemeden yapay zekâ sağlayıcısı sorumludur; üzerinde hiçbir etkimizin olmadığı kendi gizlilik politikası geçerlidir. Bizim tarafımızda yalnızca aktivasyonun satın alma işlemi oluşur (bkz. 3g madde). Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO.</p>
-<h3>f) Anlık bildirimler (Push bildirimleri)</h3>
-<p>Yalnızca rızanızdan sonra (tarayıcı/işletim sistemindeki izin). Tarayıcı üreticinizin push hizmetinde (ör. Google, Apple, Mozilla) teknik bir push uç noktası kaydedilir. Hukuki dayanak: Art. 6 Abs. 1 lit. a DSGVO.</p>
-<p><b>Şiddetli hava (fırtına) uyarılarını</b> etkinleştirirseniz, ayrıca <b>uyarı konumunuzun koordinatlarını</b> sunucumuzda (AB) saklarız. Başka türlü mümkün değildir: Sizin için bir uyarı olup olmadığının denetimi, uygulama kapalıyken de çalışır – cihazınız o anda bunları sağlayamaz. Uyarı için seçtiğiniz konum saklanır, güncel bulunduğunuz yer değil. Uyarıları kapatırsanız veya hesabınızı silerseniz, kayıt silinir.</p>
-<p><b>Yerel hatırlatıcılar</b> (randevu ve görevlerde seçilebilir ön süre) yalnızca <b>cihazınızda</b> oluşur: Uygulama açıkken bir zamanın gelip gelmediğini kontrol eder ve ardından bir bildirim gösterir. Bu sırada <b>hiçbir veri aktarılmaz</b> – bildirimler için cihaz izni yeterlidir.</p>
-<h3>g) Abonelik / satın alma</h3>
-<p>Satın almalar uygulama mağazaları (Apple/Google) üzerinden gerçekleştirilir. İlgili mağaza ödeme işleminden sorumludur. Etkin abonelikle ilgili durum bilgilerini alırız. Hukuki dayanak: Art. 6 Abs. 1 lit. b DSGVO.</p>
-<h3>h) Sunucu günlükleri (protokolleri)</h3>
-<p>Uygulamanın çağrılması sırasında teknik nedenlerle barındırma sağlayıcısında sunucu günlük verileri (ör. IP adresi) oluşur. Hukuki dayanak: Art. 6 Abs. 1 lit. f DSGVO (güvenli, kesintisiz işletim).</p>
-
-<h2>4. Alıcılar / veri işleyenler &amp; entegre hizmetler</h2>
+<h2>4. Harici hizmetler (yalnızca ilgili işlev kullanıldığında)</h2>
 <table>
-<tr><th>Hizmet</th><th>Amaç</th><th>Yer</th></tr>
-<tr><td>Supabase (Backend)</td><td>Hesap, senkronizasyon, aile, push abonelikleri, abonelik durumu</td><td>AB</td></tr>
-<tr><td>OpenAI Ireland Ltd. (işleme ayrıca ABD'deki OpenAI, L.L.C. tarafından da yapılır)</td><td>Yapay zekâ: belge/görüntü analizi, sohbet, ses</td><td>ABD</td></tr>
-<tr><td>GitHub Pages (Microsoft)</td><td>Uygulamanın barındırılması</td><td>ABD</td></tr>
-<tr><td>Open-Meteo</td><td>Hava durumu, polen, konum arama</td><td>AB</td></tr>
-<tr><td>Deutscher Wetterdienst / Bright Sky</td><td>Resmî şiddetli hava uyarıları</td><td>AB</td></tr>
-<tr><td>Nager.Date (date.nager.at)</td><td>Diğer ülkelerin resmî tatilleri (yalnızca Almanya dışında bir ülke seçildiğinde)</td><td>AB</td></tr>
-<tr><td>BigDataCloud</td><td>Konum → yer adı</td><td>AB/BK</td></tr>
-<tr><td>OpenStreetMap (Nominatim/Overpass)</td><td>Resmî makam kılavuzu (posta kodu, yakındaki daireler)</td><td>AB</td></tr>
-<tr><td>Kumi Systems e.U.</td><td>OpenStreetMap o anda yanıt vermezse makam araması için yedek sunucu</td><td>Avusturya (AB)</td></tr>
-<tr><td>TheMealDB / Spoonacular</td><td>„Günün yemeği" / besin değerleri</td><td>BK / ABD</td></tr>
-<tr><td>Tankerkönig</td><td>Yakıt fiyatları</td><td>AB</td></tr>
-<tr><td>Belediye / atık toplama kuruluşu (girdiğiniz iCal/ICS bağlantısı)</td><td>Atık takviminizin sunucu tarafında alınması (Function „ics-proxy") – yalnızca bir bağlantı yüklerseniz</td><td>genellikle Almanya/AB</td></tr>
-<tr><td>Brevo GmbH, Berlin</td><td>Hesap e-postalarının gönderimi (kayıt onayı, parola sıfırlama) – e-posta adresiniz iletilir</td><td>AB</td></tr>
-<tr><td>OpenAI</td><td>Metinlerin ve karşılamanın sesli okunması – okunacak metin iletilir; karşılamada, kaydettiyseniz <b>adınızı içerir</b>. Yalnızca yapay zekâ rızası verildiğinde</td><td>ABD</td></tr>
-<tr><td>Pexels</td><td>Arka plan görselleri (OrdelaFit)</td><td>ABD</td></tr>
-<tr><td>Tarayıcının push hizmeti</td><td>Bildirimlerin iletilmesi</td><td>sağlayıcıya göre</td></tr>
-<tr><td>Apple / Google</td><td>Uygulama dağıtımı, uygulama içi satın alma, ödeme</td><td>ABD/AB</td></tr>
+<tr><th>Hizmet</th><th>Amaç / iletilen veriler</th><th>Yer</th></tr>
+<tr><td>OpenAI (kendi anahtarınızla)</td><td>Yapay zekâ: belge/görüntü analizi, sohbet, ses, sesli okuma – sizin seçtiğiniz içerikler</td><td>ABD/AB</td></tr>
+<tr><td>GitHub Pages (Microsoft)</td><td>Uygulama dosyalarının sunulması – IP adresi</td><td>ABD</td></tr>
+<tr><td>Open-Meteo</td><td>Hava durumu, polen, konum arama – yer/koordinatlar</td><td>AB</td></tr>
+<tr><td>Bright Sky üzerinden Deutscher Wetterdienst (Alman Meteoroloji Servisi)</td><td>Resmî şiddetli hava uyarıları – koordinatlar</td><td>AB</td></tr>
+<tr><td>BigDataCloud</td><td>Konum → yer adı – koordinatlar</td><td>AB/BK</td></tr>
+<tr><td>Nager.Date</td><td>Almanya dışındaki resmî tatiller – ülke, yıl</td><td>AB</td></tr>
+<tr><td>OpenStreetMap (Nominatim/Overpass), yedek sunucu Kumi Systems e.U.</td><td>Resmî makam kılavuzu – posta kodu, koordinatlar</td><td>AB</td></tr>
+<tr><td>TheMealDB</td><td>„Günün yemeği" – hakkınızda hiçbir bilgi iletilmez</td><td>BK</td></tr>
 </table>
-<p class="muted">Bazı hizmetler yalnızca ilgili işlev kullanıldığında devreye girer. Veri işleyenlerle Art. 28 DSGVO uyarınca sözleşmeler mevcuttur veya yapılacaktır. Bunlar da kendi adlarına, kısmen AB dışında <b>alt işleyenler</b> kullanır – ör. işletim, günlük değerlendirmesi ve müşteri hizmetleri için. Aktarım bu durumda standart sözleşme hükümleri, EU-US Data Privacy Framework veya bir yeterlilik kararı ile güvence altına alınır. <b>Yazı tipleri ve program kütüphaneleri uygulamaya yerel olarak gömülüdür (self-hosted)</b> – yükleme sırasında Google Fonts'tan veya bir CDN'den <b>hiçbir</b> çağrı yapılmaz ve dolayısıyla IP adresiniz bu sağlayıcılara aktarılmaz.</p>
-
-<div class="note">Rıza olmadan ve <b>kişisel veri olmadan</b> tek bir aktarım gerçekleşir: „Günün yemeği" için tarifin çevrilmesi. Tarif, sunucumuzun kimlik numarasına göre bizzat TheMealDB'den aldığı ve çeviri için OpenAI'ye ilettiği herkese açık bir metindir; sonuç önbelleğe alınır ve tüm kullanıcılara aynı şekilde sunulur. Bu sırada <b>hakkınızda hiçbir bilgi</b> iletilmez – ne tanımlayıcılar ne de hesabınızdaki içerikler.</div>
+<p class="muted">Yazı tipleri ve program kütüphaneleri uygulamaya gömülüdür; Google Fonts'tan veya bir CDN'den hiçbir çağrı yapılmaz.</p>
 
 <h2>4a. Yabancı sitelere bağlantılar</h2>
-<p>Bazı yerlerde size dışarıya bağlantılar sunuyoruz. Bunlar ancak <b>siz tıkladığınızda</b> çağrılır – öncesinde hiçbir şey akmaz. Ancak adres, arama yapılan bilgileri içerir:</p>
-<ul>
-<li><b>Google Maps</b> (harita, bir daireye veya bir randevuya güzergâh): duruma göre <b>posta kodunuz</b>, <b>koordinatlarınız</b> veya bir randevunun <b>başlangıç ve varış adresi</b> iletilir – buna ek olarak, her sayfa çağrısında olduğu gibi IP adresiniz. Sağlayıcı Google'dır (ABD).</li>
-<li><b>servicesuche.bund.de</b> (resmî makam araması): <b>aranan hizmetin adı</b> ve <b>posta kodunuz</b> iletilir.</li>
-</ul>
-<p>Bu sitelerdeki işlemeden ilgili sağlayıcı sorumludur; onun gizlilik bilgileri geçerlidir. Bunu önlemek isterseniz, sayfayı bağlantı üzerinden açmayın, bizzat kendiniz çağırın. Bağlantıların sunulmasına ilişkin hukuki dayanak: Art. 6 Abs. 1 lit. f DSGVO – yol tarifi, işlevin amacıdır.</p>
+<p>Dışarıya yönelik bağlantılar (ör. bir güzergâh için <b>Google Maps</b>, resmî makam araması için <b>servicesuche.bund.de</b>) ancak siz onlara tıkladığınızda çağrılır. Bu durumda adres, aranan bilgileri (ör. posta kodu, varış adresi) içerir. Oradaki işlemeden ilgili sağlayıcı sorumludur. Hukuki dayanak: Art. 6 Abs. 1 lit. f DSGVO.</p>
 
 <h2>5. Üçüncü ülkelere aktarım</h2>
-<p>Bazı hizmetler (özellikle <b>OpenAI, GitHub Pages, Pexels</b>) verileri <b>ABD'de</b> işler. Aktarım, uygun güvenceler temelinde, özellikle <b>AB Standart Sözleşme Hükümleri</b> ve – sertifikalı olduğu ölçüde – EU-US Data Privacy Framework temelinde gerçekleşir. <b>Özel kategorilerin yapay zekâ ile işlenmesi</b> için (3c madde) aktarımı ayrıca <b>açık rızanıza</b> dayandırırız (Art. 49 Abs. 1 lit. a DSGVO). Güvencelere rağmen, ABD'de AB ile tamamen eşdeğer bir veri koruma düzeyi garanti edilemez.</p>
+<p>OpenAI ve GitHub Pages verileri <b>ABD'de</b> de işler. Dayanak, uygun güvencelerdir (AB Standart Sözleşme Hükümleri veya EU-US Data Privacy Framework). Özel kategorilerin yapay zekâ ile işlenmesi için aktarım ayrıca açık rızanıza dayanır (Art. 49 Abs. 1 lit. a DSGVO). ABD'de AB ile tamamen eşdeğer bir koruma düzeyi garanti edilemez.</p>
 
 <h2>6. Kişisel verilerin özel kategorileri (Art. 9)</h2>
-<p>OrdelaFit'te (sağlık/fitness bilgileri), acil durum bölümünde (ör. kan grubu, alerjiler, ilaçlar) ve taranan belgelerde <b>sağlık verileri</b> bulunabilir. Bunlar cihazınızda <b>yerel olarak</b> saklanır. <b>Verilerinizin</b> OpenAI'ye aktarımı yalnızca yapay zekâyı kullandığınızda ve yalnızca <b>açık rızanızla</b> gerçekleşir. Lütfen <b>üçüncü kişilere</b> ait sağlık veya sosyal verileri onların bilgisi olmadan girmeyin.</p>
+<p>Acil durum bölümünde (ör. kan grubu, alerjiler, ilaçlar), ilaç hatırlatıcılarında ve taranan belgelerde <b>sağlık verileri</b> bulunabilir. Bunlar cihazınızda <b>yerel olarak</b> kalır. OpenAI'ye yalnızca, bunları yapay zekâ ile bizzat analiz ettiğinizde ve rıza verdiyseniz iletilir. Lütfen <b>üçüncü kişilere</b> ait sağlık verilerini onların bilgisi olmadan girmeyin.</p>
 
 <h2>7. Uç cihazda saklama (§ 25 TDDDG)</h2>
-<p>Ordela, istediğiniz işlev için teknik olarak gerekli olduğu ölçüde verileri yerel tarayıcı belleğinde/IndexedDB'de saklar (§ 25 Abs. 2 TDDDG uyarınca rıza gerektirmez). Hiçbir reklam veya izleme çerezi yerleştirilmez.</p>
+<p>Ordela, istediğiniz işlev için teknik olarak gerekli olduğu ölçüde verileri yerel tarayıcı belleğinde/IndexedDB'de saklar (§ 25 Abs. 2 TDDDG). Uygulama, cihazdan bu verileri otomatik olarak silmemesini ister („kalıcı depolama"). Hiçbir reklam veya izleme çerezi yerleştirilmez.</p>
 
-<h2>8. Çocuklar ve gençler (Art. 8 DSGVO)</h2>
-<p>Kendi hesabını yalnızca <b>18 yaşından</b> büyük kişiler oluşturabilir. 18 yaşın altındaki çocuklar ve gençler yalnızca bir <b>aile kodu</b> üzerinden üye olarak katılır (anonim hesap, <b>yapay zekâ işlevleri olmadan</b>). <b>Rızayı</b> velayet sahibi olarak yetişkin hesap sahibi verir (Art. 8 Abs. 2 DSGVO). <b>Art. 4 Nr. 7 DSGVO anlamında sorumlu (veri sorumlusu) biz kalırız</b> – sunucularımızdaki işlemeden doğan sorumluluğu size devredemeyiz ve devretmek istemeyiz.</p>
-<p><b>Çocuğun bilgilendirilmesi (Art. 14 DSGVO):</b> Bir çocuğun verilerini siz girersiniz, çocuk değil. Buna rağmen çocuğun kendi verileri üzerinde kendi hakları vardır. Lütfen ona, yaşına uygun bir şekilde, hangi bilgileri kaydettiğinizi açıklayın. Çocuk bunu kendisi talep edecek yaşa geldiğinde, talep üzerine ona bilgi verir ve verilerini sileriz – bunun için <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> adresine başvurun. Aynı durum <b>örnek mektuplardaki alıcı verileri</b> için de geçerlidir: Başka kişiler hakkındaki bilgileri kendi sorumluluğunuzda işlersiniz; biz bunları yalnızca sizin için saklarız.</p>
-<p><b>Çocuk bölümünde</b> („Okul") yetişkin hesap sahibi, baktığı bir çocuğun verilerini (ad, ders programı, randevular, hobiler) girebilir. Bunlar – hesap oturumu açıkken – <b>hesapla şifreli olarak senkronize edilir</b> (AB'de yedekleme/cihaz eşitleme). „Doktor/aşı" gibi randevu kayıtları <b>sağlık verisi</b> (Art. 9) olabilir. Dayanak, ilk kayıttan önce sorulan ve „Ayarlar → Hukuki &amp; Gizlilik" altında istediğiniz zaman geri alınabilen <b>velayet sahibinin rızasıdır</b> (Art. 8, Art. 9 Abs. 2 lit. a DSGVO); orada çocuklar da silinebilir.</p>
+<h2>8. Çocuklar</h2>
+<p>Ordela yetişkinlere yöneliktir. Çocuklara ait verileri (ör. aile veya çocuk bölümünde) yetişkin kendi cihazına girer; bu veriler orada kalır ve bize aktarılmaz. Yapay zekâ, çocuk profilleri için kullanılamaz.</p>
 
 <h2>9. Saklama süresi &amp; silme</h2>
 <ul>
-<li><b>Yerel veriler:</b> siz silene veya uygulamayı kaldırana kadar cihazınızda kalır.</li>
-<li><b>Hesap/bulut verileri:</b> hesabınızı silene kadar. Silmeyi uygulamada „Ayarlar → Hesabı kalıcı olarak sil" altında istediğiniz zaman başlatabilirsiniz (sunucu ve yerel veriler o zaman silinir).</li>
-<li><b>Silmeden bir istisna:</b> Ücretsiz deneme sürümünün, hesapların tekrar tekrar yeniden oluşturulmasıyla defalarca kullanılmasını önlemek için, e-posta adresinizin bir <b>doğrulama değerini</b> saklarız – gizli bir ek ile oluşturulmuş bir SHA-256 karması. Bundan adresiniz <b>geri hesaplanamaz</b>; yalnızca bir adres için daha önce bir deneme sürümünün çalışıp çalışmadığının tespitine olanak tanır. Hesap silinmesini bilinçli olarak atlatır ve yeni bir temas olmadan <b>24 ay</b> sonra silinir. Hukuki dayanak: Art. 6 Abs. 1 lit. f DSGVO (kötüye kullanımın önlenmesi).</li>
-<li><b>Sesli karşılama:</b> Karşılamayı sesli okutursanız, her açılışta yeniden oluşturulmak zorunda kalmaması için oluşturulan ses kaydını önbelleğe alırız. Bu, adınızı içerir. Bir kayıt <b>60 gün</b> boyunca çağrılmazsa, onu sileriz.</li>
-<li><b>Etkin olmayan hesaplar:</b> Bir hesap <b>24 ay</b> kullanılmazsa, içinde saklanan tüm verilerle birlikte onu sileriz. <b>30 gün önce</b> kayıtlı e-posta adresinize yazarız. Bu süre içinde oturum açarsanız, süre yeniden başlar. Ulaştırılan bir ön uyarı olmadan silme yapılmaz.</li>
-<li><b>Yasal saklama:</b> vergi/ticaret hukuku yükümlülükleri bulunduğu ölçüde (ör. ödemelere ilişkin), yasal süreler geçerlidir (§ 147 AO, § 257 HGB).</li>
+<li><b>Tüm uygulama verileri</b> siz silene kadar cihazınızda kalır: uygulamada „Ayarlar → Hesabı kalıcı olarak sil" veya „Tüm verileri sil" altında ya da uygulamayı kaldırarak. Kılavuz: <a href="konto-loeschen.html">Profili &amp; verileri silme</a>.</li>
+<li><b>Bizde</b> uygulamadan gelen hiçbir kişisel veri saklanmaz.</li>
+<li><b>OpenAI</b> (yalnızca yapay zekâ kullanıldığında): ayarlarınıza ve OpenAI'nin koşullarına göre.</li>
 </ul>
 
 <h2>10. Haklarınız</h2>
-<p>Bilgi edinme (Art. 15), düzeltme (Art. 16), silme (Art. 17), kısıtlama (Art. 18), veri taşınabilirliği (Art. 20) ve itiraz (Art. 21) haklarına sahipsiniz. Verilen <b>rızaları istediğiniz zaman geleceğe yönelik olarak geri alabilirsiniz</b> (Art. 7 Abs. 3) – uygulamada „Ayarlar → Hukuki &amp; Gizlilik" altında. Bir <b>denetim makamına şikâyette bulunma hakkı</b> vardır. Yetkili makam:</p>
-<p>Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW), Postfach 20 04 44, 40102 Düsseldorf.</p>
-
-<div class="note"><b>İtiraz hakkınıza ilişkin bilgi (Art. 21 DSGVO):</b> Kendi özel durumunuzdan kaynaklanan nedenlerle, meşru menfaate dayandırdığımız işlemeye (Art. 6 Abs. 1 lit. f – bizde: sunucu günlükleri ve uygulama içeriklerinin bir kısmı) karşı istediğiniz zaman <b>itiraz</b> etme hakkına sahipsiniz. Bunun üzerine, zorlayıcı ve korunmaya değer nedenler gösteremediğimiz sürece, bu verileri artık işlemeyiz. <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> adresine bir e-posta yeterlidir.</div>
+<p>Bilgi edinme (Art. 15), düzeltme (Art. 16), silme (Art. 17), kısıtlama (Art. 18), veri taşınabilirliği (Art. 20) ve itiraz (Art. 21) haklarına sahipsiniz. Verileriniz yalnızca cihazınızda bulunduğundan, haklarınızın çoğunu doğrudan uygulamada kullanabilirsiniz (görüntüleme, değiştirme, dosya olarak yedekleme, silme). Verdiğiniz <b>rızaları istediğiniz zaman geleceğe yönelik olarak geri alabilirsiniz</b> (Art. 7 Abs. 3) – uygulamada „Ayarlar → Hukuki &amp; Gizlilik" altında. Bir <b>denetim makamına şikâyette bulunma hakkınız</b> vardır, ör. Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen (LDI NRW – Kuzey Ren-Vestfalya Eyaleti Veri Koruma ve Bilgi Edinme Özgürlüğü Görevlisi), Postfach 20 04 44, 40102 Düsseldorf.</p>
+<div class="note"><b>İtiraz hakkı (Art. 21 DSGVO):</b> Meşru menfaate dayanan işlemeye (Art. 6 Abs. 1 lit. f – ör. uygulama yüklenirken oluşan sunucu günlükleri) özel durumunuzdan kaynaklanan nedenlerle istediğiniz zaman itiraz edebilirsiniz. <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> adresine bir e-posta yeterlidir.</div>
 
 <h2>10a. Veri sağlama yükümlülüğü (Art. 13 Abs. 2 lit. e)</h2>
-<p>Hesap olmadan kullanmak için <b>hiçbir şey</b> belirtmeniz gerekmez. Bir hesap için e-posta adresi ve doğum tarihi <b>gereklidir</b> – bunlar olmadan sözleşme kurulamaz, çünkü sizi ne oturum açabilir ne de asgari yaşı tespit edebiliriz. Diğer tüm bilgiler <b>isteğe bağlıdır</b>; bunlar olmadan yalnızca ilgili tek tek işlevler çalışmaz (ör. konum olmadan hava durumu). Bunun dışında size herhangi bir dezavantaj doğmaz.</p>
+<p>Herhangi bir kişisel veri belirtmek zorunda değilsiniz. Takma ad ve parola yalnızca cihazınızdaki kilit işlevini görür. Diğer tüm bilgiler isteğe bağlıdır; bunlar olmadan yalnızca ilgili tek tek işlevler çalışmaz (ör. konum olmadan hava durumu).</p>
 
 <h2>11. Bireysel durumda otomatik karar bulunmaması</h2>
 <p>Hukuki sonuç doğuran, profil çıkarma dâhil otomatik karar verme (Art. 22 DSGVO) gerçekleşmez.</p>
@@ -142,109 +115,82 @@ Yasal olarak bir veri koruma görevlisi (Datenschutzbeauftragter) atanmamıştı
 
 <section id="en" hidden>
 <h1>Privacy Policy</h1>
-<p class="muted">Version: 2026-07-26 · Applies to the „Ordela" app and service.</p>
+<p class="muted">Version: 29 October 2026</p>
 
 <h2>1. Controller</h2>
 <p>Gonsoft labs – Darius Gonschior, Herzogstr. 27, 41468 Neuss, Germany.<br>
 E-mail: <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> · Phone: +49 151 56109742.<br>
-No data protection officer is required by law. For any data protection matter please use the e-mail address above.</p>
+No data protection officer is legally required. For all privacy matters please use the e-mail address above.</p>
 
-<h2>2. Core principle: „local-first"</h2>
-<p>Ordela stores your content primarily <b>locally on your device</b> (browser storage/IndexedDB). When you are signed in, certain data is additionally stored in your account at our processor <b>Supabase (servers in the EU)</b> (backup, cross-device sync, family features, subscription status). We show no advertising and do not track you for advertising purposes.</p>
+<h2>2. Core principle: everything stays on your device</h2>
+<div class="note">Ordela works <b>without a server of its own and without an account with us</b>. Your profile (a nickname and password of your choice) and all content – tasks, appointments, documents, emergency data, etc. – are stored <b>only on your device</b> (browser storage/IndexedDB). <b>We receive none of this data</b> and can neither view nor restore it. We show no ads and do no tracking.</div>
+<p>Data only leaves your device when you use a feature that needs an external service (sections 3 and 4), or when you save or share a file yourself (backup, emergency folder, letter).</p>
 
 <h2>3. Data processed, purposes and legal bases</h2>
-<h3>a) Account</h3>
-<p>On registration: e-mail address, name, date of birth (your age declaration). Purpose: providing the account, backup/sync, family and subscription features. Legal basis: Art. 6(1)(b) GDPR (contract).</p>
-<p><b>Signing in with Google:</b> Alternatively you can sign in with your Google account. You are redirected to Google; <b>Google thereby learns that you use Ordela</b> and, once you agree there, passes us your e-mail address and name. We also store which route you used to sign in. If you do not want this, use e-mail and password – it is available on equal terms. Legal basis: Art. 6(1)(b) GDPR.</p>
+<h3>a) Local profile</h3>
+<p>Your nickname and a salted check value (SHA-256) derived from your password are stored only on your device. They act as a lock for the app on this device. There is no e-mail address, no date of birth and no sign-in with us or third parties. Legal basis: Art. 6(1)(b) GDPR.</p>
 <h3>b) App content</h3>
-<p>Tasks, appointments, notes, working hours, vehicle, budget, shopping and calendar data, etc. Stored locally; when signed in also in your account (EU). Legal basis: Art. 6(1)(b) and (f) GDPR.</p>
-<h3>c) AI features (document/image analysis, chat, voice)</h3>
-<div class="note">If you use the AI, your input – <b>including photographed or uploaded documents that may contain health or official data</b> – is transmitted to <b>OpenAI Ireland Ltd. (Verarbeitung auch durch OpenAI, L.L.C., USA) (USA)</b> for processing. This only happens after your <b>explicit consent</b> (Art. 6(1)(a) and, where special categories are involved, Art. 9(2)(a) GDPR). OpenAI does not use API data to train its models and deletes it after 30 days at the latest. For the third-country transfer, see section 5. The <b>empathetic companion</b> for difficult life situations (e.g. separation, bereavement) also uses this AI; such conversations can be very personal – please avoid entering identifying data about third parties. Otherwise your chats stay only locally in your history and are not stored permanently by the AI processor.</div>
-<h3>d) Weather, pollen, severe-weather warnings, authority guide, fuel prices</h3>
-<p>For these features – only if you use them – your location/approximate coordinates or postcode is sent to the respective services (see section 4). Legal basis: Art. 6(1)(a) and (f) GDPR. Device location is only used with your browser/OS permission.</p>
-<p>If you load your municipality's <b>waste calendar</b> in the waste module via an <b>iCal/ICS link</b>, that link is sent to our server (the „ics-proxy" function, EU), which fetches the calendar from the municipality/waste provider and returns it to you; the link is only used to process your request there and is not stored. If you instead upload an <b>ICS file</b>, nothing leaves your device. Ordela stores the collection dates locally. Legal basis: Art. 6(1)(b) and (f) GDPR.</p>
+<p>Tasks, appointments, notes, documents, emergency, supplies, budget, vehicle, working-time and calendar data etc. are stored only locally. Legal basis: Art. 6(1)(b) GDPR.</p>
+<h3>c) Optional AI with your own OpenAI key</h3>
+<div class="note">The AI features (document/image analysis, chat, voice control, read-aloud) are <b>optional</b> and only work if you add your <b>own OpenAI API key</b> in Settings. The key stays on your device. When you use an AI feature, the content you choose to analyse – <b>including photographed documents that may contain health or official data</b> – is sent <b>directly from your device to OpenAI</b> (OpenAI Ireland Ltd.; processing also by OpenAI, L.L.C., USA), not via us. This only happens after your <b>explicit consent</b> in the app (Art. 6(1)(a) and, where special categories are involved, Art. 9(2)(a) GDPR). Processing takes place in your own OpenAI account under OpenAI’s terms and privacy policy (according to OpenAI, API data is not used for training and is generally deleted after 30 days at the latest). Without a key the app remains fully usable, just without AI.</div>
+<h3>d) Weather, pollen, severe-weather warnings, holidays, authority guide, recipes</h3>
+<p>Only when you use these features is your chosen location, coordinates or postcode sent to the respective services (section 4). Ordela only uses your device location after you allow it in the operating system. For the „dish of the day" a public recipe is fetched – no information about you is sent (apart from the technically necessary IP address). Legal basis: Art. 6(1)(a) and (f) GDPR.</p>
 <h3>e) Letter templates &amp; letter generator</h3>
-<p>For letter templates you process <b>sender data</b> (name, address, optionally email/phone), <b>recipient data</b> and, depending on the template, further details – in some cases <b>bank details (IBAN)</b>, e.g. for a deposit refund or a change of bank account. This data is processed <b>on your device</b> and, if you are signed in, backed up in your account (EU) like your other app content. There is <b>no automatic transfer</b> to third parties: the finished letter leaves your device only if you send, print or share it yourself. If you use the <b>„Improve with AI"</b> button, the letter text – including the details it contains – is transmitted to the AI processor (see sections 3c and 4); please check beforehand whether the text contains sensitive data. The template texts themselves are delivered as static files and contain no personal data. Legal basis: Art. 6(1)(b) GDPR (performance of contract); for the AI improvement additionally your consent under Art. 6(1)(a) GDPR.</p>
+<p>Sender, recipient and, where applicable, bank details (IBAN) are processed <b>only on your device</b>. The finished letter only leaves your device if you send, print or share it yourself. „Improve with AI" sends the letter text to OpenAI (section 3c). Legal basis: Art. 6(1)(b) GDPR, for AI additionally Art. 6(1)(a) GDPR.</p>
+<h3>f) Reminders</h3>
+<p>Reminders for appointments, tasks and medication are created <b>only on your device</b>. No data is transmitted for this; only notification permission is needed.</p>
+<h3>g) Backup and emergency folder</h3>
+<p>When you save a backup or the emergency folder, the app creates a file on your device. You decide where to keep it (e.g. USB stick, your own cloud storage); the respective provider is responsible for that storage. The files may contain health data – keep them safe.</p>
+<h3>h) Hosting / server logs</h3>
+<p>The app files are delivered via GitHub Pages. When the app is loaded or updated, server log data (incl. IP address) is generated there for technical reasons. Legal basis: Art. 6(1)(f) GDPR (secure operation). After that the app also works without internet.</p>
+<h3>i) Google Play</h3>
+<p>Ordela is distributed via Google Play. Google’s privacy terms apply to downloads and updates. There are currently no purchases in the app.</p>
 
-<h3>e2) Own AI key (paid unlock)</h3>
-<p>If you have purchased the „own AI key" unlock, you can store <b>your own access key</b> from an AI provider (currently OpenAI). The key is stored <b>solely locally on your device</b> (browser storage) and is <b>never transmitted to our servers</b>. Your AI requests then go <b>directly from your device to the AI provider</b> – not via us. That provider is responsible for this processing; its privacy policy applies, over which we have no influence. On our side only the purchase of the unlock arises (see section 3g). Legal basis: Art. 6(1)(b) GDPR.</p>
-<h3>f) Push notifications</h3>
-<p>Only after your consent (permission in the browser/OS). A technical push endpoint is registered with your browser vendor's push service (e.g. Google, Apple, Mozilla). Legal basis: Art. 6(1)(a) GDPR.</p>
-<p>If you enable <b>severe weather warnings</b>, we additionally store the <b>coordinates of your warning location</b> on our server (EU). There is no other way: the check for a warning also runs while the app is closed, when your device cannot supply them. We store the location you chose for the warning, not your current whereabouts. If you switch the warnings off or delete your account, the entry is deleted.</p>
-<p><b>Local reminders</b> (selectable lead time for appointments and tasks) are created exclusively <b>on your device</b>: while the app is open it checks whether a time has been reached and then shows a notification. <b>No data is transmitted</b> – the device permission for notifications is enough.</p>
-<h3>g) Subscription / purchase</h3>
-<p>Purchases run through the app stores (Apple/Google). The respective store is responsible for payment processing. We receive status information about the active subscription. Legal basis: Art. 6(1)(b) GDPR.</p>
-<h3>h) Server logs</h3>
-<p>Accessing the app technically generates server log data (incl. IP address) at the hosting provider. Legal basis: Art. 6(1)(f) GDPR (secure operation).</p>
-
-<h2>4. Recipients / processors &amp; integrated services</h2>
+<h2>4. External services (only when you use the respective feature)</h2>
 <table>
-<tr><th>Service</th><th>Purpose</th><th>Location</th></tr>
-<tr><td>Supabase (backend)</td><td>Account, sync, family, push subs, subscription status</td><td>EU</td></tr>
-<tr><td>OpenAI Ireland Ltd. (Verarbeitung auch durch OpenAI, L.L.C., USA)</td><td>AI: document/image analysis, chat, voice</td><td>USA</td></tr>
-<tr><td>GitHub Pages (Microsoft)</td><td>App hosting</td><td>USA</td></tr>
-<tr><td>Open-Meteo</td><td>Weather, pollen, location search</td><td>EU</td></tr>
-<tr><td>German Weather Service / Bright Sky</td><td>Official severe-weather warnings</td><td>EU</td></tr>
-<tr><td>Nager.Date (date.nager.at)</td><td>Public holidays of other countries (only if a non-German country is selected)</td><td>EU</td></tr>
-<tr><td>BigDataCloud</td><td>Location → place name</td><td>EU/UK</td></tr>
-<tr><td>OpenStreetMap (Nominatim/Overpass)</td><td>Authority guide (postcode, nearby offices)</td><td>EU</td></tr>
-<tr><td>Kumi Systems e.U.</td><td>Fallback server for the authority search if OpenStreetMap is unavailable</td><td>Austria (EU)</td></tr>
-<tr><td>TheMealDB / Spoonacular</td><td>„Dish of the day" / nutrition</td><td>UK / USA</td></tr>
-<tr><td>Tankerkönig</td><td>Fuel prices</td><td>EU</td></tr>
-<tr><td>Municipality / waste provider (the iCal/ICS link you enter)</td><td>Server-side fetch of your waste calendar (the „ics-proxy" function) – only if you load a link</td><td>usually Germany/EU</td></tr>
-<tr><td>Brevo GmbH, Berlin</td><td>Sending account e-mails (sign-up confirmation, password reset) – your e-mail address is transmitted</td><td>EU</td></tr>
-<tr><td>OpenAI</td><td>Reading texts and the greeting aloud – the text to be spoken is transmitted; for the greeting it <b>contains your first name</b> if you have provided one. Only if you granted AI consent</td><td>USA</td></tr>
-<tr><td>Pexels</td><td>Background images (OrdelaFit)</td><td>USA</td></tr>
-<tr><td>Browser push service</td><td>Delivery of notifications</td><td>per vendor</td></tr>
-<tr><td>Apple / Google</td><td>App distribution, in-app purchase, payment</td><td>USA/EU</td></tr>
+<tr><th>Service</th><th>Purpose / data sent</th><th>Location</th></tr>
+<tr><td>OpenAI (with your own key)</td><td>AI: document/image analysis, chat, voice, read-aloud – the content you choose</td><td>USA/EU</td></tr>
+<tr><td>GitHub Pages (Microsoft)</td><td>Delivery of the app files – IP address</td><td>USA</td></tr>
+<tr><td>Open-Meteo</td><td>Weather, pollen, place search – location/coordinates</td><td>EU</td></tr>
+<tr><td>German Weather Service via Bright Sky</td><td>Official severe-weather warnings – coordinates</td><td>EU</td></tr>
+<tr><td>BigDataCloud</td><td>Location → place name – coordinates</td><td>EU/UK</td></tr>
+<tr><td>Nager.Date</td><td>Public holidays outside Germany – country, year</td><td>EU</td></tr>
+<tr><td>OpenStreetMap (Nominatim/Overpass), fallback server Kumi Systems e.U.</td><td>Authority guide – postcode, coordinates</td><td>EU</td></tr>
+<tr><td>TheMealDB</td><td>„Dish of the day" – no information about you</td><td>UK</td></tr>
 </table>
-<p class="muted">Some services are only contacted when you use the respective feature. Data processing agreements under Art. 28 GDPR are or will be concluded with processors. These in turn engage <b>sub-processors</b>, some outside the EU – for operations, log analysis and customer support, for example. Such transfers are then covered by standard contractual clauses, the EU-US Data Privacy Framework or an adequacy decision. <b>Fonts and program libraries are embedded locally in the app (self-hosted)</b> – on load there is <b>no</b> request to Google Fonts or a CDN, and therefore no transfer of your IP address to those providers.</p>
-
-<div class="note">One transmission happens without consent and <b>without personal data</b>: translating the recipe of the “dish of the day”. The recipe is a public text which our server fetches from TheMealDB by its ID and passes to OpenAI for translation; the result is cached and served to all users alike. <b>No information about you</b> is transmitted – neither identifiers nor content from your account.</div>
+<p class="muted">Fonts and program libraries are embedded in the app; nothing is fetched from Google Fonts or a CDN.</p>
 
 <h2>4a. Links to external sites</h2>
-<p>In some places we offer links to external sites. They are only called up when <b>you click them</b> – nothing flows beforehand. The address does, however, contain the details being searched for:</p>
-<ul>
-<li><b>Google Maps</b> (map, route to an authority or to an appointment): depending on the case, your <b>postcode</b>, <b>coordinates</b> or the <b>start and destination address</b> of an appointment are transmitted – plus your IP address, as with any page request. The provider is Google (USA).</li>
-<li><b>servicesuche.bund.de</b> (official German authority search): the <b>name of the service sought</b> and your <b>postcode</b> are transmitted.</li>
-</ul>
-<p>The respective provider is responsible for processing on those sites and its privacy notice applies. If you wish to avoid this, do not use the link but open the site yourself. Legal basis for providing the links: Art. 6(1)(f) GDPR – directions are the purpose of the feature.</p>
+<p>Outbound links (e.g. <b>Google Maps</b> for a route, <b>servicesuche.bund.de</b> for the official authority search) are only opened when you tap them. The address then contains the details searched for (e.g. postcode, destination). The respective provider is responsible for processing there. Legal basis: Art. 6(1)(f) GDPR.</p>
 
 <h2>5. Transfers to third countries</h2>
-<p>Some services (in particular <b>OpenAI, GitHub Pages, Pexels</b>) process data in the <b>USA</b>. Transfers are based on appropriate safeguards, in particular the <b>EU Standard Contractual Clauses</b> and – where certified – the EU-US Data Privacy Framework. For <b>AI processing of special categories</b> (section 3c) we additionally rely on your <b>explicit consent</b> (Art. 49(1)(a) GDPR). Despite safeguards, a level of data protection fully equivalent to the EU cannot be guaranteed in the USA.</p>
+<p>OpenAI and GitHub Pages also process data in the <b>USA</b>, based on appropriate safeguards (EU Standard Contractual Clauses or the EU-US Data Privacy Framework). For AI processing of special categories, the transfer is additionally based on your explicit consent (Art. 49(1)(a) GDPR). A level of protection fully equivalent to the EU cannot be guaranteed in the USA.</p>
 
 <h2>6. Special categories of personal data (Art. 9)</h2>
-<p>OrdelaFit (health/fitness data), the emergency area (e.g. blood group, allergies, medication) and scanned documents may contain <b>health data</b>. This is stored <b>locally</b> on your device. Transmission of <b>your data</b> to OpenAI only occurs if you use the AI, and only with your <b>explicit consent</b>. Please do not enter health or social data of <b>third parties</b> without their knowledge.</p>
+<p>The emergency area (e.g. blood type, allergies, medication), medication reminders and scanned documents may contain <b>health data</b>. It stays <b>locally</b> on your device. It is only sent to OpenAI if you analyse it with the AI yourself and have given consent. Please do not enter health data of <b>other people</b> without their knowledge.</p>
 
 <h2>7. Storage on your device (§ 25 TDDDG)</h2>
-<p>Ordela stores data in local browser storage/IndexedDB where technically necessary for the feature you requested (no consent required under § 25(2) TDDDG). No advertising or tracking cookies are set.</p>
+<p>Ordela stores data in local browser storage/IndexedDB where this is technically necessary for the feature you requested (§ 25(2) TDDDG). The app asks the device not to clear this data automatically („persistent storage"). No advertising or tracking cookies are set.</p>
 
-<h2>8. Children and minors (Art. 8 GDPR)</h2>
-<p>Only persons aged <b>18 or over</b> can create their own account. Children and minors under 18 participate solely as a member via a <b>family code</b> (anonymous account, <b>without AI features</b>). The <b>consent</b> is given by the adult account holder as legal guardian (Art. 8(2) GDPR). <b>We remain the controller within the meaning of Art. 4(7) GDPR</b> – responsibility for the processing on our servers cannot and will not be shifted to you.</p>
-<p><b>Informing the child (Art. 14 GDPR):</b> A child's data is entered by you, not by the child. The child nevertheless has its own rights to that data. Please explain to them, in an age-appropriate way, what you have stored. As soon as the child is old enough to ask, we will provide information and delete their data on request – please write to <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a>. The same applies to <b>recipient data in letter templates</b>: information about other people is processed under your own responsibility; we merely store it for you.</p>
-<p>In the <b>children's area</b> („School") the adult account holder may enter data about a child in their care (first name, timetable, appointments, hobbies). When signed in, this is <b>synchronised encrypted with the account</b> (backup/device sync in the EU). Appointment entries such as „doctor/vaccination" may be <b>health data</b> (Art. 9). The basis is the <b>consent of the legal guardian</b> (Art. 8, Art. 9(2)(a) GDPR), requested before the first entry and revocable at any time under „Settings → Legal &amp; Privacy", where children can also be deleted.</p>
+<h2>8. Children</h2>
+<p>Ordela is intended for adults. Children’s data (e.g. in the family or kids area) is entered by the adult on their own device; it stays there and is not sent to us. AI is not available for children’s profiles.</p>
 
 <h2>9. Retention &amp; deletion</h2>
 <ul>
-<li><b>Local data:</b> remains on your device until you delete it or uninstall the app.</li>
-<li><b>Account/cloud data:</b> until you delete your account. You can trigger deletion at any time in the app under „Settings → Delete account permanently" (server and local data are then deleted).</li>
-<li><b>One exception to deletion:</b> So that the free trial cannot be claimed repeatedly by creating new accounts, we retain a <b>check value of your e-mail address</b> – a SHA-256 hash formed with a secret additive. Your address <b>cannot be reconstructed</b> from it; it only allows us to establish whether a trial has already run for an address. It deliberately survives account deletion and is erased after <b>24 months</b> without further contact. Legal basis: Art. 6(1)(f) GDPR (abuse prevention).</li>
-<li><b>Spoken greeting:</b> If you have the greeting read aloud, we cache the generated audio so it does not have to be produced again on every start. It contains your first name. If an entry is not retrieved for <b>60 days</b>, we delete it.</li>
-<li><b>Inactive accounts:</b> If an account is not used for <b>24 months</b>, we delete it together with all data stored in it. We will write to your registered e-mail address <b>30 days beforehand</b>. If you sign in during that time, the period starts again. Nothing is deleted without a delivered warning.</li>
-<li><b>Statutory retention:</b> where tax/commercial obligations exist (e.g. regarding payments), statutory periods apply (§ 147 AO, § 257 HGB).</li>
+<li><b>All app data</b> stays on your device until you delete it: in the app under „Settings → Delete account permanently" or „Delete all data", or by uninstalling. Guide: <a href="konto-loeschen.html?lang=en">Delete profile &amp; data</a>.</li>
+<li><b>We</b> store no personal data from the app.</li>
+<li><b>OpenAI</b> (only if you use AI): according to your settings and OpenAI’s terms.</li>
 </ul>
 
 <h2>10. Your rights</h2>
-<p>You have the right to access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction (Art. 18), data portability (Art. 20) and objection (Art. 21). You may <b>withdraw consent at any time with effect for the future</b> (Art. 7(3)) – in the app under „Settings → Legal &amp; privacy". You have the <b>right to lodge a complaint with a supervisory authority</b>. The competent authority is:</p>
-<p>State Commissioner for Data Protection and Freedom of Information North Rhine-Westphalia (LDI NRW), Postfach 20 04 44, 40102 Düsseldorf, Germany.</p>
-
-<div class="note"><b>Notice of your right to object (Art. 21 GDPR):</b> You have the right to object at any time, on grounds relating to your particular situation, to processing we base on a legitimate interest (Art. 6(1)(f) – here: server logs and parts of the app content). We will then stop processing that data unless we can demonstrate compelling legitimate grounds. An e-mail to <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> is sufficient.</div>
+<p>You have the right of access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction (Art. 18), data portability (Art. 20) and objection (Art. 21). As your data is only on your device, you can exercise most rights directly in the app (view, change, save as a file, delete). You can <b>withdraw any consent at any time with effect for the future</b> (Art. 7(3)) – in the app under „Settings → Legal &amp; privacy". You have the <b>right to lodge a complaint with a supervisory authority</b>, e.g. the State Commissioner for Data Protection and Freedom of Information of North Rhine-Westphalia (LDI NRW), Postfach 20 04 44, 40102 Düsseldorf, Germany.</p>
+<div class="note"><b>Right to object (Art. 21 GDPR):</b> You may object at any time, on grounds relating to your particular situation, to processing based on legitimate interests (Art. 6(1)(f) – e.g. server logs when loading the app). An e-mail to <a href="mailto:info@gonsoft-labs.de">info@gonsoft-labs.de</a> is sufficient.</div>
 
 <h2>10a. Obligation to provide data (Art. 13(2)(e))</h2>
-<p>To use the app without an account you need to provide <b>nothing</b>. For an account, e-mail address and date of birth are <b>required</b> – without them no contract can be concluded, as we could neither sign you in nor establish the minimum age. All other details are <b>voluntary</b>; without them only the respective individual features will not work (e.g. weather without a location). No other disadvantages arise for you.</p>
+<p>You do not have to provide any personal data. Nickname and password only serve as a lock on your device. All other details are voluntary; without them only the respective individual features do not work (e.g. weather without a location).</p>
 
 <h2>11. No automated individual decision-making</h2>
-<p>No automated decision-making including profiling with legal effect (Art. 22 GDPR) takes place.</p>
+<p>No automated decision-making, including profiling, with legal effect (Art. 22 GDPR) takes place.</p>
 
 <h2>12. Changes</h2>
 <p>We update this policy when features or the legal situation change. The current version is available in the app and at this address.</p>

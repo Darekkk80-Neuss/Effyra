@@ -2866,12 +2866,13 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     <radialGradient id="goldDot" cx="38%" cy="30%" r="75%">
       <stop offset="0" stop-color="#FFF6D2"/><stop offset="46%" stop-color="#EAC66A"/><stop offset="100%" stop-color="#B0810F"/>
     </radialGradient>
-    <symbol id="logoSym" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r="27" fill="#0d1019" stroke="url(#lgrad)" stroke-width="3.5"/>
-      <circle cx="32" cy="32" r="27" fill="none" stroke="url(#lgrad)" stroke-width="1" opacity=".35"/>
-      <path d="M32 15v3M49 32h-3M32 49v-3M15 32h3" stroke="url(#lgrad)" stroke-width="2.4" stroke-linecap="round"/>
-      <path d="M32 32V19M32 32l10 6" fill="none" stroke="url(#lgrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="32" cy="32" r="3.1" fill="url(#goldDot)"/>
+    <!-- Logo: Brief mit Herz-Siegel (ab Okt. 2026, ersetzt die Uhr) – gleiche Zeichnung wie icon.svg -->
+    <symbol id="logoSym" viewBox="0 0 180 180">
+      <rect width="180" height="180" rx="40" fill="#E5F1E8"/>
+      <rect x="30" y="48" width="120" height="84" rx="8" fill="#FFFFFF" stroke="#3E7A5A" stroke-width="6"/>
+      <path d="M30 56 L90 100 L150 56" fill="none" stroke="#3E7A5A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="90" cy="102" r="23" fill="#E07A5F"/>
+      <path d="M90 113 C77 104 79 91 87 93 C89 93.5 90 95 90 96 C90 95 91 93.5 93 93 C101 91 103 104 90 113 Z" fill="#FFFFFF"/>
     </symbol>
     <symbol id="icHome" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icFit" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -4894,6 +4895,7 @@ const TDICT_SRC = {
   'Kontakte': { en: 'Contacts', fr: 'Contacts', es: 'Contactos', it: 'Contatti', pl: 'Kontakty', tr: "Kişiler", uk: "Контакти" },
   'Medizin': { en: 'Medical', fr: 'Médical', es: 'Médico', it: 'Medico', pl: 'Medyczne', tr: "Tıp", uk: "Медицина" },
   'Verträge & Abos': { en: 'Contracts & subscriptions', fr: 'Contrats & abonnements', es: 'Contratos y suscripciones', it: 'Contratti e abbonamenti', pl: 'Umowy i subskrypcje', tr: "Sözleşmeler ve abonelikler", uk: "Договори та підписки" },
+  'Vorrat': { en: 'Supplies', fr: 'Réserves', es: 'Reservas', it: 'Scorte', pl: 'Zapasy', tr: "Stok", uk: "Запаси" },
   'Checkliste': { en: 'Checklist', fr: 'Liste de contrôle', es: 'Lista de comprobación', it: 'Lista di controllo', pl: 'Lista kontrolna', tr: "Kontrol listesi", uk: "Контрольний список" },
   'ICE-Kontakte (im Notfall)': { en: 'ICE contacts (in an emergency)', fr: "Contacts ICE (en cas d'urgence)", es: 'Contactos ICE (en emergencia)', it: "Contatti ICE (in emergenza)", pl: 'Kontakty ICE (na wypadek nagły)', tr: "ICE kişileri (acil durumda)", uk: "ICE-контакти (у надзвичайній ситуації)" },
   'Wichtige Nummern': { en: 'Important numbers', fr: 'Numéros importants', es: 'Números importantes', it: 'Numeri importanti', pl: 'Ważne numery', tr: "Önemli numaralar", uk: "Важливі номери" },
@@ -6169,6 +6171,7 @@ function refresh() { if (RENDERERS[currentView]) RENDERERS[currentView](); }
 const viewLabel = (v) => { try { return t('nav.' + v); } catch (e) { return v; } };
 /* Upgrade-Ansicht: für gesperrte Module (mit Zurück) oder als Plan-Auswahl */
 function showUpgrade(lockedView) {
+  if (OFFLINE_ONLY) return;   // offline: kein Kaufweg → keine Plan-Auswahl mit Preisen
   const pw = $('#paywall'); if (!pw) return;
   if (lockedView) {
     $('#pwHead').textContent = agentMsg({
@@ -9167,7 +9170,8 @@ RENDERERS.dashboard = function () {
 
   const slot = $('#trialSlot');
   if (isKidMode()) slot.innerHTML = '<span class="trial-pill">Kindermodus – nur Ansicht</span>';
-  else if (account) {
+  /* Offline gibt es weder Testphase noch Credits noch einen Kaufweg – also auch keine Tarif-Karte. */
+  else if (account && !OFFLINE_ONLY) {
     const paid = isPaid(), rem = aiRemaining(), lim = aiLimit();
     const fam = !!(account.viaFamily || account.familyUntil || typeof account.familyAiLimit === 'number');
     if (paid) {
@@ -13860,9 +13864,92 @@ const EM_CHECKLISTS = [
   { id: 'strom', icon: '🔌', title: 'Stromausfall', steps: ['Sicherungskasten prüfen', 'Netzbetreiber / Nachbarn informieren', 'Kühl- und Gefrierschrank geschlossen halten', 'Taschenlampen statt Kerzen nutzen', 'Powerbank / Notfall-Radio bereithalten'] },
   { id: 'kind', icon: '🧒', title: 'Kind vermisst', steps: ['Ruhe bewahren, letzten Ort prüfen', 'Umgebung und bekannte Orte absuchen', 'Freunde und Familie informieren', 'Bei Gefahr sofort 110 anrufen', 'Aktuelles Foto und Beschreibung bereithalten'] }
 ];
+/* Notvorrat nach den Empfehlungen des BBK (Bundesamt für Bevölkerungsschutz und
+   Katastrophenhilfe): Vorrat für 10 Tage. `per` = Menge pro Person, wird mit der
+   Haushaltsgröße multipliziert; `exp` = Haltbarkeitsdatum sinnvoll. */
+const EM_SUPPLIES = [
+  { id: 'wasser', ic: '💧', per: 20, unit: 'l', exp: 1, n: { de: 'Trinkwasser', en: 'Drinking water', fr: 'Eau potable', es: 'Agua potable', it: 'Acqua potabile', pl: 'Woda pitna', tr: 'İçme suyu', uk: 'Питна вода' } },
+  { id: 'getreide', ic: '🍞', per: 3.5, unit: 'kg', exp: 1, n: { de: 'Getreide, Brot, Nudeln, Reis, Kartoffeln', en: 'Grains, bread, pasta, rice, potatoes', fr: 'Céréales, pain, pâtes, riz, pommes de terre', es: 'Cereales, pan, pasta, arroz, patatas', it: 'Cereali, pane, pasta, riso, patate', pl: 'Zboża, chleb, makaron, ryż, ziemniaki', tr: 'Tahıl, ekmek, makarna, pirinç, patates', uk: 'Крупи, хліб, макарони, рис, картопля' } },
+  { id: 'gemuese', ic: '🥫', per: 4, unit: 'kg', exp: 1, n: { de: 'Gemüse und Hülsenfrüchte (Konserven)', en: 'Vegetables and pulses (canned)', fr: 'Légumes et légumineuses (conserves)', es: 'Verduras y legumbres (en conserva)', it: 'Verdure e legumi (in scatola)', pl: 'Warzywa i rośliny strączkowe (konserwy)', tr: 'Sebze ve baklagiller (konserve)', uk: 'Овочі та бобові (консерви)' } },
+  { id: 'obst', ic: '🍎', per: 2.5, unit: 'kg', exp: 1, n: { de: 'Obst und Nüsse', en: 'Fruit and nuts', fr: 'Fruits et noix', es: 'Fruta y frutos secos', it: 'Frutta e frutta secca', pl: 'Owoce i orzechy', tr: 'Meyve ve kuruyemiş', uk: 'Фрукти та горіхи' } },
+  { id: 'milch', ic: '🥛', per: 2.6, unit: 'kg', exp: 1, n: { de: 'Milch und Milchprodukte (haltbar)', en: 'Milk and dairy (long-life)', fr: 'Lait et produits laitiers (longue conservation)', es: 'Leche y lácteos (larga duración)', it: 'Latte e latticini (a lunga conservazione)', pl: 'Mleko i nabiał (trwałe)', tr: 'Süt ve süt ürünleri (uzun ömürlü)', uk: 'Молоко та молочні продукти (тривалого зберігання)' } },
+  { id: 'eiweiss', ic: '🥚', per: 1.5, unit: 'kg', exp: 1, n: { de: 'Fisch, Fleisch, Eier (Konserven)', en: 'Fish, meat, eggs (canned)', fr: 'Poisson, viande, œufs (conserves)', es: 'Pescado, carne, huevos (en conserva)', it: 'Pesce, carne, uova (in scatola)', pl: 'Ryby, mięso, jajka (konserwy)', tr: 'Balık, et, yumurta (konserve)', uk: 'Риба, мʼясо, яйця (консерви)' } },
+  { id: 'fett', ic: '🫒', per: 0.36, unit: 'kg', exp: 1, n: { de: 'Fette und Öle', en: 'Fats and oils', fr: 'Matières grasses et huiles', es: 'Grasas y aceites', it: 'Grassi e oli', pl: 'Tłuszcze i oleje', tr: 'Yağlar', uk: 'Жири та олії' } },
+  { id: 'meds', ic: '💊', exp: 1, n: { de: 'Persönliche Medikamente (mind. 10 Tage)', en: 'Personal medication (at least 10 days)', fr: 'Médicaments personnels (au moins 10 jours)', es: 'Medicamentos personales (mín. 10 días)', it: 'Farmaci personali (almeno 10 giorni)', pl: 'Własne leki (min. 10 dni)', tr: 'Kişisel ilaçlar (en az 10 gün)', uk: 'Особисті ліки (щонайменше на 10 днів)' } },
+  { id: 'apotheke', ic: '🩹', exp: 1, n: { de: 'Hausapotheke und Verbandszeug', en: 'First-aid kit and dressings', fr: 'Trousse de secours et pansements', es: 'Botiquín y vendas', it: 'Kit di pronto soccorso e bende', pl: 'Apteczka i opatrunki', tr: 'Ecza dolabı ve sargı malzemesi', uk: 'Аптечка та перевʼязувальні матеріали' } },
+  { id: 'radio', ic: '📻', exp: 0, n: { de: 'Radio mit Batterie oder Kurbel', en: 'Battery or wind-up radio', fr: 'Radio à piles ou à manivelle', es: 'Radio a pilas o de manivela', it: 'Radio a batterie o a manovella', pl: 'Radio na baterie lub na korbkę', tr: 'Pilli veya kurmalı radyo', uk: 'Радіо на батарейках або з динамо' } },
+  { id: 'licht', ic: '🔦', exp: 1, n: { de: 'Taschenlampe und Ersatzbatterien', en: 'Torch and spare batteries', fr: 'Lampe de poche et piles de rechange', es: 'Linterna y pilas de repuesto', it: 'Torcia e batterie di ricambio', pl: 'Latarka i zapasowe baterie', tr: 'El feneri ve yedek piller', uk: 'Ліхтарик і запасні батарейки' } },
+  { id: 'powerbank', ic: '🔋', exp: 0, n: { de: 'Powerbank (geladen)', en: 'Power bank (charged)', fr: 'Batterie externe (chargée)', es: 'Batería externa (cargada)', it: 'Power bank (carico)', pl: 'Powerbank (naładowany)', tr: 'Powerbank (şarjlı)', uk: 'Павербанк (заряджений)' } },
+  { id: 'hygiene', ic: '🧻', exp: 0, n: { de: 'Hygiene: Seife, Toilettenpapier, Müllbeutel', en: 'Hygiene: soap, toilet paper, bin bags', fr: 'Hygiène : savon, papier toilette, sacs poubelle', es: 'Higiene: jabón, papel higiénico, bolsas de basura', it: 'Igiene: sapone, carta igienica, sacchi', pl: 'Higiena: mydło, papier toaletowy, worki', tr: 'Hijyen: sabun, tuvalet kâğıdı, çöp torbası', uk: 'Гігієна: мило, туалетний папір, сміттєві пакети' } },
+  { id: 'bargeld', ic: '💶', exp: 0, n: { de: 'Bargeld in kleinen Scheinen', en: 'Cash in small notes', fr: 'Espèces en petites coupures', es: 'Efectivo en billetes pequeños', it: 'Contanti in banconote di piccolo taglio', pl: 'Gotówka w małych nominałach', tr: 'Küçük banknotlarla nakit', uk: 'Готівка дрібними купюрами' } },
+  { id: 'mappe', ic: '📁', exp: 0, n: { de: 'Dokumentenmappe (Kopien von Ausweis, Versicherung)', en: 'Document folder (copies of ID, insurance)', fr: 'Dossier de documents (copies d’identité, d’assurance)', es: 'Carpeta de documentos (copias de DNI, seguro)', it: 'Cartella documenti (copie di documento, assicurazione)', pl: 'Teczka z dokumentami (kopie dowodu, ubezpieczenia)', tr: 'Belge dosyası (kimlik, sigorta kopyaları)', uk: 'Папка з документами (копії посвідчення, страховки)' } },
+  { id: 'gepaeck', ic: '🎒', exp: 0, n: { de: 'Notgepäck (Rucksack pro Person)', en: 'Emergency bag (one per person)', fr: 'Sac d’urgence (un par personne)', es: 'Mochila de emergencia (una por persona)', it: 'Zaino di emergenza (uno per persona)', pl: 'Plecak ewakuacyjny (jeden na osobę)', tr: 'Acil durum çantası (kişi başı bir)', uk: 'Тривожний рюкзак (один на людину)' } }
+];
 function ensureEmergency() {
   const e = store.emergency = store.emergency || {};
   e.contacts = e.contacts || []; e.phones = e.phones || []; e.medical = e.medical || {}; e.insurances = e.insurances || []; e.checkDone = e.checkDone || {};
+  e.supplies = e.supplies || { persons: 1, items: {} };
+  e.supplies.items = e.supplies.items || {};
+}
+/* Haltbarkeit: abgelaufen (<0 Tage), bald (≤30 Tage) oder ok. */
+const supExpState = (iso) => { if (!iso) return ''; const d = dayDiff(iso); return d < 0 ? 'abgelaufen' : d <= 30 ? 'bald' : ''; };
+function emVorrat() {
+  const L = pickLang, sp = store.emergency.supplies, p = Math.max(1, sp.persons || 1);
+  const fmtAmt = (s) => { if (!s.per) return ''; const v = Math.round(s.per * p * 10) / 10; return (v + '').replace('.', ',') + ' ' + (s.unit === 'l' ? L({ de: 'Liter', en: 'litres', fr: 'litres', es: 'litros', it: 'litri', pl: 'litrów', tr: 'litre', uk: 'л' }) : 'kg'); };
+  const done = EM_SUPPLIES.filter(s => sp.items[s.id] && sp.items[s.id].done).length;
+  const soon = EM_SUPPLIES.filter(s => sp.items[s.id] && supExpState(sp.items[s.id].exp)).length;
+  let h = '<div class="card" data-noi18n><div class="set-row" style="justify-content:space-between;align-items:center;gap:10px">' +
+    '<b>' + esc(L({ de: 'Personen im Haushalt', en: 'People in the household', fr: 'Personnes dans le foyer', es: 'Personas en el hogar', it: 'Persone in casa', pl: 'Osoby w gospodarstwie', tr: 'Hanedeki kişi sayısı', uk: 'Осіб у домогосподарстві' })) + '</b>' +
+    '<div class="set-row" style="gap:8px;align-items:center"><button class="btn btn-sm" data-em="supP" data-d="-1" aria-label="−">−</button><b style="min-width:24px;text-align:center;font-size:18px" aria-live="polite">' + p + '</b><button class="btn btn-sm" data-em="supP" data-d="1" aria-label="+">+</button></div></div>' +
+    '<div class="sub" style="margin-top:8px">' + esc(L({ de: '{a} von {b} erledigt', en: '{a} of {b} done', fr: '{a} sur {b} faits', es: '{a} de {b} listos', it: '{a} di {b} fatti', pl: '{a} z {b} gotowe', tr: '{b} öğeden {a} tamam', uk: 'Готово {a} з {b}' }).replace('{a}', done).replace('{b}', EM_SUPPLIES.length)) +
+    (soon ? ' · <b style="color:#C2410C">' + esc(L({ de: '{n} läuft bald ab oder ist abgelaufen', en: '{n} expiring soon or expired', fr: '{n} bientôt périmé(s) ou périmé(s)', es: '{n} caduca pronto o ha caducado', it: '{n} in scadenza o scaduti', pl: '{n} wkrótce traci ważność lub przeterminowane', tr: '{n} yakında bitiyor veya bitti', uk: '{n} скоро або вже прострочено' }).replace('{n}', soon)) + '</b>' : '') + '</div>' +
+    '<div class="sub" style="margin-top:6px">' + esc(L({ de: 'Vorrat für 10 Tage nach den Empfehlungen des Bundesamts für Bevölkerungsschutz (BBK).', en: '10-day supply based on the recommendations of the German Federal Office of Civil Protection (BBK).', fr: 'Réserve pour 10 jours selon les recommandations de l’Office fédéral allemand de protection civile (BBK).', es: 'Reserva para 10 días según las recomendaciones de la Oficina Federal alemana de Protección Civil (BBK).', it: 'Scorta per 10 giorni secondo le raccomandazioni dell’Ufficio federale tedesco per la protezione civile (BBK).', pl: 'Zapas na 10 dni według zaleceń niemieckiego Federalnego Urzędu Ochrony Ludności (BBK).', tr: 'Alman Federal Sivil Savunma Dairesi (BBK) önerilerine göre 10 günlük stok.', uk: 'Запас на 10 днів за рекомендаціями Федерального відомства цивільного захисту Німеччини (BBK).' })) + '</div></div>';
+  h += '<div class="pack-list" data-noi18n>';
+  EM_SUPPLIES.forEach(s => {
+    const it = sp.items[s.id] || {}, st = supExpState(it.exp), amt = fmtAmt(s);
+    h += '<div class="pack-item' + (it.done ? ' done' : '') + '" data-sup="' + s.id + '" style="flex-wrap:wrap">' +
+      '<button class="ls-check" data-em="supChk" aria-pressed="' + (it.done ? 'true' : 'false') + '" aria-label="' + esc(L(s.n)) + '"><svg viewBox="0 0 24 24"><use href="#icCheck"/></svg></button>' +
+      '<span class="pi-t">' + s.ic + ' ' + esc(L(s.n)) + (amt ? ' <b>· ' + esc(amt) + '</b>' : '') + '</span>' +
+      (s.exp ? '<label style="display:flex;align-items:center;gap:6px;width:100%;padding-left:40px;font-size:13px;color:var(--muted)">' + esc(L({ de: 'Haltbar bis', en: 'Best before', fr: 'À consommer avant', es: 'Consumir antes de', it: 'Da consumarsi entro', pl: 'Termin ważności', tr: 'Son kullanma', uk: 'Придатно до' })) +
+        '<input type="date" data-supexp="' + s.id + '" value="' + esc(it.exp || '') + '" style="max-width:170px;padding:4px 8px">' +
+        (st ? '<b style="color:' + (st === 'abgelaufen' ? '#B91C1C' : '#C2410C') + '">' + esc(st === 'abgelaufen' ? L({ de: 'abgelaufen', en: 'expired', fr: 'périmé', es: 'caducado', it: 'scaduto', pl: 'przeterminowane', tr: 'süresi geçti', uk: 'прострочено' }) : L({ de: 'bald', en: 'soon', fr: 'bientôt', es: 'pronto', it: 'presto', pl: 'wkrótce', tr: 'yakında', uk: 'скоро' })) + '</b>' : '') + '</label>' : '') +
+      '</div>';
+  });
+  return h + '</div>';
+}
+/* Notfallmappe: alle Notfalldaten als eigenständige HTML-Datei – offline lesbar,
+   druckbar und auf ein zweites Gerät oder einen USB-Stick kopierbar. */
+function saveEmergencyFolder() {
+  ensureEmergency();
+  const L = pickLang, em = store.emergency, m = em.medical || {}, x = (s) => esc(s || '—');
+  const row = (k, v) => '<tr><th>' + esc(k) + '</th><td>' + x(v).replace(/\n/g, '<br>') + '</td></tr>';
+  const T = (o) => esc(L(o));
+  let b = '<h1>' + T({ de: 'Notfallmappe', en: 'Emergency folder', fr: 'Dossier d’urgence', es: 'Carpeta de emergencia', it: 'Cartella di emergenza', pl: 'Teczka awaryjna', tr: 'Acil durum dosyası', uk: 'Тривожна папка' }) + (store.name ? ' – ' + esc(store.name) : '') + '</h1>' +
+    '<p class="st">' + T({ de: 'Stand', en: 'As of', fr: 'Mis à jour le', es: 'Actualizado', it: 'Aggiornato al', pl: 'Stan na', tr: 'Tarih', uk: 'Станом на' }) + ': ' + esc(new Date().toLocaleDateString(curLocale)) + '</p>' +
+    '<p class="sos">112 · 110 · 116117</p>';
+  b += '<h2>' + T({ de: 'Medizinische Angaben', en: 'Medical information', fr: 'Informations médicales', es: 'Datos médicos', it: 'Dati medici', pl: 'Dane medyczne', tr: 'Tıbbi bilgiler', uk: 'Медична інформація' }) + '</h2><table>' +
+    row(L({ de: 'Blutgruppe', en: 'Blood type', fr: 'Groupe sanguin', es: 'Grupo sanguíneo', it: 'Gruppo sanguigno', pl: 'Grupa krwi', tr: 'Kan grubu', uk: 'Група крові' }), m.blood) +
+    row(L({ de: 'Allergien', en: 'Allergies', fr: 'Allergies', es: 'Alergias', it: 'Allergie', pl: 'Alergie', tr: 'Alerjiler', uk: 'Алергії' }), m.allergies) +
+    row(L({ de: 'Medikamente', en: 'Medication', fr: 'Médicaments', es: 'Medicamentos', it: 'Farmaci', pl: 'Leki', tr: 'İlaçlar', uk: 'Ліки' }), m.meds) +
+    row(L({ de: 'Vorerkrankungen', en: 'Conditions', fr: 'Antécédents', es: 'Enfermedades previas', it: 'Patologie', pl: 'Choroby', tr: 'Hastalıklar', uk: 'Хвороби' }), m.conditions) +
+    row(L({ de: 'Hinweise', en: 'Notes', fr: 'Remarques', es: 'Notas', it: 'Note', pl: 'Uwagi', tr: 'Notlar', uk: 'Примітки' }), m.notes) + '</table>';
+  b += '<h2>' + T({ de: 'Notfallkontakte', en: 'Emergency contacts', fr: 'Contacts d’urgence', es: 'Contactos de emergencia', it: 'Contatti di emergenza', pl: 'Kontakty alarmowe', tr: 'Acil durum kişileri', uk: 'Екстрені контакти' }) + '</h2><table>' +
+    (em.contacts.length ? em.contacts.map(c => row(c.name + (c.relation ? ' (' + c.relation + ')' : ''), c.phone)).join('') : row('—', '')) +
+    em.phones.map(p => row(p.label, p.number)).join('') + '</table>';
+  b += '<h2>' + T({ de: 'Versicherungen', en: 'Insurance', fr: 'Assurances', es: 'Seguros', it: 'Assicurazioni', pl: 'Ubezpieczenia', tr: 'Sigortalar', uk: 'Страхування' }) + '</h2><table>' +
+    (em.insurances.length ? em.insurances.map(i => row(i.type + (i.company ? ' · ' + i.company : ''), i.number)).join('') : row('—', '')) + '</table>';
+  const sp = em.supplies || { items: {} };
+  b += '<h2>' + T({ de: 'Notvorrat', en: 'Emergency supplies', fr: 'Réserves d’urgence', es: 'Reservas de emergencia', it: 'Scorte di emergenza', pl: 'Zapasy awaryjne', tr: 'Acil durum stoku', uk: 'Запаси на випадок НС' }) + '</h2><ul>' +
+    EM_SUPPLIES.map(s => { const it = sp.items[s.id] || {}; return '<li>' + (it.done ? '☑' : '☐') + ' ' + esc(L(s.n)) + (it.exp ? ' – ' + esc(fmtDateShort(it.exp)) : '') + '</li>'; }).join('') + '</ul>';
+  /* '<sty' + 'le>' getrennt: build.mjs minifiziert jeden <style>-Block per Suchmuster und würde sonst diesen String zerlegen. */
+  const html = '<!doctype html><html lang="' + esc(curLang || 'de') + '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ordela – Notfallmappe</title>' +
+    '<sty' + 'le>body{font:17px/1.5 system-ui,sans-serif;max-width:760px;margin:0 auto;padding:20px;color:#111;background:#fff}h1{font-size:26px;margin:0 0 4px}h2{font-size:20px;margin:24px 0 8px;border-bottom:2px solid #3E7A5A;padding-bottom:4px}' +
+    'table{width:100%;border-collapse:collapse}th,td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid #ddd}th{width:38%}.st{color:#555;margin:0}.sos{font-size:22px;font-weight:700;color:#B91C1C}li{list-style:none;margin:4px 0}@media print{body{padding:0}}</sty' + 'le></head><body>' + b +
+    '<p class="st" style="margin-top:28px">Ordela · ' + T({ de: 'Diese Datei enthält sensible Gesundheitsdaten – sicher aufbewahren.', en: 'This file contains sensitive health data – keep it safe.', fr: 'Ce fichier contient des données de santé sensibles – conserve-le en lieu sûr.', es: 'Este archivo contiene datos de salud sensibles: guárdalo en un lugar seguro.', it: 'Questo file contiene dati sanitari sensibili: conservalo in modo sicuro.', pl: 'Ten plik zawiera wrażliwe dane o zdrowiu – przechowuj go bezpiecznie.', tr: 'Bu dosya hassas sağlık verileri içerir – güvenle sakla.', uk: 'Цей файл містить чутливі дані про здоровʼя – зберігайте його надійно.' }) + '</p></body></html>';
+  const u = URL.createObjectURL(new Blob([html], { type: 'text/html' })), a = document.createElement('a');
+  a.href = u; a.download = 'ordela-notfallmappe-' + todayISO() + '.html';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 3000);
+  toast(L({ de: 'Notfallmappe gespeichert ✓', en: 'Emergency folder saved ✓', fr: 'Dossier d’urgence enregistré ✓', es: 'Carpeta de emergencia guardada ✓', it: 'Cartella di emergenza salvata ✓', pl: 'Teczka awaryjna zapisana ✓', tr: 'Acil durum dosyası kaydedildi ✓', uk: 'Тривожну папку збережено ✓' }));
 }
 const telHref = (n) => 'tel:' + String(n || '').replace(/[^\d+]/g, '');
 function emCall(num, lbl, cls) { return '<a href="' + telHref(num) + '" class="' + cls + '"><div><div class="nr-num">' + num + '</div><div class="nr-lbl">' + lbl + '</div></div></a>'; }
@@ -13879,9 +13966,10 @@ RENDERERS.emergency = function () {
     it: 'In una vera emergenza chiama sempre il <b>112</b> (in tutta Europa). Ordela non sostituisce i servizi di emergenza e non garantisce la reperibilità – quest’area è solo di prevenzione.',
     pl: 'W prawdziwej sytuacji nagłej zawsze dzwoń pod <b>112</b> (w całej Europie). Ordela nie zastępuje służb ratunkowych i nie gwarantuje dostępności – ta sekcja służy wyłącznie do przygotowania.', tr: "Gerçek acil durumda her zaman <b>112</b> ara (Avrupa genelinde). Ordela acil çağrı hizmetinin yerini tutmaz ve erişilebilirliği garanti etmez – bu bölüm yalnızca hazırlık amaçlıdır.", uk: "У справжній надзвичайній ситуації завжди телефонуй <b>112</b> (по всій Європі). Ordela не замінює екстрені служби й не гарантує доступності – цей розділ призначений лише для підготовки."
   }) + '</div>';
-  h += '<div class="seg em-tabs">' + [['kontakte', 'Kontakte'], ['medizin', 'Medizin'], ['versich', 'Versich.'], ['check', 'Checkliste']].map(x =>
+  h += '<button class="btn btn-sm btn-primary" data-em="mappe" style="width:100%;margin:0 0 12px" data-noi18n>📁 ' + esc(pickLang({ de: 'Notfallmappe speichern (offline lesbar, druckbar)', en: 'Save emergency folder (readable offline, printable)', fr: 'Enregistrer le dossier d’urgence (lisible hors ligne, imprimable)', es: 'Guardar carpeta de emergencia (sin conexión, imprimible)', it: 'Salva cartella di emergenza (leggibile offline, stampabile)', pl: 'Zapisz teczkę awaryjną (offline, do druku)', tr: 'Acil durum dosyasını kaydet (çevrimdışı okunur, yazdırılabilir)', uk: 'Зберегти тривожну папку (офлайн, для друку)' })) + '</button>';
+  h += '<div class="seg em-tabs">' + [['kontakte', 'Kontakte'], ['medizin', 'Medizin'], ['versich', 'Versich.'], ['vorrat', 'Vorrat'], ['check', 'Checkliste']].map(x =>
     '<button data-etab="' + x[0] + '" class="' + (emTab === x[0] ? 'active' : '') + '">' + x[1] + '</button>').join('') + '</div>';
-  h += emTab === 'medizin' ? emMedizin() : emTab === 'versich' ? emVersich() : emTab === 'check' ? emCheck() : emKontakte();
+  h += emTab === 'medizin' ? emMedizin() : emTab === 'versich' ? emVersich() : emTab === 'vorrat' ? emVorrat() : emTab === 'check' ? emCheck() : emKontakte();
   h += '<div class="em-priv">Diese Daten bleiben ausschließlich lokal auf deinem Gerät – nichts wird in die Cloud übertragen.</div>';
   $('#emRoot').innerHTML = h;
 };
@@ -13964,9 +14052,13 @@ $('#emRoot').addEventListener('click', e => {
   }
   if (a === 'delIns') { em.insurances = em.insurances.filter(i => i.id !== b.dataset.id); save(); RENDERERS.emergency(); return; }
   if (a === 'chk') { const row = e.target.closest('.pack-item'); const k = row.dataset.key; em.checkDone[k] = !em.checkDone[k]; save(); RENDERERS.emergency(); return; }
+  if (a === 'mappe') { saveEmergencyFolder(); return; }
+  if (a === 'supP') { em.supplies.persons = Math.min(20, Math.max(1, (em.supplies.persons || 1) + (+b.dataset.d || 0))); save(); RENDERERS.emergency(); return; }
+  if (a === 'supChk') { const id = e.target.closest('[data-sup]').dataset.sup, it = em.supplies.items[id] = em.supplies.items[id] || {}; it.done = !it.done; save(); RENDERERS.emergency(); return; }
 });
 $('#emRoot').addEventListener('change', e => {
   if (e.target.dataset.med) { store.emergency.medical[e.target.dataset.med] = e.target.value; save(); }
+  if (e.target.dataset.supexp) { const sp = store.emergency.supplies, id = e.target.dataset.supexp; (sp.items[id] = sp.items[id] || {}).exp = e.target.value || ''; save(); RENDERERS.emergency(); }
 });
 $('#emRoot').addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
@@ -14830,6 +14922,7 @@ function fuelRow(label, st) {
 }
 async function renderFuel() {
   const box = $('#fuelWidget'); if (!box) return;
+  if (OFFLINE_ONLY) { box.innerHTML = ''; return; }   // Spritpreise laufen nur über den (offline abgeschalteten) Server-Proxy
   if (holidayCountry() !== 'DE') { box.innerHTML = ''; return; }   // Tankerkönig deckt nur Deutschland ab
   const loc = store.weatherLoc;
   if (!loc || loc.lat == null) { box.innerHTML = fuelCard('<div class="di-note">Lege oben im Wetter-Widget einen Ort fest – dann zeige ich die günstigsten Tankstellen in der Nähe.</div>'); return; }
@@ -15039,6 +15132,17 @@ function vaultDB() {
 async function vaultPutImage(key, blob) { const db = await vaultDB(); return new Promise((res, rej) => { const tx = db.transaction('images', 'readwrite'); tx.objectStore('images').put(blob, key); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); }
 async function vaultGetImage(key) { try { const db = await vaultDB(); return await new Promise((res) => { const rq = db.transaction('images', 'readonly').objectStore('images').get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); }); } catch (e) { return null; } }
 async function vaultDelImage(key) { try { const db = await vaultDB(); db.transaction('images', 'readwrite').objectStore('images').delete(key); } catch (e) {} }
+/* Alle Tresor-Bilder als [{key, blob}] – für die Datensicherung (Ausweis-Kopien usw. sollen mit). */
+async function vaultAllImages() {
+  try {
+    const db = await vaultDB();
+    return await new Promise((res) => {
+      const out = [], rq = db.transaction('images', 'readonly').objectStore('images').openCursor();
+      rq.onsuccess = () => { const c = rq.result; if (c) { out.push({ key: c.key, blob: c.value }); c.continue(); } else res(out); };
+      rq.onerror = () => res(out);
+    });
+  } catch (e) { return []; }
+}
 /* Foto → volles JPEG (max 1400px) für IndexedDB + Mini-Thumbnail (180px, dataURL) für die Liste. */
 function vaultProcessImage(file) {
   return new Promise((res) => {
@@ -18908,16 +19012,22 @@ function backupCardHTML() {
   return '<div class="note-box" style="margin-bottom:12px" data-noi18n><b>' + esc(L({ de: 'Datensicherung', en: 'Backup', fr: 'Sauvegarde', es: 'Copia de seguridad', it: 'Backup', pl: 'Kopia zapasowa', tr: 'Yedekleme', uk: 'Резервна копія' })) + '</b>' +
     '<div class="sub" style="margin-top:4px">' + esc(L({ de: 'Deine Daten liegen nur auf diesem Gerät. Speichere regelmäßig eine Sicherung (z. B. auf einen USB-Stick oder in deinen eigenen Cloud-Speicher) – sonst sind sie bei Handywechsel oder gelöschten Browserdaten verloren.', en: 'Your data lives only on this device. Save a backup regularly (e.g. to a USB stick or your own cloud storage) – otherwise it is lost when you change phones or clear browser data.', fr: 'Tes données ne sont que sur cet appareil. Enregistre régulièrement une sauvegarde (clé USB ou ton propre stockage en ligne) – sinon elles sont perdues en cas de changement de téléphone ou d’effacement des données du navigateur.', es: 'Tus datos solo están en este dispositivo. Guarda una copia con regularidad (p. ej. en un USB o en tu propia nube); si no, se pierden al cambiar de móvil o borrar los datos del navegador.', it: 'I tuoi dati sono solo su questo dispositivo. Salva regolarmente un backup (ad es. su una chiavetta USB o nel tuo cloud): altrimenti vanno persi cambiando telefono o cancellando i dati del browser.', pl: 'Dane są tylko na tym urządzeniu. Regularnie zapisuj kopię (np. na pendrive lub we własnej chmurze) – inaczej przepadną przy zmianie telefonu lub wyczyszczeniu danych przeglądarki.', tr: 'Verilerin yalnızca bu cihazda. Düzenli olarak yedek kaydet (ör. USB belleğe veya kendi bulut depolamana) – yoksa telefon değiştirdiğinde veya tarayıcı verilerini sildiğinde kaybolur.', uk: 'Ваші дані є лише на цьому пристрої. Регулярно зберігайте копію (напр. на флешку чи у власну хмару) – інакше вони зникнуть при зміні телефона чи очищенні даних браузера.' })) + '</div>' +
     '<div class="sub" style="margin-top:6px">' + esc(lastTxt) + '</div>' +
+    '<div class="sub" style="margin-top:4px" id="persistState"></div>' +
     '<div class="set-row" style="margin-top:10px;gap:8px;flex-wrap:wrap">' +
     '<button class="btn btn-sm btn-primary" id="btnBackupSave">' + esc(L({ de: 'Sicherung speichern', en: 'Save backup', fr: 'Enregistrer une sauvegarde', es: 'Guardar copia', it: 'Salva backup', pl: 'Zapisz kopię', tr: 'Yedeği kaydet', uk: 'Зберегти копію' })) + '</button>' +
     '<button class="btn btn-sm" id="btnBackupLoad">' + esc(L({ de: 'Sicherung laden', en: 'Restore backup', fr: 'Restaurer une sauvegarde', es: 'Restaurar copia', it: 'Ripristina backup', pl: 'Przywróć kopię', tr: 'Yedeği geri yükle', uk: 'Відновити копію' })) + '</button>' +
     '<input type="file" id="backupFile" accept=".json,application/json" style="display:none"></div></div>';
 }
-function saveBackup() {
+const blobToDataURL = (b) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => res(null); r.readAsDataURL(b); });
+/* Ab Version 2 enthält die Sicherung auch die Tresor-Bilder (IndexedDB) – sonst fehlten
+   genau die Dokument-Fotos, die man im Ernstfall auf einem neuen Gerät braucht. */
+async function saveBackup() {
   const L = pickLang;
   try {
     let data; try { data = JSON.parse(localStorage.getItem(DATA_KEY)); } catch (e) {}
-    const datei = { format: 'ordela-sicherung', version: 1, erstelltAm: new Date().toISOString(), store: data || store };
+    const vaultImages = {};
+    for (const it of await vaultAllImages()) { const u = it.blob instanceof Blob ? await blobToDataURL(it.blob) : null; if (u) vaultImages[it.key] = u; }
+    const datei = { format: 'ordela-sicherung', version: 2, erstelltAm: new Date().toISOString(), store: data || store, vaultImages };
     const blob = new Blob([JSON.stringify(datei)], { type: 'application/json' });
     const u = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = u; a.download = 'ordela-sicherung-' + todayISO() + '.json';
@@ -18947,9 +19057,32 @@ async function loadBackup(file) {
     toast(L({ de: 'Nicht genug Speicherplatz für diese Sicherung.', en: 'Not enough storage for this backup.', fr: 'Pas assez d’espace pour cette sauvegarde.', es: 'No hay espacio suficiente para esta copia.', it: 'Spazio insufficiente per questo backup.', pl: 'Za mało miejsca na tę kopię.', tr: 'Bu yedek için yeterli alan yok.', uk: 'Недостатньо місця для цієї копії.' }));
     return;
   }
+  if (d.vaultImages && typeof d.vaultImages === 'object') {
+    for (const [k, u] of Object.entries(d.vaultImages)) {
+      try { if (typeof u === 'string' && u.startsWith('data:image/')) await vaultPutImage(k, await (await fetch(u)).blob()); } catch (e) {}
+    }
+  }
   location.reload();
 }
+/* Dauerhafter Speicher: bittet den Browser, die App-Daten bei Platzmangel NICHT
+   automatisch zu löschen. Installierte Apps (TWA/PWA) bekommen das meist ohne Rückfrage. */
+async function ensurePersistentStorage() {
+  try {
+    if (!(navigator.storage && navigator.storage.persist)) return null;
+    return (await navigator.storage.persisted()) || (await navigator.storage.persist());
+  } catch (e) { return null; }
+}
+if (OFFLINE_ONLY) setTimeout(ensurePersistentStorage, 3000);   // offline liegen ALLE Daten nur hier → gleich beim Start schützen
+async function showPersistState() {
+  const el = $('#persistState'); if (!el) return;
+  const ok = await ensurePersistentStorage();
+  if (ok === null) return;
+  el.textContent = ok
+    ? pickLang({ de: '🔒 Dauerhafter Speicher aktiv – das Gerät löscht deine Daten nicht von selbst.', en: '🔒 Persistent storage on – the device will not clear your data on its own.', fr: '🔒 Stockage persistant actif – l’appareil n’effacera pas tes données de lui-même.', es: '🔒 Almacenamiento persistente activo: el dispositivo no borrará tus datos por sí solo.', it: '🔒 Archiviazione persistente attiva: il dispositivo non cancellerà i tuoi dati da solo.', pl: '🔒 Trwała pamięć włączona – urządzenie samo nie usunie Twoich danych.', tr: '🔒 Kalıcı depolama etkin – cihaz verilerini kendiliğinden silmez.', uk: '🔒 Постійне сховище увімкнено – пристрій сам не видалить ваші дані.' })
+    : pickLang({ de: 'Hinweis: Der Browser kann die Daten bei Platzmangel löschen. Installiere Ordela als App und sichere regelmäßig.', en: 'Note: the browser may clear the data when space runs low. Install Ordela as an app and back up regularly.', fr: 'Remarque : le navigateur peut effacer les données en cas de manque d’espace. Installe Ordela comme app et sauvegarde régulièrement.', es: 'Nota: el navegador puede borrar los datos si falta espacio. Instala Ordela como app y haz copias con regularidad.', it: 'Nota: il browser può cancellare i dati se manca spazio. Installa Ordela come app e fai backup regolarmente.', pl: 'Uwaga: przeglądarka może usunąć dane przy braku miejsca. Zainstaluj Ordela jako aplikację i rób kopie regularnie.', tr: 'Not: Tarayıcı yer azaldığında verileri silebilir. Ordela’yı uygulama olarak yükle ve düzenli yedekle.', uk: 'Увага: браузер може видалити дані, якщо бракує місця. Встановіть Ordela як застосунок і регулярно робіть копії.' });
+}
 function wireBackupCard() {
+  showPersistState();
   const sv = $('#btnBackupSave'); if (sv) sv.addEventListener('click', saveBackup);
   const ld = $('#btnBackupLoad'), fi = $('#backupFile');
   if (ld && fi) {
