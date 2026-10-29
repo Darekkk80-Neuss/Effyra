@@ -12188,15 +12188,16 @@ const PLAY_PRODUCTS = {
    Alles Wichtige bleibt kostenlos (Fristen, Erinnerungen, Notfall, Vorrat, Backup,
    KI mit eigenem Schlüssel). Plus schaltet Komfort frei: alle Musterbriefe,
    unbegrenztes Dokumentenarchiv, weitere Familienprofile, Arbeitszeit, Fahrzeuge.
-   - Testphase: 14 Tage ab dem ersten Start mit Plus-Code (nichts wird abgebucht).
-   - Bestandsnutzer (Profil oder Daten schon vor dem Plus-Start): Plus geschenkt.
+   - Keine Testphase (29.10.2026 entschieden): neue Konten starten in der
+     kostenlosen Version. PLUS_TRIAL_DAYS > 0 schaltet sie wieder ein.
+   - Bestandsnutzer (Konto vor PLUS_LEGACY_BEFORE): Plus geschenkt.
    - Kauf wird lokal gemerkt und beim Start über listPurchases() wiederhergestellt.
    PLUS_ENABLED erst einschalten, wenn das App-Update mit Billing 8 und das
    Produkt „ordela_plus" (Einmalkauf) in der Play Console live sind. */
 const PLUS_ENABLED = false;
 const PLUS_SKU = 'ordela_plus';
 const PLUS_KEY = 'ordela_plus';
-const PLUS_TRIAL_DAYS = 14;
+const PLUS_TRIAL_DAYS = 0;
 const PLUS_LEGACY_BEFORE = new Date(2026, 9, 29).getTime();   // Konten vor dem 29.10.2026 (Ortszeit) behalten Plus kostenlos
 const PLUS_FREE_TPL = ['miet-kuend', 'handy-kuend', 'umzug', 'adress-behoerde', 'aenderungsmitteilung', 'frei'];
 const PLUS_FREE_DOCS = 20;
@@ -12215,8 +12216,8 @@ const plusActive = () => plusState().active;
 function plusInit() {
   if (!PLUS_ENABLED || !OFFLINE_ONLY || (store.plus && store.plus.trialStart)) return;
   /* Bestandsnutzer = Konto vor dem Stichtag angelegt (Wiederveroeffentlichung
-     29.10.2026). Wer ab dann einsteigt, bekommt die Testphase und danach die
-     kostenlose Version – auch wenn er vor dem Plus-Start schon installiert hat.
+     29.10.2026). Wer ab dann einsteigt, bekommt die kostenlose Version – auch
+     wenn er vor dem Plus-Start schon installiert hat.
      Sehr alte Konten ohne createdAt: am aeltesten Eintrag erkennen. */
   const vorStichtag = (t) => !!t && t < PLUS_LEGACY_BEFORE;
   const aeltester = [].concat(store.tasks || [], store.docs || [], store.vault || [], store.contracts || [])
