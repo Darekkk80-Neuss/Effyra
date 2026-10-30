@@ -7354,7 +7354,7 @@ function setupLocalAuthForm(isReg) {
     ? L({ de: 'Profil anlegen', en: 'Create your profile', fr: 'Créer ton profil', es: 'Crea tu perfil', it: 'Crea il tuo profilo', pl: 'Utwórz profil', tr: 'Profilini oluştur', uk: 'Створіть профіль' })
     : L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' });
   $('#authSub').textContent = isReg
-    ? L({ de: 'Wähle einen Nickname und ein Passwort. Alles bleibt auf diesem Gerät – kein Konto bei uns, kein Server, funktioniert auch ohne Internet.', en: 'Choose a nickname and a password. Everything stays on this device – no account with us, no server, works without internet too.', fr: 'Choisis un pseudo et un mot de passe. Tout reste sur cet appareil – pas de compte chez nous, pas de serveur, fonctionne aussi sans internet.', es: 'Elige un apodo y una contraseña. Todo se queda en este dispositivo: sin cuenta con nosotros, sin servidor y también funciona sin internet.', it: 'Scegli un nickname e una password. Tutto resta su questo dispositivo: nessun account da noi, nessun server, funziona anche senza internet.', pl: 'Wybierz pseudonim i hasło. Wszystko zostaje na tym urządzeniu – bez konta u nas, bez serwera, działa też bez internetu.', tr: 'Bir takma ad ve şifre seç. Her şey bu cihazda kalır – bizde hesap yok, sunucu yok, internetsiz de çalışır.', uk: 'Оберіть нікнейм і пароль. Усе залишається на цьому пристрої – без облікового запису в нас, без сервера, працює й без інтернету.' })
+    ? L({ de: 'Wähle einen Nickname und ein Passwort. Deine Daten bleiben auf diesem Gerät – kein Konto bei uns. Termine, Aufgaben und Dokumente gehen auch offline; KI und Wetter brauchen Internet.', en: 'Choose a nickname and a password. Your data stays on this device – no account with us. Appointments, tasks and documents also work offline; AI and weather need internet.', fr: 'Choisis un pseudo et un mot de passe. Tes données restent sur cet appareil – pas de compte chez nous. Rendez-vous, tâches et documents fonctionnent aussi hors ligne ; l’IA et la météo ont besoin d’internet.', es: 'Elige un apodo y una contraseña. Tus datos se quedan en este dispositivo: sin cuenta con nosotros. Citas, tareas y documentos funcionan también sin conexión; la IA y el tiempo necesitan internet.', it: 'Scegli un nickname e una password. I tuoi dati restano su questo dispositivo: nessun account da noi. Appuntamenti, attività e documenti funzionano anche offline; IA e meteo richiedono internet.', pl: 'Wybierz pseudonim i hasło. Twoje dane zostają na tym urządzeniu – bez konta u nas. Terminy, zadania i dokumenty działają też offline; AI i pogoda potrzebują internetu.', tr: 'Bir takma ad ve şifre seç. Verilerin bu cihazda kalır – bizde hesap yok. Randevular, görevler ve belgeler çevrimdışı da çalışır; yapay zekâ ve hava durumu internet gerektirir.', uk: 'Оберіть нікнейм і пароль. Ваші дані залишаються на цьому пристрої – без облікового запису в нас. Зустрічі, завдання й документи працюють і офлайн; ШІ та погода потребують інтернету.' })
     : L({ de: 'Entsperren als {n}', en: 'Unlock as {n}', fr: 'Déverrouiller en tant que {n}', es: 'Desbloquear como {n}', it: 'Sblocca come {n}', pl: 'Odblokuj jako {n}', tr: '{n} olarak kilidi aç', uk: 'Розблокувати як {n}' }).replace('{n}', account.name || '');
   $('#authGo').textContent = isReg
     ? L({ de: 'Los geht’s', en: 'Get started', fr: 'C’est parti', es: 'Empezar', it: 'Iniziamo', pl: 'Zaczynamy', tr: 'Başlayalım', uk: 'Почати' })
@@ -12858,6 +12858,9 @@ const KI_PACKS = [
   { sku: 'ordela_ki_50', n: 50, fallback: '6,99 €' }
 ];
 const kiPackBySku = (sku) => KI_PACKS.find(p => p.sku === sku) || KI_PACKS[0];
+const KI_PACK_MIN = Math.min.apply(null, KI_PACKS.map(p => p.n));
+/* Kleinste Paketsumme >= c (25er/50er → naechstes Vielfaches von 25): 24 → 25, 40 → 50, 60 → 75. */
+const kiPackRound = (c) => c > 0 ? Math.ceil(c / KI_PACK_MIN) * KI_PACK_MIN : 0;
 const kiPackOn = () => !!(KI_PACK_URL && OFFLINE_ONLY);
 const kiCredits = () => kiPackOn() ? (store.kiCredits || 0) : 0;
 const canPackAI = () => kiPackOn() && !isChildUser() && consentValid('ai') && kiCredits() > 0;
@@ -12878,8 +12881,14 @@ async function kiApi(path, body) {
   const j = await r.json().catch(() => ({}));
   if (typeof j.credits === 'number') {
     /* kiTotal = Groesse des laufenden Kontingents fuer den Ring auf der Startseite:
-       steigt das Guthaben (Kauf), beginnt ein neues Kontingent; beim Verbrauch bleibt es. */
-    if (j.credits > (store.kiCredits || 0) || !(store.kiTotal >= j.credits)) store.kiTotal = j.credits;
+       Kauf (Guthaben steigt um mind. ein Paket) → neues Kontingent = neues Guthaben;
+       Verbrauch oder Rueckbuchung einzelner Briefe → Kontingent bleibt.
+       Ohne bekannte Vorgeschichte (Kauf vor dieser Version, kiTotalV2 fehlt) auf volle
+       Pakete aufrunden – sonst stuende nach einem verbrauchten Brief „24 von 24". */
+    const vorher = store.kiCredits || 0;
+    if (j.credits - vorher >= KI_PACK_MIN) store.kiTotal = j.credits;
+    else if (!store.kiTotalV2 || !(store.kiTotal >= j.credits)) store.kiTotal = kiPackRound(j.credits);
+    store.kiTotalV2 = true;
     store.kiCredits = j.credits; save();
     if (currentView === 'dashboard') renderKiQuota();
   }
@@ -12971,7 +12980,8 @@ async function kiPackSheet() {
    gekauft wurde; ist es aufgebraucht, bleibt die Karte als Nachkauf-Hinweis stehen. */
 function renderKiQuota() {
   const box = document.getElementById('kiWidget'); if (!box) return;
-  const total = Math.max(store.kiTotal || 0, kiCredits());
+  /* Vor dem ersten Abgleich mit dem Server (alte Daten ohne kiTotalV2) schon richtig aufrunden. */
+  const total = store.kiTotalV2 ? Math.max(store.kiTotal || 0, kiCredits()) : kiPackRound(kiCredits());
   if (!kiPackOn() || isChildUser() || !total || !dashOn('kipack')) { box.innerHTML = ''; return; }
   const L = pickLang, c = kiCredits(), low = c <= Math.max(3, Math.round(total * 0.15));
   const R = 32, U = 2 * Math.PI * R, off = U * (1 - c / total);
