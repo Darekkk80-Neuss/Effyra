@@ -10,7 +10,7 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 600,
-      "backgroundColor": "#E5F1E8",
+      "backgroundColor": "#121F4A",
       "showSpinner": false
     },
     "LocalNotifications": {

@@ -26,11 +26,11 @@
      Bewusst ein Meta-Tag und keine JS-Konstante: build.mjs minifiziert die Skriptblöcke
      mit minifyIdentifiers:true, und laut BUILD.md trägt das nur, solange alles in IIFEs
      gekapselt bleibt. Ein Meta-Tag entzieht sich der Frage. -->
-<meta name="effyra-build" content="20261030-0843">
+<meta name="effyra-build" content="20261101-0907">
   <!-- Fingerabdruck von index.dev.html. build.mjs traegt ihn ein; check-build.mjs
        stellt damit ohne Neubau fest, ob index.html zur aktuellen Quelle gehoert.
        Deterministisch, im Gegensatz zur zeitbasierten Bau-Kennung darueber. -->
-  <meta name="effyra-src" content="75b9bf731689356e">
+  <meta name="effyra-src" content="51b9711bb7e28409">
 <title>Ordela – gewinnt dir Zeit zurück</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -811,10 +811,11 @@
     </radialGradient>
     <!-- Logo: Brief mit Herz-Siegel (ab Okt. 2026, ersetzt die Uhr) – gleiche Zeichnung wie icon.svg -->
     <symbol id="logoSym" viewBox="0 0 180 180">
-      <rect width="180" height="180" rx="40" fill="#E5F1E8"/>
-      <rect x="30" y="48" width="120" height="84" rx="8" fill="#FFFFFF" stroke="#3E7A5A" stroke-width="6"/>
-      <path d="M30 56 L90 100 L150 56" fill="none" stroke="#3E7A5A" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="90" cy="102" r="23" fill="#E07A5F"/>
+      <defs><linearGradient id="ordNavy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E3270"/><stop offset="1" stop-color="#0B1430"/></linearGradient><linearGradient id="ordGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7D774"/><stop offset="1" stop-color="#D49A2A"/></linearGradient></defs>
+      <rect width="180" height="180" rx="40" fill="url(#ordNavy)"/>
+      <rect x="30" y="48" width="120" height="84" rx="8" fill="#FFFFFF" stroke="#4D7CFF" stroke-width="6"/>
+      <path d="M30 56 L90 100 L150 56" fill="none" stroke="#4D7CFF" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="90" cy="102" r="23" fill="url(#ordGold)"/>
       <path d="M90 113 C77 104 79 91 87 93 C89 93.5 90 95 90 96 C90 95 91 93.5 93 93 C101 91 103 104 90 113 Z" fill="#FFFFFF"/>
     </symbol>
     <symbol id="icHome" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
