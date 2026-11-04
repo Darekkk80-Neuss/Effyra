@@ -98,3 +98,22 @@ and has given consent in the app. Nothing is used for tracking or advertising.
 | Copyright | 2026 Gonsoft Labs |
 | Exportkonformität | nur Standard-Verschlüsselung → in `Info.plist` als `ITSAppUsesNonExemptEncryption = NO` hinterlegt |
 | Konto löschen (Richtlinie 5.1.1(v)) | erfüllt: kein Server-Konto; Profil + Daten lassen sich in den Einstellungen löschen |
+
+## 5. Store-Texte ab Version 1.0.1 (wie Google Play seit 04.11.2026)
+
+Schwerpunkt: Alltag ordnen, weniger Stress, alles im Griff – für Menschen mit ADHS und Familien.
+Keine Heilversprechen (kein „hilft gegen ADHS“), Hinweis „kein Medizinprodukt“ bleibt.
+Name, Untertitel und Schlüsselwörter lassen sich nur mit einer neuen Version ändern.
+
+| Feld | Text |
+|---|---|
+| Name (max. 30) | Ordela: ADHS- & Familienplaner |
+| Untertitel (max. 30) | Weniger Stress, alles im Griff |
+| Werbetext (max. 170) | Ständig das Gefühl, etwas vergessen zu haben? Ordela sammelt Termine, Aufgaben und Erinnerungen an einem Ort – kostenlos, ohne Abo, ohne Konto. |
+| Schlüsselwörter (max. 100) | planer,familienkalender,erinnerung,aufgaben,alltag,struktur,todo,notfallmappe,einkaufsliste,termine |
+| Neuerungen 1.0.1 | Neues Logo. Kürzere, klarere Hinweise beim Start. Das KI-Guthaben wird jetzt immer richtig angezeigt. |
+
+Beschreibung: wie der Play-Store-Eintrag, aber „Screenreader (VoiceOver)“ statt TalkBack und ohne Hinweis auf Android/Google Play.
+
+Screenshots (Reihenfolge): Tagesübersicht „Dein Tag heute“ → Aufgaben/Erinnerungen → Familienkalender →
+Einkaufsliste/Budget → Notfallmappe/Vorrat → Ordela Plus. Briefe nicht mehr an erster Stelle.
