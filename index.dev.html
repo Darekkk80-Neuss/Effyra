@@ -2126,11 +2126,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
 /* ============================== TOAST ============================== */
 #toasts{position:fixed;bottom:calc(var(--tabbar-h) + 30px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
-  z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  z-index:100000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
 @media(min-width:900px){#toasts{bottom:28px}}
 .toast{padding:11px 20px;border-radius:12px;background:rgba(20,23,34,.96);border:1px solid rgba(255,255,255,.16);
   color:#F8FAFC;backdrop-filter:blur(12px);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);
-  animation:toastIn .3s ease both;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+  animation:toastIn .3s ease both;white-space:normal;text-align:center;max-width:min(90vw,440px);overflow-wrap:anywhere}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .toast.out{animation:toastOut .3s ease both}
 @keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
@@ -4126,7 +4126,7 @@ const TDICT_SRC = {
   'Speicher voll – ältestes Dokument entfernen': { en: 'Storage full – remove oldest document', fr: 'Mémoire pleine – supprime le document le plus ancien', es: 'Almacenamiento lleno – elimina el documento más antiguo', it: 'Memoria piena – rimuovi il documento più vecchio', pl: 'Brak miejsca – usuń najstarszy dokument', tr: "Depolama dolu – en eski belgeyi kaldır", uk: "Пам'ять заповнена – видалити найстаріший документ" },
   'Daten von deinem anderen Gerät geladen': { en: 'Data loaded from your other device', fr: 'Données chargées depuis ton autre appareil', es: 'Datos cargados desde tu otro dispositivo', it: 'Dati caricati dal tuo altro dispositivo', pl: 'Wczytano dane z Twojego drugiego urządzenia', tr: "Diğer cihazından veriler yüklendi", uk: "Дані завантажено з твого іншого пристрою" },
   'Fast geschafft! Bestätige deine E-Mail-Adresse und melde dich dann hier an.': { en: 'Almost done! Confirm your email address and then sign in here.', fr: 'Presque fini ! Confirme ton adresse e-mail, puis connecte-toi ici.', es: '¡Casi listo! Confirma tu correo electrónico y luego inicia sesión aquí.', it: 'Ci siamo quasi! Conferma il tuo indirizzo e-mail e poi accedi qui.', pl: 'Już prawie! Potwierdź swój adres e-mail, a potem zaloguj się tutaj.', tr: "Neredeyse tamam! E-posta adresini onayla ve sonra buradan giriş yap.", uk: "Майже готово! Підтверди свою e-mail адресу, а потім увійди тут." },
-  'Konto erstellt – 7 Tage alles inklusive': { en: 'Account created – 7 days all included', fr: 'Compte créé – 7 jours tout inclus', es: 'Cuenta creada – 7 días todo incluido', it: 'Account creato – 7 giorni tutto incluso', pl: 'Konto utworzone – 7 dni wszystko w cenie', tr: "Hesap oluşturuldu – 7 gün her şey dâhil", uk: "Обліковий запис створено – 7 днів усе включено" },
+  'Konto erstellt ✓': { en: 'Account created ✓', fr: 'Compte créé ✓', es: 'Cuenta creada ✓', it: 'Account creato ✓', pl: 'Konto utworzone ✓', tr: "Hesap oluşturuldu ✓", uk: "Обліковий запис створено ✓" },
   'Konto erstellt – 3 Tage alles inklusive': { en: 'Account created – 3 days all included', fr: 'Compte créé – 3 jours tout inclus', es: 'Cuenta creada – 3 días todo incluido', it: 'Account creato – 3 giorni tutto incluso', pl: 'Konto utworzone – 3 dni wszystko w cenie', tr: "Hesap oluşturuldu – 3 gün her şey dâhil", uk: "Обліковий запис створено – 3 дні усе включено" },
   'Erst eine Familie erstellen/verbinden (Tab „Sync").': { en: 'First create/join a family (tab „Sync").', fr: 'Crée ou rejoins d\'abord une famille (onglet „Sync").', es: 'Primero crea o conecta una familia (pestaña „Sync").', it: 'Prima crea o collega una famiglia (scheda „Sync").', pl: 'Najpierw utwórz lub połącz rodzinę (zakładka „Sync").', tr: "Önce bir aile oluştur/bağlan („Sync\" sekmesi).", uk: "Спочатку створи/приєднайся до родини (вкладка „Sync\")." },
   '. Ordela auf dem Kinder-Handy öffnen → unten „Ich habe einen Einladungscode" → diesen Code eingeben:': { en: '. Open Ordela on the child\'s phone → at the bottom „Child? Join with family code" → enter this code:', fr: '. Ouvre Ordela sur le téléphone de l\'enfant → en bas „Enfant ? Rejoindre avec le code famille" → saisis ce code :', es: '. Abre Ordela en el móvil del niño → abajo „¿Niño? Unirse con código familiar" → introduce este código:', it: '. Apri Ordela sul telefono del bambino → in basso „Bambino? Entra con il codice famiglia" → inserisci questo codice:', pl: '. Otwórz Ordela na telefonie dziecka → na dole „Dziecko? Dołącz kodem rodziny" → wpisz ten kod:', tr: ". Çocuğun telefonunda Ordela'yı aç → altta „Davet kodum var\" → bu kodu gir:", uk: ". Відкрий Ordela на телефоні дитини → внизу „У мене є код запрошення\" → введи цей код:" },
@@ -7616,7 +7616,7 @@ async function cloudAuth(pass, err) {
         return;
       }
       await cloudSession(r.data.session, name);
-      toast('Konto erstellt – 7 Tage alles inklusive');
+      toast('Konto erstellt ✓');
     } else {
       const r = await sb.auth.signInWithPassword({ email, password: pass });
       if (r.error) { err.textContent = mapAuthError(r.error.message); return; }
@@ -7722,7 +7722,7 @@ async function submitAuth() {
       obShow(0);
       $('#obName').value = store.name;
     }
-    toast('Konto erstellt – 7 Tage alles inklusive');
+    toast('Konto erstellt ✓');
     refresh();
   } else {
     const hash = await sha256Hex(account.salt + ':' + pass);
