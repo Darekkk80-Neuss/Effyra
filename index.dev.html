@@ -355,7 +355,8 @@ html.native .gate-lang{top:calc(12px + env(safe-area-inset-top))}
   main{padding:36px 44px 70px;max-width:860px}
   .sidebar{display:flex;flex-direction:column;width:236px;flex:none;position:sticky;top:0;height:100dvh;
     padding:26px 16px 22px;border-right:1px solid var(--border);background:rgba(9,11,18,.55);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
   .sidebar .brand{padding:0 10px 24px}
   .sidebar .brand .logo-mark{width:38px;height:38px}
   .sidebar .brand b{font-size:22px}
@@ -2126,11 +2127,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
 /* ============================== TOAST ============================== */
 #toasts{position:fixed;bottom:calc(var(--tabbar-h) + 30px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
-  z-index:100000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  z-index:100000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,440px)}
 @media(min-width:900px){#toasts{bottom:28px}}
 .toast{padding:11px 20px;border-radius:12px;background:rgba(20,23,34,.96);border:1px solid rgba(255,255,255,.16);
   color:#F8FAFC;backdrop-filter:blur(12px);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);
-  animation:toastIn .3s ease both;white-space:normal;text-align:center;max-width:min(90vw,440px);overflow-wrap:anywhere}
+  animation:toastIn .3s ease both;white-space:normal;text-align:center;max-width:100%;overflow-wrap:break-word}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .toast.out{animation:toastOut .3s ease both}
 @keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
@@ -3022,6 +3023,23 @@ const relDay = (iso) => {
 const oclock = (tm) => tm ? t('fmt.oclock', { t: tm }) : '';                                   // „07:00 Uhr" / „07:00"
 const dueTxt = (iso) => dayDiff(iso) < 0 ? t('fmt.overdue') + ' · ' + relDay(iso) : t('fmt.due', { d: relDay(iso) });
 
+/* Käufe in der Android-App laufen über Google Play – das geht nur, wenn Chrome
+   installiert und aktiviert ist (TWA/Digital Goods API). Fehlt Chrome, startet die
+   App im Notfallmodus ohne Kauffunktion. Dann sagen wir klar, was zu tun ist. */
+function billingHintToast(msg) {
+  toast(msg, 6000);
+  if (!/Android/i.test(navigator.userAgent || '')) return;
+  toast(pickLang({
+    de: 'Für Käufe braucht Ordela auf Android Google Chrome. Bitte Chrome im Play Store installieren oder aktivieren und Ordela neu öffnen.',
+    en: 'On Android, Ordela needs Google Chrome for purchases. Please install or enable Chrome in the Play Store and reopen Ordela.',
+    fr: 'Sur Android, Ordela a besoin de Google Chrome pour les achats. Installe ou active Chrome dans le Play Store, puis rouvre Ordela.',
+    es: 'En Android, Ordela necesita Google Chrome para las compras. Instala o activa Chrome en Play Store y vuelve a abrir Ordela.',
+    it: 'Su Android, Ordela ha bisogno di Google Chrome per gli acquisti. Installa o attiva Chrome dal Play Store e riapri Ordela.',
+    pl: 'Na Androidzie Ordela potrzebuje Google Chrome do zakupów. Zainstaluj lub włącz Chrome w Sklepie Play i otwórz Ordela ponownie.',
+    tr: "Android'de Ordela satın alma için Google Chrome'a ihtiyaç duyar. Lütfen Play Store'dan Chrome'u yükle veya etkinleştir ve Ordela'yı yeniden aç.",
+    uk: 'На Android для покупок Ordela потрібен Google Chrome. Встанови або увімкни Chrome у Play Маркеті та знову відкрий Ordela.'
+  }), 10000);
+}
 function toast(msg, ms) {
   const t = document.createElement('div');
   t.className = 'toast';
@@ -12491,7 +12509,7 @@ const familyMaxChildren = () => FAMILY_MAX_CHILDREN + ((store.family && store.fa
 function grantAddon(kind) { ensureFamily(); if (kind === 'adult') store.family.addons.adult++; else store.family.addons.child++; famChanged(); }
 async function bookAddon(kind) {
   const p = ADDON_PRODUCTS[kind]; if (!p) return;
-  if (!hasPlayBilling()) { toast('ℹZusatzmitglieder buchst du in der Ordela-App über Google Play (im Browser nicht möglich).'); return; }
+  if (!hasPlayBilling()) { billingHintToast('ℹZusatzmitglieder buchst du in der Ordela-App über Google Play (im Browser nicht möglich).'); return; }
   try {
     let svc = null; try { svc = await window.getDigitalGoodsService('https://play.google.com/billing'); } catch (e) { console.warn('[Ordela addon DGS]', e && e.name, e && e.message); }
     // Vorabcheck 1: kennt Google dieses Add-on-Produkt als kaufbares Angebot? Sonst rejected show() nur mit Sammelfehler.
@@ -12757,7 +12775,7 @@ function plusAck(token) {
 }
 async function plusRestore(silent) {
   if (PLUS_ENABLED && appleIap()) return appleRestorePlus(silent);
-  if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) toast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
+  if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) billingHintToast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
@@ -12774,7 +12792,7 @@ async function plusRestore(silent) {
 }
 async function plusBuy() {
   if (appleIap()) return appleBuyPlus();
-  if (!hasPlayBilling()) { toast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
+  if (!hasPlayBilling()) { billingHintToast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: PLUS_SKU } }],
       { total: { label: 'Ordela Plus', amount: { currency: 'EUR', value: '0' } } });
@@ -12934,7 +12952,7 @@ async function kiBuy(sku) {
   sku = kiPackBySku(sku).sku;
   const L = pickLang;
   if (appleIap()) return appleBuyKi(sku);
-  if (!hasPlayBilling()) { toast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
+  if (!hasPlayBilling()) { billingHintToast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku } }],
       { total: { label: 'Ordela KI-Paket', amount: { currency: 'EUR', value: '0' } } });
