@@ -355,7 +355,8 @@ html.native .gate-lang{top:calc(12px + env(safe-area-inset-top))}
   main{padding:36px 44px 70px;max-width:860px}
   .sidebar{display:flex;flex-direction:column;width:236px;flex:none;position:sticky;top:0;height:100dvh;
     padding:26px 16px 22px;border-right:1px solid var(--border);background:rgba(9,11,18,.55);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
   .sidebar .brand{padding:0 10px 24px}
   .sidebar .brand .logo-mark{width:38px;height:38px}
   .sidebar .brand b{font-size:22px}
@@ -2126,11 +2127,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 
 /* ============================== TOAST ============================== */
 #toasts{position:fixed;bottom:calc(var(--tabbar-h) + 30px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
-  z-index:100000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  z-index:100000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:min(92vw,440px)}
 @media(min-width:900px){#toasts{bottom:28px}}
 .toast{padding:11px 20px;border-radius:12px;background:rgba(20,23,34,.96);border:1px solid rgba(255,255,255,.16);
   color:#F8FAFC;backdrop-filter:blur(12px);font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.5);
-  animation:toastIn .3s ease both;white-space:normal;text-align:center;max-width:min(90vw,440px);overflow-wrap:anywhere}
+  animation:toastIn .3s ease both;white-space:normal;text-align:center;max-width:100%;overflow-wrap:break-word}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .toast.out{animation:toastOut .3s ease both}
 @keyframes toastOut{to{opacity:0;transform:translateY(8px)}}
@@ -3022,6 +3023,23 @@ const relDay = (iso) => {
 const oclock = (tm) => tm ? t('fmt.oclock', { t: tm }) : '';                                   // „07:00 Uhr" / „07:00"
 const dueTxt = (iso) => dayDiff(iso) < 0 ? t('fmt.overdue') + ' · ' + relDay(iso) : t('fmt.due', { d: relDay(iso) });
 
+/* Käufe in der Android-App laufen über Google Play – das geht nur, wenn Chrome
+   installiert und aktiviert ist (TWA/Digital Goods API). Fehlt Chrome, startet die
+   App im Notfallmodus ohne Kauffunktion. Dann sagen wir klar, was zu tun ist. */
+function billingHintToast(msg) {
+  toast(msg, 6000);
+  if (!/Android/i.test(navigator.userAgent || '')) return;
+  toast(pickLang({
+    de: 'Für Käufe braucht Ordela auf Android Google Chrome. Bitte Chrome im Play Store installieren oder aktivieren und Ordela neu öffnen.',
+    en: 'On Android, Ordela needs Google Chrome for purchases. Please install or enable Chrome in the Play Store and reopen Ordela.',
+    fr: 'Sur Android, Ordela a besoin de Google Chrome pour les achats. Installe ou active Chrome dans le Play Store, puis rouvre Ordela.',
+    es: 'En Android, Ordela necesita Google Chrome para las compras. Instala o activa Chrome en Play Store y vuelve a abrir Ordela.',
+    it: 'Su Android, Ordela ha bisogno di Google Chrome per gli acquisti. Installa o attiva Chrome dal Play Store e riapri Ordela.',
+    pl: 'Na Androidzie Ordela potrzebuje Google Chrome do zakupów. Zainstaluj lub włącz Chrome w Sklepie Play i otwórz Ordela ponownie.',
+    tr: "Android'de Ordela satın alma için Google Chrome'a ihtiyaç duyar. Lütfen Play Store'dan Chrome'u yükle veya etkinleştir ve Ordela'yı yeniden aç.",
+    uk: 'На Android для покупок Ordela потрібен Google Chrome. Встанови або увімкни Chrome у Play Маркеті та знову відкрий Ordela.'
+  }), 10000);
+}
 function toast(msg, ms) {
   const t = document.createElement('div');
   t.className = 'toast';
@@ -10037,7 +10055,11 @@ const calSubAsEvents = (iso) => calSubOn(iso).map(x => ({ id: 'abo-' + x.s.id + 
 function calSubErrText(code) {
   const L = pickLang;
   if (code === 'offline') return L({ de: 'Keine Verbindung – es werden die zuletzt geladenen Termine gezeigt.', en: 'No connection – showing the last loaded events.', fr: 'Pas de connexion – affichage des derniers rendez-vous chargés.', es: 'Sin conexión: se muestran las últimas citas cargadas.', it: 'Nessuna connessione – vengono mostrati gli ultimi appuntamenti caricati.', pl: 'Brak połączenia – pokazane są ostatnio wczytane terminy.', tr: 'Bağlantı yok – en son yüklenen etkinlikler gösteriliyor.', uk: 'Немає з’єднання – показано останні завантажені події.' });
-  if (code === 'ics_not_found' || code === 'bad_url' || code === 'not_ics') return L({ de: 'Der Link funktioniert nicht (mehr). Bitte prüfe ihn – bei Google: „Privatadresse im iCal-Format“.', en: 'The link does not work (any more). Please check it – for Google: “Secret address in iCal format”.', fr: 'Le lien ne fonctionne pas (plus). Vérifie-le – pour Google : « Adresse secrète au format iCal ».', es: 'El enlace no funciona (ya). Revísalo; en Google: «Dirección secreta en formato iCal».', it: 'Il link non funziona (più). Controllalo – per Google: «Indirizzo segreto in formato iCal».', pl: 'Link nie działa (już). Sprawdź go – w Google: „Tajny adres w formacie iCal”.', tr: 'Bağlantı çalışmıyor (artık). Lütfen kontrol et – Google’da: „iCal biçiminde gizli adres”.', uk: 'Посилання не працює (більше). Перевір його – у Google: «Секретна адреса у форматі iCal».' });
+  if (code === 'share_link') return L({ de: 'Das ist der Teilen-Link, nicht die Kalender-Adresse. In Google Kalender: Einstellungen → links den Kalender wählen → „Kalender integrieren“ → „Privatadresse im iCal-Format“ kopieren.', en: 'That is the share link, not the calendar address. In Google Calendar: Settings → pick the calendar on the left → “Integrate calendar” → copy the “Secret address in iCal format”.', fr: 'C’est le lien de partage, pas l’adresse du calendrier. Dans Google Agenda : Paramètres → choisis l’agenda à gauche → « Intégrer l’agenda » → copie l’« Adresse secrète au format iCal ».', es: 'Ese es el enlace para compartir, no la dirección del calendario. En Google Calendar: Configuración → elige el calendario a la izquierda → «Integrar el calendario» → copia la «Dirección secreta en formato iCal».', it: 'Questo è il link di condivisione, non l’indirizzo del calendario. In Google Calendar: Impostazioni → scegli il calendario a sinistra → «Integra calendario» → copia l’«Indirizzo segreto in formato iCal».', pl: 'To link do udostępniania, a nie adres kalendarza. W Kalendarzu Google: Ustawienia → wybierz kalendarz po lewej → „Integracja kalendarza” → skopiuj „Adres prywatny w formacie iCal”.', tr: "Bu paylaşım bağlantısı, takvim adresi değil. Google Takvim'de: Ayarlar → soldan takvimi seç → „Takvimi entegre et” → „iCal biçiminde gizli adres”i kopyala.", uk: 'Це посилання для спільного доступу, а не адреса календаря. У Google Календарі: Налаштування → виберіть календар ліворуч → «Інтеграція календаря» → скопіюйте «Секретну адресу у форматі iCal».' });
+  if (code === 'ics_not_found') return L({ de: 'Unter diesem Link gibt es keinen Kalender (oder er ist nicht freigegeben). Bei Google bitte die „Privatadresse im iCal-Format“ nehmen, nicht die öffentliche Adresse.', en: 'There is no calendar at this link (or it is not shared). In Google, please use the “Secret address in iCal format”, not the public address.', fr: 'Aucun calendrier à ce lien (ou il n’est pas partagé). Chez Google, prends l’« Adresse secrète au format iCal », pas l’adresse publique.', es: 'No hay ningún calendario en este enlace (o no está compartido). En Google, usa la «Dirección secreta en formato iCal», no la dirección pública.', it: 'A questo link non c’è nessun calendario (o non è condiviso). In Google usa l’«Indirizzo segreto in formato iCal», non quello pubblico.', pl: 'Pod tym linkiem nie ma kalendarza (albo nie jest udostępniony). W Google użyj „Adresu prywatnego w formacie iCal”, a nie adresu publicznego.', tr: "Bu bağlantıda takvim yok (veya paylaşılmamış). Google'da lütfen herkese açık adresi değil, „iCal biçiminde gizli adres”i kullan.", uk: 'За цим посиланням немає календаря (або він не відкритий). У Google використовуйте «Секретну адресу у форматі iCal», а не загальнодоступну адресу.' });
+  if (code === 'not_ics') return L({ de: 'Dieser Link führt zu einer Webseite, nicht zu einem Kalender. Gesucht ist eine iCal-Adresse – sie endet meist auf „.ics“.', en: 'This link leads to a web page, not to a calendar. You need an iCal address – it usually ends in “.ics”.', fr: 'Ce lien mène à une page web, pas à un calendrier. Il faut une adresse iCal – elle se termine souvent par « .ics ».', es: 'Este enlace lleva a una página web, no a un calendario. Se necesita una dirección iCal; suele terminar en «.ics».', it: 'Questo link porta a una pagina web, non a un calendario. Serve un indirizzo iCal – di solito finisce con «.ics».', pl: 'Ten link prowadzi do strony internetowej, a nie do kalendarza. Potrzebny jest adres iCal – zwykle kończy się na „.ics”.', tr: "Bu bağlantı bir takvime değil, bir web sayfasına gidiyor. Bir iCal adresi gerekiyor – genellikle „.ics” ile biter.", uk: 'Це посилання веде на вебсторінку, а не на календар. Потрібна адреса iCal – зазвичай вона закінчується на «.ics».' });
+  if (code === 'ics_too_large') return L({ de: 'Dieser Kalender ist zu groß (über 4 MB). Bitte einen kleineren Kalender wählen.', en: 'This calendar is too large (over 4 MB). Please choose a smaller calendar.', fr: 'Ce calendrier est trop volumineux (plus de 4 Mo). Choisis un calendrier plus petit.', es: 'Este calendario es demasiado grande (más de 4 MB). Elige uno más pequeño.', it: 'Questo calendario è troppo grande (oltre 4 MB). Scegline uno più piccolo.', pl: 'Ten kalendarz jest za duży (ponad 4 MB). Wybierz mniejszy kalendarz.', tr: "Bu takvim çok büyük (4 MB'tan fazla). Lütfen daha küçük bir takvim seç.", uk: 'Цей календар завеликий (понад 4 МБ). Виберіть менший календар.' });
+  if (code === 'bad_url') return L({ de: 'Das ist kein gültiger Kalender-Link. Er muss mit „https://“ oder „webcal://“ beginnen.', en: 'This is not a valid calendar link. It must start with “https://” or “webcal://”.', fr: 'Ce n’est pas un lien de calendrier valide. Il doit commencer par « https:// » ou « webcal:// ».', es: 'No es un enlace de calendario válido. Debe empezar por «https://» o «webcal://».', it: 'Non è un link di calendario valido. Deve iniziare con «https://» o «webcal://».', pl: 'To nie jest prawidłowy link do kalendarza. Musi zaczynać się od „https://” lub „webcal://”.', tr: "Bu geçerli bir takvim bağlantısı değil. „https://” veya „webcal://” ile başlamalı.", uk: 'Це не дійсне посилання на календар. Воно має починатися з «https://» або «webcal://».' });
   return L({ de: 'Der Kalender ließ sich gerade nicht laden. Ordela versucht es später erneut.', en: 'The calendar could not be loaded right now. Ordela will try again later.', fr: 'Le calendrier n’a pas pu être chargé. Ordela réessaiera plus tard.', es: 'No se pudo cargar el calendario. Ordela lo intentará más tarde.', it: 'Il calendario non è stato caricato. Ordela riproverà più tardi.', pl: 'Nie udało się wczytać kalendarza. Ordela spróbuje ponownie później.', tr: 'Takvim şu anda yüklenemedi. Ordela daha sonra yeniden deneyecek.', uk: 'Не вдалося завантажити календар. Ordela спробує пізніше.' });
 }
 async function calSubSync(sub) {
@@ -10113,8 +10135,9 @@ function calSubAddSheet() {
   ov.querySelector('#calSubCancel').onclick = () => ov.classList.remove('on');
   ov.querySelector('#calSubSave').onclick = async () => {
     const name = ov.querySelector('#calSubName').value.trim() || L({ de: 'Kalender', en: 'Calendar', fr: 'Calendrier', es: 'Calendario', it: 'Calendario', pl: 'Kalendarz', tr: 'Takvim', uk: 'Календар' });
-    const url = ov.querySelector('#calSubUrl').value.trim().replace(/^webcal:/i, 'https:');
+    const url = ov.querySelector('#calSubUrl').value.replace(/\s+/g, '').replace(/^(?:webcal|http):/i, 'https:');
     const msg = ov.querySelector('#calSubMsg');
+    if (/calendar\.google\.com\/calendar\/(?:u\/\d+\/?)?(?:r|embed|render)?.*[?&](?:cid|src)=/i.test(url) && !/\/ical\//i.test(url)) { msg.textContent = calSubErrText('share_link'); return; }
     if (!/^https:\/\/\S+$/i.test(url)) { msg.textContent = calSubErrText('bad_url'); return; }
     if (calSubs().some(s => s.url === url)) { msg.textContent = L({ de: 'Diesen Kalender hast du schon abonniert.', en: 'You already subscribed to this calendar.', fr: 'Tu es déjà abonné(e) à ce calendrier.', es: 'Ya estás suscrito a este calendario.', it: 'Sei già iscritto a questo calendario.', pl: 'Ten kalendarz już subskrybujesz.', tr: 'Bu takvime zaten abonesin.', uk: 'Ти вже підписаний на цей календар.' }); return; }
     msg.textContent = L({ de: 'Lade Kalender …', en: 'Loading calendar …', fr: 'Chargement du calendrier …', es: 'Cargando calendario …', it: 'Caricamento del calendario …', pl: 'Wczytywanie kalendarza …', tr: 'Takvim yükleniyor …', uk: 'Завантаження календаря …' });
@@ -12491,7 +12514,7 @@ const familyMaxChildren = () => FAMILY_MAX_CHILDREN + ((store.family && store.fa
 function grantAddon(kind) { ensureFamily(); if (kind === 'adult') store.family.addons.adult++; else store.family.addons.child++; famChanged(); }
 async function bookAddon(kind) {
   const p = ADDON_PRODUCTS[kind]; if (!p) return;
-  if (!hasPlayBilling()) { toast('ℹZusatzmitglieder buchst du in der Ordela-App über Google Play (im Browser nicht möglich).'); return; }
+  if (!hasPlayBilling()) { billingHintToast('ℹZusatzmitglieder buchst du in der Ordela-App über Google Play (im Browser nicht möglich).'); return; }
   try {
     let svc = null; try { svc = await window.getDigitalGoodsService('https://play.google.com/billing'); } catch (e) { console.warn('[Ordela addon DGS]', e && e.name, e && e.message); }
     // Vorabcheck 1: kennt Google dieses Add-on-Produkt als kaufbares Angebot? Sonst rejected show() nur mit Sammelfehler.
@@ -12757,7 +12780,7 @@ function plusAck(token) {
 }
 async function plusRestore(silent) {
   if (PLUS_ENABLED && appleIap()) return appleRestorePlus(silent);
-  if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) toast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
+  if (!PLUS_ENABLED || !hasPlayBilling()) { if (!silent) billingHintToast(pickLang({ de: 'Wiederherstellen geht in der Ordela-App aus Google Play.', en: 'Restoring works in the Ordela app from Google Play.', fr: 'La restauration fonctionne dans l’app Ordela de Google Play.', es: 'La restauración funciona en la app Ordela de Google Play.', it: 'Il ripristino funziona nell’app Ordela di Google Play.', pl: 'Przywracanie działa w aplikacji Ordela z Google Play.', tr: 'Geri yükleme Google Play’deki Ordela uygulamasında çalışır.', uk: 'Відновлення працює в застосунку Ordela з Google Play.' })); return false; }
   try {
     const svc = await window.getDigitalGoodsService('https://play.google.com/billing');
     const list = (svc && typeof svc.listPurchases === 'function') ? await svc.listPurchases() : [];
@@ -12774,7 +12797,7 @@ async function plusRestore(silent) {
 }
 async function plusBuy() {
   if (appleIap()) return appleBuyPlus();
-  if (!hasPlayBilling()) { toast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
+  if (!hasPlayBilling()) { billingHintToast(pickLang({ de: 'Ordela Plus kaufst du in der Ordela-App aus Google Play.', en: 'You can buy Ordela Plus in the Ordela app from Google Play.', fr: 'Tu peux acheter Ordela Plus dans l’app Ordela de Google Play.', es: 'Puedes comprar Ordela Plus en la app Ordela de Google Play.', it: 'Puoi acquistare Ordela Plus nell’app Ordela di Google Play.', pl: 'Ordela Plus kupisz w aplikacji Ordela z Google Play.', tr: 'Ordela Plus’ı Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Ordela Plus можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku: PLUS_SKU } }],
       { total: { label: 'Ordela Plus', amount: { currency: 'EUR', value: '0' } } });
@@ -12934,7 +12957,7 @@ async function kiBuy(sku) {
   sku = kiPackBySku(sku).sku;
   const L = pickLang;
   if (appleIap()) return appleBuyKi(sku);
-  if (!hasPlayBilling()) { toast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
+  if (!hasPlayBilling()) { billingHintToast(L({ de: 'KI-Pakete kaufst du in der Ordela-App aus Google Play.', en: 'You can buy AI packs in the Ordela app from Google Play.', fr: 'Les packs IA s’achètent dans l’app Ordela de Google Play.', es: 'Los paquetes de IA se compran en la app Ordela de Google Play.', it: 'I pacchetti IA si acquistano nell’app Ordela di Google Play.', pl: 'Pakiety AI kupisz w aplikacji Ordela z Google Play.', tr: 'Yapay zekâ paketlerini Google Play’deki Ordela uygulamasından alabilirsin.', uk: 'Пакети ШІ можна купити в застосунку Ordela з Google Play.' })); return; }
   try {
     const req = new PaymentRequest([{ supportedMethods: 'https://play.google.com/billing', data: { sku } }],
       { total: { label: 'Ordela KI-Paket', amount: { currency: 'EUR', value: '0' } } });
