@@ -248,7 +248,7 @@ html.native .gate-lang{top:calc(12px + env(safe-area-inset-top))}
 .bootfx-orb::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(77,124,255,.7);animation:bootSpin 1.4s linear infinite reverse}
 .bootfx-txt{text-align:center;opacity:0;transform:translateY(8px);animation:bootRise .7s .35s ease forwards}
 .bootfx-hi{font-family:var(--font-head);font-size:26px;font-weight:650;letter-spacing:.1px;color:var(--text)}
-.bootfx-sub{margin-top:6px;font-size:13.5px;color:var(--muted);letter-spacing:.4px}
+.bootfx-sub{margin:6px auto 0;max-width:32ch;padding:0 20px;font-size:13.5px;line-height:1.45;color:var(--muted);letter-spacing:.3px}
 .bootfx-dots{display:flex;gap:6px;opacity:0;animation:bootRise .6s .62s ease forwards}
 .bootfx-dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bootBlink 1.2s infinite}
 .bootfx-dots i:nth-child(2){animation-delay:.2s}.bootfx-dots i:nth-child(3){animation-delay:.4s}
@@ -2022,7 +2022,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 /* Start ohne Konto (.auth-start): kein Formular, nur der große Knopf und eine
    Vertrauenszeile – die Karte tritt zurück. */
 #auth.auth-start .auth-card{background:none;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:4px 4px 0}
-#auth.auth-start #authTitle,#auth.auth-start #authSub,#auth.auth-start .auth-err{display:none}
+#auth.auth-start #authTitle,#auth.auth-start #authSub,#auth.auth-start .auth-err,#auth.auth-start .auth-tag{display:none}
+#auth.auth-start .auth-slogan{margin-bottom:20px}
 #auth.auth-start .gate-cta{padding:17px;font-size:17px;border-radius:16px;box-shadow:0 14px 36px rgba(37,72,190,.45)}
 #auth.auth-start .auth-foot{justify-content:center;border-top:0;margin-top:14px;padding-top:0}
 #auth.auth-start .gate-note{flex:none;color:rgba(232,237,255,.86)}
@@ -4867,7 +4868,7 @@ const TDICT_SRC = {
   'Guten Tag': { en: 'Hello', fr: 'Bonjour', es: 'Hola', it: 'Ciao', pl: 'Cześć', tr: "İyi günler", uk: "Доброго дня" },
   'Guten Abend': { en: 'Good evening', fr: 'Bonsoir', es: 'Buenas tardes', it: 'Buonasera', pl: 'Dobry wieczór', tr: "İyi akşamlar", uk: "Доброго вечора" },
   'Gute Nacht': { en: 'Good night', fr: 'Bonne nuit', es: 'Buenas noches', it: 'Buonanotte', pl: 'Dobranoc', tr: "İyi geceler", uk: "На добраніч" },
-  'Das Betriebssystem für deinen Alltag': { en: 'The operating system for your everyday life', fr: 'Le système d’exploitation de ton quotidien', es: 'El sistema operativo de tu día a día', it: 'Il sistema operativo della tua quotidianità', pl: 'System operacyjny Twojej codzienności', tr: "Günlük hayatının işletim sistemi", uk: "Операційна система для твого повсякдення" },
+  'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.': { en: 'A calm, reliable place for everything that matters to you.', fr: 'Un endroit calme et fiable pour tout ce qui compte pour toi.', es: 'Un lugar tranquilo y fiable para todo lo que te importa.', it: 'Un posto tranquillo e affidabile per tutto ciò che conta per te.', pl: 'Spokojne, niezawodne miejsce na wszystko, co jest dla Ciebie ważne.', tr: "Senin için önemli olan her şey için sakin ve güvenilir bir yer.", uk: "Спокійне, надійне місце для всього, що для тебе важливе." },
   'Schön, dass du da bist.': { en: 'Good to have you here.', fr: 'Quel plaisir de te voir.', es: 'Qué bueno tenerte aquí.', it: 'Che bello averti qui.', pl: 'Dobrze, że jesteś.', tr: "Burada olman güzel.", uk: "Добре, що ти тут." },
   'Start-Erlebnis': { en: 'Startup experience', fr: 'Expérience de démarrage', es: 'Experiencia de inicio', it: 'Esperienza d’avvio', pl: 'Ekran startowy', tr: "Başlangıç deneyimi", uk: "Стартовий досвід" },
   'Beim Öffnen begrüßt dich Ordela mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.': { en: 'When you open the app, Ordela greets you by name – depending on the time of day, with a short startup sound.', fr: 'À l’ouverture, Ordela t’accueille par ton prénom – selon l’heure, avec un court son de démarrage.', es: 'Al abrir, Ordela te saluda por tu nombre, según la hora del día, con un breve sonido de inicio.', it: 'All’apertura, Ordela ti saluta per nome – a seconda dell’ora, con un breve suono d’avvio.', pl: 'Po otwarciu Ordela wita Cię imieniem – zależnie od pory dnia, z krótkim dźwiękiem startowym.', tr: "Uygulamayı açtığında Ordela seni adınla karşılar – günün saatine göre, kısa bir başlangıç sesiyle.", uk: "Під час відкриття Ordela вітає тебе на ім'я – залежно від часу доби, з коротким стартовим звуком." },
@@ -13656,7 +13657,7 @@ function bootExperience() {
   if (document.getElementById('bootFx')) return;
   const name = (store.name || (account && account.name) || '').trim();
   const hi = greetWord() + (name ? ', ' + name : '');
-  const sub = (curLang === 'de' ? 'Das Betriebssystem für deinen Alltag' : (lookupTr('Das Betriebssystem für deinen Alltag') || 'Das Betriebssystem für deinen Alltag'));
+  const sub = (curLang === 'de' ? 'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.' : (lookupTr('Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.') || 'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.'));
   const ov = document.createElement('div');
   ov.id = 'bootFx'; ov.setAttribute('data-noi18n', ''); ov.setAttribute('role', 'status');
   ov.innerHTML = '<div class="bootfx-orb"></div>' +
