@@ -1447,6 +1447,9 @@ body.store-safe [data-buy]{display:none!important}
 .ob-slide .logo-mark{width:92px;height:92px;margin:0 auto 26px;filter:drop-shadow(0 10px 40px rgba(77,124,255,.6))}
 .ob-slide h1{font-size:48px;font-weight:650;letter-spacing:-.5px;margin-bottom:4px;line-height:1;color:var(--text)}
 .ob-slide .brand-slogan{justify-content:center}
+.ob-slide p.ob-slogan{font-size:clamp(26px,7.4vw,34px);line-height:1.12;font-weight:700;letter-spacing:-.6px;color:#fff;margin:2px 0 14px}
+.ob-slide p.ob-slogan span{display:block}
+.ob-gold{width:-moz-fit-content;width:fit-content;margin:0 auto;color:#F2C75C;background:linear-gradient(100deg,#F7D774 0%,#EDBE55 50%,#D49A2A 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .ob-slide h2{font-size:22px;margin-bottom:10px;letter-spacing:-.2px}
 .ob-slide .tagline{color:var(--accent-ink);font-weight:600;font-size:15.5px;margin-bottom:14px}
 .ob-slide p{color:var(--muted);font-size:14.5px}
@@ -2378,8 +2381,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   <div class="ob-slide active" data-slide="0">
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
     <h1>Ordela</h1>
-    <div class="brand-slogan brand-slogan-lg"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
-    <p>Nicht nur Informationen liefern – <br><b>Arbeit abnehmen.</b><br><br>Ordela versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.</p>
+    <p class="ob-slogan font-head"><span>Dein Alltag.</span> <span class="ob-gold">An einem Platz.</span></p>
+    <p>Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.</p>
   </div>
   <div class="ob-slide" data-slide="1">
     <h2>Was Ordela für dich tut</h2>
@@ -5018,9 +5021,8 @@ const TDICT_SRC = {
   'Local-first mit optionalem Cloud-Backup & Sync. Ohne Tracking, ohne Werbung. Notfall- & Budgetdaten bleiben nur lokal.': { en: 'Local-first with optional cloud backup & sync. No tracking, no ads. Emergency & budget data stay local only.', fr: "Local d'abord, avec sauvegarde et synchronisation cloud en option. Sans suivi, sans publicité. Les données d'urgence et de budget restent locales.", es: 'Local primero, con copia y sincronización en la nube opcionales. Sin rastreo, sin anuncios. Los datos de emergencia y presupuesto solo quedan en local.', it: 'Prima locale, con backup e sync cloud opzionali. Senza tracciamento, senza pubblicità. I dati di emergenza e budget restano solo locali.', pl: 'Najpierw lokalnie, z opcjonalną kopią i synchronizacją w chmurze. Bez śledzenia, bez reklam. Dane awaryjne i budżetowe pozostają tylko lokalnie.', tr: "Öncelikli olarak yerel, isteğe bağlı bulut yedekleme ve senkronizasyon ile. Takip yok, reklam yok. Acil durum ve bütçe verileri yalnızca yerel kalır.", uk: "Спершу локально, з опціональним хмарним резервуванням і синхронізацією. Без відстеження, без реклами. Дані для екстрених випадків і бюджету залишаються лише локально." },
   'Abmelden': { en: 'Log out', fr: 'Se déconnecter', es: 'Cerrar sesión', it: 'Esci', pl: 'Wyloguj', tr: "Çıkış yap", uk: "Вийти" },
   /* ===== Login / Onboarding / Startseite ===== */
-  'gewinnt dir Zeit zurück': { en: 'wins you back time', fr: 'te fait gagner du temps', es: 'te devuelve tiempo', it: 'ti restituisce tempo', pl: 'oddaje Ci czas', tr: "sana zaman kazandırır", uk: "повертає тобі час" },
-  'Arbeit abnehmen.': { en: 'Take work off your plate.', fr: 'Te soulager du travail.', es: 'Quitarte trabajo de encima.', it: 'Toglierti lavoro.', pl: 'Zdejmować z Ciebie pracę.', tr: "İşi senden alır.", uk: "Знімає роботу з твоїх плечей." },
-  'Nicht nur Informationen liefern –': { en: 'Not just deliver information –', fr: "Pas seulement fournir des informations –", es: 'No solo dar información –', it: 'Non solo fornire informazioni –', pl: 'Nie tylko dostarczać informacji –', tr: "Sadece bilgi vermez –", uk: "Не лише надає інформацію –" },
+  'Dein Alltag.': { en: 'Your everyday life.', fr: 'Ton quotidien.', es: 'Tu día a día.', it: 'La tua quotidianità.', pl: 'Twoja codzienność.', tr: "Günlük hayatın.", uk: "Ваші будні." },
+  'An einem Platz.': { en: 'All in one place.', fr: 'En un seul endroit.', es: 'En un solo lugar.', it: 'In un unico posto.', pl: 'W jednym miejscu.', tr: "Tek bir yerde.", uk: "В одному місці." },
   'Was Ordela für dich tut': { en: 'What Ordela does for you', fr: 'Ce qu’Ordela fait pour toi', es: 'Lo que Ordela hace por ti', it: 'Cosa fa Ordela per te', pl: 'Co Ordela robi dla Ciebie', tr: "Ordela senin için ne yapar", uk: "Що Ordela робить для тебе" },
   /* ---- App-Führung (Spotlight-Tour beim ersten Start) ---- */
   'Willkommen bei Ordela 👋': { en: 'Welcome to Ordela 👋', fr: 'Bienvenue dans Ordela 👋', es: 'Bienvenido a Ordela 👋', it: 'Benvenuto in Ordela 👋', pl: 'Witaj w Ordeli 👋', tr: "Ordela'ya hoş geldin 👋", uk: "Ласкаво просимо до Ordela 👋" },
@@ -5045,7 +5047,6 @@ const TDICT_SRC = {
   'To-dos und Kalendereinträge entstehen automatisch – nichts geht mehr verloren.': { en: 'To-dos and calendar entries are created automatically – nothing gets lost.', fr: 'Les tâches et les entrées d’agenda sont créées automatiquement – plus rien ne se perd.', es: 'Las tareas y las entradas de calendario se crean automáticamente: nada se pierde.', it: 'Attività e voci di calendario si creano da sole – non si perde più nulla.', pl: 'Zadania i wpisy w kalendarzu powstają automatycznie – nic nie ginie.', tr: "Yapılacaklar ve takvim kayıtları otomatik oluşur – artık hiçbir şey kaybolmaz.", uk: "Справи та записи в календарі створюються автоматично – більше нічого не загубиться." },
   'Termine und Fristen – automatisch aus deinen Dokumenten.': { en: 'Events and deadlines – automatically from your documents.', fr: 'Événements et échéances – automatiquement depuis tes documents.', es: 'Eventos y plazos: automáticamente desde tus documentos.', it: 'Eventi e scadenze – automaticamente dai tuoi documenti.', pl: 'Wydarzenia i terminy – automatycznie z Twoich dokumentów.', tr: "Etkinlikler ve son tarihler – belgelerinden otomatik olarak.", uk: "Події та терміни – автоматично з твоїх документів." },
   'KI-Chat': { en: 'AI chat', fr: 'Chat IA', es: 'Chat con IA', it: 'Chat IA', pl: 'Czat AI', tr: "Yapay zekâ sohbeti", uk: "ШІ-чат" },
-  'Ordela versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.': { en: 'Ordela understands your letters, remembers your deadlines and organizes your day – so you have time for what matters.', fr: "Ordela comprend tes courriers, pense à tes échéances et organise ton quotidien. Pour que tu aies du temps pour l'essentiel.", es: 'Ordela entiende tus cartas, recuerda tus plazos y organiza tu día a día. Para que tengas tiempo para lo que importa.', it: 'Ordela capisce le tue lettere, ricorda le scadenze e organizza la tua giornata. Così hai tempo per ciò che conta.', pl: 'Ordela rozumie Twoje pisma, pamięta o terminach i organizuje Twój dzień. Byś miał czas na to, co ważne.', tr: "Ordela mektuplarını anlar, son tarihlerini hatırlar ve günlük hayatını düzenler. Böylece önemli olan şeylere zamanın kalır.", uk: "Ordela розуміє твої листи, пам'ятає про терміни й організовує твій день. Щоб у тебе був час на те, що важливо." },
   'Ordela v1.0 · lokal & privat': { en: 'Ordela v1.0 · local & private', fr: 'Ordela v1.0 · local et privé', es: 'Ordela v1.0 · local y privado', it: 'Ordela v1.0 · locale e privato', pl: 'Ordela v1.0 · lokalnie i prywatnie', tr: "Ordela v1.0 · yerel ve gizli", uk: "Ordela v1.0 · локально та приватно" },
   'Ordela AI – per Sprache steuern': { en: 'Ordela AI – control by voice', fr: 'Ordela AI – commander à la voix', es: 'Ordela AI – controlar por voz', it: 'Ordela AI – controlla con la voce', pl: 'Ordela AI – steruj głosem', tr: "Ordela AI – sesle kontrol et", uk: "Ordela AI – керуй голосом" },
   'Sprechen': { en: 'Speak', fr: 'Parler', es: 'Hablar', it: 'Parla', pl: 'Mów', tr: "Konuş", uk: "Говорити" },
