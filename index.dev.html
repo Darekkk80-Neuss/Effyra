@@ -14519,7 +14519,7 @@ function famPersonen() {
   // Primäraktion: EIN Einstieg zum Einladen (Erwachsener/Kind) – bündelt die früher getrennten Wege.
   if (CLOUD) h += '<button class="btn btn-primary" data-fam="invite" style="width:100%;margin-bottom:6px">+ Mitglied einladen</button>' +
     '<p class="sub" style="color:var(--faint);font-size:12px;margin:0 0 14px">Partner mit eigenem Konto &amp; KI – oder Kind ohne Konto.</p>';
-  h += '<details ' + (CLOUD ? '' : 'open') + ' style="margin-bottom:12px"><summary class="sub" style="cursor:pointer;color:var(--faint);font-size:13px">Person nur eintragen (ohne App-Zugang)</summary><div style="margin-top:10px">' +
+  h += '<details ' + (CLOUD ? '' : 'open') + ' style="margin-bottom:12px"><summary class="sub" style="cursor:pointer;color:var(--faint);font-size:13px">' + pickLang({ de: 'Person nur eintragen (ohne App-Zugang)', en: 'Just add a person (no app access)', fr: 'Ajouter seulement une personne (sans accès à l’app)', es: 'Solo añadir una persona (sin acceso a la app)', it: 'Aggiungi solo una persona (senza accesso all’app)', pl: 'Tylko dodaj osobę (bez dostępu do aplikacji)', tr: 'Yalnızca kişi ekle (uygulamaya erişim olmadan)', uk: 'Лише додати особу (без доступу до застосунку)' }) + '</summary><div style="margin-top:10px">' +
     '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
     '<div class="kid-row" style="margin-bottom:8px"><select id="famType"><option value="adult">Erwachsen (18+)</option><option value="child">Kind (unter 18)</option></select>' +
     '<input type="date" id="famBday" title="Geburtsdatum"></div>' +
