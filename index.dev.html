@@ -8,19 +8,19 @@
      Umschalten auf Hell/Dunkel nach (setStatusBarColor). Vorher stand hier fest
      das Akzentblau – im Dunkelmodus leuchtete oben ein blauer Balken. -->
 <meta name="theme-color" content="#090B12">
-<meta name="description" content="Ordela – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.">
+<meta name="description" content="Ordela – Wochenplaner, Familienkalender und ADHS-freundlicher Alltagsplaner: Termine, Familie und Briefe ruhig und übersichtlich an einem Platz. Deine Daten bleiben auf deinem Gerät.">
 <!-- Link-Vorschau (Open Graph / Twitter): zeigt beim Teilen das Ordela-Logo -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ordela">
-<meta property="og:title" content="Ordela – gewinnt dir Zeit zurück">
-<meta property="og:description" content="Dein persönlicher KI-Alltagsmanager: Briefe verstehen, Fristen erkennen, Aufgaben & Termine automatisch organisieren.">
+<meta property="og:title" content="Ordela – Dein Alltag. An einem Platz.">
+<meta property="og:description" content="Wochenplaner, Familienkalender und ADHS-freundlicher Alltagsplaner – Termine, Familie und Briefe ruhig und übersichtlich an einem Platz.">
 <meta property="og:image" content="https://darekkk80-neuss.github.io/Effyra/icon-512.png">
 <meta property="og:image:width" content="512">
 <meta property="og:image:height" content="512">
 <meta property="og:url" content="https://darekkk80-neuss.github.io/Effyra/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Ordela – gewinnt dir Zeit zurück">
-<meta name="twitter:description" content="Dein persönlicher KI-Alltagsmanager: Briefe verstehen, Fristen erkennen, Aufgaben & Termine automatisch organisieren.">
+<meta name="twitter:title" content="Ordela – Dein Alltag. An einem Platz.">
+<meta name="twitter:description" content="Wochenplaner, Familienkalender und ADHS-freundlicher Alltagsplaner – Termine, Familie und Briefe ruhig und übersichtlich an einem Platz.">
 <meta name="twitter:image" content="https://darekkk80-neuss.github.io/Effyra/icon-512.png">
 <!-- Bau-Kennung. build.mjs ersetzt "dev" bei jedem Lauf durch YYYYMMDD-HHMM (UTC).
      Bewusst ein Meta-Tag und keine JS-Konstante: build.mjs minifiziert die Skriptblöcke
@@ -31,7 +31,7 @@
        stellt damit ohne Neubau fest, ob index.html zur aktuellen Quelle gehoert.
        Deterministisch, im Gegensatz zur zeitbasierten Bau-Kennung darueber. -->
   <meta name="effyra-src" content="dev">
-<title>Ordela – gewinnt dir Zeit zurück</title>
+<title>Ordela – Dein Alltag. An einem Platz. | Wochenplaner &amp; Familienkalender</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -248,7 +248,7 @@ html.native .gate-lang{top:calc(12px + env(safe-area-inset-top))}
 .bootfx-orb::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(77,124,255,.7);animation:bootSpin 1.4s linear infinite reverse}
 .bootfx-txt{text-align:center;opacity:0;transform:translateY(8px);animation:bootRise .7s .35s ease forwards}
 .bootfx-hi{font-family:var(--font-head);font-size:26px;font-weight:650;letter-spacing:.1px;color:var(--text)}
-.bootfx-sub{margin-top:6px;font-size:13.5px;color:var(--muted);letter-spacing:.4px}
+.bootfx-sub{margin:6px auto 0;max-width:32ch;padding:0 20px;font-size:13.5px;line-height:1.45;color:var(--muted);letter-spacing:.3px}
 .bootfx-dots{display:flex;gap:6px;opacity:0;animation:bootRise .6s .62s ease forwards}
 .bootfx-dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bootBlink 1.2s infinite}
 .bootfx-dots i:nth-child(2){animation-delay:.2s}.bootfx-dots i:nth-child(3){animation-delay:.4s}
@@ -1424,7 +1424,7 @@ body.store-safe [data-buy]{display:none!important}
      dem Foto; auf dessen hellen Stellen blieb zu wenig Abstand. Dunkler
      gezogen, damit Weiss ueberall sicher ueber 7:1 liegt. */
   linear-gradient(180deg,rgba(7,9,15,.62) 0%,rgba(7,9,15,.72) 55%,rgba(7,9,15,.86) 100%),
-  url('bg.jpg') center/cover no-repeat,var(--bg)}
+  url('bg.webp') center/cover no-repeat,var(--bg)}
 #onboarding.on{display:flex}
 /* App-Führung (Spotlight-Tour) */
 .tour-ov{position:fixed;inset:0;z-index:120;display:none}
@@ -1447,6 +1447,9 @@ body.store-safe [data-buy]{display:none!important}
 .ob-slide .logo-mark{width:92px;height:92px;margin:0 auto 26px;filter:drop-shadow(0 10px 40px rgba(77,124,255,.6))}
 .ob-slide h1{font-size:48px;font-weight:650;letter-spacing:-.5px;margin-bottom:4px;line-height:1;color:var(--text)}
 .ob-slide .brand-slogan{justify-content:center}
+.ob-slide p.ob-slogan{font-size:clamp(26px,7.4vw,34px);line-height:1.12;font-weight:700;letter-spacing:-.6px;color:#fff;margin:2px 0 14px}
+.ob-slide p.ob-slogan span{display:block}
+.ob-gold{width:-moz-fit-content;width:fit-content;margin:0 auto;color:#F2C75C;background:linear-gradient(100deg,#F7D774 0%,#EDBE55 50%,#D49A2A 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .ob-slide h2{font-size:22px;margin-bottom:10px;letter-spacing:-.2px}
 .ob-slide .tagline{color:var(--accent-ink);font-weight:600;font-size:15.5px;margin-bottom:14px}
 .ob-slide p{color:var(--muted);font-size:14.5px}
@@ -1936,7 +1939,7 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   justify-content:center;padding:28px 24px;overflow-y:auto;background:
   radial-gradient(ellipse 90% 60% at 50% -15%,rgba(77,124,255,.1),transparent),
   linear-gradient(180deg,rgba(7,9,15,.28) 0%,rgba(7,9,15,.42) 55%,rgba(7,9,15,.62) 100%),
-  url('bg.jpg') center/cover no-repeat,var(--bg)}
+  url('bg.webp') center/cover no-repeat,var(--bg)}
 .gate.on{display:flex}
 .gate-box{max-width:420px;width:100%;text-align:center;animation:viewIn .45s ease both;
   background:rgba(9,11,18,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
@@ -1980,6 +1983,89 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 .gate-guest:hover{background:rgba(77,124,255,.22);color:#fff;border-color:rgba(77,124,255,.95)}
 .gate-guest:active{transform:translateY(1px)}
 .gate-guest svg{width:18px;height:18px;flex:none}
+/* ---- Startseite (#auth) – Neugestaltung 11/2026 ----
+   Wenig Text, eine Botschaft: „Dein Alltag. An einem Platz." (Werbeslogan), darunter
+   eine Zeile und drei Themen-Chips (die Suchbegriffe aus der Werbung). Der Held steht
+   frei auf dem Bild, nur das Formular sitzt in einer Glaskarte. Die Seite bleibt in
+   beiden Themen dunkel (siehe .gate-Tokens oben), darum feste helle Textfarben. */
+#auth{justify-content:flex-start;padding:calc(env(safe-area-inset-top,0px) + 16px) 20px calc(env(safe-area-inset-bottom,0px) + 20px);background:
+  radial-gradient(ellipse 85% 34% at var(--auth-hx,30%) 30%,rgba(7,11,28,.5),transparent 72%),
+  linear-gradient(180deg,rgba(7,11,28,.46) 0%,rgba(7,11,28,.26) 32%,rgba(7,11,28,.46) 62%,rgba(7,11,28,.84) 100%),
+  url('bg.webp') 30% 30%/cover no-repeat,#0B1430}
+#auth .gate-box{max-width:440px;margin:auto 0;background:none;border:0;border-radius:0;box-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;padding:0;text-align:start}
+#auth .gate-lang{top:4px;right:0;background:rgba(9,13,30,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border-color:rgba(255,255,255,.2);color:#E8EDFF}
+#auth .gate-lang:hover{background:rgba(9,13,30,.62)}
+.auth-hero{padding:0 4px;margin-bottom:24px}
+.auth-mark{display:flex;align-items:center;gap:10px;min-height:42px;margin-bottom:clamp(26px,6vh,52px);padding-right:130px}
+#auth .auth-mark .logo-mark{width:42px;height:42px;margin:0;flex:none;filter:drop-shadow(0 6px 18px rgba(0,0,0,.45))}
+.auth-word{font-size:21px;font-weight:650;letter-spacing:-.2px;color:#fff}
+.auth-slogan{font-size:clamp(34px,10vw,48px);line-height:1.05;font-weight:700;letter-spacing:-1.2px;color:#fff;margin:0 0 14px;
+  text-shadow:0 2px 24px rgba(4,8,22,.45)}
+.auth-slogan span{display:block}
+.auth-slogan .auth-gold{width:-moz-fit-content;width:fit-content;color:#F2C75C;text-shadow:none;
+  background:linear-gradient(100deg,#F7D774 0%,#EDBE55 50%,#D49A2A 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 12px rgba(4,8,22,.75))}
+.auth-tag{font-size:16.5px;line-height:1.45;font-weight:500;color:rgba(241,244,255,.9);margin:0 0 18px;max-width:32ch;text-shadow:0 1px 12px rgba(4,8,22,.5)}
+.auth-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.auth-chips li{display:inline-flex;align-items:center;gap:7px;padding:7px 13px 7px 10px;border-radius:999px;
+  background:rgba(10,15,34,.42);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  font-size:13px;font-weight:600;color:#EEF2FF;line-height:1.2}
+.auth-chips svg{width:16px;height:16px;flex:none;fill:none;stroke:#F2C75C;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.auth-card{background:rgba(9,13,30,.74);-webkit-backdrop-filter:blur(20px) saturate(1.15);backdrop-filter:blur(20px) saturate(1.15);
+  border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px 20px 14px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+#auth .auth-card h2{font-size:19px;margin:0 0 4px;color:#fff}
+#auth .auth-card .gate-sub{font-size:14px;margin:0 0 14px;color:var(--muted)}
+#auth .gate-fields{gap:10px}
+#auth .gate-cta{border-radius:12px;font-weight:700}
+.auth-foot{display:flex;align-items:center;gap:9px;margin-top:6px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+.auth-foot>svg{width:16px;height:16px;flex:none;fill:none;stroke:#8FB0FF;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#auth .gate-note{margin:0;flex:1;font-size:12.5px;line-height:1.45;color:var(--muted)}
+/* Start ohne Konto (.auth-start): kein Formular, nur der große Knopf und eine
+   Vertrauenszeile – die Karte tritt zurück. */
+#auth.auth-start .auth-card{background:none;border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:4px 4px 0}
+#auth.auth-start #authTitle,#auth.auth-start #authSub,#auth.auth-start .auth-err,#auth.auth-start .auth-tag{display:none}
+#auth.auth-start .auth-slogan{margin-bottom:20px}
+#auth.auth-start .gate-cta{padding:17px;font-size:17px;border-radius:16px;box-shadow:0 14px 36px rgba(37,72,190,.45)}
+#auth.auth-start .auth-foot{justify-content:center;border-top:0;margin-top:14px;padding-top:0}
+#auth.auth-start .gate-note{flex:none;color:rgba(232,237,255,.86)}
+/* Startbildschirm: Logo oben, Botschaft + Knopf unten im Daumenbereich – oben bleibt
+   Luft für das Bild. Auf großen Bildschirmen wieder mittig. */
+#auth.auth-start .gate-box{display:flex;flex-direction:column;margin:0 auto;
+  min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 36px);
+  min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 36px)}
+#auth.auth-start .auth-hero{flex:1;display:flex;flex-direction:column;margin-bottom:18px}
+#auth.auth-start .auth-mark{margin-bottom:auto;padding-bottom:28px}
+@media (min-width:900px){
+  #auth.auth-start .gate-box{min-height:0;margin:auto 0;display:block}
+  #auth.auth-start .auth-mark{margin-bottom:44px;padding-bottom:0}
+}
+/* Ruhiges, langsames Einblenden – nacheinander, ohne Hüpfen. */
+@keyframes authRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#auth.on .auth-mark,#auth.on .auth-slogan,#auth.on .auth-tag,#auth.on .auth-chips,#auth.on .auth-card{animation:authRise .9s cubic-bezier(.2,.7,.2,1) both}
+#auth.on .auth-slogan{animation-delay:.12s}
+#auth.on .auth-tag{animation-delay:.26s}
+#auth.on .auth-chips{animation-delay:.38s}
+#auth.on .auth-card{animation-delay:.5s}
+#auth .gate-box{animation:none}
+@media (prefers-reduced-motion:reduce){#auth.on .auth-mark,#auth.on .auth-slogan,#auth.on .auth-tag,#auth.on .auth-chips,#auth.on .auth-card{animation:none}}
+/* Infoblase im Onboarding (antippbar, schließbar) – ersetzt den langen Offline-Absatz der Startseite. */
+.ob-info{margin:16px auto 0;max-width:340px;text-align:left}
+.ob-info-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px 8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.06);color:#E8EDFF;font-size:13px;font-weight:600;cursor:pointer;min-height:40px}
+.ob-info-btn svg{width:17px;height:17px;flex:none;fill:none;stroke:#F2C75C;stroke-width:1.8;stroke-linecap:round}
+.ob-info-pop{position:relative;margin-top:10px;padding:14px 40px 14px 14px;border-radius:14px;background:rgba(16,24,48,.92);
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 30px rgba(0,0,0,.35);font-size:13px;line-height:1.5;color:#DCE3F5}
+.ob-info-pop::before{content:"";position:absolute;top:-7px;left:22px;width:12px;height:12px;background:inherit;
+  border-left:1px solid rgba(255,255,255,.14);border-top:1px solid rgba(255,255,255,.14);transform:rotate(45deg)}
+.ob-info-x{position:absolute;top:4px;right:4px;width:36px;height:36px;border:0;background:none;color:#B9C3DA;font-size:16px;cursor:pointer;border-radius:50%}
+.ob-info-x:hover{background:rgba(255,255,255,.08);color:#fff}
+@media (min-width:900px){
+  #auth{--auth-hx:50%}
+  .auth-mark{margin-bottom:44px}
+  .auth-tag{font-size:17.5px}
+}
 .pw-icon{font-size:52px;margin-bottom:12px}
 .up-box{max-width:480px}
 .tier-cards{display:flex;flex-direction:column;gap:12px;margin-bottom:14px;text-align:left}
@@ -2167,10 +2253,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
 <div id="auth" class="gate">
   <div class="gate-box">
     <button class="gate-lang" id="authLang" data-noi18n aria-label="Sprache wählen / Choose language"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.4 2.5 3.7 5.6 3.7 9S14.4 18.5 12 21C9.6 18.5 8.3 15.4 8.3 12S9.6 5.5 12 3Z"/></svg><span id="authLangTxt">Deutsch</span></button>
-    <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#logoSym"/></svg>
-    <h1 class="gate-brand font-head">Ordela</h1>
-    <div class="brand-slogan"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
-    <p class="gate-value" id="authValue" data-noi18n></p>
+    <div class="auth-hero">
+      <div class="auth-mark"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#logoSym"/></svg><span class="auth-word font-head">Ordela</span></div>
+      <h1 class="auth-slogan font-head" id="authHero" data-noi18n><span>Dein Alltag.</span> <span class="auth-gold">An einem Platz.</span></h1>
+      <p class="auth-tag" id="authValue" data-noi18n>Termine, Familie und Briefe – ruhig und übersichtlich.</p>
+      <ul class="auth-chips" id="authChips" data-noi18n>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4M7.5 14h2M11 14h2M14.5 14h2"/></svg><span>Wochenplaner</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9.5" r="2.3"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5M14.6 14.6c.7-.4 1.5-.6 2.4-.6 2 0 3.6 1.4 4 3.9"/></svg><span>Familienkalender</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg><span>ADHS-freundlich</span></li>
+      </ul>
+    </div>
+    <div class="auth-card">
     <h2 id="authTitle">Konto erstellen</h2>
     <p class="gate-sub" id="authSub">7 Tage kostenlos testen – alle Funktionen inklusive.</p>
     <div class="gate-fields">
@@ -2192,7 +2285,11 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <button class="gate-reset" id="authReset" style="display:none">Passwort vergessen? Konto zurücksetzen</button>
       <button class="gate-reset" id="kidJoinLink" style="margin-top:4px;font-weight:700">Ich habe einen Einladungscode</button>
     </div>
-    <p class="gate-note" id="authNote">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
+    <div class="auth-foot">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
+      <p class="gate-note" id="authNote">Deine Daten liegen auf deinem Gerät und werden – wenn du angemeldet bist – sicher in deinem Konto gesichert (Backup &amp; Mehrgeräte, nur du hast Zugriff). Notfall- &amp; Budgetdaten bleiben nur lokal. Keine Werbung, kein Tracking.<br>Nach der Testphase schaltet ein Abo oder Freischalt-Code alle Funktionen frei.</p>
+    </div>
+    </div>
   </div>
 </div>
 
@@ -2284,8 +2381,8 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
   <div class="ob-slide active" data-slide="0">
     <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logoSym"/></svg>
     <h1>Ordela</h1>
-    <div class="brand-slogan brand-slogan-lg"><svg viewBox="0 0 24 24"><use href="#icClock"/></svg>gewinnt dir Zeit zurück</div>
-    <p>Nicht nur Informationen liefern – <br><b>Arbeit abnehmen.</b><br><br>Ordela versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.</p>
+    <p class="ob-slogan font-head"><span>Dein Alltag.</span> <span class="ob-gold">An einem Platz.</span></p>
+    <p>Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.</p>
   </div>
   <div class="ob-slide" data-slide="1">
     <h2>Was Ordela für dich tut</h2>
@@ -2309,7 +2406,10 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
       <select id="obCountry" data-noi18n aria-labelledby="obCountryLbl"></select>
     </div>
     <p class="ob-note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icPin"/></svg><span>Danach greifen Behörden-Wegweiser, Musterbriefe, Feiertage und Wetter für dein Land – in deiner Sprache.</span></p>
-    <p class="ob-note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#icShield"/></svg><span>Local-first mit Cloud-Backup: Deine Daten liegen auf dem Gerät und werden – angemeldet – sicher in deinem Konto gesichert. Keine Werbung, kein Tracking.</span></p>
+    <div class="ob-info" data-noi18n>
+      <button class="ob-info-btn" id="obInfoBtn" type="button" aria-expanded="false" aria-controls="obInfoPop"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6v.2"/></svg><span id="obInfoBtnTx">Wo bleiben meine Daten?</span></button>
+      <div class="ob-info-pop" id="obInfoPop" role="note" hidden><span id="obInfoTx"></span><button class="ob-info-x" id="obInfoX" type="button" aria-label="Schließen">✕</button></div>
+    </div>
   </div>
   <div class="ob-slide" data-slide="3">
     <h2>Was möchtest du zuerst nutzen?</h2>
@@ -2924,12 +3024,17 @@ body.lang-switching main,body.lang-switching .sidebar,body.lang-switching .topba
     </radialGradient>
     <!-- Logo: Brief mit Herz-Siegel (ab Okt. 2026, ersetzt die Uhr) – gleiche Zeichnung wie icon.svg -->
     <symbol id="logoSym" viewBox="0 0 180 180">
-      <defs><linearGradient id="ordNavy" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1E3270"/><stop offset="1" stop-color="#0B1430"/></linearGradient><linearGradient id="ordGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7D774"/><stop offset="1" stop-color="#D49A2A"/></linearGradient></defs>
-      <rect width="180" height="180" rx="40" fill="url(#ordNavy)"/>
-      <rect x="30" y="48" width="120" height="84" rx="8" fill="#FFFFFF" stroke="#4D7CFF" stroke-width="6"/>
-      <path d="M30 56 L90 100 L150 56" fill="none" stroke="#4D7CFF" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
-      <circle cx="90" cy="102" r="23" fill="url(#ordGold)"/>
-      <path d="M90 113 C77 104 79 91 87 93 C89 93.5 90 95 90 96 C90 95 91 93.5 93 93 C101 91 103 104 90 113 Z" fill="#FFFFFF"/>
+      <defs><linearGradient id="ordBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3355C9"/><stop offset="1" stop-color="#14215A"/></linearGradient><radialGradient id="ordGl" cx=".5" cy=".52" r=".5"><stop offset="0" stop-color="#6E8EF0" stop-opacity=".75"/><stop offset="1" stop-color="#6E8EF0" stop-opacity="0"/></radialGradient><linearGradient id="ordPa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFEFA"/><stop offset="1" stop-color="#EFE7D6"/></linearGradient><linearGradient id="ordFl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6EFDF"/><stop offset="1" stop-color="#E3D6B8"/></linearGradient><radialGradient id="ordSe" cx=".36" cy=".3" r=".8"><stop offset="0" stop-color="#FFF0B8"/><stop offset=".45" stop-color="#E8BC55"/><stop offset="1" stop-color="#9A6A12"/></radialGradient><linearGradient id="ordHe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B98418"/><stop offset="1" stop-color="#8C5E0C"/></linearGradient><filter id="ordSh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#030714" flood-opacity=".55"/></filter><filter id="ordSs" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#5A3A00" flood-opacity=".45"/></filter></defs>
+      <rect width="180" height="180" rx="40" fill="url(#ordBg)"/>
+      <rect width="180" height="180" rx="40" fill="url(#ordGl)"/>
+      <g filter="url(#ordSh)"><rect x="24" y="48" width="132" height="92" rx="11" fill="url(#ordPa)"/></g>
+      <path d="M24 134 L80 98 M156 134 L100 98" stroke="#C9B994" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M24 59 Q24 48 35 48 L145 48 Q156 48 156 59 L97 103 Q90 108 83 103 Z" fill="url(#ordFl)"/>
+      <path d="M27 57 L86 101 Q90 104 94 101 L153 57" fill="none" stroke="#FFFFFF" stroke-opacity=".7" stroke-width="1.2"/>
+      <g filter="url(#ordSs)"><path d="M90 79 l5.2 3.4 6.2-.3 2.7 5.6 5.6 2.7-.3 6.2 3.4 5.2-3.4 5.2.3 6.2-5.6 2.7-2.7 5.6-6.2-.3-5.2 3.4-5.2-3.4-6.2.3-2.7-5.6-5.6-2.7.3-6.2-3.4-5.2 3.4-5.2-.3-6.2 5.6-2.7 2.7-5.6 6.2.3z" fill="url(#ordSe)"/></g>
+      <circle cx="90" cy="104" r="17.5" fill="none" stroke="#8C5E0C" stroke-opacity=".45" stroke-width="1.4"/>
+      <g transform="translate(90 106) scale(1.05) translate(-90 -102)"><path d="M90 113 C77 104 79 91 87 93 C89 93.5 90 95 90 96 C90 95 91 93.5 93 93 C101 91 103 104 90 113 Z" fill="#FFF3CC" opacity=".7" transform="translate(0 .9)"/><path d="M90 113 C77 104 79 91 87 93 C89 93.5 90 95 90 96 C90 95 91 93.5 93 93 C101 91 103 104 90 113 Z" fill="url(#ordHe)"/></g>
+      <ellipse cx="83" cy="93" rx="8" ry="4.5" fill="#FFFFFF" opacity=".35" transform="rotate(-30 83 93)"/>
     </symbol>
     <symbol id="icHome" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icFit" viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -3892,21 +3997,21 @@ function applyStaticI18n() {
 function applyHeadLang() {
   try {
     document.title = pickLang({
-      de: 'Ordela – gewinnt dir Zeit zurück',
-      en: 'Ordela – wins back your time',
-      fr: 'Ordela – te redonne du temps',
-      es: 'Ordela – recupera tu tiempo',
-      it: 'Ordela – ti restituisce tempo',
-      pl: 'Ordela – oddaje Ci czas', tr: "Ordela – sana zaman kazandırır", uk: "Ordela – повертає тобі час"
+      de: 'Ordela – Dein Alltag. An einem Platz. | Wochenplaner & Familienkalender',
+      en: 'Ordela – Your everyday life. All in one place. | Weekly planner & family calendar',
+      fr: 'Ordela – Ton quotidien. En un seul endroit. | Planning de la semaine & calendrier familial',
+      es: 'Ordela – Tu día a día. En un solo lugar. | Planificador semanal y calendario familiar',
+      it: 'Ordela – La tua quotidianità. In un unico posto. | Planner settimanale e calendario di famiglia',
+      pl: 'Ordela – Twoja codzienność. W jednym miejscu. | Planer tygodnia i kalendarz rodzinny', tr: "Ordela – Günlük hayatın. Tek bir yerde. | Haftalık planlayıcı ve aile takvimi", uk: "Ordela – Ваші будні. В одному місці. | Тижневий планер і сімейний календар"
     });
     const m = document.querySelector('meta[name="description"]');
     if (m) m.setAttribute('content', pickLang({
-      de: 'Ordela – Dein persönlicher KI-Alltagsmanager. Briefe verstehen, Fristen erkennen, Aufgaben und Termine automatisch organisieren.',
-      en: 'Ordela – your personal AI everyday manager. Understand letters, spot deadlines, organise tasks and appointments automatically.',
-      fr: 'Ordela – ton assistant IA du quotidien. Comprendre les courriers, repérer les délais, organiser tâches et rendez-vous automatiquement.',
-      es: 'Ordela – tu gestor personal del día a día con IA. Entiende cartas, detecta plazos y organiza tareas y citas automáticamente.',
-      it: 'Ordela – il tuo assistente IA per la vita quotidiana. Capisci le lettere, riconosci le scadenze, organizza attività e appuntamenti in automatico.',
-      pl: 'Ordela – Twój osobisty menedżer codzienności z AI. Rozumie pisma, wykrywa terminy, automatycznie organizuje zadania i spotkania.', tr: "Ordela – kişisel yapay zekâ günlük yaşam yöneticin. Mektupları anla, tarihleri fark et, görevleri ve randevuları otomatik düzenle.", uk: "Ordela – твій особистий ШІ-помічник для повсякдення. Розумій листи, помічай терміни, автоматично організовуй завдання та зустрічі."
+      de: 'Ordela – Wochenplaner, Familienkalender und ADHS-freundlicher Alltagsplaner: Termine, Familie und Briefe ruhig und übersichtlich an einem Platz. Deine Daten bleiben auf deinem Gerät.',
+      en: 'Ordela – weekly planner, family calendar and ADHD-friendly everyday planner: appointments, family and letters, calm and clear, all in one place. Your data stays on your device.',
+      fr: 'Ordela – planning de la semaine, calendrier familial et organisateur adapté au TDAH : rendez-vous, famille et courrier, calme et clair, en un seul endroit. Tes données restent sur ton appareil.',
+      es: 'Ordela – planificador semanal, calendario familiar y organizador apto para TDAH: citas, familia y cartas, con calma y claridad, en un solo lugar. Tus datos se quedan en tu dispositivo.',
+      it: 'Ordela – planner settimanale, calendario di famiglia e organizzatore adatto all’ADHD: appuntamenti, famiglia e lettere, con calma e chiarezza, in un unico posto. I tuoi dati restano sul tuo dispositivo.',
+      pl: 'Ordela – planer tygodnia, kalendarz rodzinny i organizer przyjazny przy ADHD: terminy, rodzina i listy, spokojnie i przejrzyście, w jednym miejscu. Twoje dane zostają na Twoim urządzeniu.', tr: "Ordela – haftalık planlayıcı, aile takvimi ve DEHB dostu günlük planlayıcı: randevular, aile ve mektuplar sakin ve düzenli, tek bir yerde. Verilerin cihazında kalır.", uk: "Ordela – тижневий планер, сімейний календар і зручний при СДУГ планувальник: зустрічі, сім’я та листи – спокійно й зрозуміло, в одному місці. Ваші дані залишаються на вашому пристрої."
     }));
   } catch (e) {}
 }
@@ -3945,7 +4050,15 @@ function applyLang(code, opts) {
   if (curLang === 'de') { stopI18nObserver(); restoreGerman(document.body); }
   else { startI18nObserver(); scheduleSweep(); }
   /* Login-Wand (Nutzen-Zeile + Sprach-Label) folgt der Sprache, solange sie offen ist */
-  try { var _ag = document.getElementById('auth'); if (typeof refreshAuthWall === 'function' && _ag && _ag.classList.contains('on')) refreshAuthWall(); } catch (e) {}
+  try {
+    var _ag = document.getElementById('auth');
+    if (typeof refreshAuthWall === 'function' && _ag && _ag.classList.contains('on')) {
+      refreshAuthWall();
+      /* Offline-Formular (Untertitel, Hinweis, Knopf, Platzhalter) ebenfalls neu
+         setzen – sonst blieb es nach dem Sprachwechsel auf der Startseite deutsch. */
+      if (OFFLINE_ONLY && !CLOUD) setupLocalAuthForm(!account);
+    }
+  } catch (e) {}
   /* Picker-/Datums-Übersetzungen (eigenes Dict) aus den JSON-Dateien nachladen */
   Promise.all([loadLangFile(l.code), l.code !== 'en' ? loadLangFile('en') : Promise.resolve(false)])
     .then(res => {
@@ -4763,7 +4876,7 @@ const TDICT_SRC = {
   'Guten Tag': { en: 'Hello', fr: 'Bonjour', es: 'Hola', it: 'Ciao', pl: 'Cześć', tr: "İyi günler", uk: "Доброго дня" },
   'Guten Abend': { en: 'Good evening', fr: 'Bonsoir', es: 'Buenas tardes', it: 'Buonasera', pl: 'Dobry wieczór', tr: "İyi akşamlar", uk: "Доброго вечора" },
   'Gute Nacht': { en: 'Good night', fr: 'Bonne nuit', es: 'Buenas noches', it: 'Buonanotte', pl: 'Dobranoc', tr: "İyi geceler", uk: "На добраніч" },
-  'Das Betriebssystem für deinen Alltag': { en: 'The operating system for your everyday life', fr: 'Le système d’exploitation de ton quotidien', es: 'El sistema operativo de tu día a día', it: 'Il sistema operativo della tua quotidianità', pl: 'System operacyjny Twojej codzienności', tr: "Günlük hayatının işletim sistemi", uk: "Операційна система для твого повсякдення" },
+  'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.': { en: 'A calm, reliable place for everything that matters to you.', fr: 'Un endroit calme et fiable pour tout ce qui compte pour toi.', es: 'Un lugar tranquilo y fiable para todo lo que te importa.', it: 'Un posto tranquillo e affidabile per tutto ciò che conta per te.', pl: 'Spokojne, niezawodne miejsce na wszystko, co jest dla Ciebie ważne.', tr: "Senin için önemli olan her şey için sakin ve güvenilir bir yer.", uk: "Спокійне, надійне місце для всього, що для тебе важливе." },
   'Schön, dass du da bist.': { en: 'Good to have you here.', fr: 'Quel plaisir de te voir.', es: 'Qué bueno tenerte aquí.', it: 'Che bello averti qui.', pl: 'Dobrze, że jesteś.', tr: "Burada olman güzel.", uk: "Добре, що ти тут." },
   'Start-Erlebnis': { en: 'Startup experience', fr: 'Expérience de démarrage', es: 'Experiencia de inicio', it: 'Esperienza d’avvio', pl: 'Ekran startowy', tr: "Başlangıç deneyimi", uk: "Стартовий досвід" },
   'Beim Öffnen begrüßt dich Ordela mit deinem Namen – je nach Tageszeit, mit kurzem Startklang.': { en: 'When you open the app, Ordela greets you by name – depending on the time of day, with a short startup sound.', fr: 'À l’ouverture, Ordela t’accueille par ton prénom – selon l’heure, avec un court son de démarrage.', es: 'Al abrir, Ordela te saluda por tu nombre, según la hora del día, con un breve sonido de inicio.', it: 'All’apertura, Ordela ti saluta per nome – a seconda dell’ora, con un breve suono d’avvio.', pl: 'Po otwarciu Ordela wita Cię imieniem – zależnie od pory dnia, z krótkim dźwiękiem startowym.', tr: "Uygulamayı açtığında Ordela seni adınla karşılar – günün saatine göre, kısa bir başlangıç sesiyle.", uk: "Під час відкриття Ordela вітає тебе на ім'я – залежно від часу доби, з коротким стартовим звуком." },
@@ -4913,9 +5026,8 @@ const TDICT_SRC = {
   'Local-first mit optionalem Cloud-Backup & Sync. Ohne Tracking, ohne Werbung. Notfall- & Budgetdaten bleiben nur lokal.': { en: 'Local-first with optional cloud backup & sync. No tracking, no ads. Emergency & budget data stay local only.', fr: "Local d'abord, avec sauvegarde et synchronisation cloud en option. Sans suivi, sans publicité. Les données d'urgence et de budget restent locales.", es: 'Local primero, con copia y sincronización en la nube opcionales. Sin rastreo, sin anuncios. Los datos de emergencia y presupuesto solo quedan en local.', it: 'Prima locale, con backup e sync cloud opzionali. Senza tracciamento, senza pubblicità. I dati di emergenza e budget restano solo locali.', pl: 'Najpierw lokalnie, z opcjonalną kopią i synchronizacją w chmurze. Bez śledzenia, bez reklam. Dane awaryjne i budżetowe pozostają tylko lokalnie.', tr: "Öncelikli olarak yerel, isteğe bağlı bulut yedekleme ve senkronizasyon ile. Takip yok, reklam yok. Acil durum ve bütçe verileri yalnızca yerel kalır.", uk: "Спершу локально, з опціональним хмарним резервуванням і синхронізацією. Без відстеження, без реклами. Дані для екстрених випадків і бюджету залишаються лише локально." },
   'Abmelden': { en: 'Log out', fr: 'Se déconnecter', es: 'Cerrar sesión', it: 'Esci', pl: 'Wyloguj', tr: "Çıkış yap", uk: "Вийти" },
   /* ===== Login / Onboarding / Startseite ===== */
-  'gewinnt dir Zeit zurück': { en: 'wins you back time', fr: 'te fait gagner du temps', es: 'te devuelve tiempo', it: 'ti restituisce tempo', pl: 'oddaje Ci czas', tr: "sana zaman kazandırır", uk: "повертає тобі час" },
-  'Arbeit abnehmen.': { en: 'Take work off your plate.', fr: 'Te soulager du travail.', es: 'Quitarte trabajo de encima.', it: 'Toglierti lavoro.', pl: 'Zdejmować z Ciebie pracę.', tr: "İşi senden alır.", uk: "Знімає роботу з твоїх плечей." },
-  'Nicht nur Informationen liefern –': { en: 'Not just deliver information –', fr: "Pas seulement fournir des informations –", es: 'No solo dar información –', it: 'Non solo fornire informazioni –', pl: 'Nie tylko dostarczać informacji –', tr: "Sadece bilgi vermez –", uk: "Не лише надає інформацію –" },
+  'Dein Alltag.': { en: 'Your everyday life.', fr: 'Ton quotidien.', es: 'Tu día a día.', it: 'La tua quotidianità.', pl: 'Twoja codzienność.', tr: "Günlük hayatın.", uk: "Ваші будні." },
+  'An einem Platz.': { en: 'All in one place.', fr: 'En un seul endroit.', es: 'En un solo lugar.', it: 'In un unico posto.', pl: 'W jednym miejscu.', tr: "Tek bir yerde.", uk: "В одному місці." },
   'Was Ordela für dich tut': { en: 'What Ordela does for you', fr: 'Ce qu’Ordela fait pour toi', es: 'Lo que Ordela hace por ti', it: 'Cosa fa Ordela per te', pl: 'Co Ordela robi dla Ciebie', tr: "Ordela senin için ne yapar", uk: "Що Ordela робить для тебе" },
   /* ---- App-Führung (Spotlight-Tour beim ersten Start) ---- */
   'Willkommen bei Ordela 👋': { en: 'Welcome to Ordela 👋', fr: 'Bienvenue dans Ordela 👋', es: 'Bienvenido a Ordela 👋', it: 'Benvenuto in Ordela 👋', pl: 'Witaj w Ordeli 👋', tr: "Ordela'ya hoş geldin 👋", uk: "Ласкаво просимо до Ordela 👋" },
@@ -4940,7 +5052,6 @@ const TDICT_SRC = {
   'To-dos und Kalendereinträge entstehen automatisch – nichts geht mehr verloren.': { en: 'To-dos and calendar entries are created automatically – nothing gets lost.', fr: 'Les tâches et les entrées d’agenda sont créées automatiquement – plus rien ne se perd.', es: 'Las tareas y las entradas de calendario se crean automáticamente: nada se pierde.', it: 'Attività e voci di calendario si creano da sole – non si perde più nulla.', pl: 'Zadania i wpisy w kalendarzu powstają automatycznie – nic nie ginie.', tr: "Yapılacaklar ve takvim kayıtları otomatik oluşur – artık hiçbir şey kaybolmaz.", uk: "Справи та записи в календарі створюються автоматично – більше нічого не загубиться." },
   'Termine und Fristen – automatisch aus deinen Dokumenten.': { en: 'Events and deadlines – automatically from your documents.', fr: 'Événements et échéances – automatiquement depuis tes documents.', es: 'Eventos y plazos: automáticamente desde tus documentos.', it: 'Eventi e scadenze – automaticamente dai tuoi documenti.', pl: 'Wydarzenia i terminy – automatycznie z Twoich dokumentów.', tr: "Etkinlikler ve son tarihler – belgelerinden otomatik olarak.", uk: "Події та терміни – автоматично з твоїх документів." },
   'KI-Chat': { en: 'AI chat', fr: 'Chat IA', es: 'Chat con IA', it: 'Chat IA', pl: 'Czat AI', tr: "Yapay zekâ sohbeti", uk: "ШІ-чат" },
-  'Ordela versteht deine Briefe, denkt an deine Fristen und organisiert deinen Alltag. Damit du Zeit für das hast, was zählt.': { en: 'Ordela understands your letters, remembers your deadlines and organizes your day – so you have time for what matters.', fr: "Ordela comprend tes courriers, pense à tes échéances et organise ton quotidien. Pour que tu aies du temps pour l'essentiel.", es: 'Ordela entiende tus cartas, recuerda tus plazos y organiza tu día a día. Para que tengas tiempo para lo que importa.', it: 'Ordela capisce le tue lettere, ricorda le scadenze e organizza la tua giornata. Così hai tempo per ciò che conta.', pl: 'Ordela rozumie Twoje pisma, pamięta o terminach i organizuje Twój dzień. Byś miał czas na to, co ważne.', tr: "Ordela mektuplarını anlar, son tarihlerini hatırlar ve günlük hayatını düzenler. Böylece önemli olan şeylere zamanın kalır.", uk: "Ordela розуміє твої листи, пам'ятає про терміни й організовує твій день. Щоб у тебе був час на те, що важливо." },
   'Ordela v1.0 · lokal & privat': { en: 'Ordela v1.0 · local & private', fr: 'Ordela v1.0 · local et privé', es: 'Ordela v1.0 · local y privado', it: 'Ordela v1.0 · locale e privato', pl: 'Ordela v1.0 · lokalnie i prywatnie', tr: "Ordela v1.0 · yerel ve gizli", uk: "Ordela v1.0 · локально та приватно" },
   'Ordela AI – per Sprache steuern': { en: 'Ordela AI – control by voice', fr: 'Ordela AI – commander à la voix', es: 'Ordela AI – controlar por voz', it: 'Ordela AI – controlla con la voce', pl: 'Ordela AI – steruj głosem', tr: "Ordela AI – sesle kontrol et", uk: "Ordela AI – керуй голосом" },
   'Sprechen': { en: 'Speak', fr: 'Parler', es: 'Hablar', it: 'Parla', pl: 'Mów', tr: "Konuş", uk: "Говорити" },
@@ -6431,14 +6542,39 @@ function obShow(i) {
        Englisch-Nutzer in DE 'GB' vorbelegt und – klickte er durch – dauerhaft
        gespeichert (QA M-03b). 'Europe/Berlin' → DE. */
     if (cs) { const cur = cs.value || store.country || guessResidenceCountry(); cs.innerHTML = countryOptionsHTML(cur); }
+    obInfoTexts();
   }
   $('#obNext').style.display = i === OB_LAST ? 'none' : '';   // letzte Slide: die Auswahl-Buttons sind die Aktion
   $('#obNext').textContent = 'Weiter';
   $('#obSkip').style.visibility = 'visible';
 }
+/* Infoblase „Wo bleiben meine Daten?" (früher langer Offline-Absatz auf der Startseite).
+   Ehrlich formuliert: gespeichert wird nur auf dem Gerät; Online-Funktionen (KI, Wetter …)
+   schicken das jeweils Nötige an ihren Dienst – siehe Datenschutzerklärung. */
+function obInfoTexts() {
+  const L = pickLang;
+  const bt = $('#obInfoBtnTx'); if (bt) bt.textContent = L({ de: 'Wo bleiben meine Daten?', en: 'Where does my data stay?', fr: 'Où restent mes données ?', es: '¿Dónde se quedan mis datos?', it: 'Dove restano i miei dati?', pl: 'Gdzie są moje dane?', tr: 'Verilerim nerede kalıyor?', uk: 'Де зберігаються мої дані?' });
+  const tx = $('#obInfoTx'); if (tx) tx.textContent = L({
+    de: 'Deine Aufgaben, Termine und Dokumente werden nur auf diesem Gerät gespeichert – wir sehen sie nicht. Nur wenn du eine Online-Funktion nutzt (z. B. KI oder Wetter), geht das dafür Nötige an den jeweiligen Dienst; Details stehen in der Datenschutzerklärung. Keine Werbung, kein Tracking. Tipp: Sichere deine Daten ab und zu unter Einstellungen → Sicherung speichern.',
+    en: 'Your tasks, events and documents are stored only on this device – we never see them. Only when you use an online feature (e.g. AI or weather) is what it needs sent to that service; details are in the privacy policy. No ads, no tracking. Tip: back up your data now and then in Settings → Save backup.',
+    fr: 'Tes tâches, rendez-vous et documents sont enregistrés uniquement sur cet appareil – nous ne les voyons pas. Ce n’est que si tu utilises une fonction en ligne (p. ex. l’IA ou la météo) que le strict nécessaire est envoyé au service concerné ; les détails figurent dans la politique de confidentialité. Pas de pub, pas de pistage. Astuce : sauvegarde tes données de temps en temps dans Réglages → Enregistrer une sauvegarde.',
+    es: 'Tus tareas, citas y documentos se guardan solo en este dispositivo: nosotros no los vemos. Solo si usas una función en línea (p. ej. la IA o el tiempo) se envía lo necesario a ese servicio; los detalles están en la política de privacidad. Sin publicidad ni seguimiento. Consejo: haz una copia de tus datos de vez en cuando en Ajustes → Guardar copia.',
+    it: 'Attività, appuntamenti e documenti vengono salvati solo su questo dispositivo – noi non li vediamo. Solo se usi una funzione online (ad es. IA o meteo) viene inviato il necessario al relativo servizio; i dettagli sono nell’informativa sulla privacy. Niente pubblicità, niente tracciamento. Consiglio: salva ogni tanto i tuoi dati in Impostazioni → Salva backup.',
+    pl: 'Twoje zadania, terminy i dokumenty są zapisywane tylko na tym urządzeniu – my ich nie widzimy. Tylko gdy korzystasz z funkcji online (np. AI lub pogody), do danej usługi trafia to, co niezbędne; szczegóły w polityce prywatności. Bez reklam i śledzenia. Wskazówka: od czasu do czasu zrób kopię w Ustawienia → Zapisz kopię.',
+    tr: 'Görevlerin, randevuların ve belgelerin yalnızca bu cihazda saklanır – biz onları görmeyiz. Yalnızca çevrimiçi bir işlev kullandığında (ör. yapay zekâ veya hava durumu) gerekli olan kısım ilgili hizmete gönderilir; ayrıntılar gizlilik politikasında. Reklam yok, izleme yok. İpucu: Verilerini ara sıra Ayarlar → Yedeği kaydet ile yedekle.',
+    uk: 'Ваші завдання, події та документи зберігаються лише на цьому пристрої – ми їх не бачимо. Лише коли ви користуєтеся онлайн-функцією (напр. ШІ чи погодою), потрібне надсилається відповідному сервісу; подробиці – у політиці конфіденційності. Без реклами, без стеження. Порада: час від часу робіть копію в Налаштуваннях → Зберегти копію.'
+  });
+  const x = $('#obInfoX'); if (x) x.setAttribute('aria-label', L({ de: 'Schließen', en: 'Close', fr: 'Fermer', es: 'Cerrar', it: 'Chiudi', pl: 'Zamknij', tr: 'Kapat', uk: 'Закрити' }));
+}
+function obInfoToggle(open) {
+  const b = $('#obInfoBtn'), pop = $('#obInfoPop'); if (!b || !pop) return;
+  b.setAttribute('aria-expanded', open ? 'true' : 'false'); pop.hidden = !open;
+}
+if ($('#obInfoBtn')) $('#obInfoBtn').addEventListener('click', () => obInfoToggle($('#obInfoBtn').getAttribute('aria-expanded') !== 'true'));
+if ($('#obInfoX')) $('#obInfoX').addEventListener('click', () => { obInfoToggle(false); const b = $('#obInfoBtn'); if (b) b.focus(); });
 function obFinish(target) {
   const n = $('#obName').value.trim();
-  if (n) store.name = n;
+  if (n) { store.name = n; if (account && OFFLINE_ONLY) { account.name = n; saveAccount(); } }
   const cs = $('#obCountry'); if (cs && cs.value) store.country = cs.value;   // Wohnsitz-Land übernehmen
   store.onboarded = true;
   save();
@@ -6700,13 +6836,22 @@ let account = (() => {
 /* Offline: Konten aus der Cloud-Zeit (cloud/Kinder-Session, kein lokales Passwort)
    taugen nicht mehr zum Entsperren → verwerfen. Die Daten selbst liegen unter
    DATA_KEY und bleiben erhalten; man legt nur einen neuen Nickname + Passwort an. */
-if (OFFLINE_ONLY && account && (account.cloud || account.kidMode || !account.hash || !account.salt)) {
+if (OFFLINE_ONLY && account && (account.cloud || account.kidMode || (account.hash ? !account.salt : !account.local))) {
   account = null;
   try { localStorage.removeItem(ACC_KEY); } catch (e) {}
 }
 function saveAccount() {
   try { localStorage.setItem(ACC_KEY, JSON.stringify(account)); } catch (e) {}
 }
+/* Offline: Profil ohne App-Sperre ist immer „angemeldet" – es gibt nichts zu entsperren.
+   Mit Sperre und „Beim Öffnen sperren" (lockOnStart, neu in den Einstellungen) startet
+   die App gesperrt. Bestehende Sperren ohne lockOnStart verhalten sich wie bisher
+   (gesperrt erst nach „Abmelden"). */
+if (OFFLINE_ONLY && account) {
+  if (!account.hash && !account.loggedIn) { account.loggedIn = true; saveAccount(); }
+  else if (account.hash && account.lockOnStart && account.loggedIn) { account.loggedIn = false; saveAccount(); }
+}
+const appLockOn = () => !!(account && account.hash);
 
 /* ============================== GASTMODUS (Weg A) ==============================
    Ordela lässt sich ohne Konto ansehen. Ein Konto UND der 18+-Nachweis werden
@@ -7339,6 +7484,7 @@ function gate() {
     $('#pwSub').textContent = 'Schön, dass du Ordela getestet hast! Wähle einen Plan, um alles weiter zu nutzen – deine Daten bleiben erhalten.';
     $('#pwBack').style.display = 'none';
   }
+  try { syncLogoutBtn(); } catch (e) {}
   if (showWall) setupAuthForm();
   /* Ersteinrichtung: nach dem Login zuerst die Sprache wählen lassen (nicht für Gäste) */
   else if (loggedIn && !isTrialExpired() && (!store.profile || !store.profile.lang) && !$('#langPicker').classList.contains('on')) {
@@ -7359,44 +7505,63 @@ function regBirthOrErr(err) {
   if (age < 18) { err.textContent = 'Konten gibt es erst ab 18. Kinderkonten legt ein Erwachsener in der Familienzentrale an.'; return null; }
   return bday;
 }
-/* Nutzen-Zeile + Sprach-Label auf der Login-Wand – mehrsprachig via pickLang (data-noi18n,
-   damit der DOM-Sweep sie nicht überschreibt). Wird bei jedem Sprachwechsel neu gesetzt. */
+/* Startseite (Login-Wand): Slogan, Kurzzeile, drei Themen-Chips und Info-Text –
+   mehrsprachig via pickLang (data-noi18n, damit der DOM-Sweep sie nicht
+   überschreibt). Wird bei jedem Sprachwechsel neu gesetzt. Die Chips greifen die
+   Suchbegriffe auf, über die Leute kommen (Wochenplaner, Familienkalender, ADHS). */
 function refreshAuthWall() {
+  var L = pickLang;
+  var hero = document.getElementById('authHero');
+  if (hero) {
+    var sl = L({ de: 'Dein Alltag.|An einem Platz.', en: 'Your everyday life.|All in one place.', fr: 'Ton quotidien.|En un seul endroit.', es: 'Tu día a día.|En un solo lugar.', it: 'La tua quotidianità.|In un unico posto.', pl: 'Twoja codzienność.|W jednym miejscu.', tr: 'Günlük hayatın.|Tek bir yerde.', uk: 'Ваші будні.|В одному місці.' }).split('|');
+    hero.textContent = '';
+    var s1 = document.createElement('span'); s1.textContent = sl[0];
+    var s2 = document.createElement('span'); s2.className = 'auth-gold'; s2.textContent = sl[1] || '';
+    hero.appendChild(s1); hero.appendChild(document.createTextNode(' ')); hero.appendChild(s2);
+  }
   var v = document.getElementById('authValue');
-  if (v) v.textContent = pickLang({ de: 'Post vom Amt? Ordela erklärt sie dir – in deiner Sprache.', en: 'Letter from the authorities? Ordela explains it – in your language.', fr: 'Courrier de l’administration ? Ordela vous l’explique – dans votre langue.', es: '¿Carta de la administración? Ordela te la explica – en tu idioma.', it: 'Lettera di un ufficio pubblico? Ordela te la spiega – nella tua lingua.', pl: 'Pismo z urzędu? Ordela wyjaśni Ci je – w Twoim języku.', tr: 'Resmî bir yazı mı geldi? Ordela sana açıklar – kendi dilinde.', uk: 'Лист з відомства? Ordela пояснить його – вашою мовою.' });
+  if (v) v.textContent = L({ de: 'Termine, Familie und Briefe – ruhig und übersichtlich.', en: 'Appointments, family and letters – calm and clear.', fr: 'Rendez-vous, famille et courrier – calme et clair.', es: 'Citas, familia y cartas: con calma y claridad.', it: 'Appuntamenti, famiglia e lettere – con calma e chiarezza.', pl: 'Terminy, rodzina i listy – spokojnie i przejrzyście.', tr: 'Randevular, aile ve mektuplar – sakin ve düzenli.', uk: 'Зустрічі, сім’я та листи – спокійно й зрозуміло.' });
+  var chips = document.querySelectorAll('#authChips li span');
+  var chipTx = [
+    L({ de: 'Wochenplaner', en: 'Weekly planner', fr: 'Planning de la semaine', es: 'Planificador semanal', it: 'Planner settimanale', pl: 'Planer tygodnia', tr: 'Haftalık planlayıcı', uk: 'Тижневий планер' }),
+    L({ de: 'Familienkalender', en: 'Family calendar', fr: 'Calendrier familial', es: 'Calendario familiar', it: 'Calendario di famiglia', pl: 'Kalendarz rodzinny', tr: 'Aile takvimi', uk: 'Сімейний календар' }),
+    L({ de: 'ADHS-freundlich', en: 'ADHD-friendly', fr: 'Adapté au TDAH', es: 'Apto para TDAH', it: 'Adatto all’ADHD', pl: 'Przyjazny przy ADHD', tr: 'DEHB dostu', uk: 'Зручно при СДУГ' })
+  ];
+  for (var i = 0; i < chips.length; i++) chips[i].textContent = chipTx[i] || '';
   var t = document.getElementById('authLangTxt');
   if (t) { try { t.textContent = langMeta(curLang).native; } catch (e) {} }
   var g = document.getElementById('authGuestTxt') || document.getElementById('authGuest');
   if (g) g.textContent = pickLang({ de: 'Ohne Anmeldung ansehen', en: 'Look around without an account', fr: 'Découvrir sans compte', es: 'Ver sin registrarme', it: 'Dai un’occhiata senza account', pl: 'Rozejrzyj się bez konta', tr: 'Hesap açmadan göz at', uk: 'Оглянути без облікового запису' });
 }
-/* Offline-Anmeldung (Weg B): nur Nickname + Passwort, rein lokal. Kein E-Mail,
-   kein Geburtsdatum, kein Google, kein Einladungscode, kein Gastmodus. */
+/* Offline-Startseite. Zwei Zustände:
+   - isReg (noch kein Profil): Ordela startet OHNE Konto – Slogan, Chips, ein großer
+     „Los geht’s"-Knopf. Kein Pflicht-Name, kein Pflicht-Passwort (Klasse .auth-start).
+   - sonst: Sperrseite eines Profils mit App-Sperre (Passwort/PIN). Kein E-Mail,
+     kein Geburtsdatum, kein Google, kein Einladungscode, kein Gastmodus. */
 function setupLocalAuthForm(isReg) {
   const L = pickLang;
-  const nm = $('#auName');
-  nm.style.display = isReg ? '' : 'none';
-  nm.placeholder = L({ de: 'Nickname', en: 'Nickname', fr: 'Pseudo', es: 'Apodo', it: 'Nickname', pl: 'Pseudonim', tr: 'Takma ad', uk: 'Нікнейм' });
-  nm.setAttribute('autocomplete', 'username');
+  const wall = $('#auth'); if (wall) wall.classList.toggle('auth-start', !!isReg);
+  $('#auName').style.display = 'none';
   regFieldsShow(false);
   $('#auEmail').style.display = 'none';
   const pw = $('#auPass');
-  pw.placeholder = L({ de: 'Passwort (mind. 6 Zeichen)', en: 'Password (min. 6 characters)', fr: 'Mot de passe (min. 6 caractères)', es: 'Contraseña (mín. 6 caracteres)', it: 'Password (min. 6 caratteri)', pl: 'Hasło (min. 6 znaków)', tr: 'Şifre (en az 6 karakter)', uk: 'Пароль (мін. 6 символів)' });
-  pw.setAttribute('autocomplete', isReg ? 'new-password' : 'current-password');
-  $('#authTitle').textContent = isReg
-    ? L({ de: 'Profil anlegen', en: 'Create your profile', fr: 'Créer ton profil', es: 'Crea tu perfil', it: 'Crea il tuo profilo', pl: 'Utwórz profil', tr: 'Profilini oluştur', uk: 'Створіть профіль' })
-    : L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' });
-  $('#authSub').textContent = isReg
-    ? L({ de: 'Wähle einen Nickname und ein Passwort. Deine Daten bleiben auf deinem Gerät. Für KI, Wetter und Spritpreise brauchst du Internet.', en: 'Choose a nickname and a password. Your data stays on your device. AI, weather and fuel prices need internet.', fr: 'Choisis un pseudo et un mot de passe. Tes données restent sur ton appareil. L’IA, la météo et les prix du carburant ont besoin d’internet.', es: 'Elige un apodo y una contraseña. Tus datos se quedan en tu dispositivo. La IA, el tiempo y los precios del combustible necesitan internet.', it: 'Scegli un nickname e una password. I tuoi dati restano sul tuo dispositivo. IA, meteo e prezzi del carburante richiedono internet.', pl: 'Wybierz pseudonim i hasło. Twoje dane zostają na Twoim urządzeniu. AI, pogoda i ceny paliw potrzebują internetu.', tr: 'Bir takma ad ve şifre seç. Verilerin cihazında kalır. Yapay zekâ, hava durumu ve yakıt fiyatları internet gerektirir.', uk: 'Оберіть нікнейм і пароль. Ваші дані залишаються на вашому пристрої. ШІ, погода й ціни на пальне потребують інтернету.' })
-    : L({ de: 'Entsperren als {n}', en: 'Unlock as {n}', fr: 'Déverrouiller en tant que {n}', es: 'Desbloquear como {n}', it: 'Sblocca come {n}', pl: 'Odblokuj jako {n}', tr: '{n} olarak kilidi aç', uk: 'Розблокувати як {n}' }).replace('{n}', account.name || '');
+  pw.style.display = isReg ? 'none' : '';
+  pw.placeholder = L({ de: 'Passwort oder PIN', en: 'Password or PIN', fr: 'Mot de passe ou code PIN', es: 'Contraseña o PIN', it: 'Password o PIN', pl: 'Hasło lub PIN', tr: 'Şifre veya PIN', uk: 'Пароль або PIN-код' });
+  pw.setAttribute('autocomplete', 'current-password');
+  $('#authTitle').textContent = isReg ? '' : L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' });
+  $('#authSub').textContent = isReg ? ''
+    : (account && account.name
+      ? L({ de: 'Entsperren als {n}', en: 'Unlock as {n}', fr: 'Déverrouiller en tant que {n}', es: 'Desbloquear como {n}', it: 'Sblocca come {n}', pl: 'Odblokuj jako {n}', tr: '{n} olarak kilidi aç', uk: 'Розблокувати як {n}' }).replace('{n}', account.name)
+      : L({ de: 'Ordela ist gesperrt.', en: 'Ordela is locked.', fr: 'Ordela est verrouillé.', es: 'Ordela está bloqueado.', it: 'Ordela è bloccato.', pl: 'Ordela jest zablokowana.', tr: 'Ordela kilitli.', uk: 'Ordela заблоковано.' }));
   $('#authGo').textContent = isReg
     ? L({ de: 'Los geht’s', en: 'Get started', fr: 'C’est parti', es: 'Empezar', it: 'Iniziamo', pl: 'Zaczynamy', tr: 'Başlayalım', uk: 'Почати' })
     : L({ de: 'Entsperren', en: 'Unlock', fr: 'Déverrouiller', es: 'Desbloquear', it: 'Sblocca', pl: 'Odblokuj', tr: 'Kilidi aç', uk: 'Розблокувати' });
   $('#authToggle').style.display = 'none';
   $('#authReset').style.display = isReg ? 'none' : '';
-  $('#authReset').textContent = L({ de: 'Passwort vergessen? Neu anlegen – deine Daten bleiben', en: 'Forgot your password? Set a new one – your data stays', fr: 'Mot de passe oublié ? En créer un nouveau – tes données restent', es: '¿Olvidaste la contraseña? Crea una nueva: tus datos se mantienen', it: 'Password dimenticata? Creane una nuova: i tuoi dati restano', pl: 'Nie pamiętasz hasła? Ustaw nowe – dane zostają', tr: 'Şifreni mi unuttun? Yenisini oluştur – verilerin kalır', uk: 'Забули пароль? Створіть новий – ваші дані залишаться' });
+  $('#authReset').textContent = L({ de: 'Passwort vergessen? Sperre zurücksetzen – deine Daten bleiben', en: 'Forgot your password? Reset the lock – your data stays', fr: 'Mot de passe oublié ? Réinitialiser le verrou – tes données restent', es: '¿Olvidaste la contraseña? Restablece el bloqueo: tus datos se mantienen', it: 'Password dimenticata? Reimposta il blocco: i tuoi dati restano', pl: 'Nie pamiętasz hasła? Zresetuj blokadę – dane zostają', tr: 'Şifreni mi unuttun? Kilidi sıfırla – verilerin kalır', uk: 'Забули пароль? Скиньте блокування – ваші дані залишаться' });
   ['#authGoogle', '#authOr', '#kidJoinLink', '#authGuest'].forEach(s => { const el = $(s); if (el) el.style.display = 'none'; });
   const note = $('#authNote');
-  if (note) note.textContent = L({ de: 'Offline-Modus: Deine Daten liegen nur auf diesem Gerät und werden nirgendwohin übertragen. Keine Werbung, kein Tracking. Tipp: Sichere sie ab und zu unter Einstellungen → Sicherung speichern.', en: 'Offline mode: your data stays only on this device and is never sent anywhere. No ads, no tracking. Tip: back it up now and then in Settings → Save backup.', fr: 'Mode hors ligne : tes données restent uniquement sur cet appareil et ne sont envoyées nulle part. Pas de pub, pas de pistage. Astuce : sauvegarde-les de temps en temps dans Réglages → Enregistrer une sauvegarde.', es: 'Modo sin conexión: tus datos solo están en este dispositivo y no se envían a ningún sitio. Sin publicidad ni seguimiento. Consejo: haz una copia de vez en cuando en Ajustes → Guardar copia.', it: 'Modalità offline: i tuoi dati restano solo su questo dispositivo e non vengono inviati da nessuna parte. Niente pubblicità, niente tracciamento. Consiglio: salvali ogni tanto in Impostazioni → Salva backup.', pl: 'Tryb offline: dane są tylko na tym urządzeniu i nigdzie nie są wysyłane. Bez reklam i śledzenia. Wskazówka: od czasu do czasu zrób kopię w Ustawienia → Zapisz kopię.', tr: 'Çevrimdışı mod: Verilerin yalnızca bu cihazda durur ve hiçbir yere gönderilmez. Reklam yok, izleme yok. İpucu: Ara sıra Ayarlar → Yedeği kaydet ile yedekle.', uk: 'Офлайн-режим: ваші дані зберігаються лише на цьому пристрої й нікуди не передаються. Без реклами, без стеження. Порада: час від часу робіть копію в Налаштуваннях → Зберегти копію.' });
+  if (note) note.textContent = L({ de: 'Deine Daten bleiben auf deinem Gerät.', en: 'Your data stays on your device.', fr: 'Tes données restent sur ton appareil.', es: 'Tus datos se quedan en tu dispositivo.', it: 'I tuoi dati restano sul tuo dispositivo.', pl: 'Twoje dane zostają na Twoim urządzeniu.', tr: 'Verilerin cihazında kalır.', uk: 'Ваші дані залишаються на вашому пристрої.' });
 }
 function setupAuthForm() {
   $('#authErr').textContent = '';
@@ -7682,25 +7847,24 @@ async function cloudAuth(pass, err) {
    Hinweis: Das ist eine Zugangssperre für das Gerät, keine Verschlüsselung der Daten. */
 async function localAuth(err) {
   const L = pickLang;
-  const pwEl = $('#auPass'), nmEl = $('#auName');
-  [pwEl, nmEl].forEach(el => el && el.removeAttribute('aria-invalid'));
+  const pwEl = $('#auPass');
+  pwEl.removeAttribute('aria-invalid');
   const pass = pwEl.value;
   if (!account) {
-    const nick = (nmEl.value || '').trim();
-    if (nick.length < 2) { err.textContent = L({ de: 'Bitte einen Nickname eingeben (mind. 2 Zeichen).', en: 'Please enter a nickname (at least 2 characters).', fr: 'Saisis un pseudo (au moins 2 caractères).', es: 'Introduce un apodo (mínimo 2 caracteres).', it: 'Inserisci un nickname (almeno 2 caratteri).', pl: 'Podaj pseudonim (min. 2 znaki).', tr: 'Lütfen bir takma ad gir (en az 2 karakter).', uk: 'Введіть нікнейм (щонайменше 2 символи).' }); nmEl.setAttribute('aria-invalid', 'true'); nmEl.focus(); return; }
-    if (pass.length < 6) { err.textContent = L({ de: 'Das Passwort braucht mindestens 6 Zeichen.', en: 'The password needs at least 6 characters.', fr: 'Le mot de passe doit contenir au moins 6 caractères.', es: 'La contraseña necesita al menos 6 caracteres.', it: 'La password deve avere almeno 6 caratteri.', pl: 'Hasło musi mieć co najmniej 6 znaków.', tr: 'Şifre en az 6 karakter olmalı.', uk: 'Пароль має містити щонайменше 6 символів.' }); pwEl.setAttribute('aria-invalid', 'true'); pwEl.focus(); return; }
-    const salt = uid();
-    const hash = await sha256Hex(salt + ':' + pass);
-    account = { name: nick, lastName: '', email: '', role: 'owner', local: true, salt, hash, plan: 'free', trialStart: Date.now(), createdAt: Date.now(), loggedIn: true };
+    /* Start ohne Konto: lokales Profil ohne Passwort. Name kommt (optional) im
+       Onboarding, eine App-Sperre lässt sich in den Einstellungen einschalten. */
+    account = { name: store.name || '', lastName: '', email: '', role: 'owner', local: true, plan: 'free', trialStart: Date.now(), createdAt: Date.now(), loggedIn: true };
     saveAccount();
-    if (!store.name) { store.name = nick; save(); }
-    pwEl.value = ''; nmEl.value = '';
+    /* Die Sprache steht sichtbar auf der Startseite (umschaltbar) – mit dem Tipp auf
+       „Los geht’s" gilt sie als gewählt; sonst käme direkt danach noch der Sprachwähler. */
+    if (!store.profile || !store.profile.lang) { try { applyLang(curLang); } catch (e) {} }
     gate();
-    if (!store.onboarded) { $('#onboarding').classList.add('on'); obShow(0); $('#obName').value = store.name || nick; }
-    toast(L({ de: 'Profil angelegt – alles bleibt auf diesem Gerät ✓', en: 'Profile created – everything stays on this device ✓', fr: 'Profil créé – tout reste sur cet appareil ✓', es: 'Perfil creado: todo se queda en este dispositivo ✓', it: 'Profilo creato: tutto resta su questo dispositivo ✓', pl: 'Profil utworzony – wszystko zostaje na tym urządzeniu ✓', tr: 'Profil oluşturuldu – her şey bu cihazda kalır ✓', uk: 'Профіль створено – усе залишається на цьому пристрої ✓' }));
+    if (!store.onboarded) { $('#onboarding').classList.add('on'); obShow(0); $('#obName').value = store.name || ''; }
+    else toast(L({ de: 'Willkommen zurück', en: 'Welcome back', fr: 'Bon retour', es: 'Bienvenido de nuevo', it: 'Bentornato', pl: 'Witaj ponownie', tr: 'Tekrar hoş geldin', uk: 'З поверненням' }) + (store.name ? ', ' + store.name : ''));
     refresh();
     return;
   }
+  if (!account.hash) { account.loggedIn = true; saveAccount(); gate(); refresh(); return; }
   const hash = await sha256Hex(account.salt + ':' + pass);
   if (hash !== account.hash) { err.textContent = L({ de: 'Falsches Passwort.', en: 'Wrong password.', fr: 'Mot de passe incorrect.', es: 'Contraseña incorrecta.', it: 'Password errata.', pl: 'Nieprawidłowe hasło.', tr: 'Yanlış şifre.', uk: 'Неправильний пароль.' }); pwEl.setAttribute('aria-invalid', 'true'); pwEl.value = ''; pwEl.focus(); return; }
   account.loggedIn = true;
@@ -7782,6 +7946,7 @@ async function logout() {
     gate();
     return;
   }
+  if (OFFLINE_ONLY && account && !account.hash) { gate(); return; }   // ohne App-Sperre gibt es nichts abzumelden
   if (account) { account.loggedIn = false; saveAccount(); }
   gate();   // auch fuer Gast (account == null): Anmelde-Wand wieder zeigen
 }
@@ -7984,10 +8149,11 @@ $('#authReset').addEventListener('click', async () => {
     return;
   }
   if (OFFLINE_ONLY) {
-    if (!confirm(pickLang({ de: 'Neues Passwort festlegen? Nickname und Passwort werden gelöscht und du legst beides neu an. Deine Aufgaben, Termine, Dokumente und Notfalldaten bleiben erhalten.', en: 'Set a new password? Your nickname and password are removed and you create new ones. Your tasks, events, documents and emergency data are kept.', fr: 'Définir un nouveau mot de passe ? Ton pseudo et ton mot de passe sont supprimés et tu en crées de nouveaux. Tes tâches, rendez-vous, documents et données d’urgence sont conservés.', es: '¿Establecer una nueva contraseña? Se borran tu apodo y tu contraseña y creas otros nuevos. Tus tareas, citas, documentos y datos de emergencia se conservan.', it: 'Impostare una nuova password? Nickname e password vengono eliminati e ne crei di nuovi. Attività, appuntamenti, documenti e dati di emergenza restano.', pl: 'Ustawić nowe hasło? Pseudonim i hasło zostaną usunięte, a ty ustawisz nowe. Zadania, terminy, dokumenty i dane awaryjne zostają.', tr: 'Yeni şifre belirlensin mi? Takma adın ve şifren silinir, yenilerini oluşturursun. Görevlerin, randevuların, belgelerin ve acil durum verilerin korunur.', uk: 'Встановити новий пароль? Нікнейм і пароль буде видалено, ви створите нові. Завдання, події, документи та екстрені дані збережуться.' }))) return;
-    try { localStorage.removeItem(ACC_KEY); } catch (e) {}
-    account = null;
-    setupAuthForm();
+    if (!confirm(pickLang({ de: 'App-Sperre zurücksetzen? Das Passwort wird entfernt und Ordela öffnet sich ohne Sperre. In den Einstellungen kannst du eine neue festlegen. Deine Aufgaben, Termine, Dokumente und Notfalldaten bleiben erhalten.', en: 'Reset the app lock? The password is removed and Ordela opens without a lock. You can set a new one in Settings. Your tasks, events, documents and emergency data are kept.', fr: 'Réinitialiser le verrouillage ? Le mot de passe est supprimé et Ordela s’ouvre sans verrou. Tu peux en définir un nouveau dans les Réglages. Tes tâches, rendez-vous, documents et données d’urgence sont conservés.', es: '¿Restablecer el bloqueo? Se elimina la contraseña y Ordela se abre sin bloqueo. Puedes poner uno nuevo en Ajustes. Tus tareas, citas, documentos y datos de emergencia se conservan.', it: 'Reimpostare il blocco? La password viene rimossa e Ordela si apre senza blocco. Puoi impostarne uno nuovo nelle Impostazioni. Attività, appuntamenti, documenti e dati di emergenza restano.', pl: 'Zresetować blokadę? Hasło zostanie usunięte, a Ordela otworzy się bez blokady. Nową ustawisz w Ustawieniach. Zadania, terminy, dokumenty i dane awaryjne zostają.', tr: 'Uygulama kilidi sıfırlansın mı? Şifre kaldırılır ve Ordela kilitsiz açılır. Ayarlar’dan yenisini belirleyebilirsin. Görevlerin, randevuların, belgelerin ve acil durum verilerin korunur.', uk: 'Скинути блокування? Пароль буде видалено, і Ordela відкриється без блокування. Новий можна встановити в Налаштуваннях. Завдання, події, документи та екстрені дані збережуться.' }))) return;
+    if (account) { delete account.hash; delete account.salt; delete account.lockOnStart; account.loggedIn = true; saveAccount(); }
+    $('#auPass').value = '';
+    gate();
+    try { refresh(); } catch (e) {}
     return;
   }
   if (!confirm(pickLang({ de: 'Konto zurücksetzen? Du kannst dich danach neu registrieren. Aufgaben, Termine und Dokumente bleiben erhalten, die Testphase läuft weiter.', en: 'Reset account? You can register again afterwards. Tasks, events and documents are kept; the trial keeps running.', fr: 'Réinitialiser le compte ? Tu pourras te réinscrire ensuite. Tâches, rendez-vous et documents sont conservés, l’essai continue.', es: '¿Restablecer la cuenta? Después podrás registrarte de nuevo. Tareas, citas y documentos se conservan; la prueba sigue activa.', it: 'Reimpostare l’account? Potrai registrarti di nuovo. Attività, appuntamenti e documenti restano; la prova continua.', pl: 'Zresetować konto? Potem możesz zarejestrować się ponownie. Zadania, terminy i dokumenty zostaną zachowane, okres próbny trwa dalej.', tr: "Hesap sıfırlansın mı? Ardından yeniden kayıt olabilirsin. Görevler, randevular ve belgeler korunur, deneme süresi devam eder.", uk: "Скинути обліковий запис? Після цього можеш зареєструватися знову. Завдання, події та документи зберігаються, пробний період триває далі." }))) return;
@@ -13498,7 +13664,7 @@ function bootExperience() {
   if (document.getElementById('bootFx')) return;
   const name = (store.name || (account && account.name) || '').trim();
   const hi = greetWord() + (name ? ', ' + name : '');
-  const sub = (curLang === 'de' ? 'Das Betriebssystem für deinen Alltag' : (lookupTr('Das Betriebssystem für deinen Alltag') || 'Das Betriebssystem für deinen Alltag'));
+  const sub = (curLang === 'de' ? 'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.' : (lookupTr('Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.') || 'Ein ruhiger, verlässlicher Ort für alles, was dir wichtig ist.'));
   const ov = document.createElement('div');
   ov.id = 'bootFx'; ov.setAttribute('data-noi18n', ''); ov.setAttribute('role', 'status');
   ov.innerHTML = '<div class="bootfx-orb"></div>' +
@@ -14354,7 +14520,7 @@ function famPersonen() {
   // Primäraktion: EIN Einstieg zum Einladen (Erwachsener/Kind) – bündelt die früher getrennten Wege.
   if (CLOUD) h += '<button class="btn btn-primary" data-fam="invite" style="width:100%;margin-bottom:6px">+ Mitglied einladen</button>' +
     '<p class="sub" style="color:var(--faint);font-size:12px;margin:0 0 14px">Partner mit eigenem Konto &amp; KI – oder Kind ohne Konto.</p>';
-  h += '<details ' + (CLOUD ? '' : 'open') + ' style="margin-bottom:12px"><summary class="sub" style="cursor:pointer;color:var(--faint);font-size:13px">Person nur eintragen (ohne App-Zugang)</summary><div style="margin-top:10px">' +
+  h += '<details ' + (CLOUD ? '' : 'open') + ' style="margin-bottom:12px"><summary class="sub" style="cursor:pointer;color:var(--faint);font-size:13px">' + pickLang({ de: 'Person nur eintragen (ohne App-Zugang)', en: 'Just add a person (no app access)', fr: 'Ajouter seulement une personne (sans accès à l’app)', es: 'Solo añadir una persona (sin acceso a la app)', it: 'Aggiungi solo una persona (senza accesso all’app)', pl: 'Tylko dodaj osobę (bez dostępu do aplikacji)', tr: 'Yalnızca kişi ekle (uygulamaya erişim olmadan)', uk: 'Лише додати особу (без доступу до застосунку)' }) + '</summary><div style="margin-top:10px">' +
     '<input type="text" id="famName" placeholder="Name" maxlength="30" style="margin-bottom:8px">' +
     '<div class="kid-row" style="margin-bottom:8px"><select id="famType"><option value="adult">Erwachsen (18+)</option><option value="child">Kind (unter 18)</option></select>' +
     '<input type="date" id="famBday" title="Geburtsdatum"></div>' +
@@ -20112,6 +20278,63 @@ async function showPersistState() {
     ? pickLang({ de: '🔒 Dauerhafter Speicher aktiv – das Gerät löscht deine Daten nicht von selbst.', en: '🔒 Persistent storage on – the device will not clear your data on its own.', fr: '🔒 Stockage persistant actif – l’appareil n’effacera pas tes données de lui-même.', es: '🔒 Almacenamiento persistente activo: el dispositivo no borrará tus datos por sí solo.', it: '🔒 Archiviazione persistente attiva: il dispositivo non cancellerà i tuoi dati da solo.', pl: '🔒 Trwała pamięć włączona – urządzenie samo nie usunie Twoich danych.', tr: '🔒 Kalıcı depolama etkin – cihaz verilerini kendiliğinden silmez.', uk: '🔒 Постійне сховище увімкнено – пристрій сам не видалить ваші дані.' })
     : pickLang({ de: 'Hinweis: Der Browser kann die Daten bei Platzmangel löschen. Installiere Ordela als App und sichere regelmäßig.', en: 'Note: the browser may clear the data when space runs low. Install Ordela as an app and back up regularly.', fr: 'Remarque : le navigateur peut effacer les données en cas de manque d’espace. Installe Ordela comme app et sauvegarde régulièrement.', es: 'Nota: el navegador puede borrar los datos si falta espacio. Instala Ordela como app y haz copias con regularidad.', it: 'Nota: il browser può cancellare i dati se manca spazio. Installa Ordela come app e fai backup regolarmente.', pl: 'Uwaga: przeglądarka może usunąć dane przy braku miejsca. Zainstaluj Ordela jako aplikację i rób kopie regularnie.', tr: 'Not: Tarayıcı yer azaldığında verileri silebilir. Ordela’yı uygulama olarak yükle ve düzenli yedekle.', uk: 'Увага: браузер може видалити дані, якщо бракує місця. Встановіть Ordela як застосунок і регулярно робіть копії.' });
 }
+/* ---- Optionale App-Sperre (offline) ----
+   Ordela startet ohne Konto. Wer mag, schützt die App auf diesem Gerät mit Passwort/PIN.
+   Gespeichert wird nur ein gesalzener SHA-256-Prüfwert (account.salt/hash) – eine Sperre,
+   keine Verschlüsselung. lockOnStart: beim Öffnen gesperrt starten. */
+function lockCardHTML() {
+  const L = pickLang, on = appLockOn();
+  let h = '<div class="note-box" style="margin-bottom:12px" data-noi18n id="lockCard"><b>' + esc(L({ de: 'App-Sperre', en: 'App lock', fr: 'Verrouillage de l’app', es: 'Bloqueo de la app', it: 'Blocco app', pl: 'Blokada aplikacji', tr: 'Uygulama kilidi', uk: 'Блокування застосунку' })) + ' · ' +
+    esc(on ? L({ de: 'an', en: 'on', fr: 'activé', es: 'activado', it: 'attivo', pl: 'włączona', tr: 'açık', uk: 'увімкнено' }) : L({ de: 'aus', en: 'off', fr: 'désactivé', es: 'desactivado', it: 'disattivo', pl: 'wyłączona', tr: 'kapalı', uk: 'вимкнено' })) + '</b>';
+  if (!on) {
+    h += '<div class="sub" style="margin-top:4px">' + esc(L({ de: 'Schütze Ordela auf diesem Gerät mit einem Passwort oder einer PIN (mind. 4 Zeichen). Das ist eine Sperre, keine Verschlüsselung.', en: 'Protect Ordela on this device with a password or PIN (at least 4 characters). This is a lock, not encryption.', fr: 'Protège Ordela sur cet appareil avec un mot de passe ou un code PIN (au moins 4 caractères). C’est un verrou, pas un chiffrement.', es: 'Protege Ordela en este dispositivo con una contraseña o un PIN (mínimo 4 caracteres). Es un bloqueo, no un cifrado.', it: 'Proteggi Ordela su questo dispositivo con una password o un PIN (almeno 4 caratteri). È un blocco, non una crittografia.', pl: 'Chroń Ordelę na tym urządzeniu hasłem lub PIN-em (min. 4 znaki). To blokada, nie szyfrowanie.', tr: 'Ordela’yı bu cihazda bir şifre veya PIN ile koru (en az 4 karakter). Bu bir kilittir, şifreleme değildir.', uk: 'Захистіть Ordela на цьому пристрої паролем або PIN-кодом (щонайменше 4 символи). Це блокування, а не шифрування.' })) + '</div>' +
+      '<input type="password" id="lockNew" maxlength="80" autocomplete="new-password" style="margin-top:10px" placeholder="' + esc(L({ de: 'Passwort oder PIN', en: 'Password or PIN', fr: 'Mot de passe ou code PIN', es: 'Contraseña o PIN', it: 'Password o PIN', pl: 'Hasło lub PIN', tr: 'Şifre veya PIN', uk: 'Пароль або PIN-код' })) + '">' +
+      '<input type="password" id="lockNew2" maxlength="80" autocomplete="new-password" style="margin-top:8px" placeholder="' + esc(L({ de: 'Noch einmal eingeben', en: 'Enter it again', fr: 'Saisis-le à nouveau', es: 'Introdúcelo de nuevo', it: 'Inseriscilo di nuovo', pl: 'Wpisz ponownie', tr: 'Tekrar gir', uk: 'Введіть ще раз' })) + '">' +
+      '<div class="auth-err" id="lockErr" role="alert"></div>' +
+      '<button class="btn btn-sm btn-primary" id="lockOnBtn">' + esc(L({ de: 'Sperre einschalten', en: 'Turn on lock', fr: 'Activer le verrou', es: 'Activar bloqueo', it: 'Attiva blocco', pl: 'Włącz blokadę', tr: 'Kilidi etkinleştir', uk: 'Увімкнути блокування' })) + '</button>';
+  } else {
+    h += '<label class="sub" style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer"><input type="checkbox" id="lockStart"' + (account.lockOnStart ? ' checked' : '') + ' style="width:auto;margin:0"> ' +
+      esc(L({ de: 'Beim Öffnen sperren', en: 'Lock when opening', fr: 'Verrouiller à l’ouverture', es: 'Bloquear al abrir', it: 'Blocca all’apertura', pl: 'Blokuj przy otwieraniu', tr: 'Açılışta kilitle', uk: 'Блокувати під час відкриття' })) + '</label>' +
+      '<input type="password" id="lockCur" maxlength="80" autocomplete="current-password" style="margin-top:10px" placeholder="' + esc(L({ de: 'Aktuelles Passwort (zum Ausschalten)', en: 'Current password (to turn off)', fr: 'Mot de passe actuel (pour désactiver)', es: 'Contraseña actual (para desactivar)', it: 'Password attuale (per disattivare)', pl: 'Obecne hasło (aby wyłączyć)', tr: 'Mevcut şifre (kapatmak için)', uk: 'Поточний пароль (щоб вимкнути)' })) + '">' +
+      '<div class="auth-err" id="lockErr" role="alert"></div>' +
+      '<div class="set-row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-sm" id="lockNowBtn">' + esc(L({ de: 'Jetzt sperren', en: 'Lock now', fr: 'Verrouiller maintenant', es: 'Bloquear ahora', it: 'Blocca ora', pl: 'Zablokuj teraz', tr: 'Şimdi kilitle', uk: 'Заблокувати зараз' })) + '</button>' +
+      '<button class="btn btn-sm" id="lockOffBtn">' + esc(L({ de: 'Sperre ausschalten', en: 'Turn off lock', fr: 'Désactiver le verrou', es: 'Desactivar bloqueo', it: 'Disattiva blocco', pl: 'Wyłącz blokadę', tr: 'Kilidi kapat', uk: 'Вимкнути блокування' })) + '</button></div>';
+  }
+  return h + '</div>';
+}
+function wireLockCard() {
+  const L = pickLang, err = $('#lockErr');
+  const rerender = () => { try { renderAccountCard(); } catch (e) {} syncLogoutBtn(); };
+  const onB = $('#lockOnBtn');
+  if (onB) onB.addEventListener('click', async () => {
+    const a = $('#lockNew').value, b = $('#lockNew2').value;
+    if (a.length < 4) { err.textContent = L({ de: 'Bitte mindestens 4 Zeichen.', en: 'Please use at least 4 characters.', fr: 'Au moins 4 caractères, s’il te plaît.', es: 'Usa al menos 4 caracteres.', it: 'Usa almeno 4 caratteri.', pl: 'Użyj co najmniej 4 znaków.', tr: 'Lütfen en az 4 karakter kullan.', uk: 'Щонайменше 4 символи, будь ласка.' }); return; }
+    if (a !== b) { err.textContent = L({ de: 'Die beiden Eingaben stimmen nicht überein.', en: 'The two entries don’t match.', fr: 'Les deux saisies ne correspondent pas.', es: 'Las dos entradas no coinciden.', it: 'I due inserimenti non coincidono.', pl: 'Oba wpisy się nie zgadzają.', tr: 'İki giriş eşleşmiyor.', uk: 'Обидва введення не збігаються.' }); return; }
+    const salt = uid();
+    account.salt = salt; account.hash = await sha256Hex(salt + ':' + a); account.lockOnStart = true; account.loggedIn = true;
+    saveAccount();
+    toast(L({ de: 'App-Sperre eingeschaltet ✓', en: 'App lock turned on ✓', fr: 'Verrouillage activé ✓', es: 'Bloqueo activado ✓', it: 'Blocco attivato ✓', pl: 'Blokada włączona ✓', tr: 'Uygulama kilidi açıldı ✓', uk: 'Блокування увімкнено ✓' }));
+    rerender();
+  });
+  const st = $('#lockStart');
+  if (st) st.addEventListener('change', () => { account.lockOnStart = st.checked; saveAccount(); });
+  const now = $('#lockNowBtn');
+  if (now) now.addEventListener('click', () => logout());
+  const off = $('#lockOffBtn');
+  if (off) off.addEventListener('click', async () => {
+    const cur = $('#lockCur').value;
+    if ((await sha256Hex(account.salt + ':' + cur)) !== account.hash) { err.textContent = L({ de: 'Falsches Passwort.', en: 'Wrong password.', fr: 'Mot de passe incorrect.', es: 'Contraseña incorrecta.', it: 'Password errata.', pl: 'Nieprawidłowe hasło.', tr: 'Yanlış şifre.', uk: 'Неправильний пароль.' }); return; }
+    delete account.hash; delete account.salt; delete account.lockOnStart; account.loggedIn = true;
+    saveAccount();
+    toast(L({ de: 'App-Sperre ausgeschaltet', en: 'App lock turned off', fr: 'Verrouillage désactivé', es: 'Bloqueo desactivado', it: 'Blocco disattivato', pl: 'Blokada wyłączona', tr: 'Uygulama kilidi kapatıldı', uk: 'Блокування вимкнено' }));
+    rerender();
+  });
+}
+/* „Abmelden" in der Kopfzeile ergibt offline nur mit App-Sperre Sinn (= sperren). */
+function syncLogoutBtn() {
+  const b = $('#dashLogout'); if (!b) return;
+  b.style.display = (OFFLINE_ONLY && !appLockOn()) ? 'none' : '';
+}
 function wireBackupCard() {
   showPersistState();
   const pb = $('#btnPlusInfo'); if (pb) pb.addEventListener('click', plusSheet);
@@ -20165,12 +20388,12 @@ function renderAccountCard() {
 
   if (tier !== 'premium' && !STORE_SAFE) html += '<button class="btn btn-primary" id="btnUpgrade" style="width:100%;margin-bottom:12px">Plan ansehen / upgraden</button>';
 
-  if (OFFLINE_ONLY) html += plusCardHTML() + kiPackCardHTML() + backupCardHTML();
+  if (OFFLINE_ONLY) html += plusCardHTML() + kiPackCardHTML() + backupCardHTML() + lockCardHTML();
   else html += '<label class="fld" for="setCode">Freischalt-Code</label>' +
     '<div class="set-row"><input type="text" id="setCode" placeholder="Code" maxlength="20" autocomplete="off">' +
     '<button class="btn" id="setCodeGo">Einlösen</button></div><div class="auth-err" id="setCodeErr"></div>';
   html +=
-    '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>' +
+    (OFFLINE_ONLY ? '' : '<div style="margin-top:10px"><button class="btn btn-sm" id="btnLogout">Abmelden</button></div>') +
     '<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px"><button class="btn btn-sm" id="btnDeleteAcc" style="color:var(--danger);border-color:var(--danger)">Konto endgültig löschen</button><div class="sub" style="margin-top:5px;font-size:11.5px;color:var(--faint)">Löscht dein Konto und alle zugehörigen Daten unwiderruflich (Recht auf Löschung, Art. 17 DSGVO).</div></div>';
 
   card.innerHTML = html;
@@ -20178,8 +20401,8 @@ function renderAccountCard() {
   const ms = $('#btnManageSub'); if (ms) ms.addEventListener('click', () => openManageSubscription(currentTier() === 'premium' && account.aiScope === 'family' ? 'effyra_family' : 'effyra_premium'));
   const go = $('#setCodeGo'); if (go) go.addEventListener('click', async () => { if (await activatePremium($('#setCode').value, $('#setCodeErr'))) renderAccountCard(); });
   const tu = card.querySelector('[data-buy="topup"]'); if (tu) tu.addEventListener('click', () => startCheckout('topup'));
-  $('#btnLogout').addEventListener('click', logout);
-  if (OFFLINE_ONLY) wireBackupCard();
+  if ($('#btnLogout')) $('#btnLogout').addEventListener('click', logout);
+  if (OFFLINE_ONLY) { wireBackupCard(); wireLockCard(); }
   const del = $('#btnDeleteAcc'); if (del) del.addEventListener('click', deleteAccount);
 }
 /* Konto-Löschung (Art. 17 DSGVO): Bestätigung → Server-Löschung (delete-account) → alle lokalen Daten entfernen. */
